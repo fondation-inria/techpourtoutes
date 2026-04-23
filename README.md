@@ -1,2 +1,123 @@
-# techpourtoutes
- TechpourToutes est un programme gratuit qui vise à amener les jeunes femmes vers les formations et les métiers techniques du numérique. 
+# Tech Pour Toutes
+
+Plateforme web Django pour la communauté Tech Pour Toutes.
+
+## Stack technique
+
+- **Python 3.14** / **Django 6**
+- **uv** pour la gestion des dépendances
+- **PostgreSQL**
+- **Ruff** pour le linting et le formatage
+- **Tailwind CSS** + **DaisyUI** (via django-tailwind-cli)
+- **django-cotton** pour les composants UI
+
+## Structure du projet
+
+```
+conf/               # Configuration Django (settings, urls, wsgi/asgi)
+techpourtoutes/     # Application principale
+  models/
+  views/
+  templates/
+  forms.py
+ui/                 # Design system
+  static/css/       # Source CSS Tailwind
+  svg_source/       # Icônes SVG sources (buildées dans un sprite dans le dossier static)
+  templates/cotton/ # Composants django-cotton
+```
+
+## Installation
+
+### Prérequis
+
+- Python 3.14
+- [uv](https://docs.astral.sh/uv/getting-started/installation/)
+- PostgreSQL
+
+### 1. Cloner le dépôt
+
+```bash
+git clone <url-du-repo>
+cd techpourtoutes
+```
+
+### 2. Installer les dépendances
+
+```bash
+uv sync --group dev
+```
+
+### 3. Configurer les variables d'environnement
+
+```bash
+cp .env.example .env
+```
+
+Puis éditer `.env` :
+
+
+### 4. Créer la base de données
+
+```bash
+createdb techpourtoutes
+```
+
+### 5. Appliquer les migrations
+
+```bash
+uv run python manage.py migrate
+```
+
+### 6. Installer les hooks pre-commit
+
+```bash
+uv run pre-commit install
+```
+
+## Lancer le projet en développement
+
+Il faut deux processus : le serveur Django et le watcher Tailwind. Les deux peuvent tourner ensemble avec la commande
+
+```bash
+uv run python manage.py tailwind runserver
+```
+
+L'application est disponible sur [http://localhost:8000](http://localhost:8000).
+
+
+## Commandes utiles
+
+```bash
+# Lancer les tests
+uv run pytest
+
+# Linter
+uv run ruff check .
+
+# Formateur
+uv run ruff format .
+```
+
+
+## Icônes SVG
+
+Les icônes sont regroupées dans un sprite SVG généré automatiquement.
+
+**Ajouter une icône :**
+
+1. Déposer le fichier `.svg` dans `ui/svg_source/` — le nom du fichier devient l'identifiant de l'icône (ex. `mon-icone.svg`).
+2. Rebuilder le sprite :
+
+```bash
+uv run python manage.py build_svg_sprite
+```
+
+Le sprite est écrit dans `ui/static/svg/sprite.svg`.
+
+**Utiliser une icône dans un template :**
+
+```html
+<c-icon name="mon-icone" class="size-6" />
+```
+
+Le composant cotton `ui/templates/cotton/icon.html` génère un `<svg><use>` qui pointe vers le sprite.

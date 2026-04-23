@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="256" height="256" viewBox="0 0 256 256" fill="none" id="accueillir-une-stagiaire-bold">
+  <defs>
+    <linearGradient id="gradient1">
+      <stop class="stop1" offset="0%" stop-color="#8f66ff"></stop>
+      <stop class="stop2" offset="100%" stop-color="#3d12ff"></stop>
+    </linearGradient>
+  </defs>
+  <rect id="backgr" width="256" height="256" fill="none" rx="70"></rect>
+  <g id="group" transform="translate(0,0) scale(1)">
+    <path d="M64.000 85.333H69.333M96.000 85.333H101.333M128.000 85.333H133.333" stroke="#ff00ff" stroke-width="10" stroke-linecap="round" stroke-linejoin="round" id="secondary"></path>
+    <path d="M202.667 53.333H53.333C41.551 53.333 32.000 62.885 32.000 74.667V181.333C32.000 193.116 41.551 202.667 53.333 202.667H202.667C214.449 202.667 224.000 193.116 224.000 181.333V74.667C224.000 62.885 214.449 53.333 202.667 53.333Z" stroke="#1616dd" stroke-width="10" stroke-linecap="round" stroke-linejoin="round" id="primary"></path>
+  </g>
+</svg>

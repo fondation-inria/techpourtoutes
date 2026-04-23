@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="256" height="256" viewBox="0 0 256 256" fill="none" id="intervenir-dans-un-atelier-bold">
+  <defs>
+    <linearGradient id="gradient1">
+      <stop class="stop1" offset="0%" stop-color="#8f66ff"></stop>
+      <stop class="stop2" offset="100%" stop-color="#3d12ff"></stop>
+    </linearGradient>
+  </defs>
+  <rect id="backgr" width="256" height="256" fill="none" rx="70"></rect>
+  <g id="group" transform="translate(0,0) scale(1)">
+    <path d="M32.000 82.589C55.280 58.114 92.858 42.667 127.999 42.667C163.139 42.667 200.720 58.114 224.000 82.590M53.333 115.831C72.572 96.966 98.928 85.333 128.000 85.333C157.072 85.333 183.428 96.966 202.667 115.831M74.667 149.139C89.185 135.914 105.250 128.000 128.001 128.000C150.751 128.000 166.816 135.914 181.333 149.139" stroke="#ff00ff" stroke-width="10" stroke-linecap="round" stroke-linejoin="round" id="secondary"></path>
+    <path d="M149.333 192.000C149.333 203.782 139.782 213.333 128.000 213.333C116.218 213.333 106.667 203.782 106.667 192.000C106.667 180.218 116.218 170.667 128.000 170.667C139.782 170.667 149.333 180.218 149.333 192.000Z" stroke="#1616dd" stroke-width="10" stroke-linecap="round" stroke-linejoin="round" id="primary"></path>
+  </g>
+</svg>

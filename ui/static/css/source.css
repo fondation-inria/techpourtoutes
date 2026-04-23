@@ -1,0 +1,5 @@
+@import "tailwindcss";
+@plugin "daisyui";
+@custom-variant dark (&:where(.dark, .dark *));
+
+@source inline("{btn-primary,btn-secondary,btn-outline}");

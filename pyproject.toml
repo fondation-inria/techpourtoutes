@@ -1,0 +1,49 @@
+[project]
+name = "conf"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+requires-python = ">=3.14"
+classifiers = [
+  "Programming Language :: Python :: 3 :: Only",
+  "Programming Language :: Python :: 3.14",
+]
+dependencies = [
+  "django>=6.0.4",
+  "django-cotton>=2.6.2",
+  "django-environ>=0.13",
+  "django-extensions>=4.1",
+  "django-simple-history>=3.11",
+  "django-tailwind-cli>=4.6",
+  "gunicorn>=25.3",
+  "ipython>=9.12",
+  "psycopg2>=2.9.12",
+  "whitenoise>=6.12",
+]
+
+[dependency-groups]
+dev = [
+  "pre-commit>=4.6",
+  "pytest>=9.0.3",
+  "pytest-cov>=7.1",
+  "pytest-django>=4.12",
+  "ruff>=0.15.11",
+]
+
+[tool.ruff]
+target-version = "py314"
+line-length = 99
+exclude = [
+  ".git",
+  ".venv",
+  "__pycache__",
+  "migrations",
+]
+# Règles activées :
+# E/W = erreurs de style (PEP8)
+# F   = erreurs logiques (variables inutilisées, imports manquants...)
+# I   = tri des imports (comme isort)
+# DJ  = règles spécifiques à Django !
+lint.select = [ "DJ", "E", "F", "I", "W" ]
+lint.ignore = []
+lint.isort.known-first-party = [ "conf", "techpourtoutes", "ui" ]
