@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="256" height="256" viewBox="0 0 256 256" fill="none" id="sengager-light">
+  <defs>
+    <linearGradient id="gradient1">
+      <stop class="stop1" offset="0%" stop-color="#8f66ff"></stop>
+      <stop class="stop2" offset="100%" stop-color="#3d12ff"></stop>
+    </linearGradient>
+  </defs>
+  <rect id="backgr" width="256" height="256" fill="none" rx="70"></rect>
+  <g id="group" transform="translate(0,0) scale(1)">
+    <path d="M128.000 85.354C181.020 85.354 224.000 104.457 224.000 128.021C224.000 151.585 181.020 170.688 128.000 170.688C74.981 170.688 32.000 151.585 32.000 128.021C32.000 104.457 74.981 85.354 128.000 85.354ZM164.949 106.688C191.459 152.604 196.406 199.377 175.999 211.159C155.591 222.942 117.558 195.270 91.049 149.355C64.539 103.438 59.592 56.665 79.999 44.882C100.406 33.100 138.439 60.771 164.949 106.688ZM164.950 149.354C138.441 195.270 100.407 222.941 80.000 211.159C59.593 199.377 64.540 152.604 91.049 106.687C117.558 60.771 155.593 33.100 176.000 44.882C196.406 56.664 191.459 103.438 164.950 149.354Z" stroke="#1616dd" stroke-width="5" stroke-linecap="round" id="primary"></path>
+    <path d="M127.946 127.893V128.000" stroke="#ff00ff" stroke-width="5" stroke-linecap="round" id="secondary"></path>
+  </g>
+</svg>

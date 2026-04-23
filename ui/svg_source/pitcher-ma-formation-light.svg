@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="256" height="256" viewBox="0 0 256 256" fill="none" id="pitcher-ma-formation-light">
+  <defs>
+    <linearGradient id="gradient1">
+      <stop class="stop1" offset="0%" stop-color="#8f66ff"></stop>
+      <stop class="stop2" offset="100%" stop-color="#3d12ff"></stop>
+    </linearGradient>
+  </defs>
+  <rect id="backgr" width="256" height="256" fill="none" rx="70"></rect>
+  <g id="group" transform="translate(0,0) scale(1)">
+    <path d="M74.667 191.975L128.000 131.297L181.333 191.975M162.431 77.290L185.058 54.645" stroke="#ff00ff" stroke-width="5" stroke-linecap="round" stroke-linejoin="round" id="secondary"></path>
+    <path d="M42.667 213.325C42.667 201.534 52.218 191.975 64.000 191.975H192.000C203.782 191.975 213.333 201.534 213.333 213.325V224.000H42.667V213.325Z" stroke="#1616dd" stroke-width="5" stroke-linecap="round" stroke-linejoin="round" id="primary"></path>
+    <path d="M117.175 122.580C142.170 147.593 182.692 147.593 207.686 122.580L162.431 77.290L117.177 32.000C92.183 57.013 92.182 97.567 117.175 122.580Z" stroke="#1616dd" stroke-width="5" stroke-linecap="round" stroke-linejoin="round" id="primary"></path>
+  </g>
+</svg>

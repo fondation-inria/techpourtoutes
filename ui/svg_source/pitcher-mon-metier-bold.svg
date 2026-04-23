@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="256" height="256" viewBox="0 0 256 256" fill="none" id="pitcher-mon-metier-bold">
+  <defs>
+    <linearGradient id="gradient1">
+      <stop class="stop1" offset="0%" stop-color="#8f66ff"></stop>
+      <stop class="stop2" offset="100%" stop-color="#3d12ff"></stop>
+    </linearGradient>
+  </defs>
+  <rect id="backgr" width="256" height="256" fill="none" rx="70"></rect>
+  <g id="group" transform="translate(0,0) scale(1)">
+    <path d="M37.333 90.947C57.740 102.729 64.732 128.823 52.950 149.231L42.284 167.706C33.447 183.011 38.691 202.582 53.997 211.419C69.302 220.255 88.873 215.011 97.709 199.706M194.755 95.617L200.089 86.379C208.925 71.074 203.681 51.503 188.375 42.666C173.070 33.830 153.500 39.074 144.662 54.379L139.329 63.617" stroke="#ff00ff" stroke-width="10" stroke-linecap="round" stroke-linejoin="round" id="secondary"></path>
+    <path d="M158.851 136.471L116.185 210.372L79.234 189.039L121.901 115.138M130.093 58.284L203.994 100.951L177.327 147.138L103.426 104.472L130.093 58.284Z" stroke="#1616dd" stroke-width="10" stroke-linecap="round" stroke-linejoin="round" id="primary"></path>
+  </g>
+</svg>
