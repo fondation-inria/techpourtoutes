@@ -34,43 +34,26 @@ ui/                 # Design system
 - [uv](https://docs.astral.sh/uv/getting-started/installation/)
 - PostgreSQL
 
-### 1. Cloner le dépôt
-
 ```bash
-git clone <url-du-repo>
+# cloner le projet
+gh repo clone fondation-inria/techpourtoutes
+
 cd techpourtoutes
-```
 
-### 2. Installer les dépendances
-
-```bash
+# installer les dépendances
 uv sync --group dev
-```
 
-### 3. Configurer les variables d'environnement
-
-```bash
-cp .env.example .env
-```
-
-Puis éditer `.env` :
-
-
-### 4. Créer la base de données
-
-```bash
+# créer la db postgresql
 createdb techpourtoutes
-```
 
-### 5. Appliquer les migrations
+# configurer les variables d'environnement dans le .env
+cp .env.example .env
 
-```bash
+# ! renseigner l'url de db locale dans le .env avant de continuer (changer l'username suffit normalement)
 uv run python manage.py migrate
-```
+uv run python manage.py createsuperuser
 
-### 6. Installer les hooks pre-commit
-
-```bash
+# installer les hooks pre-commit
 uv run pre-commit install
 ```
 
@@ -82,6 +65,7 @@ Il faut deux processus : le serveur Django et le watcher Tailwind. Les deux peuv
 uv run python manage.py tailwind runserver
 ```
 
+Le premier lancement installera Tailwind CSS CLI si nécessaire.
 L'application est disponible sur [http://localhost:8000](http://localhost:8000).
 
 
@@ -92,10 +76,13 @@ L'application est disponible sur [http://localhost:8000](http://localhost:8000).
 uv run pytest
 
 # Linter
-uv run ruff check .
+uv run ruff check . # commande lancée automatiquement avant chaque commit
 
 # Formateur
-uv run ruff format .
+uv run ruff format . # commande lancée automatiquement avant chaque commit
+
+# Lancer les hooks pre-commits manuellement
+uv run pre-commit run --all-files
 ```
 
 
