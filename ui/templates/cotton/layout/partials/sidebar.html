@@ -1,0 +1,39 @@
+{% load static %}
+<aside class="sticky top-0 shrink-0 h-screen w-[264px] bg-neutral-0 border-r-2 border-primary-500 rounded-lg flex flex-col">
+    <div class="flex-1 min-h-0 overflow-y-auto px-6 py-6">
+        <div class="mb-8">
+            <c-components.brand-mark />
+        </div>
+
+        <ul class="flex flex-col gap-1 mb-6">
+            <c-components.nav-link href="#" icon="sengager-light" icon-active="sengager-bold" label="S'engager" />
+        </ul>
+
+        <c-components.nav-section label="Accompagner individuellement">
+            <c-components.nav-link href="{% url 'mentor_landing' %}" url-name="mentor_landing" icon="mentorer-light" icon-active="mentorer-bold" label="Mentorer" />
+            <c-components.nav-link href="#" icon="accueillir-une-stagiaire-light" icon-active="accueillir-une-stagiaire-bold" label="Accueillir une stagiaire" />
+            <c-components.nav-link href="#" icon="pitcher-mon-metier-light" icon-active="pitcher-mon-metier-bold" label="Pitcher mon métier" />
+            <c-components.nav-link href="#" icon="pitcher-ma-formation-light" icon-active="pitcher-ma-formation-bold" label="Pitcher ma formation" disabled="true" />
+        </c-components.nav-section>
+
+        <c-components.nav-section label="Soutenir la coalition">
+            <c-components.nav-link href="#" icon="mobiliser-autour-de-moi-light" icon-active="mobiliser-autour-de-moi-bold" label="Mobiliser autour de moi" />
+            <c-components.nav-link href="#" icon="intervenir-dans-un-atelier-bold" label="Intervenir dans un atelier" />
+        </c-components.nav-section>
+
+        <c-components.nav-section label="Motiver mes élèves">
+            <c-components.nav-link href="#" icon="organiser-un-atelier-light" icon-active="organiser-un-atelier-bold" label="Organiser un atelier" />
+        </c-components.nav-section>
+    </div>
+
+    <div class="shrink-0 border-t border-blue-background px-6 py-6">
+        <ul class="flex flex-col gap-1 mb-6">
+            <c-components.nav-link href="#" label="A propos" />
+            <c-components.nav-link href="#" label="Notre manifeste" />
+        </ul>
+        <div class="flex items-center justify-between pr-10">
+            <img src="{% static 'svg/rf.svg' %}" alt="République Française" class="h-14 w-auto" />
+            <img src="{% static 'svg/france-2030.svg' %}" alt="France 2030 — Lauréat" class="h-14 w-auto" />
+        </div>
+    </div>
+</aside>

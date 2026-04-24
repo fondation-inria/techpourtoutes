@@ -1,0 +1,16 @@
+<!DOCTYPE html>
+{% load tailwind_cli %}
+<html data-theme="techpourtoutes">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>TechPourToutes</title>
+        {% tailwind_css %}
+    </head>
+    <body class="flex min-h-screen font-sans bg-neutral-0 text-neutral-900">
+        <c-layout.partials.sidebar />
+        <main class="flex-1 min-w-0 p-5">
+            {{ slot }}
+        </main>
+    </body>
+</html>

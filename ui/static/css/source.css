@@ -1,5 +1,152 @@
+@import url("https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap");
 @import "tailwindcss";
-@plugin "daisyui";
 @custom-variant dark (&:where(.dark, .dark *));
 
-@source inline("{btn-primary,btn-secondary,btn-outline}");
+@theme {
+  /* Font families */
+  --font-sans: "Poppins", ui-sans-serif, system-ui, sans-serif,
+    "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
+  --font-mono: "Noto Sans Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
+
+  /* Primary */
+  --color-primary-50: #e8e8ff;
+  --color-primary-100: #d1d1ff;
+  --color-primary-500: #4a4aff;
+  --color-primary-600: #2a2ae6;
+  --color-primary-700: #1616dd;
+  --color-primary-900: #1010b8;
+
+  /* Accent */
+  --color-accent-50: #ffe6ff;
+  --color-accent-100: #ffb3ff;
+  --color-accent-500: #ff00ff;
+  --color-accent-600: #d100d1;
+  --color-accent-700: #b000b0;
+
+  /* Neutral */
+  --color-neutral-0: #ffffff;
+  --color-neutral-50: #f8fafc;
+  --color-neutral-100: #f1f5f9;
+  --color-neutral-200: #e2e8f0;
+  --color-neutral-300: #cbd5e1;
+  --color-neutral-500: #64748b;
+  --color-neutral-700: #334155;
+  --color-neutral-800: #1f2937;
+  --color-neutral-900: #111827;
+  --color-neutral-950: #0b1020;
+
+  /* Info */
+  --color-info-50: #f1f4ff;
+  --color-info-100: #d9e0ff;
+  --color-info-200: #b7c3ff;
+  --color-info-300: #8fa1ff;
+  --color-info-400: #6d82e8;
+  --color-info-500: #5c6bc0;
+  --color-info-600: #4558b0;
+  --color-info-700: #36458c;
+  --color-info-800: #283468;
+  --color-info-900: #1c2448;
+
+  /* Success */
+  --color-success-50: #eefaf2;
+  --color-success-100: #d5f3df;
+  --color-success-200: #ade7bf;
+  --color-success-300: #80d79a;
+  --color-success-500: #53ad78;
+  --color-success-600: #3f9860;
+  --color-success-700: #2f7448;
+  --color-success-800: #235937;
+  --color-success-900: #183f26;
+
+  /* Alerte */
+  --color-warning-50: #fff8e6;
+  --color-warning-100: #ffecb8;
+  --color-warning-200: #ffdb7a;
+  --color-warning-300: #ffc94d;
+  --color-warning-500: #ffab00;
+  --color-warning-600: #d99500;
+  --color-warning-700: #ad7600;
+  --color-warning-800: #835900;
+  --color-warning-900: #5f4100;
+  --color-warning-on100: #5f4100;
+  --color-warning-on500: #1a1a1a;
+
+  /* Erreur */
+  --color-error-50: #fff1f4;
+  --color-error-100: #ffd7df;
+  --color-error-200: #ffb1c0;
+  --color-error-300: #ff8aa0;
+  --color-error-400: #f76380;
+  --color-error-500: #ed4b6a;
+  --color-error-600: #d93d5e;
+  --color-error-700: #b82f4f;
+  --color-error-800: #91243f;
+  --color-error-900: #6d1a2f;
+  --color-error-on100: #6d1a2f;
+  --color-error-on500: #ffffff;
+  --color-error-on700: #ffffff;
+
+  /* Named backgrounds */
+  --color-blue-background: #f4f4ff;
+  --color-mauve-background: #e9e3eb;
+
+  /* Border radius (Global.json) */
+  --radius-xs: 4px;
+  --radius-sm: 6px;
+  --radius-md: 8px;
+  --radius-lg: 12px;
+  --radius-xl: 16px;
+  --radius-pill: 9999px;
+
+  /* Typography sizes (Global.json) */
+  --text-h1: 3.5rem;
+  --text-h1--line-height: 1.4;
+  --text-h2: 1.5rem;
+  --text-h2--line-height: 1.4;
+  --text-h3: 1.125rem;
+  --text-h3--line-height: 1.4;
+  --text-soustitre: 1.375rem;
+  --text-soustitre--line-height: 1.4;
+  --text-texte: 1rem;
+  --text-texte--line-height: 1.4;
+  --text-bouton: 1.125rem;
+  --text-bouton--line-height: 1.4;
+  --text-badge: 0.9375rem;
+  --text-badge--line-height: 1.4;
+  --text-input: 0.875rem;
+  --text-input--line-height: 1.4;
+  --text-titre-du-menu: 1rem;
+  --text-titre-du-menu--line-height: 1.4;
+  --text-item-du-menu: 0.875rem;
+  --text-item-du-menu--line-height: 1.4;
+  --text-pied-de-page-p: 0.6875rem;
+  --text-pied-de-page-p--line-height: 1.4;
+  --text-pied-de-page-m: 0.8125rem;
+  --text-pied-de-page-m--line-height: 1.4;
+
+  /* Typography compositions (Desktop.json) */
+  --text-h1-desktop: 3rem;
+  --text-h1-desktop--line-height: 1.4;
+  --text-h2-desktop: 1.375rem;
+  --text-h2-desktop--line-height: 1.4;
+  --text-texte-desktop: 1rem;
+  --text-texte-desktop--line-height: 1.4;
+  --text-section-menu: 0.75rem;
+  --text-section-menu--line-height: 1.4;
+  --text-entree-menu: 0.875rem;
+  --text-entree-menu--line-height: 1.4;
+}
+
+@plugin "daisyui";
+@plugin "daisyui/theme" {
+  name: "techpourtoutes";
+  default: true;
+
+  --color-primary: var(--color-primary-500);
+  --color-secondary: var(--color-accent-500);
+  --color-primary-content: var(--color-info-50);
+  --color-secondary-content: var(--color-info-50);
+  --color-success: var(--color-success-500);
+  --color-warning: var(--color-warning-500);
+  --color-error: var(--color-error-500);
+}
