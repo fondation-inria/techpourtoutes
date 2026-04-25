@@ -1,0 +1,10 @@
+<c-vars icon-name="" title="" variant="h1"/>
+
+<div class="flex items-center gap-x-4 text-primary-700 leading-[1.2]">
+    {% if icon_name %}
+        <c-icon name="{{ icon_name }}" class="size-12" />
+    {% endif %}
+    <div class="{% if variant == "card" %}font-medium text-xl{% elif variant == "h3" %}text-sm{% else %}text-5xl{% endif %}">
+        {{ title }}
+    </div>
+</div>

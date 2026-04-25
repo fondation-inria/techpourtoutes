@@ -99,7 +99,8 @@
   --radius-pill: 9999px;
 
   /* Typography sizes (Global.json) */
-  --text-h1: 3.5rem;
+  --text-xl: 1.375rem;
+  /* --text-h1: 3.5rem;
   --text-h1--line-height: 1.4;
   --text-h2: 1.5rem;
   --text-h2--line-height: 1.4;
@@ -122,7 +123,7 @@
   --text-pied-de-page-p: 0.6875rem;
   --text-pied-de-page-p--line-height: 1.4;
   --text-pied-de-page-m: 0.8125rem;
-  --text-pied-de-page-m--line-height: 1.4;
+  --text-pied-de-page-m--line-height: 1.4; */
 
   /* Typography compositions (Desktop.json) */
   --text-h1-desktop: 3rem;
