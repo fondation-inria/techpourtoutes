@@ -126,7 +126,7 @@
   --text-pied-de-page-m--line-height: 1.4; */
 
   /* Typography compositions (Desktop.json) */
-  --text-h1-desktop: 3rem;
+  /* --text-h1-desktop: 3rem;
   --text-h1-desktop--line-height: 1.4;
   --text-h2-desktop: 1.375rem;
   --text-h2-desktop--line-height: 1.4;
@@ -135,7 +135,7 @@
   --text-section-menu: 0.75rem;
   --text-section-menu--line-height: 1.4;
   --text-entree-menu: 0.875rem;
-  --text-entree-menu--line-height: 1.4;
+  --text-entree-menu--line-height: 1.4; */
 }
 
 @plugin "daisyui";

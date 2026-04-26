@@ -15,6 +15,7 @@ dependencies = [
   "django-extensions>=4.1",
   "django-simple-history>=3.11",
   "django-tailwind-cli>=4.6",
+  "djlint>=1.36.4",
   "gunicorn>=25.3",
   "ipython>=9.12",
   "psycopg2>=2.9.12",

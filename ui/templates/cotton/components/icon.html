@@ -1,0 +1,10 @@
+<c-vars name="" variant="svg" />
+{% load static %}
+
+{% if name and variant == "svg" %}
+    <svg class="{{ class }}" aria-hidden="true" focusable="false">
+        <use href="{% static 'svg/sprite.svg' %}#{{ name }}" />
+    </svg>
+{% elif name %}
+    <img class="{{ class }}" src="{% static 'images/'|add:name|add:'.png' %}" alt="{{ name }}">
+{% endif %}
