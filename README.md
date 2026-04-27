@@ -104,7 +104,7 @@ Le sprite est écrit dans `ui/static/svg/sprite.svg`.
 **Utiliser une icône dans un template :**
 
 ```html
-<c-icon name="mon-icone" class="size-6" />
+<c-components.icon name="mon-icone" class="size-6" />
 ```
 
 Le composant cotton `ui/templates/cotton/icon.html` génère un `<svg><use>` qui pointe vers le sprite.

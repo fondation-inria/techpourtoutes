@@ -3,14 +3,14 @@
 <li>
     {% if disabled %}
         <span class="flex items-center gap-3 px-3 py-2 rounded-md text-entree-menu font-medium text-neutral-500 opacity-60 cursor-not-allowed select-none">
-            {% if icon %}<c-icon name="{{ icon }}" class="w-5 h-5 shrink-0" />{% endif %}
+            {% if icon %}<c-components.icon name="{{ icon }}" class="w-5 h-5 shrink-0" />{% endif %}
             <span>{{ label }}</span>
         </span>
     {% else %}
         <a href="{{ href }}"
            class="flex items-center gap-3 px-3 py-2 rounded-md text-entree-menu font-medium text-neutral-900 transition-colors hover:bg-blue-background active:bg-primary-100 focus-visible:outline-none focus-visible:bg-neutral-0 focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-primary-700{% if url_name and request.resolver_match.url_name == url_name %} font-semibold bg-primary-100{% endif %}">
             {% if icon %}
-                <c-icon
+                <c-components.icon
                     name="{% if url_name and request.resolver_match.url_name == url_name and icon_active %}{{ icon_active }}{% else %}{{ icon }}{% endif %}"
                     class="w-5 h-5 shrink-0"
                 />

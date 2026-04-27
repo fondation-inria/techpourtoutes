@@ -1,12 +1,7 @@
 <c-vars variant="text" nobg=False icon="" icon_variant="svg" />
 
-<div class="p-4 max-w-2xl w-full {% if nobg != True %}bg-neutral-0 rounded border border-primary{% endif %}">
-    <div class="flex justify-between">
-        <c-components.title title="{{ title }}" variant="h2" />
-        {% if icon %}
-            <c-components.icon name="{{ icon }}" variant="{{ icon_variant }}" class="max-w-15 max-h-15 object-contain" />
-        {% endif %}
-    </div>
+<div class="p-4 max-w-2xl w-full{% if nobg != True %} bg-neutral-0 rounded border border-primary{% endif %}">
+    <c-components.title title="{{ title }}" variant="h2" />
     <div class="text-black text-base leading-[1.4] relative w-full">
         {% if variant != "text" %}
             {{ slot }}

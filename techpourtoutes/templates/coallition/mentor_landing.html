@@ -1,10 +1,14 @@
 <c-layout.base>
     <c-components.title icon-name="mentorer-bold" title="Mentorer" />
+    <div class="flex gap-x-4">
+        <c-components.badge label="2 heures / mois" />
+        <c-components.badge label="6 mois" />
+    </div>
 
     <c-components.card title="Aidez une jeune à construire son projet professionnel">
         Rejoignez la communauté TechPourToutes de mentors pour avoir un impact concret sur l'avenir de vos mentorées.
 
-        Au cours de ces 6 mois de mentorat, vous apprendez à vous connaître et vous aurez l'occasion de les aider à affiner leur projet d'étude ou de carrière, de gagner en confiance et d'accéder à de nouvelles opportunités.
+        Au cours de ces 6 mois de mentorat, vous apprendez à vous connaître et vous aurez l'occasion de les aider à affiner leur projet d'étude ou de carrière, à gagner en confiance et à accéder à de nouvelles opportunités.
     </c-components.card>
 
     <c-components.card variant="custom" title="Les 4 étapes clés du mentorat en ligne" nobg=True>
@@ -18,10 +22,19 @@
     </c-components.card>
 
     <c-slot name="right">
-        <div class="min-w-[428px] flex flex-col items-center mt-[75px]">
+        <div class="min-w-[428px] flex flex-col items-center mt-[65px]">
             <c-components.title title="Rejoins la coalition, prends ta carte de membre !" class="text-center w-[300px] h-16" variant="h3" />
-            {% comment %} <c-components.card-shadow> {% endcomment %}
-            {% comment %} </c-components.card-shadow> {% endcomment %}
+            <c-components.card-shadow class="mt-5">
+                <div class="flex">
+                    <c-components.icon name="badge-coeur" class="w-15 h-15 shrink-0 m-5" />
+                    <div class="mt-5 [&>p]:pb-3 [&>p]:font-medium">
+                        <p>Nom</p>
+                        <p>Prénom</p>
+                        <p>Mentor TechPourToutes</p>
+                    </div>
+                </div>
+                <c-components.button href="" label="Je deviens mentor" class="justify-center" />
+            </c-components.card-shadow>
         </div>
     </c-slot>
 </c-layout.base>

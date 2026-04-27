@@ -98,6 +98,9 @@
   --radius-xl: 16px;
   --radius-pill: 9999px;
 
+  /* Shadows */
+  --shadow-2xl: 4px 4px 0 0 var(--color-primary-700);
+
   /* Typography sizes (Global.json) */
   --text-xl: 1.375rem;
   /* --text-h1: 3.5rem;
