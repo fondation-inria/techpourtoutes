@@ -7,16 +7,30 @@
         <title>TechPourToutes</title>
         {% tailwind_css %}
     </head>
-    <body class="flex min-h-screen font-sans bg-blue-background text-neutral-900">
-        <c-layout.partials.sidebar />
-        <div class="flex flex-col justify-between items-center w-full">
-            <main class="flex max-w-6xl">
-                <div class="flex flex-col py-8 px-4 gap-y-4 items-start justify-start w-full h-max">
-                    {{ slot }}
-                </div>
-                {{ right }}
-            </main>
-            <c-layout.partials.footer />
+    <body class="min-h-screen font-sans bg-blue-background text-neutral-900 drawer xl:drawer-open">
+        <input id="sidebar-drawer" type="checkbox" class="drawer-toggle" />
+        <div class="drawer-content flex flex-col min-h-screen">
+            <header class="xl:hidden flex items-center justify-between px-4 py-3 bg-neutral-0 z-100">
+                <label for="sidebar-drawer" class="cursor-pointer p-1">
+                    <c-components.icon name="menu-burger-light" class="w-6 h-6" />
+                </label>
+                <c-components.brand-mark />
+                <div />
+                <label for="sidebar-drawer" class="hidden [body:has(#sidebar-drawer:checked)_&]:block absolute right-4 top-4 cursor-pointer p-1 text-neutral-900 text-xl leading-none">&times;</label>
+            </header>
+            <div class="flex flex-col justify-between items-center w-full flex-1">
+                <main class="flex max-w-6xl w-full">
+                    <div class="flex flex-col py-8 px-4 gap-y-4 items-start justify-start w-full h-max">
+                        {{ slot }}
+                    </div>
+                    {{ right }}
+                </main>
+                <c-layout.partials.footer />
+            </div>
+        </div>
+        <div class="drawer-side z-40">
+            <label for="sidebar-drawer" class="drawer-overlay xl:hidden"></label>
+            <c-layout.partials.sidebar />
         </div>
     </body>
 </html>
