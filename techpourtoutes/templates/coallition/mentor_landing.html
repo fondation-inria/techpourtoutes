@@ -29,33 +29,42 @@
     <c-slot name="right">
         <div class="min-w-[428px] flex flex-col items-center mt-[65px]">
             <c-components.title title="Rejoins la coalition, prends ta carte de membre !" class="text-center w-[300px] h-16" variant="h3" />
-            <c-components.card-shadow id="mentor-member-card" class="mt-5">
-                <div class="flex">
-                    <c-components.icon name="badge-coeur" class="w-15 h-15 shrink-0 mx-5" />
-                    <div class="mt-5 [&>p]:pb-3 [&>p]:font-medium">
-                        <p>Prénom</p>
-                        <p>Nom</p>
-                        <p>Mentor TechPourToutes</p>
+            <div x-data="{ showForm: false }">
+                <div x-show="!showForm" @click.prevent="showForm = true" class="cursor-pointer">
+                <c-components.card-shadow id="mentor-member-card" class="mt-5">
+                    <div class="flex">
+                        <c-components.icon name="badge-coeur" class="w-15 h-15 shrink-0 mx-5" />
+                        <div class="mt-5 [&>p]:pb-3 [&>p]:font-medium">
+                            <p>Prénom</p>
+                            <p>Nom</p>
+                            <p>Mentor TechPourToutes</p>
+                        </div>
                     </div>
-                </div>
-                <c-components.button href="" label="Je deviens mentor" class="justify-center" />
-            </c-components.card-shadow>
-            <c-components.card-shadow id="mentor-form-card" class="mt-5 p-5 relative">
-                <c-components.icon name="badge-coeur" class="w-15 h-15 shrink-0 mx-5 absolute -top-5 -right-10" />
-
-                <c-patterns.form>
-                    <c-components.title title="Engagement mentor" variant="h3" />
-                    <c-components.input label="Votre prénom*" />
-                    <c-components.input label="Votre nom*" />
-                    <c-components.input label="Votre email*" />
-                    <c-components.input label="Votre n° de téléphone*" />
-                    <c-components.input label="Votre situation professionelle*" />
-                    <c-components.input label="Nom de votre structure" description="Nom de votre structure actuelle ou de la dernière" />
-                    <c-components.input label="Votre métier*" />
-                    <c-components.input label="Votre code postal*" />
                     <c-components.button href="" label="Je deviens mentor" class="justify-center" />
-                </c-patterns.form>
-            </c-components.card-shadow>
+                </c-components.card-shadow>
+            </div>
+            <div x-show="showForm" x-cloak
+                 x-transition:enter="transition ease-out duration-300 origin-top"
+                 x-transition:enter-start="opacity-100 scale-95"
+                 x-transition:enter-end="opacity-100 scale-100">
+                <c-components.card-shadow id="mentor-form-card" class="mt-5 p-5 relative">
+                    <c-components.icon name="badge-coeur" class="w-15 h-15 shrink-0 mx-5 absolute -top-5 -right-10" />
+
+                    <c-patterns.form>
+                        <c-components.title title="Engagement mentor" variant="h3" />
+                        <c-components.input label="Votre prénom*" />
+                        <c-components.input label="Votre nom*" />
+                        <c-components.input label="Votre email*" />
+                        <c-components.input label="Votre n° de téléphone*" />
+                        <c-components.input label="Votre situation professionelle*" />
+                        <c-components.input label="Nom de votre structure" description="Nom de votre structure actuelle ou de la dernière" />
+                        <c-components.input label="Votre métier*" />
+                        <c-components.input label="Votre code postal*" />
+                        <c-components.button href="" label="Je deviens mentor" class="justify-center" />
+                    </c-patterns.form>
+                </c-components.card-shadow>
+            </div>
+            </div>
         </div>
     </c-slot>
 </c-layout.base>

@@ -156,3 +156,7 @@
   --color-warning: var(--color-warning-500);
   --color-error: var(--color-error-500);
 }
+
+[x-cloak] {
+  display: none !important;
+}
