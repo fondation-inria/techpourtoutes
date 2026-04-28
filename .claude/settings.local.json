@@ -1,0 +1,50 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(git status)",
+      "Bash(git diff *)",
+      "Bash(git log *)",
+      "Bash(uv run *)",
+      "Bash(uv sync)",
+      "Bash(uv lock)",
+      "Bash(uv pip list)",
+      "Bash(uv run python manage.py check)",
+      "Bash(uv run python manage.py showmigrations *)",
+      "Bash(uv run python manage.py makemigrations *)",
+      "Bash(uv run python manage.py migrate *)",
+      "Bash(uv run python manage.py collectstatic *)",
+      "Bash(uv run python manage.py test *)",
+      "Bash(uv run python manage.py show_urls)",
+      "Bash(uv run python manage.py graph_models *)",
+      "Bash(uv run python manage.py validate_templates)",
+      "Bash(uv run python manage.py diffsettings)",
+      "Bash(cat *)",
+      "Bash(grep *)",
+      "Bash(find *)",
+      "Bash(ls *)",
+      "Bash(pwd)",
+      "Read(**/.env.example)",
+      "Read(.env.example)"
+    ],
+    "deny": [
+      "Bash(uv run python manage.py flush *)",
+      "Bash(uv run python manage.py reset_db *)",
+      "Bash(uv run python manage.py dumpdata *)",
+      "Bash(uv run python manage.py loaddata *)",
+      "Bash(rm -rf *)",
+      "Bash(sudo *)",
+      "Bash(chmod *)",
+      "Bash(chown *)",
+      "Bash(curl *)",
+      "Bash(wget *)",
+      "Bash(ssh *)",
+      "Bash(scp *)",
+      "Bash(nc *)",
+      "Bash(kill *)",
+      "Bash(pkill *)",
+      "Read(.env)",
+      "Read(**/.env)",
+      "Edit(.env)"
+    ]
+  }
+}
