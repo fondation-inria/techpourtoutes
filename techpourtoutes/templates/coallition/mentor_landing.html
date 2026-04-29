@@ -11,12 +11,16 @@
         Au cours de ces 6 mois de mentorat, vous apprendez à vous connaître et vous aurez l'occasion de les aider à affiner leur projet d'étude ou de carrière, à gagner en confiance et à accéder à de nouvelles opportunités.
     </c-components.card>
 
+    <div class="flex justify-center w-full md:hidden">
+        <c-components.button href="#mentor-card" label="Je deviens mentor" />
+    </div>
+
     <c-components.card variant="custom" title="Les 4 étapes clés du mentorat en ligne" nobg=True>
         <ul class="steps steps-vertical">
-        <li class="step step-secondary">JobIrl prend contact avec vous et vous forme</li>
-        <li class="step step-secondary">Vous êtes mise en relation avec une mentorée</li>
-        <li class="step step-secondary">Vous échangez sur son projet ses attentes</li>
-        <li class="step step-secondary">Vous faites le bilan des progrès</li>
+        <li class="step step-secondary text-left">JobIrl prend contact avec vous et vous forme</li>
+        <li class="step step-secondary text-left">Vous êtes mise en relation avec une mentorée</li>
+        <li class="step step-secondary text-left">Vous échangez sur son projet ses attentes</li>
+        <li class="step step-secondary text-left">Vous faites le bilan des progrès</li>
         </ul>
     </c-components.card>
 
@@ -27,11 +31,11 @@
     </c-components.card>
 
     <c-slot name="right">
-        <div class="min-w-[428px] flex flex-col items-center mt-[65px]">
+        <div class="flex flex-col items-center px-4 md:mt-[65px]">
             <c-components.title title="Rejoins la coalition, prends ta carte de membre !" class="text-center w-[300px] h-16" variant="h3" />
-            <div x-data="{ showForm: false }">
-                <div x-show="!showForm" @click.prevent="showForm = true" class="cursor-pointer">
-                <c-components.card-shadow id="mentor-member-card" class="mt-5">
+            <div x-data="{ showForm: {{ form.errors|yesno:'true,false' }} }" id="mentor-card">
+                <div x-show="!showForm" @click.prevent="showForm = true; $nextTick(() => { if (window.innerWidth < 768) $refs.formCard.scrollIntoView({ behavior: 'smooth', block: 'start' }) })" class="cursor-pointer">
+                <c-components.card-shadow id="mentor-member-card" class="my-5">
                     <div class="flex">
                         <c-components.icon name="badge-coeur" class="w-15 h-15 shrink-0 mx-5" />
                         <div class="mt-5 [&>p]:pb-3 [&>p]:font-medium">
@@ -43,24 +47,25 @@
                     <c-components.button href="" label="Je deviens mentor" class="justify-center" />
                 </c-components.card-shadow>
             </div>
-            <div x-show="showForm" x-cloak
+            <div x-ref="formCard" x-show="showForm" x-cloak
                  x-transition:enter="transition ease-out duration-300 origin-top"
-                 x-transition:enter-start="opacity-100 scale-95"
-                 x-transition:enter-end="opacity-100 scale-100">
-                <c-components.card-shadow id="mentor-form-card" class="mt-5 p-5 relative">
+                 x-transition:enter-start="scale-y-20"
+                 x-transition:enter-end="scale-y-100"
+            />
+                <c-components.card-shadow id="mentor-form-card" class="my-5 p-5 relative">
                     <c-components.icon name="badge-coeur" class="w-15 h-15 shrink-0 mx-5 absolute -top-5 -right-10" />
 
-                    <c-patterns.form>
+                    <c-patterns.form url="{% url 'mentor_landing' %}">
                         <c-components.title title="Engagement mentor" variant="h3" />
-                        <c-components.input label="Votre prénom*" />
-                        <c-components.input label="Votre nom*" />
-                        <c-components.input label="Votre email*" />
-                        <c-components.input label="Votre n° de téléphone*" />
-                        <c-components.input label="Votre situation professionelle*" />
-                        <c-components.input label="Nom de votre structure" description="Nom de votre structure actuelle ou de la dernière" />
-                        <c-components.input label="Votre métier*" />
-                        <c-components.input label="Votre code postal*" />
-                        <c-components.button href="" label="Je deviens mentor" class="justify-center" />
+                        <c-components.input field=form.first_name />
+                        <c-components.input field=form.last_name />
+                        <c-components.input field=form.email />
+                        <c-components.input field=form.phone />
+                        <c-components.input field=form.postal_code />
+                        <c-components.input field=form.professional_situation />
+                        <c-components.input field=form.structure_name description="Nom de votre structure actuelle ou de la dernière" />
+                        <c-components.input field=form.job_title />
+                        <c-components.button type="submit" label="Je deviens mentor" class="justify-center" />
                     </c-patterns.form>
                 </c-components.card-shadow>
             </div>

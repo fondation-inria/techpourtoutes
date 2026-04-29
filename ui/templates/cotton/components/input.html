@@ -1,4 +1,5 @@
 <c-vars
+    field=field
     label=""
     description=""
     message=""
@@ -13,8 +14,8 @@
 />
 
 <div class="flex flex-col gap-2 {{ class }}">
-    {% if label %}
-        <label {% if id %}for="{{ id }}"{% endif %} class="text-sm font-light text-neutral-950 leading-[1.4]">{{ label }}</label>
+    {% if field.label or label %}
+        <label for="{{ field.id_for_label|default:id }}" class="text-sm font-light text-neutral-950 leading-[1.4]">{{ field.label|default:label }}</label>
     {% endif %}
     {% if description %}
         <p class="text-xxs text-neutral-700 leading-[1.4] font-light">{{ description }}</p>
@@ -22,20 +23,20 @@
 
     <input
         type="{{ type }}"
-        id="{{ id }}"
-        value="{{ value }}"
-        {% if name %}name="{{ name }}"{% endif %}
+        id="{{ field.id_for_label|default:id }}"
+        value="{{ field.value|default:value }}"
+        name="{{ field.html_name|default:name }}"
         {% if placeholder %}placeholder="{{ placeholder }}"{% endif %}
         {% if variant == "disabled" %}disabled aria-disabled="true"{% endif %}
-        {% if errors or variant == "error" %}aria-invalid="true"{% endif %}
-        class="w-full px-3 py-2 text-sm rounded focus:ring {% if variant != "disabled" %}text-neutral-950 bg-neutral-50 shadow-thin-bottom {% endif %}{% if variant == "disabled" %}text-neutral-500 bg-neutral-100 cursor-not-allowed {% elif errors or variant == "error" %}shadow-error-500 focus:ring-error-500 {% elif variant == "valid" %}shadow-success-500 focus:ring-success-500 {% else %}shadow-primary-700 focus:ring-primary-700{% endif %}"
+        {% if field.errors or errors or variant == "error" %}aria-invalid="true"{% endif %}
+        class="w-full px-3 py-2 text-sm rounded focus:ring {% if variant != "disabled" %}text-neutral-950 bg-neutral-50 shadow-thin-bottom {% endif %}{% if variant == "disabled" %}text-neutral-500 bg-neutral-100 cursor-not-allowed {% elif field.errors or errors or variant == "error" %}shadow-error-500 focus:ring-error-500 {% elif variant == "valid" %}shadow-success-500 focus:ring-success-500 {% else %}shadow-primary-700 focus:ring-primary-700{% endif %}"
     />
 
-    {% if errors %}
-        {% for error in errors %}
-            <p class="text-xxs leading-[1.4] text-error-500 font-normal">{{ error }}</p>
-        {% endfor %}
-    {% elif message %}
-        <p class="text-xxs leading-[1.4] text-primary-700 font-normal">{{ message }}</p>
-    {% endif %}
+    {% for error in field.errors|default:errors %}
+        <p class="text-xxs leading-[1.4] text-error-500 font-normal">{{ error }}</p>
+    {% empty %}
+        {% if message %}
+            <p class="text-xxs leading-[1.4] text-primary-700 font-normal">{{ message }}</p>
+        {% endif %}
+    {% endfor %}
 </div>

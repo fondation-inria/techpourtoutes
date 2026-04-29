@@ -13,10 +13,12 @@ dependencies = [
   "django-cotton>=2.6.2",
   "django-environ>=0.13",
   "django-extensions>=4.1",
+  "django-phonenumber-field>=8.4",
   "django-simple-history>=3.11",
   "django-tailwind-cli>=4.6",
   "gunicorn>=25.3",
   "ipython>=9.12",
+  "phonenumberslite>=9.0.29",
   "psycopg2>=2.9.12",
   "whitenoise>=6.12",
 ]
@@ -47,3 +49,6 @@ exclude = [
 lint.select = [ "DJ", "E", "F", "I", "W" ]
 lint.ignore = []
 lint.isort.known-first-party = [ "conf", "techpourtoutes", "ui" ]
+
+[tool.pytest]
+ini_options.DJANGO_SETTINGS_MODULE = "conf.settings"

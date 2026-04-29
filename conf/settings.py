@@ -38,9 +38,13 @@ INSTALLED_APPS = [
     "django_tailwind_cli",
     "django_cotton",
     "simple_history",
+    "phonenumber_field",
+    # Apps techpourtoutes
     "ui",
     "techpourtoutes",
 ]
+
+AUTH_USER_MODEL = "techpourtoutes.User"
 
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",

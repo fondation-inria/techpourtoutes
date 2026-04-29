@@ -68,10 +68,12 @@ dependencies = [
     { name = "django-cotton" },
     { name = "django-environ" },
     { name = "django-extensions" },
+    { name = "django-phonenumber-field" },
     { name = "django-simple-history" },
     { name = "django-tailwind-cli" },
     { name = "gunicorn" },
     { name = "ipython" },
+    { name = "phonenumberslite" },
     { name = "psycopg2" },
     { name = "whitenoise" },
 ]
@@ -91,10 +93,12 @@ requires-dist = [
     { name = "django-cotton", specifier = ">=2.6.2" },
     { name = "django-environ", specifier = ">=0.13" },
     { name = "django-extensions", specifier = ">=4.1" },
+    { name = "django-phonenumber-field", specifier = ">=8.4.0" },
     { name = "django-simple-history", specifier = ">=3.11" },
     { name = "django-tailwind-cli", specifier = ">=4.6" },
     { name = "gunicorn", specifier = ">=25.3" },
     { name = "ipython", specifier = ">=9.12" },
+    { name = "phonenumberslite", specifier = ">=9.0.29" },
     { name = "psycopg2", specifier = ">=2.9.12" },
     { name = "whitenoise", specifier = ">=6.12" },
 ]
@@ -210,6 +214,18 @@ dependencies = [
 sdist = { url = "https://files.pythonhosted.org/packages/6d/b3/ed0f54ed706ec0b54fd251cc0364a249c6cd6c6ec97f04dc34be5e929eac/django_extensions-4.1.tar.gz", hash = "sha256:7b70a4d28e9b840f44694e3f7feb54f55d495f8b3fa6c5c0e5e12bcb2aa3cdeb", size = 283078, upload-time = "2025-04-11T01:15:39.617Z" }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/64/96/d967ca440d6a8e3861120f51985d8e5aec79b9a8bdda16041206adfe7adc/django_extensions-4.1-py3-none-any.whl", hash = "sha256:0699a7af28f2523bf8db309a80278519362cd4b6e1fd0a8cd4bf063e1e023336", size = 232980, upload-time = "2025-04-11T01:15:37.701Z" },
+]
+
+[[package]]
+name = "django-phonenumber-field"
+version = "8.4.0"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "django" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/87/bf/8aa60c9834773b955dff1ddea842e361e8daaf6b0945d5bfc29fc66d53ab/django_phonenumber_field-8.4.0.tar.gz", hash = "sha256:2b83e843dac35eec6a69880a166487235b737a71a1e38c9a52e5ad67d6996083", size = 45512, upload-time = "2025-11-24T15:09:51.904Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/8b/a3/f6b85a9246e22cf719752ad83f5e95aa9ba12419b2f9eff70f20d30e55df/django_phonenumber_field-8.4.0-py3-none-any.whl", hash = "sha256:7a1cb3a6456edb54d879f11ffa0acb227ded08c93b587035d0f28093f0e46511", size = 69528, upload-time = "2025-11-24T15:09:45.479Z" },
 ]
 
 [[package]]
@@ -415,6 +431,15 @@ dependencies = [
 sdist = { url = "https://files.pythonhosted.org/packages/42/92/cc564bf6381ff43ce1f4d06852fc19a2f11d180f23dc32d9588bee2f149d/pexpect-4.9.0.tar.gz", hash = "sha256:ee7d41123f3c9911050ea2c2dac107568dc43b2d3b0c7557a33212c398ead30f", size = 166450, upload-time = "2023-11-25T09:07:26.339Z" }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/9e/c3/059298687310d527a58bb01f3b1965787ee3b40dce76752eda8b44e9a2c5/pexpect-4.9.0-py2.py3-none-any.whl", hash = "sha256:7236d1e080e4936be2dc3e326cec0af72acf9212a7e1d060210e70a47e253523", size = 63772, upload-time = "2023-11-25T06:56:14.81Z" },
+]
+
+[[package]]
+name = "phonenumberslite"
+version = "9.0.29"
+source = { registry = "https://pypi.org/simple" }
+sdist = { url = "https://files.pythonhosted.org/packages/f5/14/d8820aaf74275183b207c5cdd6f248ce0adb80fc688f3566602fa423dc94/phonenumberslite-9.0.29.tar.gz", hash = "sha256:9804ecca39a0b8aa735b1797c6dda11ab3e78da1b280e3defdee1a3ea94667b2", size = 288716, upload-time = "2026-04-25T05:35:17.195Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/ee/3d/6faf80eab5640aafb5dcc8d1b398a338677f238e5c0b7ae46655a19a524d/phonenumberslite-9.0.29-py2.py3-none-any.whl", hash = "sha256:572760601cc45ae6578cb7493973b479d5a68ec90ca6e7db2fbce899e4ee393e", size = 473337, upload-time = "2026-04-25T05:35:15.243Z" },
 ]
 
 [[package]]
