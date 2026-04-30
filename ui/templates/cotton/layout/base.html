@@ -20,6 +20,15 @@
                 <label for="sidebar-drawer" class="hidden [body:has(#sidebar-drawer:checked)_&]:block absolute right-4 top-4 cursor-pointer p-1 text-neutral-900 text-xl leading-none">&times;</label>
             </header>
             <div class="flex flex-col justify-between items-center w-full flex-1">
+                {% if messages %}
+                    <div class="w-full max-w-6xl px-8 pt-4 flex flex-col gap-y-2">
+                        {% for message in messages %}
+                            <div role="alert" class="alert {% if message.tags == 'error' %}alert-error{% elif message.tags == 'success' %}alert-success{% else %}alert-info{% endif %}">
+                                <span>{{ message }}</span>
+                            </div>
+                        {% endfor %}
+                    </div>
+                {% endif %}
                 <main class="flex max-w-6xl w-full flex-col md:flex-row md:justify-around">
                     <div class="flex flex-col py-8 px-8 gap-y-4 items-start justify-start h-max">
                         {{ slot }}

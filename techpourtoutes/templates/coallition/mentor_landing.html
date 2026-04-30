@@ -33,7 +33,7 @@
     <c-slot name="right">
         <div class="flex flex-col items-center px-4 md:mt-[65px]">
             <c-components.title title="Rejoins la coalition, prends ta carte de membre !" class="text-center w-[300px] h-16" variant="h3" />
-            <div x-data="{ showForm: {{ form.errors|yesno:'true,false' }} }" id="mentor-card">
+            <div x-data="{ showForm: {{ form.is_bound|yesno:'true,false' }} }" id="mentor-card">
                 <div x-show="!showForm" @click.prevent="showForm = true; $nextTick(() => { if (window.innerWidth < 768) $refs.formCard.scrollIntoView({ behavior: 'smooth', block: 'start' }) })" class="cursor-pointer">
                 <c-components.card-shadow id="mentor-member-card" class="my-5">
                     <div class="flex">

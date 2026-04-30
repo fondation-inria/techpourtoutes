@@ -69,6 +69,23 @@ Le premier lancement installera Tailwind CSS CLI si nécessaire.
 L'application est disponible sur [http://localhost:8000](http://localhost:8000).
 
 
+## Tester les emails en local
+
+En développement (`DEBUG=True`), Django envoie les emails via SMTP sur `localhost:1025`. [Mailpit](https://mailpit.axllent.org/) intercepte ces emails et les affiche dans une interface web.
+
+```bash
+# Installer Mailpit
+brew install mailpit
+# to run automatically in the background
+brew services start mailpit
+# or to run it manually
+mailpit
+```
+
+L'interface est disponible sur [http://localhost:8025](http://localhost:8025). Tous les emails envoyés par l'application y apparaissent.
+
+> En production, les emails sont envoyés via [Brevo](https://www.brevo.com/) (Anymail). La variable `BREVO_API_KEY` doit être renseignée dans le `.env`.
+
 ## Commandes utiles
 
 ```bash

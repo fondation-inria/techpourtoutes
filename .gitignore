@@ -10,8 +10,12 @@ wheels/
 .env
 .venv
 
-# Static folder at project root
+# Static folders
 /static/
+/staticfiles/
+
+# Runtime data (logs, debug responses, etc.)
+/var/
 
 # macOS
 ._*
@@ -23,3 +27,8 @@ wheels/
 .vscode/
 .history/
 *.code-workspace
+
+# Node (local install for IDE tooling only)
+node_modules/
+package.json
+package-lock.json
