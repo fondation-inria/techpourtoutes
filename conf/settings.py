@@ -114,7 +114,7 @@ else:
 # Jobirl API
 JOBIRL_API_TOKEN = env("JOBIRL_API_TOKEN", default="")
 JOBIRL_URL = env("JOBIRL_URL", default="")
-MOCK_JOBIRL_API = env.bool("MOCK_JOBIRL_API", default=False)
+LOCAL = env("JOBIRL_URL") == env("HOST")
 
 
 # Internationalization

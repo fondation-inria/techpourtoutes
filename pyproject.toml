@@ -14,7 +14,6 @@ dependencies = [
   "django-cotton>=2.6.2",
   "django-environ>=0.13",
   "django-extensions>=4.1",
-  "django-ninja>=1.6.2",
   "django-phonenumber-field>=8.4",
   "django-simple-history>=3.11",
   "django-tailwind-cli>=4.6",
