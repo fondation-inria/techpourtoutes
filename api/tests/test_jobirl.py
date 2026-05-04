@@ -3,10 +3,10 @@ import pytest
 from django.test import override_settings
 
 JOBIRL_TEST_URL = "https://preprod.jobirl.com"
-JOBIRL_TEST_TOKEN = "test-token-abc"
+JOBIRL_TEST_API_KEY = "test-api-key-abc"
 
 
-@override_settings(JOBIRL_URL=JOBIRL_TEST_URL, JOBIRL_API_TOKEN=JOBIRL_TEST_TOKEN)
+@override_settings(JOBIRL_URL=JOBIRL_TEST_URL, JOBIRL_API_KEY=JOBIRL_TEST_API_KEY)
 def test_register_mentor_on_jobirl_sends_correct_payload(httpx_mock, mentor):
     from api.services.jobirl import register_mentor_on_jobirl
 
@@ -17,7 +17,7 @@ def test_register_mentor_on_jobirl_sends_correct_payload(httpx_mock, mentor):
 
     request = httpx_mock.get_request()
     assert request.method == "POST"
-    assert f"Bearer {JOBIRL_TEST_TOKEN}" in request.headers["Authorization"]
+    assert f"Bearer Bearer: {JOBIRL_TEST_API_KEY}" in request.headers["Authorization"]
     body = request.content.decode()
     assert "alice%40example.com" in body or "alice@example.com" in body
     assert "Alice" in body
@@ -28,7 +28,7 @@ def test_register_mentor_on_jobirl_sends_correct_payload(httpx_mock, mentor):
     assert "75001" in body
 
 
-@override_settings(JOBIRL_URL=JOBIRL_TEST_URL, JOBIRL_API_TOKEN=JOBIRL_TEST_TOKEN)
+@override_settings(JOBIRL_URL=JOBIRL_TEST_URL, JOBIRL_API_KEY=JOBIRL_TEST_API_KEY)
 def test_register_mentor_on_jobirl_raises_on_http_error(httpx_mock, mentor):
     from api.services.jobirl import JobirlAPIError, register_mentor_on_jobirl
 
@@ -39,7 +39,7 @@ def test_register_mentor_on_jobirl_raises_on_http_error(httpx_mock, mentor):
         register_mentor_on_jobirl(mentor)
 
 
-@override_settings(JOBIRL_URL=JOBIRL_TEST_URL, JOBIRL_API_TOKEN=JOBIRL_TEST_TOKEN)
+@override_settings(JOBIRL_URL=JOBIRL_TEST_URL, JOBIRL_API_KEY=JOBIRL_TEST_API_KEY)
 def test_register_mentor_on_jobirl_raises_on_network_error(httpx_mock, mentor):
     from api.services.jobirl import JobirlAPIError, register_mentor_on_jobirl
 

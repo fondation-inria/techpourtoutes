@@ -21,6 +21,7 @@ environ.Env.read_env(BASE_DIR / ".env")
 
 SECRET_KEY = env("SECRET_KEY")
 DEBUG = env("DEBUG")
+DJANGO_ENV = env("DJANGO_ENV")
 ALLOWED_HOSTS = env.list("ALLOWED_HOSTS")
 
 DATABASES = {"default": env.db("DATABASE_URL")}
@@ -79,6 +80,22 @@ TEMPLATES = [
 
 WSGI_APPLICATION = "conf.wsgi.application"
 
+LOGGING = {
+    "version": 1,
+    "disable_existing_loggers": False,
+    "handlers": {
+        "console": {
+            "class": "logging.StreamHandler",
+        },
+    },
+    "loggers": {
+        "api.clients": {
+            "handlers": ["console"],
+            "level": "DEBUG" if DEBUG else "INFO",
+            "propagate": False,
+        },
+    },
+}
 
 # Auth settings
 # https://docs.djangoproject.com/en/6.0/ref/settings/#auth-password-validators
@@ -112,9 +129,8 @@ else:
     ANYMAIL = {"BREVO_API_KEY": env("BREVO_API_KEY")}
 
 # Jobirl API
-JOBIRL_API_TOKEN = env("JOBIRL_API_TOKEN", default="")
+JOBIRL_API_KEY = env("JOBIRL_API_KEY", default="")
 JOBIRL_URL = env("JOBIRL_URL", default="")
-LOCAL = env("JOBIRL_URL") == env("HOST")
 
 
 # Internationalization
