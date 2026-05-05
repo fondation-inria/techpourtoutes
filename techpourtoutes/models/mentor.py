@@ -7,9 +7,17 @@ from .user import User
 
 
 class Mentor(User):
+    class ProfessionalSituation(models.TextChoices):
+        WORKING = "working", _("En emploi")
+        RETIRED = "retired", _("À la retraite")
+        JOBLESS = "jobless", _("Sans emploi")
+        STUDENT = "student", _("En étude")
+
     phone = PhoneNumberField(region="FR", verbose_name=_("téléphone"))
     professional_situation = models.CharField(
-        max_length=255, verbose_name=_("situation professionnelle")
+        max_length=20,
+        choices=ProfessionalSituation.choices,
+        verbose_name=_("situation professionnelle"),
     )
     structure_name = models.CharField(
         max_length=255, blank=True, verbose_name=_("nom de la structure")

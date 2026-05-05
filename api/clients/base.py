@@ -15,15 +15,11 @@ class BaseClient:
     network_error_message: str = "API unreachable."
     debug_folder: str = "api_responses"
 
-    def __init__(self, base_url: str, headers: dict | None = None):
+    def __init__(self, *, base_url: str, headers: dict | None = None):
         self.base_url = base_url.rstrip("/")
         self.headers = headers or {}
 
-    def post(
-        self,
-        path: str,
-        data: dict | None = None,
-    ) -> dict:
+    def post(self, *, path: str, data: dict | None = None) -> dict:
         url = f"{self.base_url}/{path.lstrip('/')}"
         try:
             response = httpx.post(url, data=data, headers=self.headers)

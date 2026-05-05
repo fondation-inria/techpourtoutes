@@ -21,16 +21,60 @@
         <p class="text-xxs text-neutral-700 leading-[1.4] font-light">{{ description }}</p>
     {% endif %}
 
-    <input
-        type="{{ type }}"
-        id="{{ field.id_for_label|default:id }}"
-        value="{{ field.value|default:value }}"
-        name="{{ field.html_name|default:name }}"
-        {% if placeholder %}placeholder="{{ placeholder }}"{% endif %}
-        {% if variant == "disabled" %}disabled aria-disabled="true"{% endif %}
-        {% if field.errors or errors or variant == "error" %}aria-invalid="true"{% endif %}
-        class="w-full px-3 py-2 text-sm rounded focus:ring {% if variant != "disabled" %}text-neutral-950 bg-neutral-50 shadow-thin-bottom {% endif %}{% if variant == "disabled" %}text-neutral-500 bg-neutral-100 cursor-not-allowed {% elif field.errors or errors or variant == "error" %}shadow-error-500 focus:ring-error-500 {% elif variant == "valid" %}shadow-success-500 focus:ring-success-500 {% else %}shadow-primary-700 focus:ring-primary-700{% endif %}"
-    />
+    {% if field.field.choices %}
+        <div x-data="{ open: false, selected: '{{ field.value|default:value|escapejs }}' }"
+             @click.outside="open = false"
+             @focusout="if (!$el.contains($event.relatedTarget)) open = false"
+             @keydown.escape.window="open = false"
+             class="relative">
+            <input type="hidden" name="{{ field.html_name|default:name }}" :value="selected">
+            <button
+                type="button"
+                id="{{ field.id_for_label|default:id }}"
+                @click="open = !open"
+                :aria-expanded="open"
+                {% if variant == "disabled" %}disabled aria-disabled="true"{% endif %}
+                {% if field.errors or errors or variant == "error" %}aria-invalid="true"{% endif %}
+                class="w-full px-3 py-2 text-sm rounded focus:ring text-left flex items-center justify-between gap-2 {% if variant != "disabled" %}bg-neutral-50 shadow-thin-bottom {% endif %}{% if variant == "disabled" %}text-neutral-500 bg-neutral-100 cursor-not-allowed {% elif field.errors or errors or variant == "error" %}shadow-error-500 focus:ring-error-500 {% elif variant == "valid" %}shadow-success-500 focus:ring-success-500 {% else %}shadow-primary-700 focus:ring-primary-700{% endif %}"
+            >
+                <span class="truncate" :class="selected ? 'text-neutral-950' : 'text-neutral-500'">
+                    {% for opt_value, opt_label in field.field.choices %}
+                        <span x-show="selected === '{{ opt_value|escapejs }}'">{{ opt_label }}</span>
+                    {% endfor %}
+                </span>
+                <svg class="pointer-events-none h-4 w-4 flex-shrink-0 transition-transform {% if variant == "disabled" %}text-neutral-500{% else %}text-neutral-950{% endif %}" :class="open && 'rotate-180'" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M6 8l4 4 4-4" />
+                </svg>
+            </button>
+            <ul x-show="open" x-cloak x-transition.opacity.duration.150ms
+                class="absolute z-10 mt-1 w-full bg-neutral-50 rounded shadow-thin-bottom shadow-primary-700 overflow-hidden"
+                role="listbox">
+                {% for opt_value, opt_label in field.field.choices %}
+                    {% if opt_value %}
+                        <li>
+                            <button type="button"
+                                @click="selected = '{{ opt_value|escapejs }}'; open = false"
+                                class="w-full text-left px-3 py-2 text-sm hover:bg-primary-50"
+                                :class="selected === '{{ opt_value|escapejs }}' ? 'bg-primary-50 text-primary-700 font-medium' : 'text-neutral-950'">
+                                {{ opt_label }}
+                            </button>
+                        </li>
+                    {% endif %}
+                {% endfor %}
+            </ul>
+        </div>
+    {% else %}
+        <input
+            type="{{ type }}"
+            id="{{ field.id_for_label|default:id }}"
+            value="{{ field.value|default:value }}"
+            name="{{ field.html_name|default:name }}"
+            {% if placeholder %}placeholder="{{ placeholder }}"{% endif %}
+            {% if variant == "disabled" %}disabled aria-disabled="true"{% endif %}
+            {% if field.errors or errors or variant == "error" %}aria-invalid="true"{% endif %}
+            class="w-full px-3 py-2 text-sm rounded focus:ring {% if variant != "disabled" %}text-neutral-950 bg-neutral-50 shadow-thin-bottom {% endif %}{% if variant == "disabled" %}text-neutral-500 bg-neutral-100 cursor-not-allowed {% elif field.errors or errors or variant == "error" %}shadow-error-500 focus:ring-error-500 {% elif variant == "valid" %}shadow-success-500 focus:ring-success-500 {% else %}shadow-primary-700 focus:ring-primary-700{% endif %}"
+        />
+    {% endif %}
 
     {% for error in field.errors|default:errors %}
         <p class="text-xxs leading-[1.4] text-error-500 font-normal">{{ error }}</p>

@@ -11,7 +11,10 @@ class MentorForm(forms.Form):
     last_name = forms.CharField(label=_("Votre nom*"))
     email = forms.EmailField(label=_("Votre email*"))
     phone = PhoneNumberField(region="FR", label=_("Votre n° de téléphone*"))
-    professional_situation = forms.CharField(label=_("Votre situation professionnelle*"))
+    professional_situation = forms.ChoiceField(
+        label=_("Votre situation professionnelle*"),
+        choices=[("", _("Sélectionner une option")), *Mentor.ProfessionalSituation.choices],
+    )
     structure_name = forms.CharField(label=_("Nom de votre structure"), required=False)
     job_title = forms.CharField(label=_("Votre métier*"))
     postal_code = forms.CharField(

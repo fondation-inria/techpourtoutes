@@ -47,3 +47,30 @@ def test_register_mentor_on_jobirl_raises_on_network_error(httpx_mock, mentor):
 
     with pytest.raises(JobirlAPIError):
         register_mentor_on_jobirl(mentor)
+
+
+@override_settings(JOBIRL_URL=JOBIRL_TEST_URL, JOBIRL_API_KEY=JOBIRL_TEST_API_KEY)
+@pytest.mark.parametrize(
+    "professional_situation,expected_situation_pro",
+    [
+        ("working", "actif"),
+        ("student", "actif"),
+        ("retired", "retraite"),
+        ("jobless", "chomeur"),
+    ],
+)
+def test_register_mentor_maps_professional_situation(
+    httpx_mock, mentor, professional_situation, expected_situation_pro
+):
+    from api.services.jobirl import register_mentor_on_jobirl
+
+    mentor.professional_situation = professional_situation
+    mentor.save()
+
+    register_url = f"{JOBIRL_TEST_URL}/techpourtoutes/api/user_register"
+    httpx_mock.add_response(url=register_url, status_code=200)
+
+    register_mentor_on_jobirl(mentor)
+
+    body = httpx_mock.get_request().content.decode()
+    assert f"situation_pro={expected_situation_pro}" in body

@@ -41,3 +41,21 @@ def test_mentor_form_save_creates_mentor(valid_mentor_data):
     mentor = form.save()
     assert isinstance(mentor, Mentor)
     assert Mentor.objects.filter(email=valid_mentor_data["email"]).exists()
+
+
+@pytest.mark.django_db
+def test_mentor_form_invalid_professional_situation(valid_mentor_data):
+    from techpourtoutes.forms import MentorForm
+
+    form = MentorForm(data={**valid_mentor_data, "professional_situation": "not-a-choice"})
+    assert not form.is_valid()
+    assert "professional_situation" in form.errors
+
+
+@pytest.mark.django_db
+def test_mentor_form_blank_professional_situation(valid_mentor_data):
+    from techpourtoutes.forms import MentorForm
+
+    form = MentorForm(data={**valid_mentor_data, "professional_situation": ""})
+    assert not form.is_valid()
+    assert "professional_situation" in form.errors

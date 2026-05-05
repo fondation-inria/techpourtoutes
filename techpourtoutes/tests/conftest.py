@@ -8,7 +8,7 @@ def valid_mentor_data():
         "last_name": "Dupont",
         "email": "marie.dupont@example.com",
         "phone": "0612345678",
-        "professional_situation": "Ingénieure logiciel",
+        "professional_situation": "working",
         "structure_name": "Tech Corp",
         "job_title": "Développeuse backend",
         "postal_code": "75011",

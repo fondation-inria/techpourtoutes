@@ -12,7 +12,7 @@ help:
 install:
 	uv sync --group dev
 
-server:
+run:
 	uv run python manage.py tailwind runserver
 
 test:

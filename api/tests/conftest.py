@@ -11,7 +11,7 @@ def mentor(db):
         last_name="Martin",
         email="alice@example.com",
         phone="+33612345678",
-        professional_situation="Ingénieure",
+        professional_situation=Mentor.ProfessionalSituation.WORKING,
         structure_name="Acme",
         job_title="CTO",
         postal_code="75001",
