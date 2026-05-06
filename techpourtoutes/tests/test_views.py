@@ -1,4 +1,4 @@
-from unittest.mock import patch
+from unittest.mock import MagicMock, patch
 
 import pytest
 from django.core import mail
@@ -13,9 +13,10 @@ def test_mentor_landing_get(client):
 
 @pytest.mark.django_db
 @override_settings(EMAIL_BACKEND="django.core.mail.backends.locmem.EmailBackend")
-def test_mentor_landing_post_valid_redirects(client, valid_mentor_data):
-    with patch("techpourtoutes.views.coallition_views.register_mentor_on_jobirl"):
-        response = client.post(reverse("mentor_landing"), data=valid_mentor_data)
+def test_mentor_landing_post_valid_redirects(
+    client, valid_mentor_data, mock_register_mentor_on_jobirl
+):
+    response = client.post(reverse("mentor_landing"), data=valid_mentor_data)
     assert response.status_code == 302
     assert response["Location"] == reverse("mentor_success")
 
@@ -47,9 +48,10 @@ def test_mentor_success_get(client):
 
 @pytest.mark.django_db
 @override_settings(EMAIL_BACKEND="django.core.mail.backends.locmem.EmailBackend")
-def test_mentor_landing_post_sends_welcome_email(client, valid_mentor_data):
-    with patch("techpourtoutes.views.coallition_views.register_mentor_on_jobirl"):
-        client.post(reverse("mentor_landing"), data=valid_mentor_data)
+def test_mentor_landing_post_sends_welcome_email(
+    client, valid_mentor_data, mock_register_mentor_on_jobirl
+):
+    client.post(reverse("mentor_landing"), data=valid_mentor_data)
 
     assert len(mail.outbox) == 1
     assert mail.outbox[0].to == [valid_mentor_data["email"]]
@@ -59,25 +61,40 @@ def test_mentor_landing_post_sends_welcome_email(client, valid_mentor_data):
 
 @pytest.mark.django_db
 @override_settings(EMAIL_BACKEND="django.core.mail.backends.locmem.EmailBackend")
-def test_mentor_landing_post_calls_jobirl_api(client, valid_mentor_data):
+def test_mentor_landing_post_calls_jobirl_api(
+    client, valid_mentor_data, mock_register_mentor_on_jobirl
+):
     from techpourtoutes.models import Mentor
 
-    with patch("techpourtoutes.views.coallition_views.register_mentor_on_jobirl") as mock_register:
-        client.post(reverse("mentor_landing"), data=valid_mentor_data)
+    client.post(reverse("mentor_landing"), data=valid_mentor_data)
 
     mentor = Mentor.objects.get(email=valid_mentor_data["email"])
-    mock_register.assert_called_once_with(mentor)
+    mock_register_mentor_on_jobirl.assert_called_once_with(mentor=mentor)
+
+
+@pytest.mark.django_db
+@override_settings(EMAIL_BACKEND="django.core.mail.backends.locmem.EmailBackend")
+def test_mentor_landing_post_saves_jobirl_ids_on_mentor(
+    client, valid_mentor_data, mock_register_mentor_on_jobirl
+):
+    from techpourtoutes.models import Mentor
+
+    client.post(reverse("mentor_landing"), data=valid_mentor_data)
+
+    mentor = Mentor.objects.get(email=valid_mentor_data["email"])
+    assert mentor.jobirl_user_id == 287565
+    assert mentor.jobirl_user_token == "tpt_abc"
 
 
 @pytest.mark.django_db
 @override_settings(EMAIL_BACKEND="django.core.mail.backends.locmem.EmailBackend")
 def test_mentor_landing_post_shows_error_on_jobirl_failure(client, valid_mentor_data):
-    from api.services.jobirl import JobirlAPIError
     from techpourtoutes.models import Mentor
 
+    failed = MagicMock(success=False, failure=True, errors=["erreur de synchronisation"])
     with patch(
-        "techpourtoutes.views.coallition_views.register_mentor_on_jobirl",
-        side_effect=JobirlAPIError("erreur de synchronisation"),
+        "techpourtoutes.views.coallition_views.RegisterMentorOnJobirl",
+        return_value=failed,
     ):
         response = client.post(reverse("mentor_landing"), data=valid_mentor_data)
 

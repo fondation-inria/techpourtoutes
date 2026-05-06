@@ -975,17 +975,11 @@
   .top-0 {
     top: calc(var(--spacing) * 0);
   }
-  .top-1\/2 {
-    top: calc(1 / 2 * 100%);
-  }
   .top-4 {
     top: calc(var(--spacing) * 4);
   }
   .-right-10 {
     right: calc(var(--spacing) * -10);
-  }
-  .right-3 {
-    right: calc(var(--spacing) * 3);
   }
   .right-4 {
     right: calc(var(--spacing) * 4);
@@ -1099,9 +1093,6 @@
   }
   .mb-6 {
     margin-bottom: calc(var(--spacing) * 6);
-  }
-  .ml-2 {
-    margin-left: calc(var(--spacing) * 2);
   }
   .status {
     @layer daisyui.l1.l2.l3 {
@@ -1305,10 +1296,6 @@
   .origin-top {
     transform-origin: top;
   }
-  .-translate-y-1\/2 {
-    --tw-translate-y: calc(calc(1 / 2 * 100%) * -1);
-    translate: var(--tw-translate-x) var(--tw-translate-y);
-  }
   .scale-y-20 {
     --tw-scale-y: 20%;
     scale: var(--tw-scale-x) var(--tw-scale-y);
@@ -1346,9 +1333,6 @@
   }
   .cursor-pointer {
     cursor: pointer;
-  }
-  .appearance-none {
-    appearance: none;
   }
   .flex-col {
     flex-direction: column;
@@ -1419,10 +1403,6 @@
     border-style: var(--tw-border-style);
     border-width: 1px;
   }
-  .border-0 {
-    border-style: var(--tw-border-style);
-    border-width: 0px;
-  }
   .border-t {
     border-top-style: var(--tw-border-style);
     border-top-width: 1px;
@@ -1473,9 +1453,6 @@
   .bg-primary-700 {
     background-color: var(--color-primary-700);
   }
-  .bg-none {
-    background-image: none;
-  }
   .p-1 {
     padding: calc(var(--spacing) * 1);
   }
@@ -1517,9 +1494,6 @@
   }
   .pt-4 {
     padding-top: calc(var(--spacing) * 4);
-  }
-  .pr-9 {
-    padding-right: calc(var(--spacing) * 9);
   }
   .pr-10 {
     padding-right: calc(var(--spacing) * 10);
@@ -1716,12 +1690,6 @@
   .select-none {
     -webkit-user-select: none;
     user-select: none;
-  }
-  .\[-moz-appearance\:none\] {
-    -moz-appearance: none;
-  }
-  .\[-webkit-appearance\:none\] {
-    -webkit-appearance: none;
   }
   .hover\:bg-blue-background {
     &:hover {
@@ -2196,21 +2164,6 @@
     --color-error: var(--color-error-500);
   }
 }
-@property --tw-translate-x {
-  syntax: "*";
-  inherits: false;
-  initial-value: 0;
-}
-@property --tw-translate-y {
-  syntax: "*";
-  inherits: false;
-  initial-value: 0;
-}
-@property --tw-translate-z {
-  syntax: "*";
-  inherits: false;
-  initial-value: 0;
-}
 @property --tw-scale-x {
   syntax: "*";
   inherits: false;
@@ -2335,9 +2288,6 @@
 @layer properties {
   @supports ((-webkit-hyphens: none) and (not (margin-trim: inline))) or ((-moz-orient: inline) and (not (color:rgb(from red r g b)))) {
     *, ::before, ::after, ::backdrop {
-      --tw-translate-x: 0;
-      --tw-translate-y: 0;
-      --tw-translate-z: 0;
       --tw-scale-x: 1;
       --tw-scale-y: 1;
       --tw-scale-z: 1;

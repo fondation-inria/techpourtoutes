@@ -1,8 +1,7 @@
 from django.contrib import messages
-from django.db import transaction
 from django.shortcuts import redirect, render
 
-from api.services.jobirl import JobirlAPIError, register_mentor_on_jobirl
+from api.services.jobirl_api.register_mentor import RegisterMentorOnJobirl
 
 from ..forms import MentorForm
 from ..mailers import MentorMailer
@@ -16,13 +15,14 @@ def mentor_landing(request):
     if request.method == "POST":
         form = MentorForm(data=request.POST)
         if form.is_valid():
-            try:
-                with transaction.atomic():
-                    mentor = form.save()
-                    register_mentor_on_jobirl(mentor)
-            except JobirlAPIError as exc:
-                messages.error(request, str(exc))
+            mentor = form.save(commit=False)
+            result = RegisterMentorOnJobirl(mentor=mentor)
+            if result.failure:
+                for error in result.errors:
+                    messages.error(request, error)
                 return render(request, "coallition/mentor_landing.html", {"form": form})
+            mentor.jobirl_user_id, mentor.jobirl_user_token = result.user_id, result.token
+            mentor.save()
             MentorMailer.welcome(mentor)
             return redirect("mentor_success")
     else:

@@ -28,7 +28,7 @@ class MentorForm(forms.Form):
             raise forms.ValidationError(_("Un compte avec cet email existe déjà."))
         return email
 
-    def save(self):
+    def save(self, commit=True):
         data = self.cleaned_data
         mentor = Mentor(
             username=data["email"],
@@ -41,5 +41,6 @@ class MentorForm(forms.Form):
             job_title=data["job_title"],
             postal_code=data["postal_code"],
         )
-        mentor.save()
+        if commit:
+            mentor.save()
         return mentor
