@@ -14,8 +14,8 @@ class BaseService:
         if result.success:
             ...
         else:
-            # result.errors is a list of human-readable error strings
             ...
+            (result.errors is a list of human-readable error strings)
 
     To signal failure from within `perform`, call `self.fail("message")`, which raises
     `FailedServiceError` and stops execution. The error is caught and appended to

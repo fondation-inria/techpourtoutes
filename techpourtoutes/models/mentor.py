@@ -13,6 +13,14 @@ class Mentor(User):
         JOBLESS = "jobless", _("Sans emploi")
         STUDENT = "student", _("En étude")
 
+    class Civility(models.TextChoices):
+        MADAME = "Madame", _("Madame")
+        MONSIEUR = "Monsieur", _("Monsieur")
+
+    civility = models.CharField(
+        max_length=10, choices=Civility.choices, verbose_name=_("civilité")
+    )
+    birth_date = models.DateField(verbose_name=_("date de naissance"))
     phone = PhoneNumberField(region="FR", verbose_name=_("téléphone"))
     professional_situation = models.CharField(
         max_length=20,
@@ -23,11 +31,13 @@ class Mentor(User):
         max_length=255, blank=True, verbose_name=_("nom de la structure")
     )
     job_title = models.CharField(max_length=255, verbose_name=_("métier"))
+    address = models.CharField(max_length=255, verbose_name=_("adresse"))
     postal_code = models.CharField(
         max_length=5,
         validators=[RegexValidator(r"^\d{5}$", _("Entrez un code postal valide à 5 chiffres."))],
         verbose_name=_("code postal"),
     )
+    city = models.CharField(max_length=100, verbose_name=_("ville"))
     jobirl_user_id = models.BigIntegerField(
         null=True, blank=True, verbose_name=_("identifiant utilisateur jobirl")
     )

@@ -160,3 +160,39 @@
 [x-cloak] {
   display: none !important;
 }
+
+@layer components {
+  /* Boxed form controls: input, select, datepicker */
+  .field-base {
+    @apply w-full px-3 py-2 text-sm rounded focus:ring text-neutral-950 bg-neutral-50 shadow-thin-bottom;
+  }
+  .field-default {
+    @apply shadow-primary-700 focus:ring-primary-700;
+  }
+  .field-error {
+    @apply shadow-error-500 focus:ring-error-500;
+  }
+  .field-valid {
+    @apply shadow-success-500 focus:ring-success-500;
+  }
+  .field-disabled {
+    @apply text-neutral-500 bg-neutral-100 cursor-not-allowed;
+  }
+
+  /* Tick controls: visual span sibling of a peer input (radio, checkbox) */
+  .tick-base {
+    @apply h-5 w-5 shrink-0 border bg-neutral-50 transition-colors;
+  }
+  .tick-default {
+    @apply border-primary-700 peer-focus-visible:ring-2 peer-focus-visible:ring-primary-700 peer-focus-visible:ring-offset-1;
+  }
+  .tick-error {
+    @apply border-error-500 peer-focus-visible:ring-2 peer-focus-visible:ring-error-500 peer-focus-visible:ring-offset-1;
+  }
+  .tick-valid {
+    @apply border-success-500 peer-focus-visible:ring-2 peer-focus-visible:ring-success-500 peer-focus-visible:ring-offset-1;
+  }
+  .tick-disabled {
+    @apply border-neutral-300 cursor-not-allowed;
+  }
+}

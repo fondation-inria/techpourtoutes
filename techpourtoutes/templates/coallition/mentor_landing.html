@@ -57,14 +57,20 @@
 
                     <c-patterns.form url="{% url 'mentor_landing' %}">
                         <c-components.title title="Engagement mentor" variant="h3" />
-                        <c-components.input field=form.first_name />
-                        <c-components.input field=form.last_name />
-                        <c-components.input field=form.email />
-                        <c-components.input field=form.phone />
-                        <c-components.input field=form.postal_code />
-                        <c-components.input field=form.professional_situation />
-                        <c-components.input field=form.structure_name description="Nom de votre structure actuelle ou de la dernière" />
-                        <c-components.input field=form.job_title />
+                        <p class="text-xxs text-neutral-700 font-light">Les champs suivis d'un astérisque (*) sont obligatoires.</p>
+                        <c-components.inputs.radio field=form.civility />
+                        <c-components.inputs.input field=form.first_name />
+                        <c-components.inputs.input field=form.last_name />
+                        <c-components.inputs.datepicker field=form.birth_date />
+                        <c-components.inputs.input field=form.email />
+                        <c-components.inputs.input field=form.phone />
+                        <c-components.inputs.input field=form.address />
+                        <c-components.inputs.input field=form.postal_code />
+                        <c-components.inputs.input field=form.city />
+                        <c-components.inputs.select field=form.professional_situation />
+                        <c-components.inputs.input field=form.structure_name description="Nom de votre structure actuelle ou de la dernière" />
+                        <c-components.inputs.input field=form.job_title />
+                        <c-components.inputs.checkbox field=form.terms_accepted />
                         <c-components.button type="submit" label="Je deviens mentor" class="justify-center" />
                     </c-patterns.form>
                 </c-components.card-shadow>

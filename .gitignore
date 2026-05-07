@@ -11,11 +11,10 @@ wheels/
 .venv
 
 # Static folders
-/static/
 /staticfiles/
 
-# Runtime data (logs, debug responses, etc.)
-/var/
+# Tailwind generated css - built on the server via the Procfile
+/ui/static/css/tailwind.css
 
 # macOS
 ._*

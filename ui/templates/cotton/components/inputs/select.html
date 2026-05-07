@@ -1,0 +1,65 @@
+<c-vars
+    field=field
+    label=""
+    description=""
+    message=""
+    :errors=[]
+    name=""
+    id=""
+    value=""
+    variant="default"
+    class=""
+/>
+
+<div class="flex flex-col gap-2 {{ class }}">
+    {% if field.label or label %}
+        <label for="{{ field.id_for_label|default:id }}" class="text-sm font-light text-neutral-950 leading-[1.4]">{{ field.label|default:label }}</label>
+    {% endif %}
+    {% if description %}
+        <p class="text-xxs text-neutral-700 leading-[1.4] font-light">{{ description }}</p>
+    {% endif %}
+
+    <div x-data="{ open: false, selected: '{{ field.value|default:value|escapejs }}' }"
+         @click.outside="open = false"
+         @focusout="if (!$el.contains($event.relatedTarget)) open = false"
+         @keydown.escape.window="open = false"
+         class="relative">
+        <input type="hidden" name="{{ field.html_name|default:name }}" :value="selected">
+        <button
+            type="button"
+            id="{{ field.id_for_label|default:id }}"
+            @click="open = !open"
+            :aria-expanded="open"
+            {% if variant == "disabled" %}disabled aria-disabled="true"{% endif %}
+            {% if field.errors or errors or variant == "error" %}aria-invalid="true"{% endif %}
+            class="field-base text-left flex items-center justify-between gap-2 {% if variant == "disabled" %}field-disabled{% elif field.errors or errors or variant == "error" %}field-error{% elif variant == "valid" %}field-valid{% else %}field-default{% endif %}"
+        >
+            <span class="truncate" :class="selected ? 'text-neutral-950' : 'text-neutral-500'">
+                {% for opt_value, opt_label in field.field.choices %}
+                    <span x-show="selected === '{{ opt_value|escapejs }}'">{{ opt_label }}</span>
+                {% endfor %}
+            </span>
+            <svg class="pointer-events-none h-4 w-4 flex-shrink-0 transition-transform {% if variant == "disabled" %}text-neutral-500{% else %}text-neutral-950{% endif %}" :class="open && 'rotate-180'" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M6 8l4 4 4-4" />
+            </svg>
+        </button>
+        <ul x-show="open" x-cloak x-transition.opacity.duration.150ms
+            class="absolute z-10 mt-1 w-full bg-neutral-50 rounded shadow-thin-bottom shadow-primary-700 overflow-hidden"
+            role="listbox">
+            {% for opt_value, opt_label in field.field.choices %}
+                {% if opt_value %}
+                    <li>
+                        <button type="button"
+                            @click="selected = '{{ opt_value|escapejs }}'; open = false"
+                            class="w-full text-left px-3 py-2 text-sm hover:bg-primary-50"
+                            :class="selected === '{{ opt_value|escapejs }}' ? 'bg-primary-50 text-primary-700 font-medium' : 'text-neutral-950'">
+                            {{ opt_label }}
+                        </button>
+                    </li>
+                {% endif %}
+            {% endfor %}
+        </ul>
+    </div>
+
+    <c-components.inputs.messages :field=field :errors=errors :message=message />
+</div>

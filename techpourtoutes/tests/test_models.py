@@ -20,41 +20,46 @@ def test_mentor_inherits_user():
 
 
 @pytest.mark.django_db
-def test_mentor_save_sets_unusable_password(valid_mentor_data):
+def test_mentor_save_sets_unusable_password(valid_mentor_model_data):
     from techpourtoutes.models import Mentor
 
-    mentor = Mentor(username="marie.dupont@example.com", **valid_mentor_data)
+    mentor = Mentor(username="marie.dupont@example.com", **valid_mentor_model_data)
     mentor.save()
     assert not mentor.has_usable_password()
 
 
 @pytest.mark.django_db
-def test_mentor_creation_saves_all_fields(valid_mentor_data):
+def test_mentor_creation_saves_all_fields(valid_mentor_model_data):
     from techpourtoutes.models import Mentor
 
-    Mentor(username="marie.dupont@example.com", **valid_mentor_data).save()
+    Mentor(username="marie.dupont@example.com", **valid_mentor_model_data).save()
 
     saved = Mentor.objects.get(email="marie.dupont@example.com")
+    assert saved.civility == "Madame"
     assert saved.first_name == "Marie"
+    assert saved.birth_date.isoformat() == "1990-06-15"
     assert saved.phone.national_number == 612345678
+    assert saved.address == "5 avenue Victor Hugo"
     assert saved.job_title == "Développeuse backend"
     assert saved.structure_name == "Tech Corp"
     assert saved.postal_code == "75011"
+    assert saved.city == "Paris"
 
 
 @pytest.mark.django_db
-def test_mentor_structure_name_optional(valid_mentor_data):
+def test_mentor_structure_name_optional(valid_mentor_model_data):
     from techpourtoutes.models import Mentor
 
-    data = {**valid_mentor_data, "email": "autre@example.com", "structure_name": ""}
+    data = {**valid_mentor_model_data, "email": "autre@example.com", "structure_name": ""}
     Mentor(username="autre@example.com", **data).save()
     assert Mentor.objects.filter(email="autre@example.com").exists()
 
 
 @pytest.mark.django_db
-def test_mentor_save_raises_if_invalid(valid_mentor_data):
+def test_mentor_save_raises_if_invalid(valid_mentor_model_data):
     from techpourtoutes.models import Mentor
 
-    mentor = Mentor(username="bad@example.com", **{**valid_mentor_data, "email": "not-an-email"})
+    data = {**valid_mentor_model_data, "email": "not-an-email"}
+    mentor = Mentor(username="bad@example.com", **data)
     with pytest.raises(ValidationError):
         mentor.save()
