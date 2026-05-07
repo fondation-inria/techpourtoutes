@@ -1,6 +1,6 @@
 from django.conf import settings
 
-from api.clients.base import BaseClient
+from techpourtoutes.clients.base import BaseClient
 
 
 class JobirlClient(BaseClient):

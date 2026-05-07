@@ -55,7 +55,7 @@ lint.isort.known-first-party = [ "conf", "techpourtoutes", "ui" ]
 
 [tool.pytest]
 ini_options.DJANGO_SETTINGS_MODULE = "conf.settings"
-ini_options.testpaths = [ "techpourtoutes", "api" ]
+ini_options.testpaths = [ "techpourtoutes" ]
 ini_options.python_files = [ "test_*.py" ]
-ini_options.addopts = "--cov=techpourtoutes --cov=api --cov-report=term-missing"
+ini_options.addopts = "--cov=techpourtoutes --cov-report=term-missing"
 ini_options.filterwarnings = [ "ignore::UserWarning:django.core.handlers.base" ]

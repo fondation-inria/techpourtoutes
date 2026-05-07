@@ -1,10 +1,9 @@
 from django.contrib import messages
 from django.shortcuts import redirect, render
 
-from api.services.jobirl_api.register_mentor import RegisterMentorOnJobirl
-
 from ..forms import MentorForm
 from ..mailers import MentorMailer
+from ..services.jobirl_api.register_mentor import RegisterMentorOnJobirl
 
 
 def coallition_index(request):

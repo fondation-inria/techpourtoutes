@@ -1,5 +1,5 @@
-from api.services.jobirl_api.base import JobirlApiBaseService
 from techpourtoutes.models import Mentor
+from techpourtoutes.services.jobirl_api.base_service import JobirlApiBaseService
 
 SITUATION_PRO_MAPPING = {
     Mentor.ProfessionalSituation.WORKING: "actif",
@@ -14,7 +14,7 @@ class RegisterMentorOnJobirl(JobirlApiBaseService):
         self.request(
             method="post",
             path="user_register",
-            data={
+            payload={
                 "jobirl_profil": "pro",
                 "mentorat_profil": "mentor",
                 "choix": "projet",

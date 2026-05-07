@@ -21,7 +21,6 @@ environ.Env.read_env(BASE_DIR / ".env")
 
 SECRET_KEY = env("SECRET_KEY")
 DEBUG = env("DEBUG")
-DJANGO_ENV = env("DJANGO_ENV")
 ALLOWED_HOSTS = env.list("ALLOWED_HOSTS")
 
 DATABASES = {"default": env.db("DATABASE_URL")}
@@ -42,7 +41,6 @@ INSTALLED_APPS = [
     "phonenumber_field",
     "anymail",
     # Apps techpourtoutes
-    "api",
     "techpourtoutes",
     "ui",
 ]
@@ -89,7 +87,7 @@ LOGGING = {
         },
     },
     "loggers": {
-        "api.clients": {
+        "techpourtoutes.clients": {
             "handlers": ["console"],
             "level": "DEBUG" if DEBUG else "INFO",
             "propagate": False,

@@ -8,7 +8,7 @@ JOBIRL_TEST_API_KEY = "test-api-key-abc"
 
 @override_settings(JOBIRL_URL=JOBIRL_TEST_URL, JOBIRL_API_KEY=JOBIRL_TEST_API_KEY)
 def test_register_mentor_on_jobirl_sends_correct_payload_and_exposes_ids(httpx_mock, mentor):
-    from api.services.jobirl_api.register_mentor import RegisterMentorOnJobirl
+    from techpourtoutes.services.jobirl_api.register_mentor import RegisterMentorOnJobirl
 
     register_url = f"{JOBIRL_TEST_URL}/techpourtoutes/api/user_register"
     httpx_mock.add_response(
@@ -37,7 +37,7 @@ def test_register_mentor_on_jobirl_sends_correct_payload_and_exposes_ids(httpx_m
 
 @override_settings(JOBIRL_URL=JOBIRL_TEST_URL, JOBIRL_API_KEY=JOBIRL_TEST_API_KEY)
 def test_register_mentor_on_jobirl_fails_on_http_error(httpx_mock, mentor):
-    from api.services.jobirl_api.register_mentor import RegisterMentorOnJobirl
+    from techpourtoutes.services.jobirl_api.register_mentor import RegisterMentorOnJobirl
 
     register_url = f"{JOBIRL_TEST_URL}/techpourtoutes/api/user_register"
     httpx_mock.add_response(url=register_url, status_code=401)
@@ -50,7 +50,7 @@ def test_register_mentor_on_jobirl_fails_on_http_error(httpx_mock, mentor):
 
 @override_settings(JOBIRL_URL=JOBIRL_TEST_URL, JOBIRL_API_KEY=JOBIRL_TEST_API_KEY)
 def test_register_mentor_on_jobirl_includes_api_message_on_4xx(httpx_mock, mentor):
-    from api.services.jobirl_api.register_mentor import RegisterMentorOnJobirl
+    from techpourtoutes.services.jobirl_api.register_mentor import RegisterMentorOnJobirl
 
     register_url = f"{JOBIRL_TEST_URL}/techpourtoutes/api/user_register"
     httpx_mock.add_response(
@@ -72,7 +72,7 @@ def test_register_mentor_on_jobirl_includes_api_message_on_4xx(httpx_mock, mento
 
 @override_settings(JOBIRL_URL=JOBIRL_TEST_URL, JOBIRL_API_KEY=JOBIRL_TEST_API_KEY)
 def test_register_mentor_on_jobirl_fails_on_network_error(httpx_mock, mentor):
-    from api.services.jobirl_api.register_mentor import RegisterMentorOnJobirl
+    from techpourtoutes.services.jobirl_api.register_mentor import RegisterMentorOnJobirl
 
     httpx_mock.add_exception(httpx.RequestError("connection failed"))
 
@@ -95,7 +95,7 @@ def test_register_mentor_on_jobirl_fails_on_network_error(httpx_mock, mentor):
 def test_register_mentor_maps_professional_situation(
     httpx_mock, mentor, professional_situation, expected_situation_pro
 ):
-    from api.services.jobirl_api.register_mentor import RegisterMentorOnJobirl
+    from techpourtoutes.services.jobirl_api.register_mentor import RegisterMentorOnJobirl
 
     mentor.professional_situation = professional_situation
     mentor.save()
