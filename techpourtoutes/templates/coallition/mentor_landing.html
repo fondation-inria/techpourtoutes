@@ -33,7 +33,9 @@
     <c-slot name="right">
         <div class="flex flex-col items-center px-4 md:mt-[65px]">
             <c-components.title title="Rejoins la coalition, prends ta carte de membre !" class="text-center w-[300px] h-16" variant="h3" />
-            <div x-data="{ showForm: {{ form.is_bound|yesno:'true,false' }} }" id="mentor-card">
+            <div x-data="{ showForm: {{ form.is_bound|yesno:'true,false' }}, situation: '{{ form.professional_situation.value|default:'' }}' }"
+                 @select-change="situation = $event.detail.value"
+                 id="mentor-card">
                 <div x-show="!showForm" @click.prevent="showForm = true; $nextTick(() => { if (window.innerWidth < 768) $refs.formCard.scrollIntoView({ behavior: 'smooth', block: 'start' }) })" class="cursor-pointer">
                 <c-components.card-shadow id="mentor-member-card" class="my-5">
                     <div class="flex">
@@ -54,23 +56,35 @@
             />
                 <c-components.card-shadow id="mentor-form-card" class="my-5 p-5 relative">
                     <c-components.icon name="badge-coeur" class="w-15 h-15 shrink-0 mx-5 absolute -top-5 -right-10" />
-
                     <c-patterns.form url="{% url 'mentor_landing' %}">
                         <c-components.title title="Engagement mentor" variant="h3" />
-                        <p class="text-xxs text-neutral-700 font-light">Les champs suivis d'un astérisque (*) sont obligatoires.</p>
-                        <c-components.inputs.radio field=form.civility />
-                        <c-components.inputs.input field=form.first_name />
-                        <c-components.inputs.input field=form.last_name />
-                        <c-components.inputs.datepicker field=form.birth_date />
-                        <c-components.inputs.input field=form.email />
-                        <c-components.inputs.input field=form.phone />
-                        <c-components.inputs.input field=form.address />
-                        <c-components.inputs.input field=form.postal_code />
-                        <c-components.inputs.input field=form.city />
-                        <c-components.inputs.select field=form.professional_situation />
-                        <c-components.inputs.input field=form.structure_name description="Nom de votre structure actuelle ou de la dernière" />
-                        <c-components.inputs.input field=form.job_title />
-                        <c-components.inputs.checkbox field=form.terms_accepted />
+                        <p class="description-text-xxs">Les champs suivis d'un astérisque (*) sont obligatoires.</p>
+                        <c-components.form_fields.radio field=form.civility />
+                        <c-components.form_fields.input field=form.first_name />
+                        <c-components.form_fields.input field=form.last_name />
+                        <c-components.form_fields.datepicker field=form.birth_date />
+                        <c-components.form_fields.input field=form.email />
+                        <c-components.form_fields.input field=form.phone />
+                        <c-components.form_fields.input field=form.address />
+                        <c-components.form_fields.input field=form.postal_code />
+                        <c-components.form_fields.input field=form.city />
+                        <c-components.form_fields.select field=form.professional_situation :watchable=True />
+                        <div x-show="situation != ''" x-cloak>
+                            <c-components.form_fields.input field=form.job_title alpine_label="situation === 'student' ? 'Votre filière*' : 'Votre métier*'" />
+                        </div>
+                        <div x-show="['working', 'student'].includes(situation)" x-cloak>
+                            <c-components.form_fields.input field=form.structure_name alpine_label="situation === 'student' ? 'Nom de votre établissement*' : 'Nom de votre structure*'" description="Votre structure actuelle ou la dernière" />
+                        </div>
+                        <div x-show="['working', 'student'].includes(situation)" x-cloak>
+                            <c-components.form_fields.input field=form.structure_address alpine_label="situation === 'student' ? 'Adresse de votre établissement*' : 'Adresse de votre structure*'" />
+                        </div>
+                        <div x-show="['working', 'student'].includes(situation)" x-cloak>
+                            <c-components.form_fields.input field=form.structure_postal_code alpine_label="situation === 'student' ? 'Code postal de votre établissement*' : 'Code postal de votre structure*'" />
+                        </div>
+                        <div x-show="['working', 'student'].includes(situation)" x-cloak>
+                            <c-components.form_fields.input field=form.structure_city alpine_label="situation === 'student' ? 'Ville de votre établissement*' : 'Ville de votre structure*'" />
+                        </div>
+                        <c-components.form_fields.checkbox field=form.terms_accepted />
                         <c-components.button type="submit" label="Je deviens mentor" class="justify-center" />
                     </c-patterns.form>
                 </c-components.card-shadow>

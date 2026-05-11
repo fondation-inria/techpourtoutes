@@ -31,9 +31,9 @@ class RegisterMentorOnJobirl(JobirlApiBaseService):
                 "secteurs_activites": "75851",
                 "poste": mentor.job_title,
                 "nom_structure": mentor.structure_name,
-                "adresse_structure": "",
-                "cp_structure": "",
-                "ville_structure": "",
+                "adresse_structure": mentor.structure_address,
+                "cp_structure": mentor.structure_postal_code,
+                "ville_structure": mentor.structure_city,
             },
         )
         self.user_id = self.jobirl_response_body["id"]

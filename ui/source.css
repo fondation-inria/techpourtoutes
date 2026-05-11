@@ -105,63 +105,20 @@
   /* Typography sizes (Global.json) */
   --text-xxs: 0.625rem;
   --text-xl: 1.375rem;
-  /* --text-h1: 3.5rem;
-  --text-h1--line-height: 1.4;
-  --text-h2: 1.5rem;
-  --text-h2--line-height: 1.4;
-  --text-h3: 1.125rem;
-  --text-h3--line-height: 1.4;
-  --text-soustitre: 1.375rem;
-  --text-soustitre--line-height: 1.4;
-  --text-texte: 1rem;
-  --text-texte--line-height: 1.4;
-  --text-bouton: 1.125rem;
-  --text-bouton--line-height: 1.4;
-  --text-badge: 0.9375rem;
-  --text-badge--line-height: 1.4;
-  --text-input: 0.875rem;
-  --text-input--line-height: 1.4;
-  --text-titre-du-menu: 1rem;
-  --text-titre-du-menu--line-height: 1.4;
-  --text-item-du-menu: 0.875rem;
-  --text-item-du-menu--line-height: 1.4;
-  --text-pied-de-page-p: 0.6875rem;
-  --text-pied-de-page-p--line-height: 1.4;
-  --text-pied-de-page-m: 0.8125rem;
-  --text-pied-de-page-m--line-height: 1.4; */
-
-  /* Typography compositions (Desktop.json) */
-  /* --text-h1-desktop: 3rem;
-  --text-h1-desktop--line-height: 1.4;
-  --text-h2-desktop: 1.375rem;
-  --text-h2-desktop--line-height: 1.4;
-  --text-texte-desktop: 1rem;
-  --text-texte-desktop--line-height: 1.4;
-  --text-section-menu: 0.75rem;
-  --text-section-menu--line-height: 1.4;
-  --text-entree-menu: 0.875rem;
-  --text-entree-menu--line-height: 1.4; */
-}
-
-@plugin "daisyui";
-@plugin "daisyui/theme" {
-  name: "techpourtoutes";
-  default: true;
-
-  --color-primary: var(--color-primary-500);
-  --color-secondary: var(--color-accent-500);
-  --color-primary-content: var(--color-info-50);
-  --color-secondary-content: var(--color-info-50);
-  --color-success: var(--color-success-500);
-  --color-warning: var(--color-warning-500);
-  --color-error: var(--color-error-500);
-}
-
-[x-cloak] {
-  display: none !important;
 }
 
 @layer components {
+  /* Typography classes */
+  .text-disabled {
+    @apply text-neutral-500;
+  }
+  .description-text-xxs {
+    @apply text-xxs font-light text-neutral-700 leading-[1.4];
+  }
+  .label-text-sm {
+    @apply text-sm font-light text-neutral-950 leading-[1.4];
+  }
+
   /* Boxed form controls: input, select, datepicker */
   .field-base {
     @apply w-full px-3 py-2 text-sm rounded focus:ring text-neutral-950 bg-neutral-50 shadow-thin-bottom;
@@ -195,4 +152,22 @@
   .tick-disabled {
     @apply border-neutral-300 cursor-not-allowed;
   }
+}
+
+@plugin "daisyui";
+@plugin "daisyui/theme" {
+  name: "techpourtoutes";
+  default: true;
+
+  --color-primary: var(--color-primary-500);
+  --color-secondary: var(--color-accent-500);
+  --color-primary-content: var(--color-info-50);
+  --color-secondary-content: var(--color-info-50);
+  --color-success: var(--color-success-500);
+  --color-warning: var(--color-warning-500);
+  --color-error: var(--color-error-500);
+}
+
+[x-cloak] {
+  display: none !important;
 }

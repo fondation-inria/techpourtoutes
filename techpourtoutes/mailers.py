@@ -5,7 +5,7 @@ from django.template.loader import render_to_string
 
 class MentorMailer:
     @classmethod
-    def welcome(cls, mentor):
+    def welcome(cls, *, mentor):
         context = {"mentor": mentor}
         send_mail(
             subject="Bienvenue dans la Coallition !",

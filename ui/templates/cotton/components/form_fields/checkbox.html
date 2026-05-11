@@ -11,8 +11,8 @@
 />
 
 <div class="flex flex-col gap-2 {{ class }}">
-    <label class="inline-flex items-start gap-3 cursor-pointer">
-        <span class="relative inline-flex items-center justify-center mt-0.5">
+    <label class="inline-flex items-center gap-3 cursor-pointer">
+        <span class="inline-flex items-center justify-center">
             <input
                 type="checkbox"
                 id="{{ field.id_for_label|default:id }}"
@@ -26,13 +26,13 @@
                 <path stroke-linecap="round" stroke-linejoin="round" d="M5 10l4 4 7-8" />
             </svg>
         </span>
-        <span class="text-xs leading-[1.4] {% if variant == "disabled" %}text-neutral-500{% else %}text-neutral-950{% endif %} font-light">
+        <span class="text-xs leading-[1.4] font-light {% if variant == "disabled" %}text-disabled{% else %}text-neutral-950{% endif %}">
             {{ field.label|default:label }}
         </span>
     </label>
     {% if description %}
-        <p class="text-xxs text-neutral-700 leading-[1.4] font-light">{{ description }}</p>
+        <p class="description-text-xxs">{{ description }}</p>
     {% endif %}
 
-    <c-components.inputs.messages :field=field :errors=errors :message=message />
+    <c-components.form_fields.messages :field=field :errors=errors :message=message />
 </div>

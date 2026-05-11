@@ -24,6 +24,13 @@ class MentorForm(forms.Form):
         choices=[("", _("Sélectionner une option")), *Mentor.ProfessionalSituation.choices],
     )
     structure_name = forms.CharField(label=_("Nom de votre structure"), required=False)
+    structure_address = forms.CharField(label=_("Adresse de votre structure"), required=False)
+    structure_postal_code = forms.CharField(
+        label=_("Code postal de votre structure"),
+        required=False,
+        validators=[RegexValidator(r"^\d{5}$", _("Entrez un code postal valide à 5 chiffres."))],
+    )
+    structure_city = forms.CharField(label=_("Ville de votre structure"), required=False)
     job_title = forms.CharField(label=_("Votre métier*"))
     terms_accepted = forms.BooleanField(
         label=_(
@@ -35,6 +42,20 @@ class MentorForm(forms.Form):
             "required": _("Vous devez accepter les conditions d'utilisation pour continuer."),
         },
     )
+
+    def clean(self):
+        cleaned_data = super().clean()
+        if cleaned_data.get("professional_situation") in ("working", "student"):
+            structure_fields = (
+                "structure_name",
+                "structure_address",
+                "structure_postal_code",
+                "structure_city",
+            )
+            for field in structure_fields:
+                if not cleaned_data.get(field):
+                    self.add_error(field, _("Ce champ est obligatoire."))
+        return cleaned_data
 
     def clean_email(self):
         email = self.cleaned_data["email"]

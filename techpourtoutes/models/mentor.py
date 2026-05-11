@@ -30,6 +30,15 @@ class Mentor(User):
     structure_name = models.CharField(
         max_length=255, blank=True, verbose_name=_("nom de la structure")
     )
+    structure_address = models.CharField(
+        max_length=255, blank=True, verbose_name=_("adresse de la structure")
+    )
+    structure_postal_code = models.CharField(
+        max_length=5, blank=True, verbose_name=_("code postal de la structure")
+    )
+    structure_city = models.CharField(
+        max_length=100, blank=True, verbose_name=_("ville de la structure")
+    )
     job_title = models.CharField(max_length=255, verbose_name=_("métier"))
     address = models.CharField(max_length=255, verbose_name=_("adresse"))
     postal_code = models.CharField(

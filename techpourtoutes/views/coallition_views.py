@@ -22,7 +22,7 @@ def mentor_landing(request):
                 return render(request, "coallition/mentor_landing.html", {"form": form})
             mentor.jobirl_user_id, mentor.jobirl_user_token = result.user_id, result.token
             mentor.save()
-            MentorMailer.welcome(mentor)
+            MentorMailer.welcome(mentor=mentor)
             return redirect("mentor_success")
     else:
         form = MentorForm()
