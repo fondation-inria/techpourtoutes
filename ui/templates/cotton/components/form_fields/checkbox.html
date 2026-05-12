@@ -27,7 +27,7 @@
             </svg>
         </span>
         <span class="text-xs leading-[1.4] font-light {% if variant == "disabled" %}text-disabled{% else %}text-neutral-950{% endif %}">
-            {{ field.label|default:label }}
+            {{ label|default:field.label }}
         </span>
     </label>
     {% if description %}

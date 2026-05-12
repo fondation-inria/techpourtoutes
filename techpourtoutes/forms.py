@@ -78,6 +78,9 @@ class MentorForm(forms.Form):
             city=data["city"],
             professional_situation=data["professional_situation"],
             structure_name=data["structure_name"],
+            structure_address=data["structure_address"],
+            structure_postal_code=data["structure_postal_code"],
+            structure_city=data["structure_city"],
             job_title=data["job_title"],
         )
         if commit:
