@@ -1,0 +1,38 @@
+<c-vars
+    field=field
+    label=""
+    description=""
+    message=""
+    :errors=[]
+    name=""
+    id=""
+    variant="default"
+    class=""
+/>
+
+<div class="flex flex-col gap-2 {{ class }}">
+    <label class="inline-flex items-center gap-3 cursor-pointer">
+        <span class="inline-flex items-center justify-center">
+            <input
+                type="checkbox"
+                id="{{ field.id_for_label|default:id }}"
+                name="{{ field.html_name|default:name }}"
+                {% if field.value %}checked{% endif %}
+                {% if variant == "disabled" %}disabled{% endif %}
+                class="peer sr-only"
+            />
+            <span class="tick-base rounded-xs peer-checked:bg-primary-700 {% if variant == "disabled" %}tick-disabled{% elif field.errors or errors or variant == "error" %}tick-error{% elif variant == "valid" %}tick-valid{% else %}tick-default{% endif %}"></span>
+            <svg class="absolute h-3 w-3 hidden peer-checked:block text-neutral-50 pointer-events-none" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="3" aria-hidden="true">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M5 10l4 4 7-8" />
+            </svg>
+        </span>
+        <span class="text-xs leading-[1.4] font-light {% if variant == "disabled" %}text-disabled{% else %}text-neutral-950{% endif %}">
+            {{ label|default:field.label }}
+        </span>
+    </label>
+    {% if description %}
+        <p class="description-text-xxs">{{ description }}</p>
+    {% endif %}
+
+    <c-components.form_fields.messages :field=field :errors=errors :message=message />
+</div>

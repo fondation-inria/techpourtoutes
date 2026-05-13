@@ -1,0 +1,34 @@
+<c-vars
+    label=""
+    href=""
+    disabled=False
+    type="button"
+    base_class= "inline-block px-6 py-3 rounded-sm bg-primary-700 text-neutral-0 text-sm font-medium leading-[1.4] shadow-bottom-and-right shadow-black cursor-pointer hover:bg-primary-500 active:bg-primary-500 focus-visible:outline-none focus-visible:border focus-visible:border-neutral-0"
+    class=""
+/>
+
+<div class="flex {{ class }}">
+    {% if href and not disabled %}
+        <a href="{{ href }}"
+            class="{{ base_class }} {{ class }}">
+            {% if slot %}{{ slot }}{% else %}{{ label }}{% endif %}
+        </a>
+    {% elif disabled %}
+        <button type="{{ type }}"
+                disabled
+                class="inline-block px-6 py-3 rounded-sm bg-primary-500 text-neutral-0 text-sm font-medium leading-[1.4] shadow-bottom-and-right shadow-black cursor-not-allowed select-none {{ class }}">
+            {% if slot %}{{ slot }}{% else %}{{ label }}{% endif %}
+        </button>
+    {% else %}
+        <button type="{{ type }}"
+                class="{{ base_class }} {{ class }}">
+            {% if slot %}{{ slot }}{% else %}{{ label }}{% endif %}
+        </button>
+    {% endif %}
+</div>
+
+
+
+
+
+
