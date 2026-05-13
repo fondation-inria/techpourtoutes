@@ -1,11 +1,11 @@
 {% load static %}
-<aside class="sticky top-0 shrink-0 h-screen w-[264px] bg-neutral-0 border-r-2 border-primary-500 rounded-lg flex flex-col">
-    <div class="flex-1 min-h-0 overflow-y-auto px-6 py-6">
-        <div class="mb-8">
-            <c-components.brand-mark />
+<aside class="sticky top-0 shrink-0 h-screen w-[264px] bg-neutral-0 md:border-r-2 md:border-primary-500 md:rounded-r-lg flex flex-col">
+    <div class="flex-1 min-h-0 overflow-y-auto p-3">
+        <div class="">
+            <c-components.brand-mark class="hidden xl:inline" />
         </div>
 
-        <ul class="flex flex-col gap-1 mb-6">
+        <ul class="flex flex-col gap-1 mt-20 xl:mt-10 mb-6">
             <c-components.nav-link href="#" icon="sengager-light" icon-active="sengager-bold" label="S'engager" />
         </ul>
 
@@ -27,13 +27,18 @@
     </div>
 
     <div class="shrink-0 border-t border-blue-background px-6 py-6">
-        <ul class="flex flex-col gap-1 mb-6">
+        <c-components.button label="Se connecter" class="mb-1" />
+        <ul class="flex flex-col gap-1 mb-5">
             <c-components.nav-link href="#" label="A propos" />
             <c-components.nav-link href="#" label="Notre manifeste" />
         </ul>
         <div class="flex items-center justify-between pr-10">
-            <img src="{% static 'svg/rf.svg' %}" alt="République Française" class="h-14 w-auto" />
-            <img src="{% static 'svg/france-2030.svg' %}" alt="France 2030 — Lauréat" class="h-14 w-auto" />
+            <img src="{% static 'svg/rf.svg' %}"
+                 alt="République Française"
+                 class="h-14 w-auto" />
+            <img src="{% static 'svg/france-2030.svg' %}"
+                 alt="France 2030 — Lauréat"
+                 class="h-14 w-auto" />
         </div>
     </div>
 </aside>

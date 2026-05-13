@@ -10,8 +10,11 @@ wheels/
 .env
 .venv
 
-# Static folder at project root
-/static/
+# Static folders
+/staticfiles/
+
+# Tailwind generated css - built on the server via the Procfile
+/ui/static/css/tailwind.css
 
 # macOS
 ._*
@@ -23,3 +26,8 @@ wheels/
 .vscode/
 .history/
 *.code-workspace
+
+# Node (local install for IDE tooling only)
+node_modules/
+package.json
+package-lock.json

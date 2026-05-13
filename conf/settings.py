@@ -38,9 +38,14 @@ INSTALLED_APPS = [
     "django_tailwind_cli",
     "django_cotton",
     "simple_history",
-    "ui",
+    "phonenumber_field",
+    "anymail",
+    # Apps techpourtoutes
     "techpourtoutes",
+    "ui",
 ]
+
+AUTH_USER_MODEL = "techpourtoutes.User"
 
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
@@ -73,6 +78,22 @@ TEMPLATES = [
 
 WSGI_APPLICATION = "conf.wsgi.application"
 
+LOGGING = {
+    "version": 1,
+    "disable_existing_loggers": False,
+    "handlers": {
+        "console": {
+            "class": "logging.StreamHandler",
+        },
+    },
+    "loggers": {
+        "techpourtoutes.clients": {
+            "handlers": ["console"],
+            "level": "DEBUG" if DEBUG else "INFO",
+            "propagate": False,
+        },
+    },
+}
 
 # Auth settings
 # https://docs.djangoproject.com/en/6.0/ref/settings/#auth-password-validators
@@ -95,6 +116,20 @@ AUTH_PASSWORD_VALIDATORS = [
 LOGIN_REDIRECT_URL = "/"
 LOGOUT_REDIRECT_URL = "/"
 
+# Email
+DEFAULT_FROM_EMAIL = env("DEFAULT_FROM_EMAIL", default="noreply@techpourtoutes.io")
+if DEBUG:
+    EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
+    EMAIL_HOST = "localhost"
+    EMAIL_PORT = 1025
+else:
+    EMAIL_BACKEND = "anymail.backends.brevo.EmailBackend"
+    ANYMAIL = {"BREVO_API_KEY": env("BREVO_API_KEY")}
+
+# Jobirl API
+JOBIRL_API_KEY = env("JOBIRL_API_KEY", default="")
+JOBIRL_URL = env("JOBIRL_URL", default="")
+
 
 # Internationalization
 # https://docs.djangoproject.com/en/6.0/topics/i18n/
@@ -116,7 +151,7 @@ STATIC_ROOT = BASE_DIR / "staticfiles"
 STATICFILES_DIRS = [BASE_DIR / "ui/static"]
 
 TAILWIND_CLI_USE_DAISY_UI = True
-TAILWIND_CLI_SRC_CSS = BASE_DIR / "ui/static/css/source.css"
+TAILWIND_CLI_SRC_CSS = BASE_DIR / "ui/source.css"
 
 STORAGES = {
     "default": {  # for uploaded file ; this will change if we use S3

@@ -1,9 +1,9 @@
-from django.shortcuts import render  # , get_object_or_404, redirect
+from django.contrib import messages
+from django.shortcuts import redirect, render
 
-# from django.contrib.auth.decorators import user_passes_test, login_required
-# from django.utils import timezone
-# from ..models import Post, Comment
-# from ..forms import PostForm, CommentForm
+from ..forms import MentorForm
+from ..mailers import MentorMailer
+from ..services.jobirl_api.register_mentor import RegisterMentorOnJobirl
 
 
 def coallition_index(request):
@@ -11,4 +11,23 @@ def coallition_index(request):
 
 
 def mentor_landing(request):
-    return render(request, "coallition/mentor_landing.html", {})
+    if request.method == "POST":
+        form = MentorForm(data=request.POST)
+        if form.is_valid():
+            mentor = form.save(commit=False)
+            result = RegisterMentorOnJobirl(mentor=mentor)
+            if result.failure:
+                for error in result.errors:
+                    messages.error(request, error)
+                return render(request, "coallition/mentor_landing.html", {"form": form})
+            mentor.jobirl_user_id, mentor.jobirl_user_token = result.user_id, result.token
+            mentor.save()
+            MentorMailer.welcome(mentor=mentor)
+            return redirect("mentor_success")
+    else:
+        form = MentorForm()
+    return render(request, "coallition/mentor_landing.html", {"form": form})
+
+
+def mentor_success(request):
+    return render(request, "coallition/mentor_success.html", {})

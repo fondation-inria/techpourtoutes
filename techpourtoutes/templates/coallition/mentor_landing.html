@@ -1,3 +1,95 @@
 <c-layout.base>
-    WIP
+    <c-components.title icon-name="mentorer-bold" title="Mentorer" />
+    <div class="flex gap-x-4">
+        <c-components.badge label="2 heures / mois" />
+        <c-components.badge label="6 mois" />
+    </div>
+
+    <c-components.card title="Aidez une jeune à construire son projet professionnel">
+        Rejoignez la communauté TechPourToutes de mentors pour avoir un impact concret sur l'avenir de vos mentorées.
+
+        Au cours de ces 6 mois de mentorat, vous apprendez à vous connaître et vous aurez l'occasion de les aider à affiner leur projet d'étude ou de carrière, à gagner en confiance et à accéder à de nouvelles opportunités.
+    </c-components.card>
+
+    <div class="flex justify-center w-full md:hidden">
+        <c-components.button href="#mentor-card" label="Je deviens mentor" />
+    </div>
+
+    <c-components.card variant="custom" title="Les 4 étapes clés du mentorat en ligne" nobg=True>
+        <ul class="steps steps-vertical">
+        <li class="step step-secondary text-left">JobIrl prend contact avec vous et vous forme</li>
+        <li class="step step-secondary text-left">Vous êtes mise en relation avec une mentorée</li>
+        <li class="step step-secondary text-left">Vous échangez sur son projet ses attentes</li>
+        <li class="step step-secondary text-left">Vous faites le bilan des progrès</li>
+        </ul>
+    </c-components.card>
+
+    <c-components.card title="On vous accompagne à toutes les étapes">
+        Sur la plateforme TechPourToutes, vous retrouverez de nombreuses informations sur les formations, les stages, des événements, etc.
+
+        Les équipes de JobIrl, membre du consortium TechPourToutes vous apportent tout le soutien dont vous avez besoin au fur et à mesure de vos échanges.
+    </c-components.card>
+
+    <c-slot name="right">
+        <div class="flex flex-col items-center px-4 md:mt-[65px]">
+            <c-components.title title="Rejoins la coalition, prends ta carte de membre !" class="text-center w-[300px] h-16" variant="h3" />
+            <div x-data="{ showForm: {{ form.is_bound|yesno:'true,false' }}, situation: '{{ form.professional_situation.value|default:'' }}' }"
+                 @select-change="situation = $event.detail.value"
+                 id="mentor-card">
+                <div x-show="!showForm" @click.prevent="showForm = true; $nextTick(() => { if (window.innerWidth < 768) $refs.formCard.scrollIntoView({ behavior: 'smooth', block: 'start' }) })" class="cursor-pointer">
+                <c-components.card-shadow id="mentor-member-card" class="my-5">
+                    <div class="flex">
+                        <c-components.icon name="badge-coeur" class="w-15 h-15 shrink-0 mx-5" />
+                        <div class="mt-5 [&>p]:pb-3 [&>p]:font-medium">
+                            <p>Prénom</p>
+                            <p>Nom</p>
+                            <p>Mentor TechPourToutes</p>
+                        </div>
+                    </div>
+                    <c-components.button href="" label="Je deviens mentor" class="justify-center" />
+                </c-components.card-shadow>
+            </div>
+            <div x-ref="formCard" x-show="showForm" x-cloak
+                 x-transition:enter="transition ease-out duration-300 origin-top"
+                 x-transition:enter-start="scale-y-20"
+                 x-transition:enter-end="scale-y-100"
+            />
+                <c-components.card-shadow id="mentor-form-card" class="my-5 p-5 relative">
+                    <c-components.icon name="badge-coeur" class="w-15 h-15 shrink-0 mx-5 absolute -top-5 -right-10" />
+                    <c-patterns.form url="{% url 'mentor_landing' %}">
+                        <c-components.title title="Engagement mentor" variant="h3" />
+                        <p class="description-text-xxs">Les champs suivis d'un astérisque (*) sont obligatoires.</p>
+                        <c-components.form_fields.radio field=form.civility />
+                        <c-components.form_fields.input field=form.first_name />
+                        <c-components.form_fields.input field=form.last_name />
+                        <c-components.form_fields.datepicker field=form.birth_date />
+                        <c-components.form_fields.input field=form.email />
+                        <c-components.form_fields.input field=form.phone />
+                        <c-components.form_fields.input field=form.address />
+                        <c-components.form_fields.input field=form.postal_code />
+                        <c-components.form_fields.input field=form.city />
+                        <c-components.form_fields.select field=form.professional_situation :watchable=True />
+                        <div x-show="situation != ''" x-cloak>
+                            <c-components.form_fields.input field=form.job_title alpine_label="situation === 'student' ? 'Votre filière*' : 'Votre métier*'" />
+                        </div>
+                        <div x-show="['working', 'student'].includes(situation)" x-cloak>
+                            <c-components.form_fields.input field=form.structure_name alpine_label="situation === 'student' ? 'Nom de votre établissement*' : 'Nom de votre structure*'" description="Votre structure actuelle ou la dernière" />
+                        </div>
+                        <div x-show="['working', 'student'].includes(situation)" x-cloak>
+                            <c-components.form_fields.input field=form.structure_address alpine_label="situation === 'student' ? 'Adresse de votre établissement*' : 'Adresse de votre structure*'" />
+                        </div>
+                        <div x-show="['working', 'student'].includes(situation)" x-cloak>
+                            <c-components.form_fields.input field=form.structure_postal_code alpine_label="situation === 'student' ? 'Code postal de votre établissement*' : 'Code postal de votre structure*'" />
+                        </div>
+                        <div x-show="['working', 'student'].includes(situation)" x-cloak>
+                            <c-components.form_fields.input field=form.structure_city alpine_label="situation === 'student' ? 'Ville de votre établissement*' : 'Ville de votre structure*'" />
+                        </div>
+                        <c-components.form_fields.checkbox field=form.terms_accepted />
+                        <c-components.button type="submit" label="Je deviens mentor" class="justify-center" />
+                    </c-patterns.form>
+                </c-components.card-shadow>
+            </div>
+            </div>
+        </div>
+    </c-slot>
 </c-layout.base>
