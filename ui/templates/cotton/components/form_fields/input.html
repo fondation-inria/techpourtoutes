@@ -11,14 +11,16 @@
     variant="default"
     class=""
     alpine_label=""
+    autocomplete=""
 />
 
 <c-components.form-fields.base label=label alpine_label=alpine_label description=description message=message class=class>
     <input
         type="text"
-        id="{{ field.id_for_label|default:id }}"
-        value="{{ field.value|default:value }}"
-        name="{{ field.html_name|default:name }}"
+        id="{{ id|default:field.id_for_label }}"
+        value="{{ value|default:field.value }}"
+        name="{{ name|default:field.html_name }}"
+        autocomplete="{{ autocomplete|default:field.html_name }}"
         {% if placeholder %}placeholder="{{ placeholder }}"{% endif %}
         {% if variant == "disabled" %}disabled aria-disabled="true"{% endif %}
         {% if field.errors or errors or variant == "error" %}aria-invalid="true"{% endif %}
