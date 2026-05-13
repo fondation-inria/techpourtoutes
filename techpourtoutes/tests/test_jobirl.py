@@ -31,11 +31,11 @@ def test_register_mentor_on_jobirl_sends_correct_payload_and_exposes_ids(httpx_m
     assert "Martin" in body
     assert "jobirl_profil=pro" in body
     assert "mentorat_profil=mentor" in body
-    assert "CTO" in body
+    assert "Chercheuse" in body
     assert "75001" in body
     assert "civilite=Madame" in body
     assert "bdate=1985-04-12" in body
-    assert "adresse=10+rue+de+la+Paix" in body
+    assert "adresse=10+rue+de+la+Tech" in body
     assert "ville=Paris" in body
 
 

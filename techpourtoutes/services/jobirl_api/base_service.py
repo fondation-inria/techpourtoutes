@@ -7,7 +7,7 @@ from techpourtoutes.services.base import BaseService
 
 HTTP_ERROR_MESSAGE = (
     "L'inscription sur la plateforme partenaire a échoué (code {code}). "
-    "Veuillez réessayer ou contacter le support."
+    "Veuillez réessayer ou contacter support@techpourtoutes.io"
 )
 NETWORK_ERROR_MESSAGE = (
     "Impossible de joindre la plateforme partenaire. Veuillez réessayer ultérieurement."

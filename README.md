@@ -18,7 +18,9 @@ conf/               # Configuration Django (settings, urls, wsgi/asgi)
 techpourtoutes/     # Application principale
   models/
   views/
+  services/
   templates/
+  tests/
   forms.py
 ui/                 # Design system
   static/css/       # Source CSS Tailwind
@@ -40,6 +42,17 @@ gh repo clone fondation-inria/techpourtoutes
 
 cd techpourtoutes
 
+# setup complet (DB, .env, migrations, hooks pre-commit, seed)
+make install
+```
+
+`make install` est idempotent : relancé sur un projet déjà installé, il ignore ce qui existe déjà et le signale en console.
+
+> Le `DATABASE_URL` dans `.env` est configuré automatiquement avec votre nom d'utilisateur système (`whoami`). Si votre utilisateur PostgreSQL local est différent, ajustez-le manuellement dans `.env`.
+
+Pour une installation manuelle step by step, `make install` lance les commandes suivantes :
+
+```bash
 # installer les dépendances
 uv sync --group dev
 
@@ -55,6 +68,9 @@ uv run python manage.py createsuperuser
 
 # installer les hooks pre-commit
 uv run pre-commit install
+
+# seed la db
+uv run python manage.py seed
 ```
 
 ## Lancer le projet en développement
@@ -62,7 +78,7 @@ uv run pre-commit install
 Il faut deux processus : le serveur Django et le watcher Tailwind. Les deux peuvent tourner ensemble avec la commande
 
 ```bash
-uv run python manage.py tailwind runserver
+make run # lance uv run python manage.py tailwind runserver
 ```
 
 Le premier lancement installera Tailwind CSS CLI si nécessaire.
@@ -88,20 +104,19 @@ L'interface est disponible sur [http://localhost:8025](http://localhost:8025). T
 
 ## Commandes utiles
 
+Un `Makefile` expose des raccourcis pour les commandes courantes :
+
 ```bash
-# Lancer les tests
-uv run pytest
-
-# Linter
-uv run ruff check . # commande lancée automatiquement avant chaque commit
-
-# Formateur
-uv run ruff format . # commande lancée automatiquement avant chaque commit
-
-# Lancer les hooks pre-commits manuellement
-uv run pre-commit run --all-files
+make install      # setup complet (première installation)
+make sync         # installer/mettre à jour les dépendances et lancer les migrations
+make run          # lancer le serveur de dev avec le watcher Tailwind
+make test         # lancer les tests
+make lint         # linter avec ruff
+make format       # formater avec ruff
+make pre-commit   # lancer les hooks pre-commits manuellement (lint + format)
+make icons        # rebuilder le sprite SVG
+make seed         # peupler la DB avec des données minimales de dev
 ```
-
 
 ## Icônes SVG
 
@@ -113,7 +128,7 @@ Les icônes sont regroupées dans un sprite SVG généré automatiquement.
 2. Rebuilder le sprite :
 
 ```bash
-uv run python manage.py build_svg_sprite
+make icons
 ```
 
 Le sprite est écrit dans `ui/static/svg/sprite.svg`.

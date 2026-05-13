@@ -80,6 +80,31 @@ def test_mentor_form_invalid_civility(valid_mentor_data):
 
 
 @pytest.mark.django_db
+def test_mentor_form_structure_name_required_when_working(valid_mentor_data):
+    from techpourtoutes.forms import MentorForm
+
+    form = MentorForm(data={**valid_mentor_data, "structure_name": ""})
+    assert not form.is_valid()
+    assert "structure_name" in form.errors
+
+
+@pytest.mark.django_db
+def test_mentor_form_structure_name_not_required_when_retired(valid_mentor_data):
+    from techpourtoutes.forms import MentorForm
+
+    data = {
+        **valid_mentor_data,
+        "professional_situation": "retired",
+        "structure_name": "",
+        "structure_address": "",
+        "structure_postal_code": "",
+        "structure_city": "",
+    }
+    form = MentorForm(data=data)
+    assert form.is_valid(), form.errors
+
+
+@pytest.mark.django_db
 def test_mentor_form_birth_date_accepts_french_format(valid_mentor_data):
     import datetime
 

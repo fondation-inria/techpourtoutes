@@ -45,7 +45,25 @@ When your changes create orphans:
 
 The test: Every changed line should trace directly to the user's request.
 
-4. Goal-Driven Execution
+
+4. Test-Driven Development
+
+Write the failing test first. Always.
+
+For every feature, fix, or behaviour change:
+
+1. Write a test that fails for the right reason — extend or edit an existing test if the behaviour fits there, create a new one only if it doesn't. Verify it fails before writing any implementation.
+2. Write the minimum implementation to make it pass
+3. Run the full test suite to check for regressions
+
+Do not write implementation code before a test exists.
+
+Exceptions:
+- pure template/UI changes with no logic. In that case, state explicitly why no test is needed.
+- if you remove some behaviour, think of removing the associated unused tests
+
+
+5. Goal-Driven Execution
 
 Define success criteria. Loop until verified.
 
@@ -65,42 +83,47 @@ Strong success criteria let you loop independently. Weak criteria ("make it work
 
 ## Commands
 
+All make commands are aliasing uv commands. Never run python manage.py without uv run
 ```bash
-# Install dependencies
-uv sync --group dev
-
-# Run dev server with Tailwind watcher
-uv run python manage.py tailwind runserver
-
-# Run tests
-uv run pytest
-
-# Lint
-uv run ruff check .
-
-# Format
-uv run ruff format .
-
-# Build SVG icon sprite (after adding icons to ui/svg_source/)
-uv run python manage.py build_svg_sprite
+make install  # first-time setup: DB, .env, deps, migrations, pre-commit hooks, seed
+make sync     # install/update deps + run migrations
+make run      # dev server with Tailwind watcher
+make test     # run tests
+make lint     # ruff check
+make format   # ruff format
+make icons    # rebuild SVG sprite
+make seed     # seed DB with minimal dev data (idempotent)
 ```
+
+Seed creates: superuser `admin@techpourtoutes.io` / `admin` and one sample `Mentor` (`mentor@example.com`).
 
 ## Architecture
 
 Django 6 + PostgreSQL project. Locale is French (fr-FR), timezone Europe/Paris.
 
 **Key directories:**
-- `api/`
 - `conf/` — Django project settings and root URLs
-- `techpourtoutes/` — main Django app (views, models, templates, URLs)
+- `techpourtoutes/` — main Django app (views, models, services, templates, URLs, tests)
 - `ui/` — design system app: cotton components, static files, SVG management
 
 ### Backend
 
+**BaseModel:** All models inherit from `techpourtoutes/models/base.py`. Provides UUID primary key, `created_at`/`updated_at` timestamps, and calls `full_clean()` automatically on save (validation before every write).
+
 **Core entities:**
-- `User` -
+- `User` — extends Django's `AbstractUser` via `BaseModel`. Custom user model (`AUTH_USER_MODEL`).
+- `Mentor` — multi-table inheritance from `User`. Adds civility, birth date, phone, job title, personal address, optional structure fields, and Jobirl integration fields (`jobirl_user_id`, `jobirl_user_token`). Password is set to unusable on creation.
 
 **Relationships:**
+- `Mentor` inherits from `User` (Django multi-table inheritance — one DB row per table).
+
+**Service objects:** Inherit from `BaseService` (`techpourtoutes/services/base.py`). Implement `perform(**kwargs)`; call `self.fail("message")` to signal failure. Check `result.success` / `result.failure` and `result.errors` at the call site.
+
+**Jobirl integration:** External mentoring platform. Services live in `techpourtoutes/services/jobirl_api/`. Use `JobirlApiBaseService` (extends `BaseService`) for requests — it wraps `JobirlClient` and exposes `result.jobirl_response_body` (the `datas` key from the response) on success.
+
+**Forms:** Use plain `forms.Form` with a manual `save()`, not `ModelForm`. Preferred when the form doesn't map 1:1 to a model (e.g. spans multiple models, or includes fields like `terms_accepted` that belong to no model).
+
+**Views:** Function-based views only.
 
 **Audit trail:** `django-simple-history` middleware is active — models that need history tracking should use `HistoricalRecords`.
 
@@ -108,7 +131,7 @@ Django 6 + PostgreSQL project. Locale is French (fr-FR), timezone Europe/Paris.
 
 **Frontend stack:** Tailwind CSS via `django-tailwind-cli` + DaisyUI components. Pre-commit automatically rebuilds Tailwind on HTML/CSS changes. Alpine.js + HTMX for interactivity
 
-**Component system:** `django-cotton` components live in `ui/templates/cotton/`. Layout components (base, sidebar, footer) are in `ui/templates/cotton/layout/`; UI primitives (button, card, badge, icon, etc.) are in `ui/templates/cotton/components/`. Use these components by composing `<c-layout.base>`, `<c-button>`, etc. in templates.
+**Component system:** `django-cotton` components live in `ui/templates/cotton/`. Layout components (base, email, partials) are in `ui/templates/cotton/layout/`; UI primitives (button, card, badge, icon, etc.) are in `ui/templates/cotton/components/`; larger compositional patterns are in `ui/templates/cotton/patterns/`. Use these components by composing `<c-layout.base>`, `<c-button>`, etc. in templates.
 
 **SVG icons:** Source SVGs go in `ui/svg_source/`. Running `build_svg_sprite` compiles them into a sprite at `ui/static/svg/`. Reference icons via the `<c-icon>` cotton component.
 
@@ -124,3 +147,11 @@ Django 6 + PostgreSQL project. Locale is French (fr-FR), timezone Europe/Paris.
 - Do not reference AI tools (Claude, Cursor, etc.) in code, comments, or commits
 - Avoid unnecessary guard clauses and intermediate variable assignments
 - Prefer native framework solutions over custom implementations
+
+## Testing
+
+- Use `pytest` with `@pytest.mark.django_db` for any test touching the database
+- Use Django's built-in `client` fixture for view tests; use `reverse()` for URLs
+- No factory_boy — use plain model instantiation or pytest fixtures
+- Shared fixtures for techpourtoutes app live in `techpourtoutes/tests/conftest.py`: `mentor`, `valid_mentor_data`, `valid_mentor_model_data`, `mock_register_mentor_on_jobirl`
+- The root `conftest.py` has an autouse fixture that swaps static file storage (no manifest required in tests)

@@ -59,3 +59,9 @@ ini_options.testpaths = [ "techpourtoutes" ]
 ini_options.python_files = [ "test_*.py" ]
 ini_options.addopts = "--cov=techpourtoutes --cov-report=term-missing"
 ini_options.filterwarnings = [ "ignore::UserWarning:django.core.handlers.base" ]
+
+[tool.coverage]
+run.omit = [
+  "techpourtoutes/management/*",
+  "techpourtoutes/migrations/*",
+]

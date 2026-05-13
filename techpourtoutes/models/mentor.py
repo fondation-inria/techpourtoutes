@@ -34,7 +34,10 @@ class Mentor(User):
         max_length=255, blank=True, verbose_name=_("adresse de la structure")
     )
     structure_postal_code = models.CharField(
-        max_length=5, blank=True, verbose_name=_("code postal de la structure")
+        max_length=5,
+        blank=True,
+        validators=[RegexValidator(r"^\d{5}$", _("Entrez un code postal valide à 5 chiffres."))],
+        verbose_name=_("code postal de la structure"),
     )
     structure_city = models.CharField(
         max_length=100, blank=True, verbose_name=_("ville de la structure")

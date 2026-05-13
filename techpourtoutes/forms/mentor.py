@@ -3,7 +3,7 @@ from django.core.validators import RegexValidator
 from django.utils.translation import gettext_lazy as _
 from phonenumber_field.formfields import PhoneNumberField
 
-from .models import Mentor, User
+from ..models import Mentor, User
 
 
 class MentorForm(forms.Form):
