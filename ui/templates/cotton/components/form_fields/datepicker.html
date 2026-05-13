@@ -10,6 +10,7 @@
     value=""
     variant="default"
     class=""
+    autocomplete=""
 />
 
 <c-components.form-fields.base label=label description=description message=message class=class>
@@ -26,11 +27,15 @@
             onReady(_dates, _str, instance) {
                 instance.altInput.className = instance.input.className;
                 instance.altInput.placeholder = instance.input.placeholder;
+                instance.altInput.id = instance.input.id;
+                instance.altInput.name = instance.input.name;
+                instance.input.removeAttribute('id');
             },
         })"
         id="{{ field.id_for_label|default:id }}"
         value="{{ field.value|default:value }}"
         name="{{ field.html_name|default:name }}"
+        {% if autocomplete %}autocomplete="{{ autocomplete }}"{% endif %}
         {% if placeholder %}placeholder="{{ placeholder }}"{% endif %}
         {% if variant == "disabled" %}disabled aria-disabled="true"{% endif %}
         {% if field.errors or errors or variant == "error" %}aria-invalid="true"{% endif %}

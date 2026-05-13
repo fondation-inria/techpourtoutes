@@ -60,29 +60,29 @@
                         <c-components.title title="Engagement mentor" variant="h3" />
                         <p class="description-text-xxs">Les champs suivis d'un astérisque (*) sont obligatoires.</p>
                         <c-components.form_fields.radio field=form.civility />
-                        <c-components.form_fields.input field=form.first_name />
-                        <c-components.form_fields.input field=form.last_name />
-                        <c-components.form_fields.datepicker field=form.birth_date />
-                        <c-components.form_fields.input field=form.email />
-                        <c-components.form_fields.input field=form.phone />
-                        <c-components.form_fields.input field=form.address />
-                        <c-components.form_fields.input field=form.postal_code />
-                        <c-components.form_fields.input field=form.city />
+                        <c-components.form_fields.input field=form.first_name autocomplete="given-name" />
+                        <c-components.form_fields.input field=form.last_name autocomplete="family-name" />
+                        <c-components.form_fields.datepicker field=form.birth_date autocomplete="bday" />
+                        <c-components.form_fields.input field=form.email autocomplete="email" />
+                        <c-components.form_fields.input field=form.phone autocomplete="tel" />
+                        <c-components.form_fields.input field=form.address autocomplete="street-address" />
+                        <c-components.form_fields.input field=form.postal_code autocomplete="postal-code" />
+                        <c-components.form_fields.input field=form.city autocomplete="address-level2" />
                         <c-components.form_fields.select field=form.professional_situation :watchable=True />
                         <div x-show="situation != ''" x-cloak>
-                            <c-components.form_fields.input field=form.job_title alpine_label="situation === 'student' ? 'Votre filière*' : 'Votre métier*'" />
+                            <c-components.form_fields.input field=form.job_title alpine_label="situation === 'student' ? 'Votre filière*' : 'Votre métier*'" autocomplete="organization-title" />
                         </div>
                         <div x-show="['working', 'student'].includes(situation)" x-cloak>
-                            <c-components.form_fields.input field=form.structure_name alpine_label="situation === 'student' ? 'Nom de votre établissement*' : 'Nom de votre structure*'" description="Votre structure actuelle ou la dernière" />
+                            <c-components.form_fields.input field=form.structure_name alpine_label="situation === 'student' ? 'Nom de votre établissement*' : 'Nom de votre structure*'" description="Votre structure actuelle ou la dernière" autocomplete="organization" />
                         </div>
                         <div x-show="['working', 'student'].includes(situation)" x-cloak>
-                            <c-components.form_fields.input field=form.structure_address alpine_label="situation === 'student' ? 'Adresse de votre établissement*' : 'Adresse de votre structure*'" />
+                            <c-components.form_fields.input field=form.structure_address alpine_label="situation === 'student' ? 'Adresse de votre établissement*' : 'Adresse de votre structure*'" autocomplete="off" />
                         </div>
                         <div x-show="['working', 'student'].includes(situation)" x-cloak>
-                            <c-components.form_fields.input field=form.structure_postal_code alpine_label="situation === 'student' ? 'Code postal de votre établissement*' : 'Code postal de votre structure*'" />
+                            <c-components.form_fields.input field=form.structure_postal_code alpine_label="situation === 'student' ? 'Code postal de votre établissement*' : 'Code postal de votre structure*'" autocomplete="off" />
                         </div>
                         <div x-show="['working', 'student'].includes(situation)" x-cloak>
-                            <c-components.form_fields.input field=form.structure_city alpine_label="situation === 'student' ? 'Ville de votre établissement*' : 'Ville de votre structure*'" />
+                            <c-components.form_fields.input field=form.structure_city alpine_label="situation === 'student' ? 'Ville de votre établissement*' : 'Ville de votre structure*'" autocomplete="off" />
                         </div>
                         <c-components.form_fields.checkbox field=form.terms_accepted />
                         <c-components.button type="submit" label="Je deviens mentor" class="justify-center" />
