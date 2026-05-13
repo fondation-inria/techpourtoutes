@@ -87,6 +87,11 @@ LOGGING = {
         },
     },
     "loggers": {
+        "django.request": {
+            "handlers": ["console"],
+            "level": "ERROR",
+            "propagate": False,
+        },
         "techpourtoutes.clients": {
             "handlers": ["console"],
             "level": "DEBUG" if DEBUG else "INFO",
