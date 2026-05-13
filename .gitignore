@@ -13,9 +13,6 @@ wheels/
 # Static folders
 /staticfiles/
 
-# Tailwind generated css - built on the server via the Procfile
-/ui/static/css/tailwind.css
-
 # macOS
 ._*
 .DS_Store
