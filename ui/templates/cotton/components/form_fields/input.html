@@ -18,7 +18,7 @@
     <input
         type="text"
         id="{{ id|default:field.id_for_label }}"
-        value="{{ value|default:field.value }}"
+        value="{{ value|default:field.value|default:"" }}"
         name="{{ name|default:field.html_name }}"
         autocomplete="{{ autocomplete|default:field.html_name }}"
         {% if placeholder %}placeholder="{{ placeholder }}"{% endif %}
