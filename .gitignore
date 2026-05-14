@@ -13,6 +13,10 @@ wheels/
 # Static folders
 /staticfiles/
 
+# Coverage reports
+.coverage
+htmlcov/
+
 # macOS
 ._*
 .DS_Store
