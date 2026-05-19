@@ -122,7 +122,9 @@ LOGIN_REDIRECT_URL = "/"
 LOGOUT_REDIRECT_URL = "/"
 
 # Email
-DEFAULT_FROM_EMAIL = env("DEFAULT_FROM_EMAIL", default="noreply@techpourtoutes.io")
+DEFAULT_FROM_EMAIL = env(
+    "DEFAULT_FROM_EMAIL", default="Tech Pour Toutes <noreply@techpourtoutes.io>"
+)
 if DEBUG:
     EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
     EMAIL_HOST = "localhost"
