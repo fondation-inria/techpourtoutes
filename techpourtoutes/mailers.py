@@ -10,6 +10,6 @@ class MentorMailer:
             subject="Bienvenue dans la Coallition !",
             message=render_to_string("emails/mentor_welcome.txt", context),
             html_message=render_to_string("emails/mentor_welcome.html", context),
-            from_email="agir@techpourtoutes.io",
+            from_email="Tech Pour Toutes <agir@techpourtoutes.io>",
             recipient_list=[mentor.email],
         )
