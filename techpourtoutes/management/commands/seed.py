@@ -39,16 +39,11 @@ class Command(BaseCommand):
             first_name="Alice",
             last_name="Martin",
             civility=Mentor.Civility.MADAME,
-            birth_date="1985-04-12",
             phone="+33612345678",
-            address="10 rue de la Paix",
             postal_code="75001",
             city="Paris",
             professional_situation=Mentor.ProfessionalSituation.WORKING,
             structure_name="Acme Corp",
-            structure_address="10 rue de la Paix",
-            structure_postal_code="75001",
-            structure_city="Paris",
             job_title="CTO",
         ).save()
         self.stdout.write(self.style.SUCCESS(f"  Sample mentor created: {SAMPLE_MENTOR_EMAIL}"))

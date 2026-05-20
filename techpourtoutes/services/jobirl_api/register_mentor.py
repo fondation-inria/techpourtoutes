@@ -24,9 +24,7 @@ class RegisterMentorOnJobirl(JobirlApiBaseService):
             "nom": mentor.last_name,
             "email": mentor.email,
             "mobile": f"0{mentor.phone.national_number}" if mentor.phone else "",
-            "bdate": mentor.birth_date.strftime("%Y-%m-%d"),
             "cp": mentor.postal_code,
-            "adresse": mentor.address,
             "ville": mentor.city,
             "situation_pro": SITUATION_PRO_MAPPING[mentor.professional_situation],
             "poste": field_of_study if field_of_study else mentor.job_title,
@@ -35,9 +33,6 @@ class RegisterMentorOnJobirl(JobirlApiBaseService):
             payload.update(
                 {
                     "nom_structure": mentor.structure_name,
-                    "adresse_structure": mentor.structure_address,
-                    "cp_structure": mentor.structure_postal_code,
-                    "ville_structure": mentor.structure_city,
                 }
             )
 

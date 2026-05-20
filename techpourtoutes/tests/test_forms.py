@@ -96,20 +96,6 @@ def test_mentor_form_structure_name_not_required_when_retired(valid_mentor_data)
         **valid_mentor_data,
         "professional_situation": "retired",
         "structure_name": "",
-        "structure_address": "",
-        "structure_postal_code": "",
-        "structure_city": "",
     }
     form = MentorForm(data=data)
     assert form.is_valid(), form.errors
-
-
-@pytest.mark.django_db
-def test_mentor_form_birth_date_accepts_french_format(valid_mentor_data):
-    import datetime
-
-    from techpourtoutes.forms import MentorForm
-
-    form = MentorForm(data={**valid_mentor_data, "birth_date": "15/06/1990"})
-    assert form.is_valid(), form.errors
-    assert form.cleaned_data["birth_date"] == datetime.date(1990, 6, 15)
