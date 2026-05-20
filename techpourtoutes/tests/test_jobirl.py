@@ -34,8 +34,6 @@ def test_register_mentor_on_jobirl_sends_correct_payload_and_exposes_ids(httpx_m
     assert "Chercheuse" in body
     assert "75001" in body
     assert "civilite=Madame" in body
-    assert "bdate=1985-04-12" in body
-    assert "adresse=10+rue+de+la+Tech" in body
     assert "ville=Paris" in body
 
 
@@ -62,7 +60,7 @@ def test_register_mentor_on_jobirl_includes_api_message_on_4xx(httpx_mock, mento
         status_code=400,
         json={
             "response": "error",
-            "datas": {"message": "ADRESSE MISSING, VILLE INVALIDE"},
+            "datas": {"message": "NAME MISSING, VILLE INVALIDE"},
         },
     )
 
@@ -71,7 +69,7 @@ def test_register_mentor_on_jobirl_includes_api_message_on_4xx(httpx_mock, mento
     assert result.failure
     joined = " ".join(result.errors)
     assert "400" in joined
-    assert "ADRESSE MISSING, VILLE INVALIDE" in joined
+    assert "NAME MISSING, VILLE INVALIDE" in joined
 
 
 @override_settings(JOBIRL_URL=JOBIRL_TEST_URL, JOBIRL_API_KEY=JOBIRL_TEST_API_KEY)

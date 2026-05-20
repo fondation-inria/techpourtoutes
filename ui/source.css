@@ -119,7 +119,7 @@
     @apply text-sm font-light text-neutral-950 leading-[1.4];
   }
 
-  /* Boxed form controls: input, select, datepicker */
+  /* Boxed form controls: input, select */
   .field-base {
     @apply w-full px-3 py-2 text-sm rounded focus:ring text-neutral-950 bg-neutral-50 shadow-thin-bottom;
   }
