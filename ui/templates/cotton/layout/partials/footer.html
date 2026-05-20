@@ -1,8 +1,9 @@
 <footer class="text-[11px] p-4">
   <nav class="flex justify-center items-center">
-    <a href="#" class="link link-hover px-4 border-r border-accent-100">Données personnelles et cookies</a>
-    <a href="#" class="link link-hover px-4 border-r border-accent-100">Mentions légales</a>
+    <a href="{% url 'donnees_personnelles' %}" class="link link-hover px-4 border-r border-accent-100">Données personnelles et cookies</a>
+    <a href="{% url 'mentions_legales' %}" class="link link-hover px-4 border-r border-accent-100">Mentions légales</a>
+    <a href="{% url 'conditions_generales' %}" class="link link-hover px-4 border-r border-accent-100">CGU - Coalition</a>
     <a href="#" class="link link-hover px-4 border-r border-accent-100">Pourquoi nous écrivons au féminin</a>
-    <a href="#" class="link link-hover px-4">Accessibilité : non conforme</a>
+    <a href="{% url "accessibilite" %}" class="link link-hover px-4">Accessibilité : non conforme</a>
   </nav>
 </footer>
