@@ -137,6 +137,8 @@ else:
 JOBIRL_API_KEY = env("JOBIRL_API_KEY", default="")
 JOBIRL_URL = env("JOBIRL_URL", default="")
 
+SITE_URL = env("HOST", default="https://localhost:8000")
+
 
 # Internationalization
 # https://docs.djangoproject.com/en/6.0/topics/i18n/

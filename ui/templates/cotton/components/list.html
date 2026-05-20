@@ -1,0 +1,5 @@
+<ul class="pl-5">
+    {% for line in slot.splitlines %}
+        {% if line.strip %}<li class="list-disc py-2">{{ line.strip|safe }}</li>{% endif %}
+    {% endfor %}
+</ul>
