@@ -1,0 +1,11 @@
+<c-layout.base>
+    <c-components.title title="Mon compte" variant="h1" />
+    <c-components.card>
+        <p>Bonjour {{ request.user.first_name|default:request.user.username }}.</p>
+        <p class="mt-2">Cette page sera enrichie prochainement.</p>
+    </c-components.card>
+    <form method="POST" action="{% url 'logout' %}" class="mt-6">
+        {% csrf_token %}
+        <c-components.button type="submit" label="Se déconnecter" />
+    </form>
+</c-layout.base>

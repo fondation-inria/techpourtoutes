@@ -89,6 +89,8 @@ L'application est disponible sur [http://localhost:8000](http://localhost:8000).
 
 En développement (`DEBUG=True`), Django envoie les emails via SMTP sur `localhost:1025`. [Mailpit](https://mailpit.axllent.org/) intercepte ces emails et les affiche dans une interface web.
 
+> La connexion des mentors passe par un lien magique envoyé par email — Mailpit est donc **nécessaire** pour s'authentifier en local.
+
 ```bash
 # Installer Mailpit
 brew install mailpit

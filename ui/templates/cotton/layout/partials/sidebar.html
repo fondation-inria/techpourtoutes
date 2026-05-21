@@ -27,7 +27,15 @@
     </div>
 
     <div class="shrink-0 border-t border-blue-background px-6 py-6">
-        <c-components.button label="Se connecter" class="mb-1" />
+        {% if request.user.is_authenticated %}
+            <c-components.button href="{% url 'account' %}" label="Mon Compte" class="mb-1" />
+        {% else %}
+            {% if request.resolver_match.url_name == 'login_request' or request.resolver_match.url_name == 'login_email_sent' %}
+                <c-components.button href="{% url 'login_request' %}" label="Se connecter" class="mb-1" />
+            {% else %}
+                <c-components.button href="{% url 'login_request' %}?next={{ request.path }}" label="Se connecter" class="mb-1" />
+            {% endif %}
+        {% endif %}
         <ul class="flex flex-col gap-1 mb-5">
             <c-components.nav-link href="#" label="A propos" />
             <c-components.nav-link href="#" label="Notre manifeste" />

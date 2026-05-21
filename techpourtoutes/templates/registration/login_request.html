@@ -1,0 +1,27 @@
+<c-layout.base>
+    <div class="flex flex-col min-h-[80dvh] md:min-w-[560px] w-full items-center justify-center gap-y-8">
+        <c-components.card class="md:px-32 py-8">
+            <c-patterns.form url="{% url 'login_request' %}">
+                <c-components.title title="Se connecter" variant="h1" class="text-center justify-center" />
+                <c-components.form_fields.input
+                    field=form.email
+                    autocomplete="email"
+                    description="exemple : hedi.lamart@techpourtoutes.io"
+                />
+                <input type="hidden" name="next" value="{{ next }}">
+                <c-components.button type="submit" label="Continuer" class="justify-center" />
+            </c-patterns.form>
+        </c-components.card>
+        <p class="text-sm text-center">
+            Pas encore de compte ?
+            <a href="/" class="link text-primary-700 font-medium">S'engager avec TechPourToutes</a>
+        </p>
+        <p class="text-xs text-center">
+            En continuant, vous reconnaissez avoir compris et accepté les
+            <a href="{% url 'conditions_generales' %}" class="link">Conditions d'utilisation</a>
+            et la
+            <a href="{% url 'donnees_personnelles' %}" class="link">politique de gestion des données personnelles</a>
+            de TechPourToutes.
+        </p>
+    </div>
+</c-layout.base>

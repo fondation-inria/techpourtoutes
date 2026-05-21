@@ -1,7 +1,10 @@
+import hashlib
 import uuid
+from datetime import timedelta
 
 import pytest
 from django.core.exceptions import ValidationError
+from django.utils import timezone
 
 
 @pytest.mark.django_db
@@ -64,3 +67,77 @@ def test_mentor_save_raises_if_invalid(valid_mentor_model_data):
     mentor = Mentor(username="bad@example.com", **data)
     with pytest.raises(ValidationError):
         mentor.save()
+
+
+@pytest.mark.django_db
+def test_issue_login_token_returns_plaintext_and_stores_hash(mentor):
+    plaintext = mentor.issue_login_token()
+
+    assert plaintext
+    expected_hash = hashlib.sha256(plaintext.encode()).hexdigest()
+    mentor.refresh_from_db()
+    assert mentor.login_token_hash == expected_hash
+    assert mentor.login_token_hash != plaintext
+
+
+@pytest.mark.django_db
+def test_issue_login_token_sets_expiry_one_hour_ahead(mentor):
+    before = timezone.now()
+    mentor.issue_login_token()
+    after = timezone.now()
+
+    mentor.refresh_from_db()
+    assert before + timedelta(hours=1) - timedelta(seconds=5) <= mentor.login_token_expires_at
+    assert mentor.login_token_expires_at <= after + timedelta(hours=1) + timedelta(seconds=5)
+
+
+@pytest.mark.django_db
+def test_issue_login_token_twice_overwrites_previous(mentor):
+    first = mentor.issue_login_token()
+    second = mentor.issue_login_token()
+
+    assert first != second
+    mentor.refresh_from_db()
+    assert mentor.login_token_hash == hashlib.sha256(second.encode()).hexdigest()
+
+
+@pytest.mark.django_db
+def test_consume_login_token_returns_user_and_clears_hash(mentor):
+    from techpourtoutes.models import User
+
+    plaintext = mentor.issue_login_token()
+
+    consumed = User.consume_login_token(plaintext=plaintext)
+
+    assert consumed is not None
+    assert consumed.pk == mentor.pk
+    mentor.refresh_from_db()
+    assert mentor.login_token_hash == ""
+    assert mentor.login_token_expires_at is None
+
+
+@pytest.mark.django_db
+def test_consume_login_token_returns_none_for_garbage():
+    from techpourtoutes.models import User
+
+    assert User.consume_login_token(plaintext="not-a-real-token") is None
+
+
+@pytest.mark.django_db
+def test_consume_login_token_returns_none_when_expired(mentor):
+    from techpourtoutes.models import User
+
+    plaintext = mentor.issue_login_token()
+    mentor.login_token_expires_at = timezone.now() - timedelta(minutes=1)
+    mentor.save()
+
+    assert User.consume_login_token(plaintext=plaintext) is None
+
+
+@pytest.mark.django_db
+def test_consume_login_token_returns_none_on_second_use(mentor):
+    from techpourtoutes.models import User
+
+    plaintext = mentor.issue_login_token()
+    assert User.consume_login_token(plaintext=plaintext) is not None
+    assert User.consume_login_token(plaintext=plaintext) is None
