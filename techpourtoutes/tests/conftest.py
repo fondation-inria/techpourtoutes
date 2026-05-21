@@ -53,3 +53,13 @@ def valid_mentor_model_data():
 @pytest.fixture
 def valid_mentor_data(valid_mentor_model_data):
     return {**valid_mentor_model_data, "terms_accepted": True}
+
+
+@pytest.fixture
+def inactive_user(db):
+    from techpourtoutes.models import User
+
+    user = User.objects.create_user(
+        username="inactive@example.com", email="inactive@example.com", is_active=False
+    )
+    return user

@@ -104,6 +104,7 @@ Django 6 + PostgreSQL project. Locale is French (fr-FR), timezone Europe/Paris.
 **Key directories:**
 - `conf/` — Django project settings and root URLs
 - `techpourtoutes/` — main Django app (views, models, services, templates, URLs, tests)
+- `techpourtoutes/clients/` — thin HTTP client wrappers (httpx-based)
 - `ui/` — design system app: cotton components, static files, SVG management
 
 ### Backend
@@ -111,7 +112,7 @@ Django 6 + PostgreSQL project. Locale is French (fr-FR), timezone Europe/Paris.
 **BaseModel:** All models inherit from `techpourtoutes/models/base.py`. Provides UUID primary key, `created_at`/`updated_at` timestamps, and calls `full_clean()` automatically on save (validation before every write).
 
 **Core entities:**
-- `User` — extends Django's `AbstractUser` via `BaseModel`. Custom user model (`AUTH_USER_MODEL`).
+- `User` — extends Django's `AbstractUser` via `BaseModel`. Custom user model (`AUTH_USER_MODEL`). Uses passwordless email-link login: `issue_login_token()` generates a hashed token with a 1h TTL; `consume_login_token(plaintext)` validates and invalidates it atomically. Auth views live in `techpourtoutes/views/auth_views.py`.
 - `Mentor` — multi-table inheritance from `User`. Adds civility, birth date, phone, job title, personal address, optional structure fields, and Jobirl integration fields (`jobirl_user_id`, `jobirl_user_token`). Password is set to unusable on creation.
 
 **Relationships:**
@@ -119,7 +120,9 @@ Django 6 + PostgreSQL project. Locale is French (fr-FR), timezone Europe/Paris.
 
 **Service objects:** Inherit from `BaseService` (`techpourtoutes/services/base.py`). Implement `perform(**kwargs)`; call `self.fail("message")` to signal failure. Check `result.success` / `result.failure` and `result.errors` at the call site.
 
-**Jobirl integration:** External mentoring platform. Services live in `techpourtoutes/services/jobirl_api/`. Use `JobirlApiBaseService` (extends `BaseService`) for requests — it wraps `JobirlClient` and exposes `result.jobirl_response_body` (the `datas` key from the response) on success.
+**Mailers:** `techpourtoutes/mailers.py` — class-based, no inheritance. Each mailer exposes `@classmethod` methods that call `send_mail` with rendered txt+html templates (`MentorMailer`, `LoginMailer`).
+
+**Jobirl integration:** External mentoring platform. Services live in `techpourtoutes/services/jobirl_api/`. Use `JobirlApiBaseService` (extends `BaseService`) for requests — it wraps `JobirlClient` (`techpourtoutes/clients/jobirl.py`) and exposes `result.jobirl_response_body` (the `datas` key from the response) on success.
 
 **Forms:** Use plain `forms.Form` with a manual `save()`, not `ModelForm`. Preferred when the form doesn't map 1:1 to a model (e.g. spans multiple models, or includes fields like `terms_accepted` that belong to no model).
 

@@ -1,0 +1,14 @@
+<c-layout.email>
+  <p style="font-size:15px;color:#374151;">Bonjour {{ user.first_name|default:user.username }},</p>
+  <p style="font-size:15px;color:#374151;">
+    Pour accéder à TechPourToutes, cliquez sur ce bouton :
+  </p>
+  <p style="text-align:center;margin:24px 0;">
+    <a href="{{ login_url }}" style="display:inline-block;padding:12px 24px;background:#4338ca;color:#ffffff;text-decoration:none;border-radius:4px;font-weight:600;">Connexion</a>
+  </p>
+  <p style="font-size:13px;color:#6b7280;">Ce lien n'est valable qu'1 heure. Il est à usage unique.</p>
+  <hr style="border:none;border-top:1px solid #e5e7eb;margin:24px 0;">
+  <p style="font-size:13px;color:#6b7280;">Des difficultés pour vous connecter ?</p>
+  <p style="font-size:13px;color:#6b7280;">Nous vous recommandons de copier-coller ce lien dans un navigateur :</p>
+  <p style="font-size:13px;color:#374151;word-break:break-all;"><strong>{{ login_url }}</strong></p>
+</c-layout.email>

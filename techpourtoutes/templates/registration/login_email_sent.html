@@ -1,0 +1,39 @@
+<c-layout.base>
+    <div class="flex flex-col min-h-[80dvh] md:min-w-[560px] w-full items-center justify-center gap-y-8">
+        <c-components.card class="py-8">
+            <c-components.title title="Se connecter" variant="h1" class="text-center justify-center mb-4" />
+            <c-components.title title="Consultez votre boîte mail" variant="h2-black" />
+            <p class="mt-3">
+                Un lien pour vous connecter automatiquement à votre compte vient de vous être envoyé à l'adresse :
+            </p>
+            <p class="mt-3 mb-8 text-center font-medium break-all underline">{{ email }}</p>
+
+            <c-components.title title="Aucun email reçu ?" variant="intertitre" />
+            <c-components.list>
+                Vérifiez votre dossier "courrier indésirable" (spam)
+                Sinon, demandez l'envoi d'un nouvel email
+            </c-components.list>
+
+            <c-patterns.form url="{% url 'login_request' %}" class="mt-3">
+                <input type="hidden" name="email" value="{{ email }}">
+                <c-components.button type="submit" label="Demander l'envoi d'un nouvel email" base_class="link text-sm text-primary-700 cursor-pointer" />
+            </c-patterns.form>
+
+            <c-components.title title="L'adresse mail saisie est erronée ?" variant="intertitre" />
+            <p class="mt-3">
+                <a href="{% url 'login_request' %}" class="link text-sm text-primary-700">Modifier mon adresse mail</a>
+            </p>
+        </c-components.card>
+        <p class="text-sm text-center">
+            Pas encore de compte ?
+            <a href="{% url 'mentor_landing' %}" class="link text-primary-700 font-medium">S'engager avec TechPourToutes</a>
+        </p>
+        <p class="text-xs text-center">
+            En continuant, vous reconnaissez avoir compris et accepté les
+            <a href="{% url 'conditions_generales' %}" class="link">Conditions d'utilisation</a>
+            et la
+            <a href="{% url 'donnees_personnelles' %}" class="link">politique de gestion des données personnelles</a>
+            de TechPourToutes.
+        </p>
+    </div>
+</c-layout.base>
