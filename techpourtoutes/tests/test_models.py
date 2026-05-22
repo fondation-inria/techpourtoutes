@@ -45,7 +45,6 @@ def test_mentor_creation_saves_all_fields(valid_mentor_model_data):
     assert saved.phone.national_number == 612345678
     assert saved.professional_situation == "working"
     assert saved.postal_code == "75011"
-    assert saved.city == "Paris"
     assert saved.job_title == "Développeuse backend"
     assert saved.structure_name == "Grande entreprise"
 

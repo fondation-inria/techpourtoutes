@@ -25,7 +25,6 @@ class RegisterMentorOnJobirl(JobirlApiBaseService):
             "email": mentor.email,
             "mobile": f"0{mentor.phone.national_number}" if mentor.phone else "",
             "cp": mentor.postal_code,
-            "ville": mentor.city,
             "situation_pro": SITUATION_PRO_MAPPING[mentor.professional_situation],
             "poste": field_of_study if field_of_study else mentor.job_title,
         }

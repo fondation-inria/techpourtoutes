@@ -16,7 +16,6 @@ class MentorForm(forms.Form):
         label=_("Votre code postal*"),
         validators=[RegexValidator(r"^\d{5}$", _("Entrez un code postal valide à 5 chiffres."))],
     )
-    city = forms.CharField(label=_("Votre ville*"))
     professional_situation = forms.ChoiceField(
         label=_("Votre situation professionnelle*"),
         choices=[("", _("Sélectionner une option")), *Mentor.ProfessionalSituation.choices],
@@ -59,7 +58,6 @@ class MentorForm(forms.Form):
             email=data["email"],
             phone=data["phone"],
             postal_code=data["postal_code"],
-            city=data["city"],
             professional_situation=data["professional_situation"],
             structure_name=data["structure_name"],
             job_title=data["job_title"],
