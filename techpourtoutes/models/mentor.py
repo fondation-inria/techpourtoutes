@@ -35,7 +35,6 @@ class Mentor(User):
         validators=[RegexValidator(r"^\d{5}$", _("Entrez un code postal valide à 5 chiffres."))],
         verbose_name=_("code postal"),
     )
-    city = models.CharField(max_length=100, verbose_name=_("ville"))
     jobirl_user_id = models.BigIntegerField(
         null=True, blank=True, verbose_name=_("identifiant utilisateur jobirl")
     )

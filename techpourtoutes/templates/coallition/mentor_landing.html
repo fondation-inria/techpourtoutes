@@ -69,7 +69,6 @@
                         <c-components.form_fields.input field=form.email autocomplete="email" />
                         <c-components.form_fields.input field=form.phone autocomplete="tel" />
                         <c-components.form_fields.input field=form.postal_code autocomplete="postal-code" />
-                        <c-components.form_fields.input field=form.city autocomplete="address-level2" />
                         <c-components.form_fields.select field=form.professional_situation :watchable=True />
                         <div x-show="situation != ''" x-cloak>
                             <c-components.form_fields.input field=form.job_title alpine_label="situation === 'student' ? 'Votre filière*' : 'Votre métier*'" autocomplete="organization-title" />

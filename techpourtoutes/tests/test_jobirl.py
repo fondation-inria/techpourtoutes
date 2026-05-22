@@ -34,7 +34,6 @@ def test_register_mentor_on_jobirl_sends_correct_payload_and_exposes_ids(httpx_m
     assert "Chercheuse" in body
     assert "75001" in body
     assert "civilite=Madame" in body
-    assert "ville=Paris" in body
 
 
 @override_settings(JOBIRL_URL=JOBIRL_TEST_URL, JOBIRL_API_KEY=JOBIRL_TEST_API_KEY)
