@@ -10,7 +10,7 @@
         </ul>
 
         <c-components.nav-section label="Accompagner individuellement">
-            <c-components.nav-link href="{% url 'mentor_landing' %}" url-name="mentor_landing" icon="mentorer-light" icon-active="mentorer-bold" label="Mentorer" />
+            <c-components.nav-link href="{% url 'mentor_landing' %}" icon="mentorer-light" icon-active="mentorer-bold" label="Mentorer" />
             <c-components.nav-link href="#" icon="accueillir-une-stagiaire-light" icon-active="accueillir-une-stagiaire-bold" label="Accueillir une stagiaire" />
             <c-components.nav-link href="#" icon="pitcher-mon-metier-light" icon-active="pitcher-mon-metier-bold" label="Pitcher mon métier" />
             <c-components.nav-link href="#" icon="pitcher-ma-formation-light" icon-active="pitcher-ma-formation-bold" label="Pitcher ma formation" disabled="true" />
@@ -26,21 +26,21 @@
         </c-components.nav-section>
     </div>
 
-    <div class="shrink-0 border-t border-blue-background px-6 py-6">
+    <div class="shrink-0 border-t border-blue-background p-3">
+        <ul class="flex flex-col gap-1 mb-5">
         {% if request.user.is_authenticated %}
-            <c-components.button href="{% url 'account' %}" label="Mon Compte" class="mb-1" />
+            <c-components.nav-link href="{% url 'account' %}" label="Mon compte" icon-active="compte" icon="compte" />
         {% else %}
             {% if request.resolver_match.url_name == 'login_request' or request.resolver_match.url_name == 'login_email_sent' %}
-                <c-components.button href="{% url 'login_request' %}" label="Se connecter" class="mb-1" />
+                <c-components.button href="{% url 'login_request' %}" label="Se connecter" class="m-1" />
             {% else %}
-                <c-components.button href="{% url 'login_request' %}?next={{ request.path }}" label="Se connecter" class="mb-1" />
+                <c-components.button href="{% url 'login_request' %}?next={{ request.path }}" label="Se connecter" class="m-1" />
             {% endif %}
         {% endif %}
-        <ul class="flex flex-col gap-1 mb-5">
             <c-components.nav-link href="#" label="A propos" />
             <c-components.nav-link href="#" label="Notre manifeste" />
         </ul>
-        <div class="flex items-center justify-between pr-10">
+        <div class="flex items-center justify-between px-3">
             <img src="{% static 'svg/rf.svg' %}"
                  alt="République Française"
                  class="h-14 w-auto" />
