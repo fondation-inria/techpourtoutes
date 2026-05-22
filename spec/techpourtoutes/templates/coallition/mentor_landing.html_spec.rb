@@ -1,1 +1,0 @@
-import mentor_landing.html from '../../../../techpourtoutes/templates/coallition/mentor_landing'
