@@ -22,7 +22,7 @@ environ.Env.read_env(BASE_DIR / ".env")
 SECRET_KEY = env("SECRET_KEY")
 DEBUG = env("DEBUG")
 ALLOWED_HOSTS = env.list("ALLOWED_HOSTS")
-
+SITE_URL = env("HOST", default="https://localhost:8000").rstrip("/")
 DATABASES = {"default": env.db("DATABASE_URL")}
 
 # Application definition
@@ -137,8 +137,6 @@ else:
 # Jobirl API
 JOBIRL_API_KEY = env("JOBIRL_API_KEY", default="")
 JOBIRL_URL = env("JOBIRL_URL", default="")
-
-SITE_URL = env("HOST", default="https://localhost:8000")
 
 
 # Internationalization

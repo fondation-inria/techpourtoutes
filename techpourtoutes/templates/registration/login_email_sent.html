@@ -16,17 +16,15 @@
 
             <c-patterns.form url="{% url 'login_request' %}" class="mt-3">
                 <input type="hidden" name="email" value="{{ email }}">
-                <c-components.button type="submit" label="Demander l'envoi d'un nouvel email" base_class="link text-sm text-primary-700 cursor-pointer" />
+                <c-components.button type="submit" label="Demander l'envoi d'un nouvel email" variant="quaternaly" class="text-left" />
             </c-patterns.form>
 
-            <c-components.title title="L'adresse mail saisie est erronée ?" variant="intertitre" />
-            <p class="mt-3">
-                <a href="{% url 'login_request' %}" class="link text-sm text-primary-700">Modifier mon adresse mail</a>
-            </p>
+            <c-components.title title="L'adresse mail saisie est erronée ?" variant="intertitre" class="mb-3" />
+            <c-components.button href="{% url 'login_request' %}" label="Modifier mon adresse mail" variant="quaternaly" />
         </c-components.card>
         <p class="text-sm text-center">
             Pas encore de compte ?
-            <a href="{% url 'mentor_landing' %}" class="link text-primary-700 font-medium">S'engager avec TechPourToutes</a>
+            <c-components.button href="/" label="S'engager avec TechPourToutes" variant="quaternaly" class="ml-3" />
         </p>
         <p class="text-xs text-center">
             En continuant, vous reconnaissez avoir compris et accepté les
