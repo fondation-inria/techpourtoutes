@@ -41,7 +41,6 @@ class Command(BaseCommand):
             civility=Mentor.Civility.MADAME,
             phone="+33612345678",
             postal_code="75001",
-            city="Paris",
             professional_situation=Mentor.ProfessionalSituation.WORKING,
             structure_name="Acme Corp",
             job_title="CTO",
