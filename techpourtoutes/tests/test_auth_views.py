@@ -1,4 +1,5 @@
 from datetime import timedelta
+from unittest.mock import patch
 
 import pytest
 from django.contrib.messages import get_messages
@@ -262,3 +263,56 @@ def test_logout_get_not_allowed(client, mentor):
     response = client.get(reverse("logout"))
 
     assert response.status_code == 405
+
+
+@pytest.mark.django_db
+def test_login_to_jobirl_requires_login(client):
+    response = client.get(reverse("login_to_jobirl"))
+
+    assert response.status_code == 302
+    assert reverse("login_request") in response["Location"]
+
+
+@pytest.mark.django_db
+def test_login_to_jobirl_for_non_mentor_renders_error(client, db):
+    from techpourtoutes.models import User
+
+    user = User.objects.create_user(username="plain@example.com", email="plain@example.com")
+    client.force_login(user)
+
+    response = client.get(reverse("login_to_jobirl"))
+
+    assert response.status_code == 200
+    stored = [str(m) for m in get_messages(response.wsgi_request)]
+    assert any("mentor" in m.lower() for m in stored)
+
+
+@pytest.mark.django_db
+@override_settings(JOBIRL_URL="https://jobirl.test")
+def test_login_to_jobirl_redirects_to_jobirl_url(client, mentor):
+    with patch("techpourtoutes.views.auth_views.RefreshAccessToken") as MockRefresh:
+        MockRefresh.return_value.success = True
+        MockRefresh.return_value.failure = False
+        MockRefresh.return_value.token = "new-token-xyz"
+        client.force_login(mentor)
+
+        response = client.get(reverse("login_to_jobirl"))
+
+    assert response.status_code == 302
+    assert response["Location"] == "https://jobirl.test/techpourtoutes/auth/new-token-xyz"
+
+
+@pytest.mark.django_db
+def test_login_to_jobirl_shows_error_on_service_failure(client, mentor):
+    with patch("techpourtoutes.views.auth_views.RefreshAccessToken") as MockRefresh:
+        MockRefresh.return_value.success = False
+        MockRefresh.return_value.failure = True
+        MockRefresh.return_value.errors = ["Erreur de connexion à Jobirl"]
+        client.force_login(mentor)
+
+        response = client.get(reverse("login_to_jobirl"))
+
+    stored = [str(m) for m in get_messages(response.wsgi_request)]
+    assert any("Erreur de connexion à Jobirl" in m for m in stored)
+    assert response.status_code == 302
+    assert response["Location"] == reverse("account")

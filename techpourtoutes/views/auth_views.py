@@ -11,6 +11,7 @@ from django.views.decorators.http import require_POST
 
 from ..forms import LoginRequestForm
 from ..mailers import LoginMailer
+from ..services.jobirl_api.refresh_access_token import RefreshAccessToken
 
 
 def _safe_next(request, candidate):
@@ -77,6 +78,20 @@ def login_verify(request, token):
     login(request, user)
     messages.success(request, f"Vous accédez au compte {user.email}. Bienvenue !")
     return redirect(next_url or settings.LOGIN_REDIRECT_URL)
+
+
+@login_required
+def login_to_jobirl(request):
+    if not hasattr(request.user, "mentor"):
+        messages.error(request, "Vous n'avez pas de compte mentor sur JobIRL")
+        return render(request, "account/account.html", {})
+
+    result = RefreshAccessToken(mentor=request.user.mentor)
+    if result.failure:
+        messages.error(request, result.errors[0])
+        return redirect(reverse("account"))
+
+    return redirect(f"{settings.JOBIRL_URL}/techpourtoutes/auth/{result.token}")
 
 
 @login_required
