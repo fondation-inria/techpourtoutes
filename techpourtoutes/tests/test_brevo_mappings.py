@@ -17,7 +17,7 @@ def test_brevo_attributes_for_mentor_returns_mapped_attributes(mentor):
         "EMAIL": "alice@example.com",
         "PRENOM": "Alice",
         "NOM": "Martin",
-        "SMS": "+33612345678",
+        "NUMERO_DE_TEL": "+33612345678",
         "CIVILITE": "Madame",
         "POSTE": "Chercheuse",
         "SITUATION_PRO": "working",
