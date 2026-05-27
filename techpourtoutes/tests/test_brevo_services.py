@@ -55,6 +55,33 @@ def test_upsert_brevo_contact_captures_api_error(mentor, mock_brevo_client):
 
 
 @pytest.mark.django_db
+@override_settings(BREVO_MENTOR_LIST_ID=42, BREVO_API_KEY="test")
+@pytest.mark.parametrize(
+    "status_code,is_transient",
+    [(400, False), (404, False), (422, False), (429, True), (500, True), (503, True)],
+)
+def test_is_transient_failure_classifies_by_status_code(
+    mentor, mock_brevo_client, status_code, is_transient
+):
+    mock_brevo_client.upsert_contact.side_effect = ApiError(
+        status_code=status_code, body={"message": "x"}
+    )
+
+    result = UpsertBrevoContact(instance=mentor)
+
+    assert result.is_transient_failure is is_transient
+
+
+@pytest.mark.django_db
+@override_settings(BREVO_MENTOR_LIST_ID=42, BREVO_API_KEY="test")
+def test_is_transient_failure_false_on_success(mentor, mock_brevo_client):
+    result = UpsertBrevoContact(instance=mentor)
+
+    assert result.success
+    assert result.is_transient_failure is False
+
+
+@pytest.mark.django_db
 @override_settings(BREVO_API_KEY="test")
 def test_delete_brevo_contact_removes_from_list_when_contact_in_multiple_lists(
     mock_brevo_client,

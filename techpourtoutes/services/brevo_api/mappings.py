@@ -7,7 +7,7 @@ FIELD_TO_BREVO_ATTR = {
     "email": "EMAIL",
     "first_name": "PRENOM",
     "last_name": "NOM",
-    "phone": "SMS",
+    "phone": "NUMERO_DE_TEL",
     "civility": "CIVILITE",
     "job_title": "POSTE",
     "professional_situation": "SITUATION_PRO",
