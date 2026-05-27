@@ -1,4 +1,11 @@
-from .auth_views import account, login_email_sent, login_request, login_verify, logout_view
+from .auth_views import (
+    account,
+    login_email_sent,
+    login_request,
+    login_to_jobirl,
+    login_verify,
+    logout_view,
+)
 from .coallition_views import coallition_index, mentor_landing, mentor_success
 from .legal_views import (
     accessibilite,
@@ -16,6 +23,7 @@ __all__ = [
     "donnees_personnelles",
     "login_email_sent",
     "login_request",
+    "login_to_jobirl",
     "login_verify",
     "logout_view",
     "mentions_legales",

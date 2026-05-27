@@ -13,6 +13,7 @@ urlpatterns = [
     path("se-connecter/token/<str:token>/", views.login_verify, name="login_verify"),
     path("mon-compte/", views.account, name="account"),
     path("se-deconnecter/", views.logout_view, name="logout"),
+    path("mon-compte-mentor/", views.login_to_jobirl, name="login_to_jobirl"),
     # Legals
     path("donnees-personnelles/", views.donnees_personnelles, name="donnees_personnelles"),
     path("conditions-generales/", views.conditions_generales, name="conditions_generales"),
