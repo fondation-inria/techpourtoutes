@@ -20,11 +20,19 @@ class BrevoApiBaseService(BaseService):
         try:
             self._brevo_response = getattr(BrevoClient(), method)(**kwargs)
         except ApiError as exc:
+            self.status_code = exc.status_code
             self._fail_with_errors(exc)
 
     @cached_property
     def brevo_response_body(self):
         return getattr(self, "_brevo_response", None)
+
+    @property
+    def is_transient_failure(self) -> bool:
+        code = getattr(self, "status_code", None)
+        if code is None:
+            return False
+        return code == 429 or code >= 500
 
     def _fail_with_errors(self, exc: ApiError) -> None:
         detail = ""
