@@ -28,6 +28,11 @@ class User(BaseModel, AbstractUser):
         blank=True,
         verbose_name=_("datetime d'expiration du token de connexion envoyé par mail au user"),
     )
+    brevo_sync_enabled = models.BooleanField(
+        default=True,
+        verbose_name=_("synchroniser avec Brevo"),
+        help_text=_("Si décoché, ce compte n'est pas synchronisé vers Brevo."),
+    )
 
     class Meta(AbstractUser.Meta):
         abstract = False

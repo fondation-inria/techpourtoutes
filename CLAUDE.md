@@ -124,6 +124,10 @@ Django 6 + PostgreSQL project. Locale is French (fr-FR), timezone Europe/Paris.
 
 **Jobirl integration:** External mentoring platform. Services live in `techpourtoutes/services/jobirl_api/`. Use `JobirlApiBaseService` (extends `BaseService`) for requests — it wraps `JobirlClient` (`techpourtoutes/clients/jobirl.py`) and exposes `result.jobirl_response_body` (the `datas` key from the response) on success.
 
+**Brevo contact sync:** Gated globally by `settings.BREVO_SYNC_ENABLED` (env `BREVO_SYNC_ENABLED`, default `False` — off in local/dev, on in prod). Also gated per-instance by `User.brevo_sync_enabled`. `techpourtoutes/signals.py` connects `post_save` (upsert) and `pre_delete` (delete) handlers via `connect_brevo_sync(model_cls)` — called once per syncable subclass (e.g. at the bottom of `mentor.py`). Handlers short-circuit when either flag is off; otherwise they schedule Celery tasks on `transaction.on_commit`. Tasks live in `techpourtoutes/tasks/` and call services in `techpourtoutes/services/brevo_api/` (`UpsertBrevoContact`, `DeleteBrevoContact`), which use `BrevoClient` (`techpourtoutes/clients/brevo.py`). Field-to-attribute mapping and per-model list resolution are in `services/brevo_api/mappings.py`.
+
+**Async tasks (Celery):** Celery app lives in `conf/celery.py`. Broker is Redis (`REDIS_URL`). In tests and (optionally) local dev, set `CELERY_TASK_ALWAYS_EAGER=True` to run tasks synchronously without a worker. The root `conftest.py` enforces eager mode and mocks the Brevo SDK for the whole test suite — no Brevo/Redis access from tests.
+
 **Forms:** Use plain `forms.Form` with a manual `save()`, not `ModelForm`. Preferred when the form doesn't map 1:1 to a model (e.g. spans multiple models, or includes fields like `terms_accepted` that belong to no model).
 
 **Views:** Function-based views only.

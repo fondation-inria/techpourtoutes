@@ -9,6 +9,8 @@ classifiers = [
   "Programming Language :: Python :: 3.14",
 ]
 dependencies = [
+  "brevo-python>=4.0.10",
+  "celery>=5.6.3",
   "django>=6.0.4",
   "django-anymail[brevo]>=15",
   "django-cotton>=2.6.2",
@@ -22,6 +24,8 @@ dependencies = [
   "ipython>=9.12",
   "phonenumberslite>=9.0.29",
   "psycopg2>=2.9.12",
+  "redis>=7.4",
+  "sentry-sdk[celery,django]>=2.60",
   "whitenoise>=6.12",
 ]
 

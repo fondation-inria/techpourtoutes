@@ -24,10 +24,10 @@ def mentor(db):
 
 
 @pytest.fixture
-def mock_register_mentor_on_jobirl():
-    instance = MagicMock(success=True, failure=False, errors=[], user_id=287565, token="tpt_abc")
+def mock_create_mentor():
+    instance = MagicMock(success=True, failure=False, errors=[])
     with patch(
-        "techpourtoutes.views.coallition_views.RegisterMentorOnJobirl",
+        "techpourtoutes.views.coallition_views.CreateMentor",
         return_value=instance,
     ) as mock:
         yield mock

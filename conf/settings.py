@@ -126,17 +126,40 @@ LOGOUT_REDIRECT_URL = "/"
 DEFAULT_FROM_EMAIL = env(
     "DEFAULT_FROM_EMAIL", default="Tech Pour Toutes <noreply@techpourtoutes.io>"
 )
+BREVO_API_KEY = env("BREVO_API_KEY", default="")
 if DEBUG:
     EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
     EMAIL_HOST = "localhost"
     EMAIL_PORT = 1025
 else:
     EMAIL_BACKEND = "anymail.backends.brevo.EmailBackend"
-    ANYMAIL = {"BREVO_API_KEY": env("BREVO_API_KEY")}
+    ANYMAIL = {"BREVO_API_KEY": BREVO_API_KEY}
 
 # Jobirl API
 JOBIRL_API_KEY = env("JOBIRL_API_KEY", default="")
 JOBIRL_URL = env("JOBIRL_URL", default="")
+
+# Brevo contacts API
+BREVO_MENTOR_LIST_ID = env.int("BREVO_MENTOR_LIST_ID", default=0)
+BREVO_SYNC_ENABLED = env.bool("BREVO_SYNC_ENABLED", default=False)
+
+# Celery
+CELERY_BROKER_URL = env("REDIS_URL", default="redis://localhost:6379/0")
+CELERY_TASK_ALWAYS_EAGER = env.bool("CELERY_TASK_ALWAYS_EAGER", default=False)
+CELERY_TASK_EAGER_PROPAGATES = True
+
+# Sentry
+SENTRY_DSN = env("SENTRY_DSN", default="")
+if SENTRY_DSN:
+    import sentry_sdk
+    from sentry_sdk.integrations.celery import CeleryIntegration
+    from sentry_sdk.integrations.django import DjangoIntegration
+
+    sentry_sdk.init(
+        dsn=SENTRY_DSN,
+        integrations=[DjangoIntegration(), CeleryIntegration()],
+        send_default_pii=False,
+    )
 
 
 # Internationalization

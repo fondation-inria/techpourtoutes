@@ -104,6 +104,25 @@ L'interface est disponible sur [http://localhost:8025](http://localhost:8025). T
 
 > En production, les emails sont envoyés via [Brevo](https://www.brevo.com/) (Anymail). La variable `BREVO_API_KEY` doit être renseignée dans le `.env`.
 
+## Synchronisation des contacts Brevo
+
+À la création/mise à jour/suppression d'un `Mentor`, un signal déclenche une tâche Celery qui synchronise le contact dans Brevo (liste configurée via `BREVO_MENTOR_LIST_ID`).
+
+La synchro est désactivée par défaut en local (`BREVO_SYNC_ENABLED=False`). Pour l'activer (en prod ou pour tester en local), passer `BREVO_SYNC_ENABLED=True`.
+
+En local, le plus simple est de mettre `CELERY_TASK_ALWAYS_EAGER=True` dans le `.env` : les tâches s'exécutent en synchrone dans le process Django, sans avoir besoin de Redis ni d'un worker. Sans cette variable, il faut lancer Redis et un worker Celery :
+
+```bash
+# Redis
+brew install redis
+brew services start redis
+
+# Worker Celery (dans un terminal séparé)
+uv run celery -A conf worker --loglevel=info
+```
+
+En tests, les tâches sont forcées en mode eager et le SDK Brevo est mocké (cf. `conftest.py`) — aucun appel réseau n'est effectué.
+
 ## Commandes utiles
 
 Un `Makefile` expose des raccourcis pour les commandes courantes :
