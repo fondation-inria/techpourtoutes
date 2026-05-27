@@ -3,6 +3,8 @@ from django.db import models
 from django.utils.translation import gettext_lazy as _
 from phonenumber_field.modelfields import PhoneNumberField
 
+from techpourtoutes.signals import connect_brevo_sync
+
 from .user import User
 
 
@@ -50,3 +52,6 @@ class Mentor(User):
         if not self.pk:
             self.set_unusable_password()
         super().save(*args, **kwargs)
+
+
+connect_brevo_sync(Mentor)

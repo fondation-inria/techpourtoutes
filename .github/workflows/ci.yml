@@ -39,6 +39,10 @@ jobs:
       DEBUG: "True"
       DATABASE_URL: postgres://postgres:postgres@localhost:5432/techpourtoutes
       ALLOWED_HOSTS: localhost
+      # Celery tasks run synchronously in tests (no Redis available in CI).
+      # The test conftest also enforces this via an autouse fixture; setting it here
+      # is a belt-and-suspenders guarantee that no task ever tries to reach a broker.
+      CELERY_TASK_ALWAYS_EAGER: "True"
     steps:
       - uses: actions/checkout@v4
       - uses: astral-sh/setup-uv@v5
