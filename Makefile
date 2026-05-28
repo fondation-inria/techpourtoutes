@@ -1,4 +1,4 @@
-.PHONY: help install sync run test lint format pre-commit icons seed
+.PHONY: help install sync run test lint format pre-commit icons seed js
 
 DB_NAME = techpourtoutes
 
@@ -12,7 +12,12 @@ help:
 	@echo "  format       Format with ruff"
 	@echo "  pre-commit   Manually run all pre-commit hooks"
 	@echo "  icons        Build SVG icon sprite"
+	@echo "  js           Install JS deps and copy assets to static"
 	@echo "  seed         Seed database with minimal dev data"
+
+js: # to run after a npm update (for instance npm update alpinejs)
+	npm install
+	npm run copy-assets
 
 install:
 	uv sync --group dev

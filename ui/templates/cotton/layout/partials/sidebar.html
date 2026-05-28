@@ -31,11 +31,13 @@
         {% if request.user.is_authenticated %}
             <c-components.nav-link href="{% url 'account' %}" label="Mon compte" icon-active="compte" icon="compte" />
         {% else %}
-            {% if request.resolver_match.url_name == 'login_request' or request.resolver_match.url_name == 'login_email_sent' %}
-                <c-components.button href="{% url 'login_request' %}" label="Se connecter" class="m-1" />
-            {% else %}
-                <c-components.button href="{% url 'login_request' %}?next={{ request.path }}" label="Se connecter" class="m-1" />
-            {% endif %}
+            <div class="flex mt-1">
+                {% if request.resolver_match.url_name == 'login_request' or request.resolver_match.url_name == 'login_email_sent' %}
+                    <c-components.button href="{% url 'login_request' %}" label="Se connecter" />
+                {% else %}
+                    <c-components.button href="{% url 'login_request' %}?next={{ request.path }}" label="Se connecter" />
+                {% endif %}
+            </div>
         {% endif %}
             <c-components.nav-link href="#" label="A propos" />
             <c-components.nav-link href="#" label="Notre manifeste" />
