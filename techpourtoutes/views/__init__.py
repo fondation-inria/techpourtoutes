@@ -1,5 +1,7 @@
 from .auth_views import (
     account,
+    account_edit,
+    account_info,
     login_email_sent,
     login_request,
     login_to_jobirl,
@@ -18,6 +20,8 @@ from .legal_views import (
 __all__ = [
     "accessibilite",
     "account",
+    "account_edit",
+    "account_info",
     "coallition_index",
     "conditions_generales",
     "donnees_personnelles",

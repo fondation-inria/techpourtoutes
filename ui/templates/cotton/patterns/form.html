@@ -1,6 +1,6 @@
 <c-vars url="" class="" />
 
-<form method="POST" action="{{ url }}">
+<form method="POST" action="{{ url }}" {{ attrs }}>
     {% csrf_token %}
     <div class="flex flex-col gap-4 {{ class }}">
         {{ slot }}

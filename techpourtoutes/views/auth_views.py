@@ -9,7 +9,7 @@ from django.urls import reverse
 from django.utils.http import url_has_allowed_host_and_scheme
 from django.views.decorators.http import require_POST
 
-from ..forms import LoginRequestForm
+from ..forms import AccountEditForm, LoginRequestForm
 from ..mailers import LoginMailer
 from ..services.jobirl_api.refresh_access_token import RefreshAccessToken
 
@@ -96,7 +96,28 @@ def login_to_jobirl(request):
 
 @login_required
 def account(request):
-    return render(request, "account/account.html", {})
+    user = request.user.mentor if hasattr(request.user, "mentor") else request.user
+    return render(request, "account/account.html", {"user": user})
+
+
+@login_required
+def account_info(request):
+    user = request.user.mentor if hasattr(request.user, "mentor") else request.user
+    return render(request, "account/partials/info_card.html", {"user": user})
+
+
+@login_required
+def account_edit(request):
+    mentor = request.user.mentor
+    if request.method == "POST":
+        form = AccountEditForm(data=request.POST)
+        if form.is_valid():
+            form.save(mentor)
+            return render(request, "account/partials/info_card.html", {"user": mentor})
+        return render(request, "account/partials/edit_form.html", {"form": form, "user": mentor})
+    else:
+        form = AccountEditForm(mentor=mentor)
+        return render(request, "account/partials/edit_form.html", {"form": form, "user": mentor})
 
 
 @require_POST

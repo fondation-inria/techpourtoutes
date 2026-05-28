@@ -12,6 +12,8 @@ urlpatterns = [
     path("se-connecter/email-envoye/", views.login_email_sent, name="login_email_sent"),
     path("se-connecter/token/<str:token>/", views.login_verify, name="login_verify"),
     path("mon-compte/", views.account, name="account"),
+    path("mon-compte/infos/", views.account_info, name="account_info"),
+    path("mon-compte/modifier/", views.account_edit, name="account_edit"),
     path("se-deconnecter/", views.logout_view, name="logout"),
     path("mon-compte-mentor/", views.login_to_jobirl, name="login_to_jobirl"),
     # Legals
