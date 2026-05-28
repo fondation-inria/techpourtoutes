@@ -316,3 +316,76 @@ def test_login_to_jobirl_shows_error_on_service_failure(client, mentor):
     assert any("Erreur de connexion à Jobirl" in m for m in stored)
     assert response.status_code == 302
     assert response["Location"] == reverse("account")
+
+
+@pytest.mark.django_db
+def test_account_info_requires_login(client):
+    response = client.get(reverse("account_info"))
+
+    assert response.status_code == 302
+    assert reverse("login_request") in response["Location"]
+
+
+@pytest.mark.django_db
+def test_account_info_returns_info_card(client, mentor):
+    client.force_login(mentor)
+
+    response = client.get(reverse("account_info"))
+
+    assert response.status_code == 200
+    assert "Alice" in response.content.decode()
+
+
+@pytest.mark.django_db
+def test_account_edit_requires_login(client):
+    response = client.get(reverse("account_edit"))
+
+    assert response.status_code == 302
+    assert reverse("login_request") in response["Location"]
+
+
+@pytest.mark.django_db
+def test_account_edit_get_renders_form(client, mentor):
+    client.force_login(mentor)
+
+    response = client.get(reverse("account_edit"))
+
+    assert response.status_code == 200
+    assert "form" in response.context
+
+
+@pytest.mark.django_db
+def test_account_edit_post_valid_saves_and_returns_info_card(client, mentor):
+    client.force_login(mentor)
+
+    response = client.post(
+        reverse("account_edit"),
+        data={
+            "first_name": "Béatrice",
+            "last_name": "Dupont",
+            "phone": "+33698765432",
+            "professional_situation": "working",
+            "structure_name": "CNRS",
+            "job_title": "Ingénieure",
+            "postal_code": "69001",
+        },
+    )
+
+    assert response.status_code == 200
+    mentor.refresh_from_db()
+    assert mentor.first_name == "Béatrice"
+    assert mentor.job_title == "Ingénieure"
+    assert mentor.postal_code == "69001"
+
+
+@pytest.mark.django_db
+def test_account_edit_post_invalid_returns_form_with_errors(client, mentor):
+    client.force_login(mentor)
+
+    response = client.post(
+        reverse("account_edit"),
+        data={"postal_code": "not-a-postcode"},
+    )
+
+    assert response.status_code == 200
+    assert response.context["form"].errors

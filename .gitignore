@@ -28,7 +28,5 @@ htmlcov/
 .history/
 *.code-workspace
 
-# Node (local install for IDE tooling only)
+# Node
 node_modules/
-package.json
-package-lock.json
