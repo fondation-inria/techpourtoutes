@@ -231,6 +231,22 @@ def test_create_mentor_on_jobirl_failure_propagates_errors(valid_pro_model_data)
     assert not Pro.objects.filter(email=valid_pro_model_data["email"]).exists()
 
 
+@pytest.mark.django_db
+@override_settings(EMAIL_BACKEND="django.core.mail.backends.locmem.EmailBackend")
+def test_create_mentor_adds_mentor_engagement(valid_pro_model_data):
+    from techpourtoutes.models import Pro
+    from techpourtoutes.services.create_mentor import CreateMentor
+
+    pro = _unsaved_pro(valid_pro_model_data)
+    mock = _mock_jobirl_registration()
+
+    with patch("techpourtoutes.services.create_mentor.RegisterMentorOnJobirl", return_value=mock):
+        CreateMentor(pro=pro)
+
+    db_pro = Pro.objects.get(email=valid_pro_model_data["email"])
+    assert "mentor" in db_pro.engagements
+
+
 @pytest.mark.django_db(transaction=True)
 @override_settings(EMAIL_BACKEND="django.core.mail.backends.locmem.EmailBackend")
 def test_create_mentor_syncs_contact_to_brevo(valid_pro_model_data, mock_brevo_sdk):

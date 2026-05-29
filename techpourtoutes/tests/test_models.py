@@ -140,3 +140,19 @@ def test_consume_login_token_returns_none_on_second_use(pro):
     plaintext = pro.issue_login_token()
     assert User.consume_login_token(plaintext=plaintext) is not None
     assert User.consume_login_token(plaintext=plaintext) is None
+
+
+def test_pro_engagement_choices():
+    from techpourtoutes.models import Pro
+
+    values = {e.value for e in Pro.Engagement}
+    assert values == {"mentor", "internships", "work_ambassador", "training_ambassador", "sponsor"}
+
+
+@pytest.mark.django_db
+def test_pro_engagements_defaults_to_empty_list(valid_pro_model_data):
+    from techpourtoutes.models import Pro
+
+    Pro(username="marie.dupont@example.com", **valid_pro_model_data).save()
+    saved = Pro.objects.get(email="marie.dupont@example.com")
+    assert saved.engagements == []

@@ -9,6 +9,7 @@ class CreateMentor(BaseService):
         if result.failure:
             self.errors.extend(result.errors)
             return
+        pro.engagements = [*pro.engagements, "mentor"]
         pro.jobirl_user_id = result.user_id
         pro.jobirl_user_token = result.token
         pro.save()

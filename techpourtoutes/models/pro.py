@@ -1,3 +1,4 @@
+from django.contrib.postgres.fields import ArrayField
 from django.core.validators import RegexValidator
 from django.db import models
 from django.utils.translation import gettext_lazy as _
@@ -9,6 +10,13 @@ from .user import User
 
 
 class Pro(User):
+    class Engagement(models.TextChoices):
+        MENTOR = "mentor", _("Mentorer")
+        INTERNSHIPS = "internships", _("Accueillir une stagiaire")
+        WORK_AMBASSADOR = "work_ambassador", _("Pitcher mon métier")
+        TRAINING_AMBASSADOR = "training_ambassador", _("Pitcher ma formation")
+        SPONSOR = "sponsor", _("Devenir mécène")
+
     class ProfessionalSituation(models.TextChoices):
         WORKING = "working", _("En emploi")
         RETIRED = "retired", _("À la retraite")
@@ -42,6 +50,12 @@ class Pro(User):
     )
     jobirl_user_token = models.CharField(
         max_length=128, blank=True, verbose_name=_("token utilisateur jobirl")
+    )
+    engagements = ArrayField(
+        models.CharField(max_length=30, choices=Engagement.choices),
+        default=list,
+        blank=True,
+        verbose_name=_("engagements"),
     )
 
     class Meta:
