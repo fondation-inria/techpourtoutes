@@ -14,7 +14,7 @@ def celery_eager(settings):
     settings.CELERY_TASK_ALWAYS_EAGER = True
     settings.CELERY_TASK_EAGER_PROPAGATES = True
     settings.BREVO_API_KEY = "test"
-    settings.BREVO_MENTOR_LIST_ID = 42
+    settings.BREVO_PRO_LIST_ID = 42
     settings.BREVO_SYNC_ENABLED = True
 
 

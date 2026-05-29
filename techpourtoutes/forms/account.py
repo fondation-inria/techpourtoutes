@@ -3,7 +3,7 @@ from django.core.validators import RegexValidator
 from django.utils.translation import gettext_lazy as _
 from phonenumber_field.formfields import PhoneNumberField
 
-from ..models import Mentor
+from ..models import Pro
 
 
 class AccountEditForm(forms.Form):
@@ -12,7 +12,7 @@ class AccountEditForm(forms.Form):
     phone = PhoneNumberField(region="FR", label=_("Numéro de téléphone"))
     professional_situation = forms.ChoiceField(
         label=_("Situation professionnelle"),
-        choices=[("", _("Sélectionner une option")), *Mentor.ProfessionalSituation.choices],
+        choices=[("", _("Sélectionner une option")), *Pro.ProfessionalSituation.choices],
     )
     structure_name = forms.CharField(label=_("Structure"), required=False)
     job_title = forms.CharField(label=_("Métier"))
@@ -21,18 +21,18 @@ class AccountEditForm(forms.Form):
         validators=[RegexValidator(r"^\d{5}$", _("Entrez un code postal valide à 5 chiffres."))],
     )
 
-    def __init__(self, *args, mentor=None, **kwargs):
-        if mentor is not None:
+    def __init__(self, *args, pro=None, **kwargs):
+        if pro is not None:
             kwargs.setdefault(
                 "initial",
                 {
-                    "first_name": mentor.first_name,
-                    "last_name": mentor.last_name,
-                    "phone": str(mentor.phone),
-                    "professional_situation": mentor.professional_situation,
-                    "structure_name": mentor.structure_name,
-                    "job_title": mentor.job_title,
-                    "postal_code": mentor.postal_code,
+                    "first_name": pro.first_name,
+                    "last_name": pro.last_name,
+                    "phone": str(pro.phone),
+                    "professional_situation": pro.professional_situation,
+                    "structure_name": pro.structure_name,
+                    "job_title": pro.job_title,
+                    "postal_code": pro.postal_code,
                 },
             )
         super().__init__(*args, **kwargs)
@@ -44,14 +44,14 @@ class AccountEditForm(forms.Form):
                 self.add_error("structure_name", _("Ce champ est obligatoire."))
         return cleaned_data
 
-    def save(self, mentor):
+    def save(self, pro):
         data = self.cleaned_data
-        mentor.first_name = data["first_name"]
-        mentor.last_name = data["last_name"]
-        mentor.phone = data["phone"]
-        mentor.professional_situation = data["professional_situation"]
-        mentor.structure_name = data["structure_name"]
-        mentor.job_title = data["job_title"]
-        mentor.postal_code = data["postal_code"]
-        mentor.save()
-        return mentor
+        pro.first_name = data["first_name"]
+        pro.last_name = data["last_name"]
+        pro.phone = data["phone"]
+        pro.professional_situation = data["professional_situation"]
+        pro.structure_name = data["structure_name"]
+        pro.job_title = data["job_title"]
+        pro.postal_code = data["postal_code"]
+        pro.save()
+        return pro

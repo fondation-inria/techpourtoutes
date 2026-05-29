@@ -34,8 +34,8 @@ def test_login_request_get_strips_external_next(client):
 
 
 @pytest.mark.django_db
-def test_login_request_get_while_authenticated_redirects_home(client, mentor):
-    client.force_login(mentor)
+def test_login_request_get_while_authenticated_redirects_home(client, pro):
+    client.force_login(pro)
 
     response = client.get(reverse("login_request"))
 
@@ -45,13 +45,13 @@ def test_login_request_get_while_authenticated_redirects_home(client, mentor):
 
 @pytest.mark.django_db
 @override_settings(EMAIL_BACKEND="django.core.mail.backends.locmem.EmailBackend")
-def test_login_request_post_with_known_email_sends_link(client, mentor):
-    response = client.post(reverse("login_request"), data={"email": mentor.email})
+def test_login_request_post_with_known_email_sends_link(client, pro):
+    response = client.post(reverse("login_request"), data={"email": pro.email})
 
     assert response.status_code == 302
     assert response["Location"] == reverse("login_email_sent")
     assert len(mail.outbox) == 1
-    assert mail.outbox[0].to == [mentor.email]
+    assert mail.outbox[0].to == [pro.email]
     assert "/se-connecter/token/" in mail.outbox[0].alternatives[0][0]
 
 
@@ -77,10 +77,10 @@ def test_login_request_post_with_inactive_user_sends_nothing(client, inactive_us
 
 @pytest.mark.django_db
 @override_settings(EMAIL_BACKEND="django.core.mail.backends.locmem.EmailBackend")
-def test_login_request_post_embeds_safe_next_in_link(client, mentor):
+def test_login_request_post_embeds_safe_next_in_link(client, pro):
     client.post(
         reverse("login_request"),
-        data={"email": mentor.email, "next": "/je-deviens-mentor/"},
+        data={"email": pro.email, "next": "/je-deviens-mentor/"},
     )
 
     html_body = mail.outbox[0].alternatives[0][0]
@@ -89,10 +89,10 @@ def test_login_request_post_embeds_safe_next_in_link(client, mentor):
 
 @pytest.mark.django_db
 @override_settings(EMAIL_BACKEND="django.core.mail.backends.locmem.EmailBackend")
-def test_login_request_post_strips_external_next_from_link(client, mentor):
+def test_login_request_post_strips_external_next_from_link(client, pro):
     client.post(
         reverse("login_request"),
-        data={"email": mentor.email, "next": "https://evil.com/x"},
+        data={"email": pro.email, "next": "https://evil.com/x"},
     )
 
     html_body = mail.outbox[0].alternatives[0][0]
@@ -120,19 +120,19 @@ def test_login_email_sent_with_session_renders_email(client):
 
 
 @pytest.mark.django_db
-def test_login_verify_with_valid_token_logs_user_in(client, mentor):
-    plaintext = mentor.issue_login_token()
+def test_login_verify_with_valid_token_logs_user_in(client, pro):
+    plaintext = pro.issue_login_token()
 
     response = client.get(reverse("login_verify", args=[plaintext]))
 
     assert response.status_code == 302
     assert response["Location"] == "/"
-    assert client.session.get("_auth_user_id") == str(mentor.pk)
+    assert client.session.get("_auth_user_id") == str(pro.pk)
 
 
 @pytest.mark.django_db
-def test_login_verify_adds_success_message(client, mentor):
-    plaintext = mentor.issue_login_token()
+def test_login_verify_adds_success_message(client, pro):
+    plaintext = pro.issue_login_token()
 
     response = client.get(reverse("login_verify", args=[plaintext]))
 
@@ -141,8 +141,8 @@ def test_login_verify_adds_success_message(client, mentor):
 
 
 @pytest.mark.django_db
-def test_login_verify_redirects_to_safe_next(client, mentor):
-    plaintext = mentor.issue_login_token()
+def test_login_verify_redirects_to_safe_next(client, pro):
+    plaintext = pro.issue_login_token()
 
     response = client.get(reverse("login_verify", args=[plaintext]) + "?next=/je-deviens-mentor/")
 
@@ -151,8 +151,8 @@ def test_login_verify_redirects_to_safe_next(client, mentor):
 
 
 @pytest.mark.django_db
-def test_login_verify_strips_external_next(client, mentor):
-    plaintext = mentor.issue_login_token()
+def test_login_verify_strips_external_next(client, pro):
+    plaintext = pro.issue_login_token()
 
     response = client.get(reverse("login_verify", args=[plaintext]) + "?next=https://evil.com/")
 
@@ -170,10 +170,10 @@ def test_login_verify_with_garbage_token_redirects_to_login(client):
 
 
 @pytest.mark.django_db
-def test_login_verify_with_expired_token_does_not_log_in(client, mentor):
-    plaintext = mentor.issue_login_token()
-    mentor.login_token_expires_at = timezone.now() - timedelta(minutes=1)
-    mentor.save()
+def test_login_verify_with_expired_token_does_not_log_in(client, pro):
+    plaintext = pro.issue_login_token()
+    pro.login_token_expires_at = timezone.now() - timedelta(minutes=1)
+    pro.save()
 
     response = client.get(reverse("login_verify", args=[plaintext]))
 
@@ -183,8 +183,8 @@ def test_login_verify_with_expired_token_does_not_log_in(client, mentor):
 
 
 @pytest.mark.django_db
-def test_login_verify_with_already_used_token_does_not_log_in(client, mentor):
-    plaintext = mentor.issue_login_token()
+def test_login_verify_with_already_used_token_does_not_log_in(client, pro):
+    plaintext = pro.issue_login_token()
     client.get(reverse("login_verify", args=[plaintext]))
     client.logout()
 
@@ -196,16 +196,16 @@ def test_login_verify_with_already_used_token_does_not_log_in(client, mentor):
 
 
 @pytest.mark.django_db
-def test_login_verify_while_authenticated_does_not_consume_token(client, mentor):
-    plaintext = mentor.issue_login_token()
-    client.force_login(mentor)
+def test_login_verify_while_authenticated_does_not_consume_token(client, pro):
+    plaintext = pro.issue_login_token()
+    client.force_login(pro)
 
     response = client.get(reverse("login_verify", args=[plaintext]))
 
     assert response.status_code == 302
     assert response["Location"] == "/"
-    mentor.refresh_from_db()
-    assert mentor.login_token_hash != ""
+    pro.refresh_from_db()
+    assert pro.login_token_hash != ""
 
 
 @pytest.mark.django_db
@@ -226,8 +226,8 @@ def test_account_requires_login(client):
 
 
 @pytest.mark.django_db
-def test_account_renders_when_authenticated(client, mentor):
-    client.force_login(mentor)
+def test_account_renders_when_authenticated(client, pro):
+    client.force_login(pro)
 
     response = client.get(reverse("account"))
 
@@ -235,9 +235,9 @@ def test_account_renders_when_authenticated(client, mentor):
 
 
 @pytest.mark.django_db
-def test_logout_post_logs_user_out(client, mentor):
-    client.force_login(mentor)
-    assert client.session.get("_auth_user_id") == str(mentor.pk)
+def test_logout_post_logs_user_out(client, pro):
+    client.force_login(pro)
+    assert client.session.get("_auth_user_id") == str(pro.pk)
 
     response = client.post(reverse("logout"))
 
@@ -247,8 +247,8 @@ def test_logout_post_logs_user_out(client, mentor):
 
 
 @pytest.mark.django_db
-def test_logout_adds_success_message(client, mentor):
-    client.force_login(mentor)
+def test_logout_adds_success_message(client, pro):
+    client.force_login(pro)
 
     response = client.post(reverse("logout"))
 
@@ -257,8 +257,8 @@ def test_logout_adds_success_message(client, mentor):
 
 
 @pytest.mark.django_db
-def test_logout_get_not_allowed(client, mentor):
-    client.force_login(mentor)
+def test_logout_get_not_allowed(client, pro):
+    client.force_login(pro)
 
     response = client.get(reverse("logout"))
 
@@ -289,12 +289,12 @@ def test_login_to_jobirl_for_non_mentor_renders_error(client, db):
 
 @pytest.mark.django_db
 @override_settings(JOBIRL_URL="https://jobirl.test")
-def test_login_to_jobirl_redirects_to_jobirl_url(client, mentor):
+def test_login_to_jobirl_redirects_to_jobirl_url(client, pro):
     with patch("techpourtoutes.views.auth_views.RefreshAccessToken") as MockRefresh:
         MockRefresh.return_value.success = True
         MockRefresh.return_value.failure = False
         MockRefresh.return_value.token = "new-token-xyz"
-        client.force_login(mentor)
+        client.force_login(pro)
 
         response = client.get(reverse("login_to_jobirl"))
 
@@ -303,12 +303,12 @@ def test_login_to_jobirl_redirects_to_jobirl_url(client, mentor):
 
 
 @pytest.mark.django_db
-def test_login_to_jobirl_shows_error_on_service_failure(client, mentor):
+def test_login_to_jobirl_shows_error_on_service_failure(client, pro):
     with patch("techpourtoutes.views.auth_views.RefreshAccessToken") as MockRefresh:
         MockRefresh.return_value.success = False
         MockRefresh.return_value.failure = True
         MockRefresh.return_value.errors = ["Erreur de connexion à Jobirl"]
-        client.force_login(mentor)
+        client.force_login(pro)
 
         response = client.get(reverse("login_to_jobirl"))
 
@@ -327,8 +327,8 @@ def test_account_info_requires_login(client):
 
 
 @pytest.mark.django_db
-def test_account_info_returns_info_card(client, mentor):
-    client.force_login(mentor)
+def test_account_info_returns_info_card(client, pro):
+    client.force_login(pro)
 
     response = client.get(reverse("account_info"))
 
@@ -345,8 +345,8 @@ def test_account_edit_requires_login(client):
 
 
 @pytest.mark.django_db
-def test_account_edit_get_renders_form(client, mentor):
-    client.force_login(mentor)
+def test_account_edit_get_renders_form(client, pro):
+    client.force_login(pro)
 
     response = client.get(reverse("account_edit"))
 
@@ -355,8 +355,8 @@ def test_account_edit_get_renders_form(client, mentor):
 
 
 @pytest.mark.django_db
-def test_account_edit_post_valid_saves_and_returns_info_card(client, mentor):
-    client.force_login(mentor)
+def test_account_edit_post_valid_saves_and_returns_info_card(client, pro):
+    client.force_login(pro)
 
     response = client.post(
         reverse("account_edit"),
@@ -372,15 +372,15 @@ def test_account_edit_post_valid_saves_and_returns_info_card(client, mentor):
     )
 
     assert response.status_code == 200
-    mentor.refresh_from_db()
-    assert mentor.first_name == "Béatrice"
-    assert mentor.job_title == "Ingénieure"
-    assert mentor.postal_code == "69001"
+    pro.refresh_from_db()
+    assert pro.first_name == "Béatrice"
+    assert pro.job_title == "Ingénieure"
+    assert pro.postal_code == "69001"
 
 
 @pytest.mark.django_db
-def test_account_edit_post_invalid_returns_form_with_errors(client, mentor):
-    client.force_login(mentor)
+def test_account_edit_post_invalid_returns_form_with_errors(client, pro):
+    client.force_login(pro)
 
     response = client.post(
         reverse("account_edit"),

@@ -60,7 +60,6 @@
     --color-success-50: #eefaf2;
     --color-success-500: #53ad78;
     --color-warning-500: #ffab00;
-    --color-error-50: #fff1f4;
     --color-error-100: #ffd7df;
     --color-error-500: #ed4b6a;
     --color-blue-background: #f4f4ff;
@@ -1665,17 +1664,8 @@
   .max-w-6xl {
     max-width: var(--container-6xl);
   }
-  .max-w-\[80\%\] {
-    max-width: 80%;
-  }
-  .max-w-\[85\%\] {
-    max-width: 85%;
-  }
   .max-w-\[90\%\] {
     max-width: 90%;
-  }
-  .max-w-\[95\%\] {
-    max-width: 95%;
   }
   .flex-1 {
     flex: 1;
@@ -1982,10 +1972,6 @@
   .leading-\[1\.2\] {
     --tw-leading: 1.2;
     line-height: 1.2;
-  }
-  .leading-\[1\.3\] {
-    --tw-leading: 1.3;
-    line-height: 1.3;
   }
   .leading-\[1\.4\] {
     --tw-leading: 1.4;

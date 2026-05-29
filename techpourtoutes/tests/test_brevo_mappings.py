@@ -12,8 +12,8 @@ from techpourtoutes.services.brevo_api.mappings import (
 
 
 @pytest.mark.django_db
-def test_brevo_attributes_for_mentor_returns_mapped_attributes(mentor):
-    assert brevo_attributes_for(mentor) == {
+def test_brevo_attributes_for_pro_returns_mapped_attributes(pro):
+    assert brevo_attributes_for(pro) == {
         "EMAIL": "alice@example.com",
         "PRENOM": "Alice",
         "NOM": "Martin",
@@ -36,9 +36,9 @@ def test_brevo_attributes_for_bare_user_returns_none(db):
 
 
 @pytest.mark.django_db
-@override_settings(BREVO_MENTOR_LIST_ID=42)
-def test_brevo_list_id_for_mentor_returns_mentor_list_id(mentor):
-    assert brevo_list_id_for(mentor) == 42
+@override_settings(BREVO_PRO_LIST_ID=42)
+def test_brevo_list_id_for_pro_returns_pro_list_id(pro):
+    assert brevo_list_id_for(pro) == 42
 
 
 @pytest.mark.django_db

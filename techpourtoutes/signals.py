@@ -28,7 +28,7 @@ def _on_user_deleted(sender, instance, **kwargs):
 def connect_brevo_sync(model_cls):
     """Connect post_save (upsert) and pre_delete (delete) Brevo sync handlers for the given model.
 
-    Call this once from each user-subclass model file (e.g. at the bottom of mentor.py).
+    Call this once from each user-subclass model file (e.g. at the bottom of pro.py).
     """
     post_save.connect(_on_user_saved, sender=model_cls, weak=False)
     pre_delete.connect(_on_user_deleted, sender=model_cls, weak=False)

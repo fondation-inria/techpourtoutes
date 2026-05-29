@@ -8,12 +8,12 @@ JOBIRL_TEST_API_KEY = "test-api-key-abc"
 
 @pytest.mark.django_db
 @override_settings(JOBIRL_URL=JOBIRL_TEST_URL, JOBIRL_API_KEY=JOBIRL_TEST_API_KEY)
-def test_refresh_access_token_sends_correct_payload_and_exposes_token(httpx_mock, mentor):
+def test_refresh_access_token_sends_correct_payload_and_exposes_token(httpx_mock, pro):
     from techpourtoutes.services.jobirl_api.refresh_access_token import RefreshAccessToken
 
-    mentor.jobirl_user_id = 12345
-    mentor.jobirl_user_token = "old-token"
-    mentor.save()
+    pro.jobirl_user_id = 12345
+    pro.jobirl_user_token = "old-token"
+    pro.save()
 
     refresh_url = f"{JOBIRL_TEST_URL}/techpourtoutes/api/user_refresh_access_token"
     httpx_mock.add_response(
@@ -22,7 +22,7 @@ def test_refresh_access_token_sends_correct_payload_and_exposes_token(httpx_mock
         json={"response": "success", "datas": {"token": "new-token-abc"}},
     )
 
-    result = RefreshAccessToken(mentor=mentor)
+    result = RefreshAccessToken(pro=pro)
 
     assert result.success
     assert result.token == "new-token-abc"
@@ -35,12 +35,12 @@ def test_refresh_access_token_sends_correct_payload_and_exposes_token(httpx_mock
 
 @pytest.mark.django_db
 @override_settings(JOBIRL_URL=JOBIRL_TEST_URL, JOBIRL_API_KEY=JOBIRL_TEST_API_KEY)
-def test_refresh_access_token_updates_mentor_token_in_db(httpx_mock, mentor):
+def test_refresh_access_token_updates_mentor_token_in_db(httpx_mock, pro):
     from techpourtoutes.services.jobirl_api.refresh_access_token import RefreshAccessToken
 
-    mentor.jobirl_user_id = 12345
-    mentor.jobirl_user_token = "old-token"
-    mentor.save()
+    pro.jobirl_user_id = 12345
+    pro.jobirl_user_token = "old-token"
+    pro.save()
 
     refresh_url = f"{JOBIRL_TEST_URL}/techpourtoutes/api/user_refresh_access_token"
     httpx_mock.add_response(
@@ -49,21 +49,21 @@ def test_refresh_access_token_updates_mentor_token_in_db(httpx_mock, mentor):
         json={"response": "success", "datas": {"token": "new-token-abc"}},
     )
 
-    RefreshAccessToken(mentor=mentor)
+    RefreshAccessToken(pro=pro)
 
-    mentor.refresh_from_db()
-    assert mentor.jobirl_user_token == "new-token-abc"
+    pro.refresh_from_db()
+    assert pro.jobirl_user_token == "new-token-abc"
 
 
 @pytest.mark.django_db
 @override_settings(JOBIRL_URL=JOBIRL_TEST_URL, JOBIRL_API_KEY=JOBIRL_TEST_API_KEY)
-def test_refresh_access_token_fails_on_http_error(httpx_mock, mentor):
+def test_refresh_access_token_fails_on_http_error(httpx_mock, pro):
     from techpourtoutes.services.jobirl_api.refresh_access_token import RefreshAccessToken
 
     refresh_url = f"{JOBIRL_TEST_URL}/techpourtoutes/api/user_refresh_access_token"
     httpx_mock.add_response(url=refresh_url, status_code=401)
 
-    result = RefreshAccessToken(mentor=mentor)
+    result = RefreshAccessToken(pro=pro)
 
     assert result.failure
     assert result.errors
@@ -71,19 +71,19 @@ def test_refresh_access_token_fails_on_http_error(httpx_mock, mentor):
 
 @pytest.mark.django_db
 @override_settings(JOBIRL_URL=JOBIRL_TEST_URL, JOBIRL_API_KEY=JOBIRL_TEST_API_KEY)
-def test_refresh_access_token_fails_on_network_error(httpx_mock, mentor):
+def test_refresh_access_token_fails_on_network_error(httpx_mock, pro):
     from techpourtoutes.services.jobirl_api.refresh_access_token import RefreshAccessToken
 
     httpx_mock.add_exception(httpx.RequestError("connection failed"))
 
-    result = RefreshAccessToken(mentor=mentor)
+    result = RefreshAccessToken(pro=pro)
 
     assert result.failure
     assert result.errors
 
 
 @override_settings(JOBIRL_URL=JOBIRL_TEST_URL, JOBIRL_API_KEY=JOBIRL_TEST_API_KEY)
-def test_register_mentor_on_jobirl_sends_correct_payload_and_exposes_ids(httpx_mock, mentor):
+def test_register_mentor_on_jobirl_sends_correct_payload_and_exposes_ids(httpx_mock, pro):
     from techpourtoutes.services.jobirl_api.register_mentor import RegisterMentorOnJobirl
 
     register_url = f"{JOBIRL_TEST_URL}/techpourtoutes/api/user_register"
@@ -93,7 +93,7 @@ def test_register_mentor_on_jobirl_sends_correct_payload_and_exposes_ids(httpx_m
         json={"response": "success", "datas": {"id": 287565, "token": "tpt_abc"}},
     )
 
-    result = RegisterMentorOnJobirl(mentor=mentor)
+    result = RegisterMentorOnJobirl(pro=pro)
 
     assert result.success
     assert result.user_id == 287565
@@ -113,20 +113,20 @@ def test_register_mentor_on_jobirl_sends_correct_payload_and_exposes_ids(httpx_m
 
 
 @override_settings(JOBIRL_URL=JOBIRL_TEST_URL, JOBIRL_API_KEY=JOBIRL_TEST_API_KEY)
-def test_register_mentor_on_jobirl_fails_on_http_error(httpx_mock, mentor):
+def test_register_mentor_on_jobirl_fails_on_http_error(httpx_mock, pro):
     from techpourtoutes.services.jobirl_api.register_mentor import RegisterMentorOnJobirl
 
     register_url = f"{JOBIRL_TEST_URL}/techpourtoutes/api/user_register"
     httpx_mock.add_response(url=register_url, status_code=401)
 
-    result = RegisterMentorOnJobirl(mentor=mentor)
+    result = RegisterMentorOnJobirl(pro=pro)
 
     assert result.failure
     assert result.errors
 
 
 @override_settings(JOBIRL_URL=JOBIRL_TEST_URL, JOBIRL_API_KEY=JOBIRL_TEST_API_KEY)
-def test_register_mentor_on_jobirl_includes_api_message_on_4xx(httpx_mock, mentor):
+def test_register_mentor_on_jobirl_includes_api_message_on_4xx(httpx_mock, pro):
     from techpourtoutes.services.jobirl_api.register_mentor import RegisterMentorOnJobirl
 
     register_url = f"{JOBIRL_TEST_URL}/techpourtoutes/api/user_register"
@@ -139,7 +139,7 @@ def test_register_mentor_on_jobirl_includes_api_message_on_4xx(httpx_mock, mento
         },
     )
 
-    result = RegisterMentorOnJobirl(mentor=mentor)
+    result = RegisterMentorOnJobirl(pro=pro)
 
     assert result.failure
     joined = " ".join(result.errors)
@@ -148,12 +148,12 @@ def test_register_mentor_on_jobirl_includes_api_message_on_4xx(httpx_mock, mento
 
 
 @override_settings(JOBIRL_URL=JOBIRL_TEST_URL, JOBIRL_API_KEY=JOBIRL_TEST_API_KEY)
-def test_register_mentor_on_jobirl_fails_on_network_error(httpx_mock, mentor):
+def test_register_mentor_on_jobirl_fails_on_network_error(httpx_mock, pro):
     from techpourtoutes.services.jobirl_api.register_mentor import RegisterMentorOnJobirl
 
     httpx_mock.add_exception(httpx.RequestError("connection failed"))
 
-    result = RegisterMentorOnJobirl(mentor=mentor)
+    result = RegisterMentorOnJobirl(pro=pro)
 
     assert result.failure
     assert result.errors
@@ -170,12 +170,12 @@ def test_register_mentor_on_jobirl_fails_on_network_error(httpx_mock, mentor):
     ],
 )
 def test_register_mentor_maps_professional_situation(
-    httpx_mock, mentor, professional_situation, expected_situation_pro
+    httpx_mock, pro, professional_situation, expected_situation_pro
 ):
     from techpourtoutes.services.jobirl_api.register_mentor import RegisterMentorOnJobirl
 
-    mentor.professional_situation = professional_situation
-    mentor.save()
+    pro.professional_situation = professional_situation
+    pro.save()
 
     register_url = f"{JOBIRL_TEST_URL}/techpourtoutes/api/user_register"
     httpx_mock.add_response(
@@ -184,7 +184,7 @@ def test_register_mentor_maps_professional_situation(
         json={"response": "success", "datas": {"id": 1, "token": "t"}},
     )
 
-    RegisterMentorOnJobirl(mentor=mentor)
+    RegisterMentorOnJobirl(pro=pro)
 
     body = httpx_mock.get_request().content.decode()
     assert f"situation_pro={expected_situation_pro}" in body

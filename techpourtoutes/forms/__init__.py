@@ -1,5 +1,5 @@
 from .account import AccountEditForm
 from .auth import LoginRequestForm
-from .mentor import MentorForm
+from .pro import ProForm
 
-__all__ = ["AccountEditForm", "LoginRequestForm", "MentorForm"]
+__all__ = ["AccountEditForm", "LoginRequestForm", "ProForm"]
