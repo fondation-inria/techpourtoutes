@@ -8,7 +8,12 @@ from .auth_views import (
     login_verify,
     logout_view,
 )
-from .coallition_views import coallition_index, coallition_welcome, mentor_landing
+from .coalition_views import (
+    coalition_index,
+    coalition_welcome,
+    mentor_landing,
+    work_ambassador_landing,
+)
 from .legal_views import (
     accessibilite,
     conditions_generales,
@@ -22,7 +27,7 @@ __all__ = [
     "account",
     "account_edit",
     "account_info",
-    "coallition_index",
+    "coalition_index",
     "conditions_generales",
     "donnees_personnelles",
     "login_email_sent",
@@ -32,6 +37,7 @@ __all__ = [
     "logout_view",
     "mentions_legales",
     "mentor_landing",
-    "coallition_welcome",
+    "coalition_welcome",
     "schema_pluriannuel",
+    "work_ambassador_landing",
 ]

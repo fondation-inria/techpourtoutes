@@ -11,11 +11,11 @@ from .user import User
 
 class Pro(User):
     class Engagement(models.TextChoices):
-        MENTOR = "mentor", _("Mentorer")
-        INTERNSHIPS = "internships", _("Accueillir une stagiaire")
-        WORK_AMBASSADOR = "work_ambassador", _("Pitcher mon métier")
-        TRAINING_AMBASSADOR = "training_ambassador", _("Pitcher ma formation")
-        SPONSOR = "sponsor", _("Devenir mécène")
+        MENTOR = "mentor", _("mentorer")
+        INTERNSHIPS = "internships", _("accueillir une stagiaire")
+        WORK_AMBASSADOR = "work_ambassador", _("pitcher son métier")
+        TRAINING_AMBASSADOR = "training_ambassador", _("pitcher sa formation")
+        SPONSOR = "sponsor", _("devenir mécène")
 
     class ProfessionalSituation(models.TextChoices):
         WORKING = "working", _("En emploi")

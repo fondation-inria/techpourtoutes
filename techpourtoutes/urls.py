@@ -3,10 +3,11 @@ from django.urls import path
 from . import views
 
 urlpatterns = [
-    # Coallition
-    path("", views.coallition_index, name="coallition_index"),
+    # Coalition
+    path("", views.coalition_index, name="coalition_index"),
     path("je-deviens-mentor/", views.mentor_landing, name="mentor_landing"),
-    path("bienvenue-dans-la-coallition/", views.coallition_welcome, name="coallition_welcome"),
+    path("je-pitche-ma-formation", views.work_ambassador_landing, name="work_ambassador_landing"),
+    path("bienvenue-dans-la-coalition/", views.coalition_welcome, name="coalition_welcome"),
     # Auth
     path("se-connecter/", views.login_request, name="login_request"),
     path("se-connecter/email-envoye/", views.login_email_sent, name="login_email_sent"),

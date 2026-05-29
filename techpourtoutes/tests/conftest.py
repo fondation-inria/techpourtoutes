@@ -27,7 +27,7 @@ def pro(db):
 def mock_create_mentor():
     instance = MagicMock(success=True, failure=False, errors=[])
     with patch(
-        "techpourtoutes.views.coallition_views.CreateMentor",
+        "techpourtoutes.views.coalition_views.CreateMentor",
         return_value=instance,
     ) as mock:
         yield mock
