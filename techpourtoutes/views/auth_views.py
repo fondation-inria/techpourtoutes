@@ -82,11 +82,11 @@ def login_verify(request, token):
 
 @login_required
 def login_to_jobirl(request):
-    if not hasattr(request.user, "mentor"):
+    if not hasattr(request.user, "pro"):
         messages.error(request, "Vous n'avez pas de compte mentor sur JobIRL")
         return render(request, "account/account.html", {})
 
-    result = RefreshAccessToken(mentor=request.user.mentor)
+    result = RefreshAccessToken(pro=request.user.pro)
     if result.failure:
         messages.error(request, result.errors[0])
         return redirect(reverse("account"))
@@ -96,28 +96,28 @@ def login_to_jobirl(request):
 
 @login_required
 def account(request):
-    user = request.user.mentor if hasattr(request.user, "mentor") else request.user
+    user = request.user.pro if hasattr(request.user, "pro") else request.user
     return render(request, "account/account.html", {"user": user})
 
 
 @login_required
 def account_info(request):
-    user = request.user.mentor if hasattr(request.user, "mentor") else request.user
+    user = request.user.pro if hasattr(request.user, "pro") else request.user
     return render(request, "account/partials/info_card.html", {"user": user})
 
 
 @login_required
 def account_edit(request):
-    mentor = request.user.mentor
+    pro = request.user.pro
     if request.method == "POST":
         form = AccountEditForm(data=request.POST)
         if form.is_valid():
-            form.save(mentor)
-            return render(request, "account/partials/info_card.html", {"user": mentor})
-        return render(request, "account/partials/edit_form.html", {"form": form, "user": mentor})
+            form.save(pro)
+            return render(request, "account/partials/info_card.html", {"user": pro})
+        return render(request, "account/partials/edit_form.html", {"form": form, "user": pro})
     else:
-        form = AccountEditForm(mentor=mentor)
-        return render(request, "account/partials/edit_form.html", {"form": form, "user": mentor})
+        form = AccountEditForm(pro=pro)
+        return render(request, "account/partials/edit_form.html", {"form": form, "user": pro})
 
 
 @require_POST

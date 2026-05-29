@@ -140,7 +140,7 @@ JOBIRL_API_KEY = env("JOBIRL_API_KEY", default="")
 JOBIRL_URL = env("JOBIRL_URL", default="")
 
 # Brevo contacts API
-BREVO_MENTOR_LIST_ID = env.int("BREVO_MENTOR_LIST_ID", default=0)
+BREVO_PRO_LIST_ID = env.int("BREVO_PRO_LIST_ID", default=0)
 BREVO_SYNC_ENABLED = env.bool("BREVO_SYNC_ENABLED", default=False)
 
 # Celery

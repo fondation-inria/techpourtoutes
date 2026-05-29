@@ -8,7 +8,7 @@ from techpourtoutes.signals import connect_brevo_sync
 from .user import User
 
 
-class Mentor(User):
+class Pro(User):
     class ProfessionalSituation(models.TextChoices):
         WORKING = "working", _("En emploi")
         RETIRED = "retired", _("À la retraite")
@@ -45,8 +45,8 @@ class Mentor(User):
     )
 
     class Meta:
-        verbose_name = _("mentor")
-        verbose_name_plural = _("mentors")
+        verbose_name = _("pro")
+        verbose_name_plural = _("pros")
 
     def save(self, *args, **kwargs):
         if not self.pk:
@@ -54,4 +54,4 @@ class Mentor(User):
         super().save(*args, **kwargs)
 
 
-connect_brevo_sync(Mentor)
+connect_brevo_sync(Pro)
