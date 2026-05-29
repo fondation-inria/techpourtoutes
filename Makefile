@@ -15,10 +15,6 @@ help:
 	@echo "  js           Install JS deps and copy assets to static"
 	@echo "  seed         Seed database with minimal dev data"
 
-js: # to run after a npm update (for instance npm update alpinejs)
-	npm install
-	npm run copy-assets
-
 install:
 	uv sync --group dev
 	@createdb $(DB_NAME) 2>/dev/null \
@@ -56,6 +52,10 @@ pre-commit:
 
 icons:
 	uv run python manage.py build_svg_sprite
+
+js: # to run after a npm update (for instance npm update alpinejs)
+	npm install
+	npm run copy-assets
 
 seed:
 	uv run python manage.py seed
