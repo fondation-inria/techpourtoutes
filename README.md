@@ -89,7 +89,7 @@ L'application est disponible sur [http://localhost:8000](http://localhost:8000).
 
 En développement (`DEBUG=True`), Django envoie les emails via SMTP sur `localhost:1025`. [Mailpit](https://mailpit.axllent.org/) intercepte ces emails et les affiche dans une interface web.
 
-> La connexion des mentors passe par un lien magique envoyé par email — Mailpit est donc **nécessaire** pour s'authentifier en local.
+> La connexion des users passe par un lien magique envoyé par email — Mailpit est donc **nécessaire** pour s'authentifier en local.
 
 ```bash
 # Installer Mailpit
@@ -106,7 +106,7 @@ L'interface est disponible sur [http://localhost:8025](http://localhost:8025). T
 
 ## Synchronisation des contacts Brevo
 
-À la création/mise à jour/suppression d'un `Mentor`, un signal déclenche une tâche Celery qui synchronise le contact dans Brevo (liste configurée via `BREVO_MENTOR_LIST_ID`).
+À la création/mise à jour/suppression d'un `Pro`, un signal déclenche une tâche Celery qui synchronise le contact dans Brevo (liste configurée via `BREVO_PRO_LIST_ID`).
 
 La synchro est désactivée par défaut en local (`BREVO_SYNC_ENABLED=False`). Pour l'activer (en prod ou pour tester en local), passer `BREVO_SYNC_ENABLED=True`.
 

@@ -3,11 +3,11 @@ from django.core.validators import RegexValidator
 from django.utils.translation import gettext_lazy as _
 from phonenumber_field.formfields import PhoneNumberField
 
-from ..models import Mentor, User
+from ..models import Pro, User
 
 
-class MentorForm(forms.Form):
-    civility = forms.ChoiceField(label=_("Votre civilité*"), choices=Mentor.Civility.choices)
+class ProForm(forms.Form):
+    civility = forms.ChoiceField(label=_("Votre civilité*"), choices=Pro.Civility.choices)
     first_name = forms.CharField(label=_("Votre prénom*"))
     last_name = forms.CharField(label=_("Votre nom*"))
     email = forms.EmailField(label=_("Votre email*"))
@@ -18,7 +18,7 @@ class MentorForm(forms.Form):
     )
     professional_situation = forms.ChoiceField(
         label=_("Votre situation professionnelle*"),
-        choices=[("", _("Sélectionner une option")), *Mentor.ProfessionalSituation.choices],
+        choices=[("", _("Sélectionner une option")), *Pro.ProfessionalSituation.choices],
     )
     structure_name = forms.CharField(label=_("Nom de votre structure"), required=False)
     job_title = forms.CharField(label=_("Votre métier*"))
@@ -50,7 +50,7 @@ class MentorForm(forms.Form):
 
     def save(self, commit=True):
         data = self.cleaned_data
-        mentor = Mentor(
+        pro = Pro(
             username=data["email"],
             civility=data["civility"],
             first_name=data["first_name"],
@@ -63,5 +63,5 @@ class MentorForm(forms.Form):
             job_title=data["job_title"],
         )
         if commit:
-            mentor.save()
-        return mentor
+            pro.save()
+        return pro

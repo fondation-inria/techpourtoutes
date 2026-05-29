@@ -8,7 +8,7 @@ from .auth_views import (
     login_verify,
     logout_view,
 )
-from .coallition_views import coallition_index, mentor_landing, mentor_success
+from .coallition_views import coallition_index, coallition_welcome, mentor_landing
 from .legal_views import (
     accessibilite,
     conditions_generales,
@@ -32,6 +32,6 @@ __all__ = [
     "logout_view",
     "mentions_legales",
     "mentor_landing",
-    "mentor_success",
+    "coallition_welcome",
     "schema_pluriannuel",
 ]

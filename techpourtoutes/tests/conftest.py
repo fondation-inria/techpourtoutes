@@ -4,23 +4,23 @@ import pytest
 
 
 @pytest.fixture
-def mentor(db):
-    from techpourtoutes.models import Mentor
+def pro(db):
+    from techpourtoutes.models import Pro
 
-    m = Mentor(
+    pro = Pro(
         username="alice@example.com",
-        civility=Mentor.Civility.MADAME,
+        civility=Pro.Civility.MADAME,
         first_name="Alice",
         last_name="Martin",
         email="alice@example.com",
         phone="+33612345678",
         postal_code="75001",
-        professional_situation=Mentor.ProfessionalSituation.WORKING,
+        professional_situation=Pro.ProfessionalSituation.WORKING,
         job_title="Chercheuse",
         structure_name="Inria",
     )
-    m.save()
-    return m
+    pro.save()
+    return pro
 
 
 @pytest.fixture
@@ -34,7 +34,7 @@ def mock_create_mentor():
 
 
 @pytest.fixture
-def valid_mentor_model_data():
+def valid_pro_model_data():
     return {
         "civility": "Madame",
         "first_name": "Marie",
@@ -49,8 +49,8 @@ def valid_mentor_model_data():
 
 
 @pytest.fixture
-def valid_mentor_data(valid_mentor_model_data):
-    return {**valid_mentor_model_data, "terms_accepted": True}
+def valid_pro_data(valid_pro_model_data):
+    return {**valid_pro_model_data, "terms_accepted": True}
 
 
 @pytest.fixture

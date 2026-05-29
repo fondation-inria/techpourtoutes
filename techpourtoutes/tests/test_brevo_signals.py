@@ -16,84 +16,84 @@ def mock_tasks():
 
 @pytest.mark.django_db(transaction=True)
 @override_settings(BREVO_API_KEY="test")
-def test_post_save_signal_dispatches_upsert_task_after_commit(valid_mentor_model_data, mock_tasks):
+def test_post_save_signal_dispatches_upsert_task_after_commit(valid_pro_model_data, mock_tasks):
     upsert_task, _delete_task = mock_tasks
-    from techpourtoutes.models import Mentor
+    from techpourtoutes.models import Pro
 
     with transaction.atomic():
-        mentor = Mentor(username=valid_mentor_model_data["email"], **valid_mentor_model_data)
-        mentor.save()
+        pro = Pro(username=valid_pro_model_data["email"], **valid_pro_model_data)
+        pro.save()
         upsert_task.delay.assert_not_called()
 
-    upsert_task.delay.assert_called_once_with(str(mentor.pk), "techpourtoutes.Mentor")
+    upsert_task.delay.assert_called_once_with(str(pro.pk), "techpourtoutes.Pro")
 
 
 @pytest.mark.django_db(transaction=True)
-@override_settings(BREVO_API_KEY="test", BREVO_MENTOR_LIST_ID=42)
-def test_pre_delete_signal_dispatches_delete_task_after_commit(mentor, mock_tasks):
+@override_settings(BREVO_API_KEY="test", BREVO_PRO_LIST_ID=42)
+def test_pre_delete_signal_dispatches_delete_task_after_commit(pro, mock_tasks):
     _upsert_task, delete_task = mock_tasks
-    mentor_pk = str(mentor.pk)
+    pro_pk = str(pro.pk)
 
     delete_task.delay.reset_mock()
     with transaction.atomic():
-        mentor.delete()
+        pro.delete()
         delete_task.delay.assert_not_called()
 
-    delete_task.delay.assert_called_once_with(mentor_pk, 42)
+    delete_task.delay.assert_called_once_with(pro_pk, 42)
 
 
 @pytest.mark.django_db(transaction=True)
 @override_settings(BREVO_API_KEY="test")
-def test_signal_skipped_when_brevo_sync_disabled(valid_mentor_model_data, mock_tasks):
+def test_signal_skipped_when_brevo_sync_disabled(valid_pro_model_data, mock_tasks):
     upsert_task, _ = mock_tasks
-    from techpourtoutes.models import Mentor
+    from techpourtoutes.models import Pro
 
-    mentor = Mentor(
-        username=valid_mentor_model_data["email"],
+    pro = Pro(
+        username=valid_pro_model_data["email"],
         brevo_sync_enabled=False,
-        **valid_mentor_model_data,
+        **valid_pro_model_data,
     )
-    mentor.save()
+    pro.save()
 
     upsert_task.delay.assert_not_called()
 
 
 @pytest.mark.django_db(transaction=True)
 @override_settings(BREVO_API_KEY="test", BREVO_SYNC_ENABLED=False)
-def test_signal_skipped_when_brevo_sync_globally_disabled(valid_mentor_model_data, mock_tasks):
+def test_signal_skipped_when_brevo_sync_globally_disabled(valid_pro_model_data, mock_tasks):
     upsert_task, _ = mock_tasks
-    from techpourtoutes.models import Mentor
+    from techpourtoutes.models import Pro
 
     with transaction.atomic():
-        Mentor(username=valid_mentor_model_data["email"], **valid_mentor_model_data).save()
+        Pro(username=valid_pro_model_data["email"], **valid_pro_model_data).save()
 
     upsert_task.delay.assert_not_called()
 
 
 @pytest.mark.django_db(transaction=True)
 @override_settings(BREVO_API_KEY="test", BREVO_SYNC_ENABLED=False)
-def test_delete_signal_skipped_when_brevo_sync_globally_disabled(mentor, mock_tasks):
+def test_delete_signal_skipped_when_brevo_sync_globally_disabled(pro, mock_tasks):
     _upsert_task, delete_task = mock_tasks
     delete_task.delay.reset_mock()
 
     with transaction.atomic():
-        mentor.delete()
+        pro.delete()
 
     delete_task.delay.assert_not_called()
 
 
 @pytest.mark.django_db(transaction=True)
 @override_settings(BREVO_API_KEY="test")
-def test_signal_does_not_dispatch_on_rolled_back_transaction(valid_mentor_model_data, mock_tasks):
+def test_signal_does_not_dispatch_on_rolled_back_transaction(valid_pro_model_data, mock_tasks):
     upsert_task, _ = mock_tasks
-    from techpourtoutes.models import Mentor
+    from techpourtoutes.models import Pro
 
     class Boom(Exception):
         pass
 
     with pytest.raises(Boom):
         with transaction.atomic():
-            Mentor(username=valid_mentor_model_data["email"], **valid_mentor_model_data).save()
+            Pro(username=valid_pro_model_data["email"], **valid_pro_model_data).save()
             raise Boom
 
     upsert_task.delay.assert_not_called()

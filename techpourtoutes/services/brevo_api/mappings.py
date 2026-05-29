@@ -17,7 +17,7 @@ FIELD_TO_BREVO_ATTR = {
 
 USER_FIELDS = ["email", "first_name", "last_name"]
 
-MENTOR_FIELDS = USER_FIELDS + [
+PRO_FIELDS = USER_FIELDS + [
     "phone",
     "civility",
     "job_title",
@@ -42,12 +42,12 @@ def _attributes_from(instance, fields: list[str]) -> dict:
 
 
 def brevo_attributes_for(instance) -> dict | None:
-    if instance.__class__.__name__ == "Mentor":
-        return _attributes_from(instance, MENTOR_FIELDS)
+    if instance.__class__.__name__ == "Pro":
+        return _attributes_from(instance, PRO_FIELDS)
     return None
 
 
 def brevo_list_id_for(instance) -> int | None:
-    if instance.__class__.__name__ == "Mentor":
-        return settings.BREVO_MENTOR_LIST_ID
+    if instance.__class__.__name__ == "Pro":
+        return settings.BREVO_PRO_LIST_ID
     return None

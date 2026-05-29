@@ -16,28 +16,28 @@ def test_user_has_uuid_pk():
 
 
 @pytest.mark.django_db
-def test_mentor_inherits_user():
-    from techpourtoutes.models import Mentor, User
+def test_pro_inherits_user():
+    from techpourtoutes.models import Pro, User
 
-    assert issubclass(Mentor, User)
-
-
-@pytest.mark.django_db
-def test_mentor_save_sets_unusable_password(valid_mentor_model_data):
-    from techpourtoutes.models import Mentor
-
-    mentor = Mentor(username="marie.dupont@example.com", **valid_mentor_model_data)
-    mentor.save()
-    assert not mentor.has_usable_password()
+    assert issubclass(Pro, User)
 
 
 @pytest.mark.django_db
-def test_mentor_creation_saves_all_fields(valid_mentor_model_data):
-    from techpourtoutes.models import Mentor
+def test_pro_save_sets_unusable_password(valid_pro_model_data):
+    from techpourtoutes.models import Pro
 
-    Mentor(username="marie.dupont@example.com", **valid_mentor_model_data).save()
+    pro = Pro(username="marie.dupont@example.com", **valid_pro_model_data)
+    pro.save()
+    assert not pro.has_usable_password()
 
-    saved = Mentor.objects.get(email="marie.dupont@example.com")
+
+@pytest.mark.django_db
+def test_pro_creation_saves_all_fields(valid_pro_model_data):
+    from techpourtoutes.models import Pro
+
+    Pro(username="marie.dupont@example.com", **valid_pro_model_data).save()
+
+    saved = Pro.objects.get(email="marie.dupont@example.com")
     assert saved.civility == "Madame"
     assert saved.first_name == "Marie"
     assert saved.last_name == "Dupont"
@@ -50,69 +50,69 @@ def test_mentor_creation_saves_all_fields(valid_mentor_model_data):
 
 
 @pytest.mark.django_db
-def test_mentor_structure_name_optional(valid_mentor_model_data):
-    from techpourtoutes.models import Mentor
+def test_pro_structure_name_optional(valid_pro_model_data):
+    from techpourtoutes.models import Pro
 
-    data = {**valid_mentor_model_data, "email": "autre@example.com", "structure_name": ""}
-    Mentor(username="autre@example.com", **data).save()
-    assert Mentor.objects.filter(email="autre@example.com").exists()
+    data = {**valid_pro_model_data, "email": "autre@example.com", "structure_name": ""}
+    Pro(username="autre@example.com", **data).save()
+    assert Pro.objects.filter(email="autre@example.com").exists()
 
 
 @pytest.mark.django_db
-def test_mentor_save_raises_if_invalid(valid_mentor_model_data):
-    from techpourtoutes.models import Mentor
+def test_pro_save_raises_if_invalid(valid_pro_model_data):
+    from techpourtoutes.models import Pro
 
-    data = {**valid_mentor_model_data, "email": "not-an-email"}
-    mentor = Mentor(username="bad@example.com", **data)
+    data = {**valid_pro_model_data, "email": "not-an-email"}
+    pro = Pro(username="bad@example.com", **data)
     with pytest.raises(ValidationError):
-        mentor.save()
+        pro.save()
 
 
 @pytest.mark.django_db
-def test_issue_login_token_returns_plaintext_and_stores_hash(mentor):
-    plaintext = mentor.issue_login_token()
+def test_issue_login_token_returns_plaintext_and_stores_hash(pro):
+    plaintext = pro.issue_login_token()
 
     assert plaintext
     expected_hash = hashlib.sha256(plaintext.encode()).hexdigest()
-    mentor.refresh_from_db()
-    assert mentor.login_token_hash == expected_hash
-    assert mentor.login_token_hash != plaintext
+    pro.refresh_from_db()
+    assert pro.login_token_hash == expected_hash
+    assert pro.login_token_hash != plaintext
 
 
 @pytest.mark.django_db
-def test_issue_login_token_sets_expiry_one_hour_ahead(mentor):
+def test_issue_login_token_sets_expiry_one_hour_ahead(pro):
     before = timezone.now()
-    mentor.issue_login_token()
+    pro.issue_login_token()
     after = timezone.now()
 
-    mentor.refresh_from_db()
-    assert before + timedelta(hours=1) - timedelta(seconds=5) <= mentor.login_token_expires_at
-    assert mentor.login_token_expires_at <= after + timedelta(hours=1) + timedelta(seconds=5)
+    pro.refresh_from_db()
+    assert before + timedelta(hours=1) - timedelta(seconds=5) <= pro.login_token_expires_at
+    assert pro.login_token_expires_at <= after + timedelta(hours=1) + timedelta(seconds=5)
 
 
 @pytest.mark.django_db
-def test_issue_login_token_twice_overwrites_previous(mentor):
-    first = mentor.issue_login_token()
-    second = mentor.issue_login_token()
+def test_issue_login_token_twice_overwrites_previous(pro):
+    first = pro.issue_login_token()
+    second = pro.issue_login_token()
 
     assert first != second
-    mentor.refresh_from_db()
-    assert mentor.login_token_hash == hashlib.sha256(second.encode()).hexdigest()
+    pro.refresh_from_db()
+    assert pro.login_token_hash == hashlib.sha256(second.encode()).hexdigest()
 
 
 @pytest.mark.django_db
-def test_consume_login_token_returns_user_and_clears_hash(mentor):
+def test_consume_login_token_returns_user_and_clears_hash(pro):
     from techpourtoutes.models import User
 
-    plaintext = mentor.issue_login_token()
+    plaintext = pro.issue_login_token()
 
     consumed = User.consume_login_token(plaintext=plaintext)
 
     assert consumed is not None
-    assert consumed.pk == mentor.pk
-    mentor.refresh_from_db()
-    assert mentor.login_token_hash == ""
-    assert mentor.login_token_expires_at is None
+    assert consumed.pk == pro.pk
+    pro.refresh_from_db()
+    assert pro.login_token_hash == ""
+    assert pro.login_token_expires_at is None
 
 
 @pytest.mark.django_db
@@ -123,20 +123,36 @@ def test_consume_login_token_returns_none_for_garbage():
 
 
 @pytest.mark.django_db
-def test_consume_login_token_returns_none_when_expired(mentor):
+def test_consume_login_token_returns_none_when_expired(pro):
     from techpourtoutes.models import User
 
-    plaintext = mentor.issue_login_token()
-    mentor.login_token_expires_at = timezone.now() - timedelta(minutes=1)
-    mentor.save()
+    plaintext = pro.issue_login_token()
+    pro.login_token_expires_at = timezone.now() - timedelta(minutes=1)
+    pro.save()
 
     assert User.consume_login_token(plaintext=plaintext) is None
 
 
 @pytest.mark.django_db
-def test_consume_login_token_returns_none_on_second_use(mentor):
+def test_consume_login_token_returns_none_on_second_use(pro):
     from techpourtoutes.models import User
 
-    plaintext = mentor.issue_login_token()
+    plaintext = pro.issue_login_token()
     assert User.consume_login_token(plaintext=plaintext) is not None
     assert User.consume_login_token(plaintext=plaintext) is None
+
+
+def test_pro_engagement_choices():
+    from techpourtoutes.models import Pro
+
+    values = {e.value for e in Pro.Engagement}
+    assert values == {"mentor", "internships", "work_ambassador", "training_ambassador", "sponsor"}
+
+
+@pytest.mark.django_db
+def test_pro_engagements_defaults_to_empty_list(valid_pro_model_data):
+    from techpourtoutes.models import Pro
+
+    Pro(username="marie.dupont@example.com", **valid_pro_model_data).save()
+    saved = Pro.objects.get(email="marie.dupont@example.com")
+    assert saved.engagements == []

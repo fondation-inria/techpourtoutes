@@ -6,7 +6,7 @@ urlpatterns = [
     # Coallition
     path("", views.coallition_index, name="coallition_index"),
     path("je-deviens-mentor/", views.mentor_landing, name="mentor_landing"),
-    path("bienvenue-dans-la-coallition/", views.mentor_success, name="mentor_success"),
+    path("bienvenue-dans-la-coallition/", views.coallition_welcome, name="coallition_welcome"),
     # Auth
     path("se-connecter/", views.login_request, name="login_request"),
     path("se-connecter/email-envoye/", views.login_email_sent, name="login_email_sent"),

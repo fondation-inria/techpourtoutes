@@ -1,7 +1,9 @@
 <c-layout.base>
     <c-components.title title="Mon compte" variant="h1" />
 
-    <c-components.button href="{% url "login_to_jobirl" %}" label="Accéder à mon espace mentorat" />
+    {% if "mentor" in user.engagements %}
+        <c-components.button href="{% url "login_to_jobirl" %}" label="Accéder à mon espace mentorat" />
+    {% endif %}
 
     {% include "account/partials/info_card.html" %}
 

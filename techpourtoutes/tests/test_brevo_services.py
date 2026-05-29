@@ -16,14 +16,14 @@ def mock_brevo_client():
 
 
 @pytest.mark.django_db
-@override_settings(BREVO_MENTOR_LIST_ID=42, BREVO_API_KEY="test")
-def test_upsert_brevo_contact_calls_client_upsert(mentor, mock_brevo_client):
-    result = UpsertBrevoContact(instance=mentor)
+@override_settings(BREVO_PRO_LIST_ID=42, BREVO_API_KEY="test")
+def test_upsert_brevo_contact_calls_client_upsert(pro, mock_brevo_client):
+    result = UpsertBrevoContact(instance=pro)
 
     assert result.success
     mock_brevo_client.upsert_contact.assert_called_once()
     call_kwargs = mock_brevo_client.upsert_contact.call_args.kwargs
-    assert call_kwargs["ext_id"] == str(mentor.pk)
+    assert call_kwargs["ext_id"] == str(pro.pk)
     assert call_kwargs["list_id"] == 42
     assert call_kwargs["attributes"]["EMAIL"] == "alice@example.com"
 
@@ -42,40 +42,40 @@ def test_upsert_brevo_contact_skips_when_no_mapping(db, mock_brevo_client):
 
 
 @pytest.mark.django_db
-@override_settings(BREVO_MENTOR_LIST_ID=42, BREVO_API_KEY="test")
-def test_upsert_brevo_contact_captures_api_error(mentor, mock_brevo_client):
+@override_settings(BREVO_PRO_LIST_ID=42, BREVO_API_KEY="test")
+def test_upsert_brevo_contact_captures_api_error(pro, mock_brevo_client):
     mock_brevo_client.upsert_contact.side_effect = ApiError(
         status_code=400, body={"message": "bad"}
     )
 
-    result = UpsertBrevoContact(instance=mentor)
+    result = UpsertBrevoContact(instance=pro)
 
     assert result.failure
     assert result.errors
 
 
 @pytest.mark.django_db
-@override_settings(BREVO_MENTOR_LIST_ID=42, BREVO_API_KEY="test")
+@override_settings(BREVO_PRO_LIST_ID=42, BREVO_API_KEY="test")
 @pytest.mark.parametrize(
     "status_code,is_transient",
     [(400, False), (404, False), (422, False), (429, True), (500, True), (503, True)],
 )
 def test_is_transient_failure_classifies_by_status_code(
-    mentor, mock_brevo_client, status_code, is_transient
+    pro, mock_brevo_client, status_code, is_transient
 ):
     mock_brevo_client.upsert_contact.side_effect = ApiError(
         status_code=status_code, body={"message": "x"}
     )
 
-    result = UpsertBrevoContact(instance=mentor)
+    result = UpsertBrevoContact(instance=pro)
 
     assert result.is_transient_failure is is_transient
 
 
 @pytest.mark.django_db
-@override_settings(BREVO_MENTOR_LIST_ID=42, BREVO_API_KEY="test")
-def test_is_transient_failure_false_on_success(mentor, mock_brevo_client):
-    result = UpsertBrevoContact(instance=mentor)
+@override_settings(BREVO_PRO_LIST_ID=42, BREVO_API_KEY="test")
+def test_is_transient_failure_false_on_success(pro, mock_brevo_client):
+    result = UpsertBrevoContact(instance=pro)
 
     assert result.success
     assert result.is_transient_failure is False

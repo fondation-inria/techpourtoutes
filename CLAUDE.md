@@ -95,7 +95,7 @@ make icons    # rebuild SVG sprite
 make seed     # seed DB with minimal dev data (idempotent)
 ```
 
-Seed creates: superuser `admin@techpourtoutes.io` / `admin` and one sample `Mentor` (`mentor@example.com`).
+Seed creates: one `Pro` with superuser role — `admin@techpourtoutes.io` / `admin`.
 
 ## Architecture
 
@@ -113,10 +113,10 @@ Django 6 + PostgreSQL project. Locale is French (fr-FR), timezone Europe/Paris.
 
 **Core entities:**
 - `User` — extends Django's `AbstractUser` via `BaseModel`. Custom user model (`AUTH_USER_MODEL`). Uses passwordless email-link login: `issue_login_token()` generates a hashed token with a 1h TTL; `consume_login_token(plaintext)` validates and invalidates it atomically. Auth views live in `techpourtoutes/views/auth_views.py`.
-- `Mentor` — multi-table inheritance from `User`. Adds civility, birth date, phone, job title, personal address, optional structure fields, and Jobirl integration fields (`jobirl_user_id`, `jobirl_user_token`). Password is set to unusable on creation.
+- `Pro` — multi-table inheritance from `User`. Adds civility, birth date, phone, job title, personal address, optional structure fields, and Jobirl integration fields (`jobirl_user_id`, `jobirl_user_token`). Password is set to unusable on creation.
 
 **Relationships:**
-- `Mentor` inherits from `User` (Django multi-table inheritance — one DB row per table).
+- `Pro` inherits from `User` (Django multi-table inheritance — one DB row per table).
 
 **Service objects:** Inherit from `BaseService` (`techpourtoutes/services/base.py`). Implement `perform(**kwargs)`; call `self.fail("message")` to signal failure. Check `result.success` / `result.failure` and `result.errors` at the call site.
 
@@ -124,7 +124,7 @@ Django 6 + PostgreSQL project. Locale is French (fr-FR), timezone Europe/Paris.
 
 **Jobirl integration:** External mentoring platform. Services live in `techpourtoutes/services/jobirl_api/`. Use `JobirlApiBaseService` (extends `BaseService`) for requests — it wraps `JobirlClient` (`techpourtoutes/clients/jobirl.py`) and exposes `result.jobirl_response_body` (the `datas` key from the response) on success.
 
-**Brevo contact sync:** Gated globally by `settings.BREVO_SYNC_ENABLED` (env `BREVO_SYNC_ENABLED`, default `False` — off in local/dev, on in prod). Also gated per-instance by `User.brevo_sync_enabled`. `techpourtoutes/signals.py` connects `post_save` (upsert) and `pre_delete` (delete) handlers via `connect_brevo_sync(model_cls)` — called once per syncable subclass (e.g. at the bottom of `mentor.py`). Handlers short-circuit when either flag is off; otherwise they schedule Celery tasks on `transaction.on_commit`. Tasks live in `techpourtoutes/tasks/` and call services in `techpourtoutes/services/brevo_api/` (`UpsertBrevoContact`, `DeleteBrevoContact`), which use `BrevoClient` (`techpourtoutes/clients/brevo.py`). Field-to-attribute mapping and per-model list resolution are in `services/brevo_api/mappings.py`.
+**Brevo contact sync:** Gated globally by `settings.BREVO_SYNC_ENABLED` (env `BREVO_SYNC_ENABLED`, default `False` — off in local/dev, on in prod). Also gated per-instance by `User.brevo_sync_enabled`. `techpourtoutes/signals.py` connects `post_save` (upsert) and `pre_delete` (delete) handlers via `connect_brevo_sync(model_cls)` — called once per syncable subclass (e.g. at the bottom of `pro.py`). Handlers short-circuit when either flag is off; otherwise they schedule Celery tasks on `transaction.on_commit`. Tasks live in `techpourtoutes/tasks/` and call services in `techpourtoutes/services/brevo_api/` (`UpsertBrevoContact`, `DeleteBrevoContact`), which use `BrevoClient` (`techpourtoutes/clients/brevo.py`). Field-to-attribute mapping and per-model list resolution are in `services/brevo_api/mappings.py`.
 
 **Async tasks (Celery):** Celery app lives in `conf/celery.py`. Broker is Redis (`REDIS_URL`). In tests and (optionally) local dev, set `CELERY_TASK_ALWAYS_EAGER=True` to run tasks synchronously without a worker. The root `conftest.py` enforces eager mode and mocks the Brevo SDK for the whole test suite — no Brevo/Redis access from tests.
 
@@ -160,5 +160,5 @@ Django 6 + PostgreSQL project. Locale is French (fr-FR), timezone Europe/Paris.
 - Use `pytest` with `@pytest.mark.django_db` for any test touching the database
 - Use Django's built-in `client` fixture for view tests; use `reverse()` for URLs
 - No factory_boy — use plain model instantiation or pytest fixtures
-- Shared fixtures for techpourtoutes app live in `techpourtoutes/tests/conftest.py`: `mentor`, `valid_mentor_data`, `valid_mentor_model_data`, `mock_register_mentor_on_jobirl`
+- Shared fixtures for techpourtoutes app live in `techpourtoutes/tests/conftest.py`: `mentor`, `valid_pro_data`, `valid_pro_model_data`, `mock_register_mentor_on_jobirl`
 - The root `conftest.py` has an autouse fixture that swaps static file storage (no manifest required in tests)
