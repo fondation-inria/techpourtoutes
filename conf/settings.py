@@ -144,6 +144,20 @@ JOBIRL_URL = env("JOBIRL_URL", default="")
 BREVO_PRO_LIST_ID = env.int("BREVO_PRO_LIST_ID", default=0)
 BREVO_SYNC_ENABLED = env.bool("BREVO_SYNC_ENABLED", default=False)
 
+# Coalition engagement notification recipients
+COALITION_INTERNSHIPS_RECIPIENTS = env.list(
+    "COALITION_INTERNSHIPS_RECIPIENTS", default=["bonjour@techpourtoutes.io"]
+)
+COALITION_WORK_AMBASSADOR_RECIPIENTS = env.list(
+    "COALITION_WORK_AMBASSADOR_RECIPIENTS", default=["bonjour@techpourtoutes.io"]
+)
+COALITION_TRAINING_AMBASSADOR_RECIPIENTS = env.list(
+    "COALITION_TRAINING_AMBASSADOR_RECIPIENTS", default=["bonjour@techpourtoutes.io"]
+)
+COALITION_SPONSOR_RECIPIENTS = env.list(
+    "COALITION_SPONSOR_RECIPIENTS", default=["bonjour@techpourtoutes.io"]
+)
+
 # Celery
 CELERY_BROKER_URL = env("REDIS_URL", default="redis://localhost:6379/0")
 CELERY_TASK_ALWAYS_EAGER = env.bool("CELERY_TASK_ALWAYS_EAGER", default=False)

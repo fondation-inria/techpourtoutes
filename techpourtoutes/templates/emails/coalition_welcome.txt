@@ -1,0 +1,9 @@
+Bonjour {{ pro.first_name }},
+
+
+Bienvenue dans la Coalition TechPourToutes et merci beaucoup pour votre engagement !
+
+Nous prendrons contact avec vous sous 48 heures pour vous accompagner dans le programme.
+
+À très bientôt,
+L'équipe TechPourToutes

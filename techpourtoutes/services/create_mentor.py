@@ -1,4 +1,4 @@
-from ..mailers import MentorMailer
+from ..mailers import CoalitionMailer
 from .base import BaseService
 from .jobirl_api.register_mentor import RegisterMentorOnJobirl
 
@@ -13,4 +13,4 @@ class CreateMentor(BaseService):
         pro.jobirl_user_id = result.user_id
         pro.jobirl_user_token = result.token
         pro.save()
-        MentorMailer.welcome(mentor=pro)
+        CoalitionMailer.welcome(pro=pro)
