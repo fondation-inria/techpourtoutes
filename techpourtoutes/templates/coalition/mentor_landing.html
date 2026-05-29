@@ -19,10 +19,10 @@
 
     <c-components.card title="Les 4 étapes clés du mentorat en ligne" nobg=True>
         <ul class="steps steps-vertical">
-        <li class="step step-secondary text-left">JobIrl prend contact avec vous et vous forme</li>
-        <li class="step step-secondary text-left">Vous êtes mise en relation avec une mentorée</li>
-        <li class="step step-secondary text-left">Vous échangez sur son projet ses attentes</li>
-        <li class="step step-secondary text-left">Vous faites le bilan des progrès</li>
+            <li class="step step-secondary text-left">JobIrl prend contact avec vous et vous forme</li>
+            <li class="step step-secondary text-left">Vous êtes mise en relation avec une mentorée</li>
+            <li class="step step-secondary text-left">Vous échangez sur son projet ses attentes</li>
+            <li class="step step-secondary text-left">Vous faites le bilan des progrès</li>
         </ul>
     </c-components.card>
 
@@ -46,13 +46,13 @@
         <c-components.text>
             Et bien, le terme mentor provient d'un personnage de la mythologie grecque. Mentor est le précepteur de Télémaque et l'ami d'Ulysse qui est chargé de prendre soin de sa maison à la suite de son départ. C'est ainsi que le terme mentor désigne désormais un conseiller expérimenté, attentif et sage auquel on fait confiance.
 
-            Ainsi, pour nous, mentor est au féminin comme au masculin : un mentor, une mentor !
+            Ainsi, pour nous, mentor est au féminin comme au masculin : un mentor, une mentor&nbsp;!
         </c-components.text>
     </c-components.accordion>
 
     <c-slot name="right">
         <div class="flex flex-col items-center px-4 md:mt-[65px]">
-            <c-components.title title="Rejoins la coalition, prends ta carte de membre !" class="text-center w-[300px] h-16" variant="h3" />
+            <c-components.title title="Rejoignez la coalition !" class="justify-center w-[300px] h-16" variant="h3" />
             <div x-data="{ showForm: {{ form.is_bound|yesno:'true,false' }}, situation: '{{ form.professional_situation.value|default:'' }}' }"
                  @select-change="situation = $event.detail.value"
                  id="mentor-card">
