@@ -1,7 +1,7 @@
 <c-layout.base>
     <div class="flex flex-col min-h-[80dvh] md:min-w-[560px] w-full items-center justify-center gap-y-8">
         <c-components.card class="md:px-32 py-8">
-            <c-patterns.form url="{% url 'login_request' %}">
+            <c-patterns.form url="{% url "login_request" %}">
                 <c-components.title title="Se connecter" variant="h1" class="text-center justify-center" />
                 <c-components.form_fields.input
                     field=form.email
@@ -18,7 +18,7 @@
             <p class="text-sm text-center">
                 Pas encore de compte ?
             </p>
-            <c-components.button href="/" label="S'engager avec TechPourToutes" variant="quaternaly" class="ml-3" />
+            <c-components.button href="{% url "coalition_home" %}" label="S'engager avec TechPourToutes" variant="quaternaly" class="ml-3" />
         </div>
         <p class="text-xs text-center">
             En continuant, vous reconnaissez avoir compris et accepté les
