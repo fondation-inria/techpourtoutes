@@ -6,8 +6,8 @@ from ..mailers import CoalitionMailer
 from ..services.create_mentor import CreateMentor
 
 
-def coalition_index(request):
-    return render(request, "coalition/index.html", {})
+def coalition_home(request):
+    return render(request, "coalition/coalition_home.html", {})
 
 
 def mentor_landing(request):
