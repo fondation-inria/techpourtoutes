@@ -2,7 +2,7 @@
 
 <div class="p-4 w-full{% if nobg != True %} bg-neutral-0 rounded border border-primary{% endif %} {{ class }}">
     {% if title %}
-        <c-components.title title="{{ title }}" variant="h2" />
+        <c-components.title title="{{ title|safe }}" variant="h2" />
     {% endif %}
     <div class="text-black leading-[1.4] w-full">
         {{ slot }}

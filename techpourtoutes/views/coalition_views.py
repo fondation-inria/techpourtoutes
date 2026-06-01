@@ -40,5 +40,9 @@ def work_ambassador_landing(request):
     return render(request, "coalition/work_ambassador_landing.html", {"form": form})
 
 
+def internships_landing(request):
+    return render(request, "coalition/internships_landing.html", {})
+
+
 def coalition_welcome(request):
     return render(request, "coalition/coalition_welcome.html", {})

@@ -1,20 +1,20 @@
 <c-vars icon-name="" title="" variant="h1" class="" />
 
 {% if variant == "intertitre" %}
-    <h3 class="font-bold text-base mt-5 {{ class }}">{{ title }}</h3>
+    <h3 class="font-bold text-base mt-5 {{ class }}">{{ title|safe }}</h3>
 {% else %}
     <div class="flex items-center gap-x-4 text-primary-700 {{ class }}">
         {% if icon_name %}
             <c-components.icon name="{{ icon_name }}" class="size-12" />
         {% endif %}
         {% if variant == "h2" %}
-            <h2 class="text-xl font-medium leading-[1.2]">{{ title }}</h2>
+            <h2 class="text-xl font-medium leading-[1.2]">{{ title|safe }}</h2>
         {% elif variant == "h2-black" %}
-            <h2 class="text-2xl text-black leading-[1.4]">{{ title }}</h2>
+            <h2 class="text-2xl text-black leading-[1.4]">{{ title|safe }}</h2>
         {% elif variant == "h3" %}
-            <h3 class="text-lg leading-[1.4]">{{ title }}</h3>
+            <h3 class="text-lg leading-[1.4]">{{ title|safe }}</h3>
         {% else %}
-            <h1 class="text-5xl leading-[1.2]">{{ title }}</h1>
+            <h1 class="text-5xl leading-[1.2]">{{ title|safe }}</h1>
         {% endif %}
     </div>
 {% endif %}

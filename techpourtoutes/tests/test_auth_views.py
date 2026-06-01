@@ -19,10 +19,10 @@ def test_login_request_get_renders_form(client):
 
 @pytest.mark.django_db
 def test_login_request_get_with_safe_next_propagates_to_template(client):
-    response = client.get(reverse("login_request") + "?next=/je-deviens-mentor/")
+    response = client.get(reverse("login_request") + "?next=/mentorer/")
 
     assert response.status_code == 200
-    assert response.context["next"] == "/je-deviens-mentor/"
+    assert response.context["next"] == "/mentorer/"
 
 
 @pytest.mark.django_db
@@ -80,11 +80,11 @@ def test_login_request_post_with_inactive_user_sends_nothing(client, inactive_us
 def test_login_request_post_embeds_safe_next_in_link(client, pro):
     client.post(
         reverse("login_request"),
-        data={"email": pro.email, "next": "/je-deviens-mentor/"},
+        data={"email": pro.email, "next": "/mentorer/"},
     )
 
     html_body = mail.outbox[0].alternatives[0][0]
-    assert "next=%2Fje-deviens-mentor%2F" in html_body
+    assert "next=%2Fmentorer%2F" in html_body
 
 
 @pytest.mark.django_db
@@ -144,10 +144,10 @@ def test_login_verify_adds_success_message(client, pro):
 def test_login_verify_redirects_to_safe_next(client, pro):
     plaintext = pro.issue_login_token()
 
-    response = client.get(reverse("login_verify", args=[plaintext]) + "?next=/je-deviens-mentor/")
+    response = client.get(reverse("login_verify", args=[plaintext]) + "?next=/mentorer/")
 
     assert response.status_code == 302
-    assert response["Location"] == "/je-deviens-mentor/"
+    assert response["Location"] == "/mentorer/"
 
 
 @pytest.mark.django_db
@@ -210,10 +210,10 @@ def test_login_verify_while_authenticated_does_not_consume_token(client, pro):
 
 @pytest.mark.django_db
 def test_login_verify_invalid_token_preserves_next(client):
-    response = client.get(reverse("login_verify", args=["garbage"]) + "?next=/je-deviens-mentor/")
+    response = client.get(reverse("login_verify", args=["garbage"]) + "?next=/mentorer/")
 
     assert response.status_code == 302
-    assert "next=%2Fje-deviens-mentor%2F" in response["Location"]
+    assert "next=%2Fmentorer%2F" in response["Location"]
 
 
 @pytest.mark.django_db

@@ -6,7 +6,7 @@
         <c-components.badge label="À distance" />
     </div>
 
-    <c-components.card title="Qui peut devenir ambassadrice métier ?">
+    <c-components.card title="Qui peut devenir ambassadrice métier&nbsp;?">
         <c-components.text>
             Nous avons fait le choix de féminiser les termes sur le site TechPourToutes par cohérence avec notre objectif de visibiliser la place des femmes dans le numérique et plus largement de contribuer à la mixité dans ce secteur. Pour autant, <span class="font-bold">les ambassadeurs sont bien évidemment les bienvenus&nbsp;!</span> Tous les parcours, linéaires, créatifs, faits de reconversion ou de choix audacieux sont instructifs et permettront aux lycéennes et étudiantes de découvrir de nouveaux métiers et de se projeter dans un monde du travail en constante évolution.
 
@@ -35,7 +35,7 @@
         </c-components.text>
     </c-components.card>
 
-    <c-components.accordion title="L'ambassadrice est-elle la femme de l'ambassadeur ou une personne avec une existence propre ?" variant="green">
+    <c-components.accordion title="L'ambassadrice est-elle la femme de l'ambassadeur ou une personne avec une existence propre&nbsp;?" variant="green">
         <c-components.text>
             Bien qu'une femme fut nommée "ambassadrice extraordinaire" dès 1645, le Dictionnaire de l'Académie française précisait lui en 1718 que l'ambassadrice était la "femme d'un ambassadeur". Ce n'est qu'en 2019 que l'Académie française revient sur sa position et permet "la féminisation des noms de métiers et de professions." Quelques années après l'Annuaire diplomatique qui employait déjà le terme d'"ambassadrice" dès le tournant du siècle.
 
@@ -53,7 +53,7 @@
 
     <c-slot name="right">
         <div class="flex flex-col items-center px-4 md:mt-[65px]">
-            <c-components.title title="Rejoignez la coalition !" class="justify-center w-[300px] h-16" variant="h3" />
+            <c-components.title title="Rejoignez la coalition&nbsp;!" class="justify-center w-[300px] h-16" variant="h3" />
             <div x-data="{ showForm: {{ form.is_bound|yesno:'true,false' }}, situation: '{{ form.professional_situation.value|default:'' }}' }"
                  @select-change="situation = $event.detail.value"
                  id="work-ambassador-card">
