@@ -20,7 +20,7 @@
            class="text-primary-700 font-medium {{ class }}"
            {{ attrs }}
         >
-            <div class="flex {% if icon %}{{ icon_class }}{% endif %} justify-center">
+            <div class="flex {% if icon %}{{ icon_class }}{% endif %}">
                 {% if slot %}{{ slot|safe }}{% else %}{{ label|safe }}{% endif %}
                 {% if icon %}<c-components.icon name="{{ icon }}" class="w-5 h-5" />{% endif %}
             </div>
@@ -30,7 +30,7 @@
                 class="text-primary-700 font-medium cursor-pointer {{ class }}"
                 {{ attrs }}
         >
-            <div class="flex {% if icon %}{{ icon_class }}{% endif %} justify-center">
+            <div class="flex {% if icon %}{{ icon_class }}{% endif %}">
                 {% if slot %}{{ slot|safe }}{% else %}{{ label|safe }}{% endif %}
                 {% if icon %}<c-components.icon name="{{ icon }}" class="w-5 h-5" />{% endif %}
             </div>
