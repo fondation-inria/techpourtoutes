@@ -5,8 +5,9 @@ from . import views
 urlpatterns = [
     # Coalition
     path("", views.coalition_index, name="coalition_index"),
-    path("je-deviens-mentor/", views.mentor_landing, name="mentor_landing"),
-    path("je-pitche-mon-metier", views.work_ambassador_landing, name="work_ambassador_landing"),
+    path("mentorer/", views.mentor_landing, name="mentor_landing"),
+    path("pitcher-mon-metier/", views.work_ambassador_landing, name="work_ambassador_landing"),
+    path("accueillir-une-stagiaire/", views.internships_landing, name="internships_landing"),
     path("bienvenue-dans-la-coalition/", views.coalition_welcome, name="coalition_welcome"),
     # Auth
     path("se-connecter/", views.login_request, name="login_request"),
