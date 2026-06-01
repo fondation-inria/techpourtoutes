@@ -1,0 +1,46 @@
+<c-layout.base>
+    <c-components.title icon-name="accueillir-une-stagiaire-bold" title="Accueillir une stagiaire" />
+    <div class="flex gap-x-4">
+        <c-components.badge label="2 semaines" />
+        <c-components.badge label="En présentiel" />
+    </div>
+
+    <c-components.card title="De la seconde au stage de fin d'études, aidez les jeunes à construire leur avenir">
+        <c-components.text>
+            Grâce au programme TechPourToutes, recrutez des filles pleines de motivation et de talents. Faîtes-leur découvrir votre métier à l'occasion d'un stage de 2 semaines en seconde ou sur plusieurs mois dans le cadre d'une alternance ou d'un stage lors des études supérieures.
+        </c-components.text>
+    </c-components.card>
+
+    <div class="flex justify-center w-full md:hidden">
+        <c-components.button label="Proposer un stage" icon="external-link" href="https://stages.techpourtoutes.io/" class="my-5" />
+    </div>
+
+    <c-components.card title="La mixité, accélérateur de performance ">
+        <c-components.text>
+            TechPourToutes est une opportunité concrète pour répondre à vos enjeux de recrutement, pour un numérique plus diversifié et plus performant. Les talents se font rares&nbsp;; ne passez pas à côté de 50% d'entre eux&nbsp;!
+        </c-components.text>
+    </c-components.card>
+
+    <c-components.card title="La priorité du moment&nbsp;- les stages de seconde">
+        <c-components.text>
+            Du 15 au 26 juin 2026, tous les élèves de seconde général et technologique doivent effectuer un stage d'observation.
+
+            Vous pouvez publier gratuitement vos offres sur notre plateforme partenaire et ainsi toucher une très large communauté de lycéennes passionnées par les nouvelles technologies.
+        </c-components.text>
+    </c-components.card>
+
+    <c-components.accordion title="Cette action est menée par">
+        <c-components.text>
+            Numeum, syndicat patronal et organisation des professionnels du numérique qui représente près de 2&nbsp;500 entreprises adhérentes, dont 50% en région.
+
+        </c-components.text>
+        <c-components.button href="#" label="Découvrir tous les membres du consortium TechPourToutes" variant="quaternaly" />
+    </c-components.accordion>
+
+    <c-slot name="right">
+        <div class="flex flex-col items-center px-4 md:mt-[65px]">
+            <c-components.title title="Recrutez la prochaine génération de talents&nbsp;!" class="justify-center text-center w-[250px] h-16" variant="h3" />
+            <c-components.button label="Proposer un stage" icon="external-link" href="https://stages.techpourtoutes.io/" class="my-5" />
+        </div>
+    </c-slot>
+</c-layout.base>

@@ -11,6 +11,7 @@ from .auth_views import (
 from .coalition_views import (
     coalition_index,
     coalition_welcome,
+    internships_landing,
     mentor_landing,
     work_ambassador_landing,
 )
@@ -30,6 +31,7 @@ __all__ = [
     "coalition_index",
     "conditions_generales",
     "donnees_personnelles",
+    "internships_landing",
     "login_email_sent",
     "login_request",
     "login_to_jobirl",

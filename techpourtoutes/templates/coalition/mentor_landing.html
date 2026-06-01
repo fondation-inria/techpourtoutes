@@ -34,7 +34,7 @@
         </c-components.text>
     </c-components.card>
 
-    <c-components.accordion title="Mentor ou mentore ?" variant="green">
+    <c-components.accordion title="Mentor ou mentore&nbsp;?" variant="green">
         <c-components.text>
             Et bien, le terme mentor provient d'un personnage de la mythologie grecque. Mentor est le précepteur de Télémaque et l'ami d'Ulysse qui est chargé de prendre soin de sa maison à la suite de son départ. C'est ainsi que le terme mentor désigne désormais un conseiller expérimenté, attentif et sage auquel on fait confiance.
 
@@ -52,7 +52,7 @@
 
     <c-slot name="right">
         <div class="flex flex-col items-center px-4 md:mt-[65px]">
-            <c-components.title title="Rejoignez la coalition !" class="justify-center w-[300px] h-16" variant="h3" />
+            <c-components.title title="Rejoignez la coalition&nbsp;!" class="justify-center w-[300px] h-16" variant="h3" />
             <div x-data="{ showForm: {{ form.is_bound|yesno:'true,false' }}, situation: '{{ form.professional_situation.value|default:'' }}' }"
                  @select-change="situation = $event.detail.value"
                  id="mentor-card">

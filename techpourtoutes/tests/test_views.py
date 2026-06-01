@@ -56,6 +56,11 @@ def test_mentor_landing_post_shows_error_on_create_mentor_failure(client, valid_
 
 
 @pytest.mark.django_db
+def test_internships_landing_get(client):
+    assert client.get(reverse("internships_landing")).status_code == 200
+
+
+@pytest.mark.django_db
 def test_work_ambassador_landing_get(client):
     assert client.get(reverse("work_ambassador_landing")).status_code == 200
 

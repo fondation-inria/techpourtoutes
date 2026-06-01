@@ -10,6 +10,7 @@
     disabled_secondary_classes="bg-neutral-500 text-neutral-0 cursor-not-allowed select-none shadow-black"
     class=""
     variant=""
+    icon=""
 />
 
 {% if variant == "quaternaly" %}
@@ -18,14 +19,20 @@
            class="text-primary-700 font-medium {{ class }}"
            {{ attrs }}
         >
-            {% if slot %}{{ slot }}{% else %}{{ label }}{% endif %}
+            <div class="flex gap-x-2">
+                {% if slot %}{{ slot }}{% else %}{{ label }}{% endif %}
+                {% if icon %}<c-components.icon name="{{ icon }}" class="w-5 h-5" />{% endif %}
+            </div>
         </a>
     {% else %}
         <button type="{{ type }}"
                 class="text-primary-700 font-medium cursor-pointer {{ class }}"
                 {{ attrs }}
         >
-            {% if slot %}{{ slot }}{% else %}{{ label }}{% endif %}
+            <div class="flex gap-x-2">
+                {% if slot %}{{ slot }}{% else %}{{ label }}{% endif %}
+                {% if icon %}<c-components.icon name="{{ icon }}" class="w-5 h-5" />{% endif %}
+            </div>
         </button>
     {% endif %}
 {% else %}
@@ -34,7 +41,10 @@
            class="{{ base_class }} {% if disabled and variant == "secondary" %}{{ disabled_secondary_classes }}{% elif disabled %}{{ disabled_primary_classes }}{% elif variant == "secondary" %}{{ secondary_classes }}{% else %}{{ primary_classes }}{% endif %} {{ class }}"
            {{ attrs }}
         >
-            {% if slot %}{{ slot }}{% else %}{{ label }}{% endif %}
+            <div class="flex gap-x-2">
+                {% if slot %}{{ slot }}{% else %}{{ label }}{% endif %}
+                {% if icon %}<c-components.icon name="{{ icon }}" class="w-5 h-5" />{% endif %}
+            </div>
         </a>
     {% else %}
         <button type="{{ type }}"
@@ -42,7 +52,10 @@
                 class="{{ base_class }} {% if disabled and variant == "secondary" %}{{ disabled_secondary_classes }}{% elif disabled %}{{ disabled_primary_classes }}{% elif variant == "secondary" %}{{ secondary_classes }}{% else %}{{ primary_classes }}{% endif %} {{ class }}"
                 {{ attrs }}
         >
-            {% if slot %}{{ slot }}{% else %}{{ label }}{% endif %}
+            <div class="flex gap-x-2">
+                {% if slot %}{{ slot }}{% else %}{{ label }}{% endif %}
+                {% if icon %}<c-components.icon name="{{ icon }}" class="w-5 h-5" />{% endif %}
+            </div>
         </button>
     {% endif %}
 {% endif %}
