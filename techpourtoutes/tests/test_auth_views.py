@@ -34,13 +34,13 @@ def test_login_request_get_strips_external_next(client):
 
 
 @pytest.mark.django_db
-def test_login_request_get_while_authenticated_redirects_home(client, pro):
+def test_login_request_get_while_authenticated_redirects_to_account(client, pro):
     client.force_login(pro)
 
     response = client.get(reverse("login_request"))
 
     assert response.status_code == 302
-    assert response["Location"] == "/"
+    assert response["Location"] == reverse("account")
 
 
 @pytest.mark.django_db
@@ -126,7 +126,7 @@ def test_login_verify_with_valid_token_logs_user_in(client, pro):
     response = client.get(reverse("login_verify", args=[plaintext]))
 
     assert response.status_code == 302
-    assert response["Location"] == "/"
+    assert response["Location"] == reverse("account")
     assert client.session.get("_auth_user_id") == str(pro.pk)
 
 
@@ -157,7 +157,7 @@ def test_login_verify_strips_external_next(client, pro):
     response = client.get(reverse("login_verify", args=[plaintext]) + "?next=https://evil.com/")
 
     assert response.status_code == 302
-    assert response["Location"] == "/"
+    assert response["Location"] == reverse("account")
 
 
 @pytest.mark.django_db
@@ -203,7 +203,7 @@ def test_login_verify_while_authenticated_does_not_consume_token(client, pro):
     response = client.get(reverse("login_verify", args=[plaintext]))
 
     assert response.status_code == 302
-    assert response["Location"] == "/"
+    assert response["Location"] == reverse("account")
     pro.refresh_from_db()
     assert pro.login_token_hash != ""
 

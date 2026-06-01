@@ -20,7 +20,7 @@ class ProForm(forms.Form):
         label=_("Votre situation professionnelle*"),
         choices=[("", _("Sélectionner une option")), *Pro.ProfessionalSituation.choices],
     )
-    structure_name = forms.CharField(label=_("Nom de votre structure"), required=False)
+    structure_name = forms.CharField(label=_("Nom de votre structure*"), required=False)
     job_title = forms.CharField(label=_("Votre métier*"))
     terms_accepted = forms.BooleanField(
         label=_(
