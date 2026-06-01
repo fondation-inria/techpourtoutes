@@ -38,7 +38,7 @@ def work_ambassador_landing(request):
             pro = form.save(commit=False)
             pro.engagements.append("work_ambassador")
             pro.save()
-            CoalitionMailer.welcome(pro=pro)
+            CoalitionMailer.welcome(pro=pro, token=pro.issue_login_token())
             CoalitionMailer.new_pro(pro=pro, engagement="work_ambassador")
             return redirect("coalition_welcome")
         else:
@@ -63,7 +63,7 @@ def sponsor_landing(request):
             pro = form.save(commit=False)
             pro.engagements.append("sponsor")
             pro.save()
-            CoalitionMailer.welcome(pro=pro)
+            CoalitionMailer.welcome(pro=pro, token=pro.issue_login_token())
             CoalitionMailer.new_pro(pro=pro, engagement="sponsor")
             return redirect("coalition_welcome")
         else:

@@ -11,13 +11,21 @@ from techpourtoutes.models import Pro
 @pytest.mark.django_db
 @override_settings(EMAIL_BACKEND="django.core.mail.backends.locmem.EmailBackend")
 def test_welcome_sends_email_to_pro(pro):
-    CoalitionMailer.welcome(pro=pro)
+    CoalitionMailer.welcome(pro=pro, token="tok-abc")
 
     assert len(mail.outbox) == 1
     message = mail.outbox[0]
     assert message.to == [pro.email]
     assert "Bienvenue" in message.subject
     assert pro.first_name in message.body
+
+
+@pytest.mark.django_db
+@override_settings(EMAIL_BACKEND="django.core.mail.backends.locmem.EmailBackend")
+def test_welcome_includes_account_login_url(pro):
+    CoalitionMailer.welcome(pro=pro, token="tok-abc")
+
+    assert "/se-connecter/token/tok-abc" in mail.outbox[0].body
 
 
 @pytest.mark.django_db

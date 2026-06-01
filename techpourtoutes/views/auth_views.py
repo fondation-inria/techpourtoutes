@@ -26,7 +26,7 @@ def _safe_next(request, candidate):
 
 def login_request(request):
     if request.user.is_authenticated:
-        return redirect(settings.LOGIN_REDIRECT_URL)
+        return redirect(reverse("account"))
 
     if request.method == "POST":
         form = LoginRequestForm(data=request.POST)
@@ -36,8 +36,8 @@ def login_request(request):
             User = get_user_model()
             user = User.objects.filter(email=email, is_active=True).first()
             if user is not None:
-                plaintext = user.issue_login_token()
-                LoginMailer.send_link(user=user, token=plaintext, next_url=next_url)
+                token = user.issue_login_token()
+                LoginMailer.send_link(user=user, token=token, next_url=next_url)
             request.session["login_email"] = email
             if request.headers.get("referer") == f"{settings.SITE_URL}/se-connecter/email-envoye/":
                 messages.success(request, "Votre demande a bien été prise en compte.")
@@ -62,7 +62,7 @@ def login_email_sent(request):
 
 def login_verify(request, token):
     if request.user.is_authenticated:
-        return redirect(settings.LOGIN_REDIRECT_URL)
+        return redirect(reverse("account"))
 
     next_url = _safe_next(request, request.GET.get(REDIRECT_FIELD_NAME, ""))
     User = get_user_model()
@@ -70,7 +70,8 @@ def login_verify(request, token):
     if user is None:
         messages.error(
             request,
-            "Ce lien est invalide ou a expiré. Veuillez en demander un nouveau.",
+            "Ce lien est invalide ou a expiré - sa durée est d'une heure maximum. "
+            "Veuillez en demander un nouveau.",
         )
         target = reverse("login_request")
         if next_url:
@@ -79,7 +80,7 @@ def login_verify(request, token):
 
     login(request, user)
     messages.success(request, f"Vous accédez au compte {user.email}. Bienvenue !")
-    return redirect(next_url or settings.LOGIN_REDIRECT_URL)
+    return redirect(next_url or reverse("account"))
 
 
 @login_required

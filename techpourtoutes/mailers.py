@@ -8,34 +8,45 @@ from django.urls import reverse
 from .models import Pro
 
 
+def _base_context():
+    return {
+        "logo_url": f"{settings.SITE_URL}/{settings.STATIC_URL}images/techpourtoutes-logo.png",
+        "base_url": settings.SITE_URL,
+    }
+
+
+def _render(template, context=None):
+    return render_to_string(template, _base_context() | (context or {}))
+
+
 class CoalitionMailer:
     @classmethod
-    def _recipients_for(cls, engagement):
-        return {
+    def new_pro(cls, *, pro, engagement):
+        recipients = {
             Pro.Engagement.INTERNSHIPS: settings.COALITION_INTERNSHIPS_RECIPIENTS,
             Pro.Engagement.WORK_AMBASSADOR: settings.COALITION_WORK_AMBASSADOR_RECIPIENTS,
             Pro.Engagement.TRAINING_AMBASSADOR: settings.COALITION_TRAINING_AMBASSADOR_RECIPIENTS,
             Pro.Engagement.SPONSOR: settings.COALITION_SPONSOR_RECIPIENTS,
         }.get(engagement, [])
-
-    @classmethod
-    def new_pro(cls, *, pro, engagement):
         context = {"pro": pro, "engagement": Pro.Engagement(engagement).label}
         send_mail(
             subject=f"Une nouvelle demande pour {Pro.Engagement(engagement).label}",
-            message=render_to_string("emails/new_pro.txt", context),
-            html_message=render_to_string("emails/new_pro.html", context),
+            message=_render("emails/new_pro.txt", context),
+            html_message=_render("emails/new_pro.html", context),
             from_email="TechPourToutes <agir@techpourtoutes.io>",
-            recipient_list=cls._recipients_for(engagement),
+            recipient_list=recipients,
         )
 
     @classmethod
-    def welcome(cls, *, pro):
-        context = {"pro": pro}
+    def welcome(cls, *, pro, token):
+        context = {
+            "pro": pro,
+            "account_url": f"{settings.SITE_URL}{reverse('login_verify', args=[token])}",
+        }
         send_mail(
             subject="Bienvenue dans la Coalition !",
-            message=render_to_string("emails/coalition_welcome.txt", context),
-            html_message=render_to_string("emails/coalition_welcome.html", context),
+            message=_render("emails/coalition_welcome.txt", context),
+            html_message=_render("emails/coalition_welcome.html", context),
             from_email="TechPourToutes <agir@techpourtoutes.io>",
             recipient_list=[pro.email],
         )
@@ -51,8 +62,8 @@ class LoginMailer:
         context = {"user": user, "login_url": login_url}
         send_mail(
             subject="Votre lien de connexion à TechPourToutes",
-            message=render_to_string("emails/login_link.txt", context),
-            html_message=render_to_string("emails/login_link.html", context),
+            message=_render("emails/login_link.txt", context),
+            html_message=_render("emails/login_link.html", context),
             from_email="TechPourToutes <noreply@techpourtoutes.io>",
             recipient_list=[user.email],
         )

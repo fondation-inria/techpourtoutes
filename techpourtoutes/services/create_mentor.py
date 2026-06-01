@@ -13,4 +13,4 @@ class CreateMentor(BaseService):
         pro.jobirl_user_id = result.user_id
         pro.jobirl_user_token = result.token
         pro.save()
-        CoalitionMailer.welcome(pro=pro)
+        CoalitionMailer.welcome(pro=pro, token=pro.issue_login_token())
