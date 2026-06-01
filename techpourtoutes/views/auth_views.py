@@ -39,7 +39,7 @@ def login_request(request):
                 plaintext = user.issue_login_token()
                 LoginMailer.send_link(user=user, token=plaintext, next_url=next_url)
             request.session["login_email"] = email
-            if request.headers["referer"] == f"{settings.SITE_URL}/se-connecter/email-envoye/":
+            if request.headers.get("referer") == f"{settings.SITE_URL}/se-connecter/email-envoye/":
                 messages.success(request, "Votre demande a bien été prise en compte.")
             return redirect("login_email_sent")
     else:
