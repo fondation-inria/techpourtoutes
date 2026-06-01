@@ -72,9 +72,6 @@
   <symbol id="chevron-down" viewBox="0 0 24 24" fill="none">
     <path d="m6 9 6 6 6-6" stroke="#1616dd" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
   </symbol>
-  <symbol id="compte" viewBox="0 0 24 24" fill="none">
-    <path stroke-width="1.5" stroke="#000000" stroke-linecap="round" stroke-linejoin="round" d="M17.982 18.725A7.488 7.488 0 0 0 12 15.75a7.488 7.488 0 0 0-5.982 2.975m11.963 0a9 9 0 1 0-11.963 0m11.963 0A8.966 8.966 0 0 1 12 21a8.966 8.966 0 0 1-5.982-2.275M15 9.75a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z" />
-  </symbol>
   <symbol id="connexion-bold" viewBox="0 0 256 256" fill="none">
     <defs>
     <linearGradient id="connexion-bold-gradient1">
@@ -244,6 +241,32 @@
   <rect id="moins-light-backgr" width="256" height="256" fill="none" rx="70"></rect>
   <g id="moins-light-group" transform="translate(0,0) scale(1)">
     <path d="M64 128h128" stroke="#1616dd" stroke-width="5" stroke-linecap="round" stroke-linejoin="round" id="moins-light-primary"></path>
+  </g>
+  </symbol>
+  <symbol id="mon-compte-bold" viewBox="0 0 256 256" fill="none">
+    <defs>
+    <linearGradient id="mon-compte-bold-gradient1">
+      <stop class="stop1" offset="0%" stop-color="#8f66ff"/>
+      <stop class="stop2" offset="100%" stop-color="#3d12ff"/>
+    </linearGradient>
+  </defs>
+  
+  <g id="mon-compte-bold-group" transform="translate(0,0) scale(1.0)">
+    <path d="M154.666 117.333H170.667C194.230 117.333 213.333 136.436 213.333 160.000V192.000C213.333 203.782 203.782 213.333 192.000 213.333H64.000C52.218 213.333 42.667 203.782 42.667 192.000V160.000C42.667 136.436 61.769 117.333 85.333 117.333H101.334" stroke="#1616dd" stroke-width="13" stroke-linecap="round" stroke-linejoin="round" id="mon-compte-bold-primary"/>
+    <path d="M170.667 82.526C170.667 110.431 146.963 128.000 128.000 128.000C109.037 128.000 85.333 110.431 85.333 82.526C85.333 54.621 101.818 32.000 128.000 32.000C154.182 32.000 170.667 54.621 170.667 82.526Z" stroke="#ff00ff" stroke-width="13" stroke-linecap="round" stroke-linejoin="round" id="mon-compte-bold-secondary"/>
+  </g>
+  </symbol>
+  <symbol id="mon-compte-light" viewBox="0 0 256 256" fill="none">
+    <defs>
+    <linearGradient id="mon-compte-light-gradient1">
+      <stop class="stop1" offset="0%" stop-color="#8f66ff"/>
+      <stop class="stop2" offset="100%" stop-color="#3d12ff"/>
+    </linearGradient>
+  </defs>
+  
+  <g id="mon-compte-light-group" transform="translate(0,0) scale(1.0)">
+    <path d="M154.666 117.333H170.667C194.230 117.333 213.333 136.436 213.333 160.000V192.000C213.333 203.782 203.782 213.333 192.000 213.333H64.000C52.218 213.333 42.667 203.782 42.667 192.000V160.000C42.667 136.436 61.769 117.333 85.333 117.333H101.334" stroke="#1616dd" stroke-width="5" stroke-linecap="round" stroke-linejoin="round" id="mon-compte-light-primary"/>
+    <path d="M170.667 82.526C170.667 110.431 146.963 128.000 128.000 128.000C109.037 128.000 85.333 110.431 85.333 82.526C85.333 54.621 101.818 32.000 128.000 32.000C154.182 32.000 170.667 54.621 170.667 82.526Z" stroke="#ff00ff" stroke-width="5" stroke-linecap="round" stroke-linejoin="round" id="mon-compte-light-secondary"/>
   </g>
   </symbol>
   <symbol id="organiser-un-atelier-bold" viewBox="0 0 256 256" fill="none">

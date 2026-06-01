@@ -1,13 +1,9 @@
 {% load static %}
-<aside class="sticky top-0 shrink-0 h-screen w-[264px] bg-neutral-0 md:border-r-2 md:border-primary-500 md:rounded-r-lg flex flex-col">
+<aside class="sticky top-0 h-screen w-[264px] bg-neutral-0 md:border-r-2 md:border-primary-500 md:rounded-r-lg flex flex-col">
     <div class="flex-1 min-h-0 overflow-y-auto p-3">
-        <div class="">
+        <div class="pb-2 mb-6">
             <c-components.brand-mark class="hidden xl:inline" />
         </div>
-
-        <ul class="flex flex-col gap-1 mt-20 xl:mt-10 mb-6">
-            <c-components.nav-link href="#" icon="sengager-light" icon-active="sengager-bold" label="S'engager" />
-        </ul>
 
         <c-components.nav-section label="Accompagner individuellement">
             <c-components.nav-link href="{% url "mentor_landing" %}" icon="mentorer-light" icon-active="mentorer-bold" label="Mentorer" />
@@ -25,19 +21,17 @@
         </c-components.nav-section>
     </div>
 
-    <div class="shrink-0 border-t border-blue-background p-3">
+    <div class="border-t border-blue-background p-3">
         <ul class="flex flex-col gap-1 mb-5">
         {% if request.user.is_authenticated %}
-            <c-components.nav-link href="{% url 'account' %}" label="Mon compte" icon-active="compte" icon="compte" />
+            <c-components.nav-link href="{% url 'account' %}" label="Mon compte" icon-active="mon-compte-bold" icon="mon-compte-light" />
         {% else %}
-            <div class="flex mt-1">
-                <c-components.button href="{% url 'login_request' %}" label="Se connecter" />
-            </div>
+            <c-components.nav-link href="{% url 'login_request' %}" label="Se connecter" icon-active="mon-compte-bold" icon="mon-compte-light" />
         {% endif %}
             <c-components.nav-link href="#" label="A propos" />
-            <c-components.nav-link href="#" label="Notre manifeste" />
+        <c-components.button href="/" label="Découvrir le programme" variant="secondary" />
         </ul>
-        <div class="flex items-center justify-between px-3">
+        <div class="flex items-center justify-between">
             <img src="{% static 'svg/rf.svg' %}"
                  alt="République Française"
                  class="h-14 w-auto" />
