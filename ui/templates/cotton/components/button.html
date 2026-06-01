@@ -20,7 +20,7 @@
            {{ attrs }}
         >
             <div class="flex gap-x-2">
-                {% if slot %}{{ slot }}{% else %}{{ label }}{% endif %}
+                {% if slot %}{{ slot|safe }}{% else %}{{ label|safe }}{% endif %}
                 {% if icon %}<c-components.icon name="{{ icon }}" class="w-5 h-5" />{% endif %}
             </div>
         </a>
@@ -30,7 +30,7 @@
                 {{ attrs }}
         >
             <div class="flex gap-x-2">
-                {% if slot %}{{ slot }}{% else %}{{ label }}{% endif %}
+                {% if slot %}{{ slot|safe }}{% else %}{{ label|safe }}{% endif %}
                 {% if icon %}<c-components.icon name="{{ icon }}" class="w-5 h-5" />{% endif %}
             </div>
         </button>
@@ -42,7 +42,7 @@
            {{ attrs }}
         >
             <div class="flex gap-x-2">
-                {% if slot %}{{ slot }}{% else %}{{ label }}{% endif %}
+                {% if slot %}{{ slot|safe }}{% else %}{{ label|safe }}{% endif %}
                 {% if icon %}<c-components.icon name="{{ icon }}" class="w-5 h-5" />{% endif %}
             </div>
         </a>
@@ -53,7 +53,7 @@
                 {{ attrs }}
         >
             <div class="flex gap-x-2">
-                {% if slot %}{{ slot }}{% else %}{{ label }}{% endif %}
+                {% if slot %}{{ slot|safe }}{% else %}{{ label|safe }}{% endif %}
                 {% if icon %}<c-components.icon name="{{ icon }}" class="w-5 h-5" />{% endif %}
             </div>
         </button>

@@ -22,6 +22,8 @@ def test_mentor_landing_post_invalid_rerenders_with_errors(client, valid_pro_dat
     response = client.post(reverse("mentor_landing"), data={**valid_pro_data, "email": ""})
     assert response.status_code == 200
     assert "form" in response.context
+    messages = list(response.context["messages"])
+    assert len(messages) > 0
 
 
 @pytest.mark.django_db
@@ -109,3 +111,27 @@ def test_work_ambassador_landing_post_invalid_rerenders_with_errors(client, vali
     )
     assert response.status_code == 200
     assert response.context["form"].errors
+    messages = list(response.context["messages"])
+    assert len(messages) > 0
+
+
+@pytest.mark.django_db
+def test_sponsor_landing_get(client):
+    assert client.get(reverse("sponsor_landing")).status_code == 200
+
+
+@pytest.mark.django_db
+@override_settings(EMAIL_BACKEND="django.core.mail.backends.locmem.EmailBackend")
+def test_sponsor_landing_post_valid_redirects(client, valid_pro_data):
+    response = client.post(reverse("sponsor_landing"), data=valid_pro_data)
+    assert response.status_code == 302
+    assert response["Location"] == reverse("coalition_welcome")
+
+
+@pytest.mark.django_db
+def test_sponsor_landing_post_invalid_rerenders_with_errors(client, valid_pro_data):
+    response = client.post(reverse("sponsor_landing"), data={**valid_pro_data, "email": ""})
+    assert response.status_code == 200
+    assert response.context["form"].errors
+    messages = list(response.context["messages"])
+    assert len(messages) > 0
