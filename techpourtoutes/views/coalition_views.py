@@ -20,6 +20,12 @@ def mentor_landing(request):
                     messages.error(request, error)
                 return render(request, "coalition/mentor_landing.html", {"form": form})
             return redirect("coalition_welcome")
+        else:
+            messages.error(
+                request,
+                "Des erreurs empêchent la validation du formulaire, "
+                "merci de les corriger et de réessayer à nouveau.",
+            )
     else:
         form = ProForm()
     return render(request, "coalition/mentor_landing.html", {"form": form})
@@ -35,6 +41,12 @@ def work_ambassador_landing(request):
             CoalitionMailer.welcome(pro=pro)
             CoalitionMailer.new_pro(pro=pro, engagement="work_ambassador")
             return redirect("coalition_welcome")
+        else:
+            messages.error(
+                request,
+                "Des erreurs empêchent la validation du formulaire, "
+                "merci de les corriger et de réessayer à nouveau.",
+            )
     else:
         form = ProForm()
     return render(request, "coalition/work_ambassador_landing.html", {"form": form})
@@ -42,6 +54,27 @@ def work_ambassador_landing(request):
 
 def internships_landing(request):
     return render(request, "coalition/internships_landing.html", {})
+
+
+def sponsor_landing(request):
+    if request.method == "POST":
+        form = ProForm(data=request.POST)
+        if form.is_valid():
+            pro = form.save(commit=False)
+            pro.engagements.append("sponsor")
+            pro.save()
+            CoalitionMailer.welcome(pro=pro)
+            CoalitionMailer.new_pro(pro=pro, engagement="sponsor")
+            return redirect("coalition_welcome")
+        else:
+            messages.error(
+                request,
+                "Des erreurs empêchent la validation du formulaire, "
+                "merci de les corriger et de réessayer à nouveau.",
+            )
+    else:
+        form = ProForm()
+    return render(request, "coalition/sponsor_landing.html", {"form": form})
 
 
 def coalition_welcome(request):
