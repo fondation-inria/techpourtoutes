@@ -1,0 +1,100 @@
+<c-layout.base>
+    <c-components.title icon-name="devenir-mecene-bold" title="Devenir mécène" />
+    <p>
+        TechPourToutes propose un éventail d'actions vous permettant d'agir à nos côtés, au service de la féminisation des métiers du numérique. A vous de choisir la forme d'engagement qui vous convient, notre équipe construira avec vous un partenariat sur mesure. Ces dons, qu'ils soient matériels, humains ou financiers, peuvent donner lieu à une déduction fiscale.
+    </p>
+
+    <c-components.card title="Participez au financement des études des futures talents de la tech">
+         <c-components.title title="1. Contribuez à des bourses allant jusqu'à 7&nbsp;000 euros" variant="intertitre" />
+        <c-components.text>
+            Ces bourses permettront concrètement à des lycéennes et étudiantes de poursuivre leurs études dans la voie qui les motive et pour laquelle elles sont talentueuses. Attribuées sur critères sociaux et venant en complément des bourses du CROUS, elles permettront de lever les freins matériels, témoignant d’un soutien concret à la féminisation et d’un engagement des entreprises qui veulent élargir le vivier de leurs futures collaboratrices. La boursière est libre d'utiliser l'aide selon ses besoins réels et sans lourdeur administrative.
+        </c-components.text>
+         <c-components.title title="2. Donnez du matériel" variant="intertitre" />
+        <c-components.text>
+            Vous pouvez également aller plus loin en équipant les bénéficiaires du programme qui n'y ont pas accès avec des ordinateurs, des tablettes, etc. pour qu'elles puissent suivre leurs études dans les meilleures conditions. Ce don de matériel pourrait aussi venir en complément des programmes de recyclage en vigueur dans votre structure.
+        </c-components.text>
+    </c-components.card>
+
+    <div class="flex justify-center w-full md:hidden">
+        <c-components.button label="Proposer un stage" icon="external-link" href="https://stages.techpourtoutes.io/" class="my-5" />
+    </div>
+
+    <c-components.card title="Contribuez au développement de la plateforme">
+        <c-components.text>
+            Le programme national TechPourToutes s'appuie sur une plateforme dont l'objectif est de toucher toutes les lycéennes ou étudiantes intéressées par les métiers techniques du numériques, partout en France. Véritable colonne vertébrale du programme, elle a déjà bénéficié d'un financement de la Poste et nous avons toujours besoin de votre expertise, dans le cadre de mécénat de compétence, ou de votre financement pour l'étoffer et la rendre plus pertinente.
+        </c-components.text>
+    </c-components.card>
+
+    <c-components.card title="Contribuez à la diffusion des rôles modèles féminin dans la tech">
+        <c-components.text>
+            Contribuez en donnant des outils simples de production audiovisuelle&nbsp;: smartphone, micro qui se branchent dessus, etc.
+
+            La communication TPT contribue stratégiquement à l'impact du programme en diffusant des informations utiles, des messages clefs et des représentations émancipatrices. Pour produire ces représentations, nous allons faire appel aux lycéennes et étudiantes du programme, afin qu'elles s'adressent à leur entourage, avec leurs mots et leurs codes. Pour les y aider, nous partagerons aux filles motivées et talentueuses les moyens de produire cette communication pour leurs communauté.
+        </c-components.text>
+    </c-components.card>
+
+    <c-components.accordion title="Mécène, une antonomase&nbsp;?" variant="green">
+        <c-components.text>
+            Oui, comme pour mentor, mais Mécène a bien existé, lui. Caius Maecenas était un homme politique romain qui vécut lors de la deuxième moitié du 1er siècle avant notre ère. Il fut célèbre pour avoir consacré une partie de sa fortune et de son influence à la promotion des arts et des lettres. Faîtes comme lui et participez à la promotion d'une tech plus mixte&nbsp;!
+
+        </c-components.text>
+        <c-components.button href="https://fr.wikipedia.org/wiki/M%C3%A9c%C3%A8ne" label="Source&nbsp;: Wikipedia" variant="quaternaly" />
+    </c-components.accordion>
+
+    <c-components.accordion title="Cette action est menée par">
+        <c-components.text>
+            la Fondation Inria, pilote du programme TechPourToutes.
+
+        </c-components.text>
+        <c-components.button href="#" label="Découvrir tous les membres du consortium TechPourToutes" variant="quaternaly" />
+    </c-components.accordion>
+
+    <c-slot name="right">
+        <div class="flex flex-col items-center px-4 md:mt-[65px]">
+            <c-components.title title="Rejoignez la coalition&nbsp;!" class="justify-center w-[300px] h-16" variant="h3" />
+            <div x-data="{ showForm: {{ form.is_bound|yesno:'true,false' }} }" id="sponsor-card">
+                <div x-show="!showForm" @click.prevent="showForm = true; $nextTick(() => { if (window.innerWidth < 768) $refs.formCard.scrollIntoView({ behavior: 'smooth', block: 'start' }) })" class="cursor-pointer">
+                <c-components.card-shadow id="sponsor-member-card" class="my-5">
+                    <div class="flex">
+                        <c-components.icon name="badge-coeur" class="w-15 h-15 shrink-0 mx-5" />
+                        <div class="mt-5 [&>p]:pb-3 [&>p]:font-medium">
+                            <p>Prénom</p>
+                            <p>Nom</p>
+                            <p>Mécène TechPourToutes</p>
+                        </div>
+                    </div>
+                    <div class="flex justify-center">
+                        <c-components.button href="" label="Je deviens mécène" />
+                    </div>
+                </c-components.card-shadow>
+            </div>
+            <div x-ref="formCard" x-show="showForm" x-cloak
+                 x-transition:enter="transition ease-out duration-300 origin-top"
+                 x-transition:enter-start="scale-y-20"
+                 x-transition:enter-end="scale-y-100"
+            />
+                <c-components.card-shadow id="sponsor-form-card" class="my-5 p-5 relative">
+                    <c-components.icon name="badge-coeur" class="w-15 h-15 shrink-0 mx-5 absolute -top-5 -right-10" />
+                    <c-patterns.form url="{% url 'sponsor_landing' %}">
+                        <c-components.title title="Engagement mécène" variant="h3" />
+                        <p class="description-text-xxs">Les champs suivis d'un astérisque (*) sont obligatoires.</p>
+                        <c-components.form_fields.radio field=form.civility />
+                        <c-components.form_fields.input field=form.first_name autocomplete="given-name" />
+                        <c-components.form_fields.input field=form.last_name autocomplete="family-name" />
+                        <c-components.form_fields.input field=form.email autocomplete="email" />
+                        <c-components.form_fields.input field=form.phone autocomplete="tel" />
+                        <c-components.form_fields.input field=form.postal_code autocomplete="postal-code" />
+                        <input type="hidden" name="professional_situation" value="working">
+                        <c-components.form_fields.input field=form.job_title autocomplete="organization-title" />
+                        <c-components.form_fields.input field=form.structure_name description="Votre structure actuelle ou la dernière" autocomplete="organization" />
+                        <c-components.form_fields.checkbox field=form.terms_accepted />
+                        <div class="flex justify-center">
+                            <c-components.button type="submit" label="Je deviens mécène" />
+                        </div>
+                    </c-patterns.form>
+                </c-components.card-shadow>
+            </div>
+            </div>
+        </div>
+    </c-slot>
+</c-layout.base>
