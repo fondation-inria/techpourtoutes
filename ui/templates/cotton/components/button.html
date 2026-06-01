@@ -8,6 +8,7 @@
     secondary_classes="bg-neutral-0 text-primary-700 shadow-bottom-and-right shadow-primary-700 border border-primary-700 focus-visible:border-neutral-0 hover:border-primary-500 hover:shadow-primary-500 hover:text-primary-500 active:bg-primary-700 active:text-neutral-0 active:border-neutral-0 cursor-pointer"
     disabled_primary_classes="bg-neutral-300 text-black cursor-not-allowed select-none shadow-black"
     disabled_secondary_classes="bg-neutral-500 text-neutral-0 cursor-not-allowed select-none shadow-black"
+    icon_class="gap-x-2"
     class=""
     variant=""
     icon=""
@@ -19,7 +20,7 @@
            class="text-primary-700 font-medium {{ class }}"
            {{ attrs }}
         >
-            <div class="flex gap-x-2">
+            <div class="flex {% if icon %}{{ icon_class }}{% endif %} justify-center">
                 {% if slot %}{{ slot|safe }}{% else %}{{ label|safe }}{% endif %}
                 {% if icon %}<c-components.icon name="{{ icon }}" class="w-5 h-5" />{% endif %}
             </div>
@@ -29,7 +30,7 @@
                 class="text-primary-700 font-medium cursor-pointer {{ class }}"
                 {{ attrs }}
         >
-            <div class="flex gap-x-2">
+            <div class="flex {% if icon %}{{ icon_class }}{% endif %} justify-center">
                 {% if slot %}{{ slot|safe }}{% else %}{{ label|safe }}{% endif %}
                 {% if icon %}<c-components.icon name="{{ icon }}" class="w-5 h-5" />{% endif %}
             </div>
@@ -41,7 +42,7 @@
            class="{{ base_class }} {% if disabled and variant == "secondary" %}{{ disabled_secondary_classes }}{% elif disabled %}{{ disabled_primary_classes }}{% elif variant == "secondary" %}{{ secondary_classes }}{% else %}{{ primary_classes }}{% endif %} {{ class }}"
            {{ attrs }}
         >
-            <div class="flex gap-x-2">
+            <div class="flex {% if icon %}{{ icon_class }}{% endif %} justify-center">
                 {% if slot %}{{ slot|safe }}{% else %}{{ label|safe }}{% endif %}
                 {% if icon %}<c-components.icon name="{{ icon }}" class="w-5 h-5" />{% endif %}
             </div>
@@ -52,7 +53,7 @@
                 class="{{ base_class }} {% if disabled and variant == "secondary" %}{{ disabled_secondary_classes }}{% elif disabled %}{{ disabled_primary_classes }}{% elif variant == "secondary" %}{{ secondary_classes }}{% else %}{{ primary_classes }}{% endif %} {{ class }}"
                 {{ attrs }}
         >
-            <div class="flex gap-x-2">
+            <div class="flex {% if icon %}{{ icon_class }}{% endif %} justify-center">
                 {% if slot %}{{ slot|safe }}{% else %}{{ label|safe }}{% endif %}
                 {% if icon %}<c-components.icon name="{{ icon }}" class="w-5 h-5" />{% endif %}
             </div>

@@ -9,7 +9,7 @@ from .auth_views import (
     logout_view,
 )
 from .coalition_views import (
-    coalition_index,
+    coalition_home,
     coalition_welcome,
     internships_landing,
     mentor_landing,
@@ -29,7 +29,7 @@ __all__ = [
     "account",
     "account_edit",
     "account_info",
-    "coalition_index",
+    "coalition_home",
     "conditions_generales",
     "donnees_personnelles",
     "internships_landing",
