@@ -5,5 +5,9 @@ Bienvenue dans la Coalition TechPourToutes et merci beaucoup pour votre engageme
 
 Nous prendrons contact avec vous sous 48 heures pour vous accompagner dans le programme.
 
+Vous disposez dès à présent d'un compte auquel vous pouvez accéder via ce lien :
+
+{{ account_url }}
+
 À très bientôt,
 L'équipe TechPourToutes

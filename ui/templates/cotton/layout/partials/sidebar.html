@@ -31,11 +31,7 @@
             <c-components.nav-link href="{% url 'account' %}" label="Mon compte" icon-active="compte" icon="compte" />
         {% else %}
             <div class="flex mt-1">
-                {% if request.resolver_match.url_name == 'login_request' or request.resolver_match.url_name == 'login_email_sent' %}
-                    <c-components.button href="{% url 'login_request' %}" label="Se connecter" />
-                {% else %}
-                    <c-components.button href="{% url 'login_request' %}?next={{ request.path }}" label="Se connecter" />
-                {% endif %}
+                <c-components.button href="{% url 'login_request' %}" label="Se connecter" />
             </div>
         {% endif %}
             <c-components.nav-link href="#" label="A propos" />

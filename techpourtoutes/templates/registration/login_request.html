@@ -6,10 +6,12 @@
                 <c-components.form_fields.input
                     field=form.email
                     autocomplete="email"
-                    description="exemple : hedi.lamart@techpourtoutes.io"
+                    description="exemple : hedy.lamarr@techpourtoute.io"
                 />
                 <input type="hidden" name="next" value="{{ next }}">
-                <c-components.button type="submit" label="Continuer" class="justify-center" />
+                <div class="flex justify-center">
+                    <c-components.button type="submit" label="Continuer" class="justify-center" />
+                </div>
             </c-patterns.form>
         </c-components.card>
         <p class="text-sm text-center">
