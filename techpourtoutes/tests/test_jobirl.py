@@ -164,7 +164,6 @@ def test_register_mentor_on_jobirl_fails_on_network_error(httpx_mock, pro):
     "professional_situation,expected_situation_pro",
     [
         ("working", "actif"),
-        ("student", "actif"),
         ("retired", "retraite"),
         ("jobless", "chomeur"),
     ],

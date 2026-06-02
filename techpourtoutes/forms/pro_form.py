@@ -10,7 +10,10 @@ class ProForm(forms.Form):
     civility = forms.ChoiceField(label=_("Votre civilité*"), choices=Pro.Civility.choices)
     first_name = forms.CharField(label=_("Votre prénom*"))
     last_name = forms.CharField(label=_("Votre nom*"))
-    email = forms.EmailField(label=_("Votre email*"))
+    email = forms.EmailField(
+        label=_("Votre email*"),
+        error_messages={"invalid": _("Saisissez une adresse mail valide.")},
+    )
     phone = PhoneNumberField(region="FR", label=_("Votre n° de téléphone*"))
     postal_code = forms.CharField(
         label=_("Votre code postal*"),
@@ -35,7 +38,7 @@ class ProForm(forms.Form):
 
     def clean(self):
         cleaned_data = super().clean()
-        if cleaned_data.get("professional_situation") in ("working", "student"):
+        if cleaned_data.get("professional_situation") == "working":
             structure_fields = ("structure_name",)
             for field in structure_fields:
                 if not cleaned_data.get(field):

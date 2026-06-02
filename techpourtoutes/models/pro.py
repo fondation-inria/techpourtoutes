@@ -21,7 +21,6 @@ class Pro(User):
         WORKING = "working", _("En emploi")
         RETIRED = "retired", _("À la retraite")
         JOBLESS = "jobless", _("Sans emploi")
-        STUDENT = "student", _("En étude")
 
     class Civility(models.TextChoices):
         MADAME = "Madame", _("Madame")
