@@ -3,7 +3,7 @@
 {% if variant == "intertitre" %}
     <h3 class="font-bold text-base mt-5 {{ class }}">{{ title|safe }}</h3>
 {% else %}
-    <div class="flex items-center gap-x-4 text-primary-700 {{ class }}">
+    <div class="flex items-center gap-x-3 text-primary-700 {{ class }}">
         {% if icon_name %}
             <c-components.icon name="{{ icon_name }}" class="size-12" />
         {% endif %}
