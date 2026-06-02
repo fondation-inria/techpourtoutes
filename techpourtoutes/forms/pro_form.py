@@ -35,7 +35,7 @@ class ProForm(forms.Form):
 
     def clean(self):
         cleaned_data = super().clean()
-        if cleaned_data.get("professional_situation") in ("working", "student"):
+        if cleaned_data.get("professional_situation") == "working":
             structure_fields = ("structure_name",)
             for field in structure_fields:
                 if not cleaned_data.get(field):

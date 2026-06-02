@@ -39,7 +39,7 @@ class AccountEditForm(forms.Form):
 
     def clean(self):
         cleaned_data = super().clean()
-        if cleaned_data.get("professional_situation") in ("working", "student"):
+        if cleaned_data.get("professional_situation") == "working":
             if not cleaned_data.get("structure_name"):
                 self.add_error("structure_name", _("Ce champ est obligatoire."))
         return cleaned_data
