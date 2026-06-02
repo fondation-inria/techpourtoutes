@@ -3,6 +3,7 @@ import secrets
 from datetime import timedelta
 
 from django.contrib.auth.models import AbstractUser
+from django.core.validators import EmailValidator
 from django.db import models
 from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
@@ -17,6 +18,10 @@ def _hash_login_token(plaintext: str) -> str:
 
 
 class User(BaseModel, AbstractUser):
+    email = models.EmailField(
+        _("adresse email"),
+        validators=[EmailValidator(message=_("Saisissez une adresse mail valide."))],
+    )
     login_token_hash = models.CharField(
         max_length=64,
         blank=True,

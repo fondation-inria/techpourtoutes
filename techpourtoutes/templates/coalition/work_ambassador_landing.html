@@ -90,10 +90,10 @@
                         <c-components.form_fields.input field=form.postal_code autocomplete="postal-code" />
                         <c-components.form_fields.select field=form.professional_situation :watchable=True />
                         <div x-show="situation != ''" x-cloak>
-                            <c-components.form_fields.input field=form.job_title alpine_label="situation === 'student' ? 'Votre filière*' : 'Votre métier*'" autocomplete="organization-title" />
+                            <c-components.form_fields.input field=form.job_title autocomplete="organization-title" />
                         </div>
-                        <div x-show="['working', 'student'].includes(situation)" x-cloak>
-                            <c-components.form_fields.input field=form.structure_name alpine_label="situation === 'student' ? 'Nom de votre établissement*' : 'Nom de votre structure*'" description="Votre structure actuelle ou la dernière" autocomplete="organization" />
+                        <div x-show="situation == 'working'" x-cloak>
+                            <c-components.form_fields.input field=form.structure_name autocomplete="organization" />
                         </div>
                         <c-components.form_fields.checkbox field=form.terms_accepted />
                         <div class="flex justify-center">
