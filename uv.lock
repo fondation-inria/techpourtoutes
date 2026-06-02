@@ -275,8 +275,8 @@ requires-dist = [
     { name = "ipython", specifier = ">=9.12" },
     { name = "phonenumberslite", specifier = ">=9.0.29" },
     { name = "psycopg2", specifier = ">=2.9.12" },
-    { name = "redis", specifier = ">=7.4.0" },
-    { name = "sentry-sdk", extras = ["celery", "django"], specifier = ">=2.60.0" },
+    { name = "redis", specifier = ">=7.4" },
+    { name = "sentry-sdk", extras = ["celery", "django"], specifier = ">=2.60" },
     { name = "whitenoise", specifier = ">=6.12" },
 ]
 

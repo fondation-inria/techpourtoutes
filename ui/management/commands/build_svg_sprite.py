@@ -9,6 +9,7 @@ SPRITE_PATH = Path(settings.BASE_DIR) / "ui" / "static" / "svg" / "sprite.svg"
 
 
 def _namespace_ids(content: str, slug: str) -> str:
+    content = re.sub(r"\bxlink:href=", "href=", content)
     ids = re.findall(r'\bid="([^"]+)"', content)
     for id_val in ids:
         escaped = re.escape(id_val)

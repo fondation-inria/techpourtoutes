@@ -3,7 +3,7 @@
 <li>
     {% if disabled %}
         <span class="flex items-center gap-3 px-3 py-2 rounded-md text-sm font-medium text-disabled opacity-60 cursor-not-allowed select-none">
-            {% if icon %}<c-components.icon name="{{ icon }}" class="w-5 h-5 shrink-0" />{% endif %}
+            {% if icon %}<c-components.icon name="{{ icon }}" class="w-5 h-5" />{% endif %}
             <span>{{ label }}</span>
         </span>
     {% else %}
@@ -12,7 +12,7 @@
             {% if icon %}
                 <c-components.icon
                     name="{% if request.path == href and icon_active %}{{ icon_active }}{% else %}{{ icon }}{% endif %}"
-                    class="w-5 h-5 shrink-0"
+                    class="w-5 h-5"
                 />
             {% endif %}
             <span>{{ label }}</span>

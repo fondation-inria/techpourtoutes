@@ -56,6 +56,27 @@ def internships_landing(request):
     return render(request, "coalition/internships_landing.html", {})
 
 
+def workshops_landing(request):
+    if request.method == "POST":
+        form = ProForm(data=request.POST)
+        if form.is_valid():
+            pro = form.save(commit=False)
+            pro.engagements.append("workshops")
+            pro.save()
+            CoalitionMailer.welcome(pro=pro, token=pro.issue_login_token())
+            CoalitionMailer.new_pro(pro=pro, engagement="workshops")
+            return redirect("coalition_welcome")
+        else:
+            messages.error(
+                request,
+                "Des erreurs empêchent la validation du formulaire, "
+                "merci de les corriger et de réessayer à nouveau.",
+            )
+    else:
+        form = ProForm()
+    return render(request, "coalition/workshops_landing.html", {"form": form})
+
+
 def sponsor_landing(request):
     if request.method == "POST":
         form = ProForm(data=request.POST)
