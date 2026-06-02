@@ -1,6 +1,7 @@
 from urllib.parse import urlencode
 
 from django.conf import settings
+from django.contrib.staticfiles.storage import staticfiles_storage
 from django.core.mail import send_mail
 from django.template.loader import render_to_string
 from django.urls import reverse
@@ -10,7 +11,7 @@ from .models import Pro
 
 def _base_context():
     return {
-        "logo_url": f"{settings.SITE_URL}/{settings.STATIC_URL}images/techpourtoutes-logo.png",
+        "logo_url": settings.SITE_URL + staticfiles_storage.url("images/techpourtoutes-logo.png"),
         "base_url": settings.SITE_URL,
     }
 
