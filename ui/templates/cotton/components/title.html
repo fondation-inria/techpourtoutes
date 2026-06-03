@@ -9,6 +9,8 @@
         {% endif %}
         {% if variant == "h2" %}
             <h2 class="text-xl font-medium leading-[1.2]">{{ title|safe }}</h2>
+        {% elif variant == "h2-thin" %}
+            <h2 class="text-xl leading-[1.2]">{{ title|safe }}</h2>
         {% elif variant == "h2-black" %}
             <h2 class="text-2xl text-black leading-[1.4]">{{ title|safe }}</h2>
         {% elif variant == "h3" %}
