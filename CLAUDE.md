@@ -114,15 +114,20 @@ Django 6 + PostgreSQL project. Locale is French (fr-FR), timezone Europe/Paris.
 **Core entities:**
 - `User` — extends Django's `AbstractUser` via `BaseModel`. Custom user model (`AUTH_USER_MODEL`). Uses passwordless email-link login: `issue_login_token()` generates a hashed token with a 1h TTL; `consume_login_token(plaintext)` validates and invalidates it atomically. Auth views live in `techpourtoutes/views/auth_views.py`.
 - `Pro` — multi-table inheritance from `User`. Adds civility, birth date, phone, job title, personal address, optional structure fields, and Jobirl integration fields (`jobirl_user_id`, `jobirl_user_token`). Password is set to unusable on creation.
+- `School` — imported education institutions used by the workshop request form. Stores the official identifier, display name, normalized accent-free name for search, and postal code. Populate it with `uv run python manage.py import_schools`; the command fetches `data.education.gouv.fr` using `HUWISE_API_KEY`, excludes schools, and upserts by identifier.
+- `WorkshopRequest` — one row per workshop type requested by a `Pro`, with an optional shared remark. The workshop landing form can create multiple rows from one submission.
 
 **Relationships:**
 - `Pro` inherits from `User` (Django multi-table inheritance — one DB row per table).
+- `WorkshopRequest` belongs to `Pro` through `pro.workshop_requests`.
 
 **Service objects:** Inherit from `BaseService` (`techpourtoutes/services/base.py`). Implement `perform(**kwargs)`; call `self.fail("message")` to signal failure. Check `result.success` / `result.failure` and `result.errors` at the call site.
 
 **Mailers:** `techpourtoutes/mailers.py` — class-based, no inheritance. Each mailer exposes `@classmethod` methods that call `send_mail` with rendered txt+html templates (`CoalitionMailer`, `LoginMailer`).
 
 **Jobirl integration:** External mentoring platform. Services live in `techpourtoutes/services/jobirl_api/`. Use `JobirlApiBaseService` (extends `BaseService`) for requests — it wraps `JobirlClient` (`techpourtoutes/clients/jobirl.py`) and exposes `result.jobirl_response_body` (the `datas` key from the response) on success.
+
+**n8n workshop notifications:** Workshop requests notify Latitudes through `NotifyWorkshopRequest` in `techpourtoutes/services/n8n_api/`. The webhook URL comes from `N8N_WORKSHOP_WEBHOOK_URL`. Calls run through the Celery task `notify_workshop_request_task`, which retries transient failures (network errors, HTTP 429, and 5xx responses) using the shared retry behavior in `techpourtoutes/tasks/_retry.py`.
 
 **Brevo contact sync:** Gated globally by `settings.BREVO_SYNC_ENABLED` (env `BREVO_SYNC_ENABLED`, default `False` — off in local/dev, on in prod). Also gated per-instance by `User.brevo_sync_enabled`. `techpourtoutes/signals.py` connects `post_save` (upsert) and `pre_delete` (delete) handlers via `connect_brevo_sync(model_cls)` — called once per syncable subclass (e.g. at the bottom of `pro.py`). Handlers short-circuit when either flag is off; otherwise they schedule Celery tasks on `transaction.on_commit`. Tasks live in `techpourtoutes/tasks/` and call services in `techpourtoutes/services/brevo_api/` (`UpsertBrevoContact`, `DeleteBrevoContact`), which use `BrevoClient` (`techpourtoutes/clients/brevo.py`). Field-to-attribute mapping and per-model list resolution are in `services/brevo_api/mappings.py`.
 
@@ -131,6 +136,8 @@ Django 6 + PostgreSQL project. Locale is French (fr-FR), timezone Europe/Paris.
 **Forms:** Use plain `forms.Form` with a manual `save()`, not `ModelForm`. Preferred when the form doesn't map 1:1 to a model (e.g. spans multiple models, or includes fields like `terms_accepted` that belong to no model).
 
 **Views:** Function-based views only.
+
+**Workshop request flow:** `workshops_landing` uses `WorkshopForm`, creates a `Pro` with the `workshops` engagement, persists one `WorkshopRequest` per selected workshop type, sends the welcome email, and enqueues the n8n notification task. `search_schools` returns an HTMX partial for the school autocomplete; search is token-based and accent-insensitive via `School.name_normalized`.
 
 **Audit trail:** `django-simple-history` middleware is active — models that need history tracking should use `HistoricalRecords`.
 
