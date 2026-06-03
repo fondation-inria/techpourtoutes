@@ -51,11 +51,14 @@
     </c-components.accordion>
 
     <c-slot name="right">
-        <div class="flex flex-col items-center px-4 md:mt-[65px]">
+        <div class="flex flex-col items-center px-4 md:mt-[65px] md:self-start"
+             x-data="{ showForm: {{ form.is_bound|yesno:'true,false' }}, situation: '{{ form.professional_situation.value|default:'' }}' }"
+             @select-change="situation = $event.detail.value"
+             :class="{ 'md:sticky md:top-14 xl:top-8': !showForm }">
             <c-components.title title="Rejoignez la coalition&nbsp;!" class="justify-center w-[300px] h-16" variant="h3" />
-            <div x-data="{ showForm: {{ form.is_bound|yesno:'true,false' }}, situation: '{{ form.professional_situation.value|default:'' }}' }"
-                 @select-change="situation = $event.detail.value"
-                 id="mentor-card">
+
+            <div id="mentor-card">
+
                 <div x-show="!showForm" @click.prevent="showForm = true; $nextTick(() => { if (window.innerWidth < 768) $refs.formCard.scrollIntoView({ behavior: 'smooth', block: 'start' }) })" class="cursor-pointer">
                     <c-components.card-shadow id="mentor-member-card" class="w-[320px] my-5">
                         <div class="flex gap-5">
@@ -71,6 +74,7 @@
                         </div>
                     </c-components.card-shadow>
                 </div>
+
                 <div x-ref="formCard" x-show="showForm" x-cloak
                     x-transition:enter="transition ease-out duration-300 origin-top"
                     x-transition:enter-start="scale-y-20"
@@ -101,7 +105,9 @@
                         </c-patterns.form>
                     </c-components.card-shadow>
                 </div>
+
             </div>
+
         </div>
     </c-slot>
 </c-layout.base>

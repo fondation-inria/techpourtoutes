@@ -1376,6 +1376,9 @@
   .right-4 {
     right: calc(var(--spacing) * 4);
   }
+  .bottom-14 {
+    bottom: calc(var(--spacing) * 14);
+  }
   .textarea {
     @layer daisyui.l1.l2.l3 {
       border: var(--border) solid #0000;
@@ -2494,6 +2497,21 @@
       color: var(--color-neutral-0);
     }
   }
+  .md\:sticky {
+    @media (width >= 48rem) {
+      position: sticky;
+    }
+  }
+  .md\:top-14 {
+    @media (width >= 48rem) {
+      top: calc(var(--spacing) * 14);
+    }
+  }
+  .md\:bottom-14 {
+    @media (width >= 48rem) {
+      bottom: calc(var(--spacing) * 14);
+    }
+  }
   .md\:mt-\[65px\] {
     @media (width >= 48rem) {
       margin-top: 65px;
@@ -2527,6 +2545,11 @@
   .md\:justify-around {
     @media (width >= 48rem) {
       justify-content: space-around;
+    }
+  }
+  .md\:self-start {
+    @media (width >= 48rem) {
+      align-self: flex-start;
     }
   }
   .md\:rounded-r-lg {
@@ -2607,6 +2630,16 @@
           }
         }
       }
+    }
+  }
+  .xl\:top-8 {
+    @media (width >= 80rem) {
+      top: calc(var(--spacing) * 8);
+    }
+  }
+  .xl\:bottom-8 {
+    @media (width >= 80rem) {
+      bottom: calc(var(--spacing) * 8);
     }
   }
   .xl\:hidden {
