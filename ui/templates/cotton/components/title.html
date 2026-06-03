@@ -1,7 +1,7 @@
 <c-vars icon-name="" title="" variant="h1" class="" />
 
 {% if variant == "intertitre" %}
-    <h3 class="font-bold text-base mt-5 {{ class }}">{{ title|safe }}</h3>
+    <h3 class="font-bold text-base {{ class }}">{{ title|safe }}</h3>
 {% else %}
     <div class="flex items-center gap-x-3 text-primary-700 {{ class }}">
         {% if icon_name %}

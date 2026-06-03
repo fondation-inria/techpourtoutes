@@ -1,0 +1,131 @@
+<c-layout.base>
+    <c-components.title icon-name="organiser-un-atelier-bold" title="Organiser un atelier" />
+    <div class="flex gap-x-4">
+        <c-components.badge label="Ponctuel" />
+        <c-components.badge label="2 heures" />
+        <c-components.badge label="En présentiel" />
+    </div>
+
+    <p>
+        Prenez le temps d'aborder le numérique autrement à l'école &nbsp;: TechPourToutes propose deux formats d'atelier à destination des lycées.
+    </p>
+
+    <c-components.card title="1. Les ateliers Futurs Numériques de Latitudes">
+        <c-components.text>
+            4 ateliers gratuits et sans écran, à destination des élèves du secondaire, pour éveiller l'esprit critique et découvrir les métiers du numérique et les enjeux de la mixité.
+        </c-components.text>
+    </c-components.card>
+
+    <div class="flex gap-x-5 justify-between max-w-2xl mb">
+        <c-components.card-shadow variant="blue" class="flex flex-1 flex-col gap-3 justify-between h-60">
+            <c-components.title title="L'enquête TechPourToutes" variant="intertitre" class="text-center" />
+            <div class="flex flex-1 justify-center">
+                <c-components.icon name="atelier-latitudes-tech-pour-toutes" variant="png" class="max-w-30 max-h-25" />
+            </div>
+            <p class="text-sm text-center">
+                Découvrir l’enjeu de la diversité de genre et la place des femmes dans le secteur du numérique.
+            </p>
+        </c-components.card-shadow>
+
+        <c-components.card-shadow variant="blue" class="flex flex-1 flex-col gap-3 justify-between h-60">
+            <c-components.title title="Future of Tech" variant="intertitre" class="text-center" />
+            <div class="flex flex-1 justify-center">
+                <c-components.icon name="atelier-latitudes-future-of-tech" variant="png" class="max-w-30 max-h-25" />
+            </div>
+            <p class="text-sm text-center">
+                Découvrir les métiers du numérique et ses impacts sociaux et environnementaux
+            </p>
+        </c-components.card-shadow>
+    </div>
+
+    <div class="flex gap-x-5 justify-between max-w-2xl">
+        <c-components.card-shadow variant="blue" class="flex flex-1 flex-col gap-3 justify-between h-60">
+            <c-components.title title="Future of IA" variant="intertitre" class="text-center" />
+            <div class="flex flex-1 justify-center">
+                <c-components.icon name="atelier-latitudes-future-of-ia" variant="png" class="max-w-30 max-h-25" />
+            </div>
+            <p class="text-sm text-center">
+                Découvrir les enjeux et métiers de l'IA
+            </p>
+        </c-components.card-shadow>
+
+        <c-components.card-shadow variant="blue" class="flex flex-1 flex-col gap-3 justify-between h-60">
+            <c-components.title title="Future of Cyber" variant="intertitre" class="text-center" />
+            <div class="flex flex-1 justify-center">
+                <c-components.icon name="atelier-latitudes-future-of-cyber" variant="png" class="max-w-30 max-h-25" />
+            </div>
+            <p class="text-sm text-center">
+                Découvrir l'univers de la cybersécurité et ses enjeux
+            </p>
+        </c-components.card-shadow>
+    </div>
+
+    <c-components.accordion title="Cette action est menée par" class="mb-5">
+        <c-components.text>
+            Latitudes, une communauté d'acteurs et d'actrices de la tech qui agissent pour créer une technologie engagée et responsable.
+
+        </c-components.text>
+        <c-components.button href="#" label="Découvrir tous les membres du consortium TechPourToutes" variant="quaternaly" />
+    </c-components.accordion>
+
+    <c-components.card title="2. Les ateliers Chiche&nbsp;! avec Inria">
+        <c-components.text>
+            Le programme cible les élèves de classes de seconde des lycées d'enseignement général et technologique. Il propose aux enseignantes et enseignants d'accueillir dans leur classe un ou une scientifique du numérique pour parler de son parcours, de son métier et de son expertise scientifique.
+        </c-components.text>
+    </c-components.card>
+
+    <c-components.accordion title="Cette action est menée par">
+        <c-components.text>
+            Inria, l'Institut national de recherche en sciences et technologies du numérique.
+
+        </c-components.text>
+        <c-components.button href="#" label="Découvrir tous les membres du consortium TechPourToutes" variant="quaternaly" />
+    </c-components.accordion>
+
+    <c-slot name="right">
+        <div class="flex flex-col items-center px-4 md:mt-[65px]">
+            <c-components.title title="Demandez un atelier&nbsp;!" class="justify-center text-center w-[250px] h-16" variant="h3" />
+
+            <div x-data="{ showForm: {{ form.is_bound|yesno:'true,false' }} }"
+                 id="latitudes-form">
+                <div x-show="!showForm" @click.prevent="showForm = true; $nextTick(() => { if (window.innerWidth < 768) $refs.formCard.scrollIntoView({ behavior: 'smooth', block: 'start' }) })" class="cursor-pointer">
+                    <div class="flex justify-center">
+                        <c-components.button id="latitudes-cta" href="" label="Organiser un atelier Latitudes" />
+                    </div>
+                </div>
+                <div x-ref="formCard" x-show="showForm" x-cloak
+                    x-transition:enter="transition ease-out duration-300 origin-top"
+                    x-transition:enter-start="scale-y-20"
+                    x-transition:enter-end="scale-y-100"
+                />
+                    <c-components.card-shadow id="latitudes-form-card" class="w-[320px] my-5 p-5 relative">
+                        <c-components.icon name="badge-coeur" class="shrink-0 w-15 h-15 absolute -top-5 -right-5" />
+                        <c-patterns.form url="{% url 'workshops_landing' %}">
+                            <c-components.title title="Organiser un atelier Latitudes" variant="h3" />
+                            <p class="description-text-xxs">Les champs suivis d'un astérisque (*) sont obligatoires.</p>
+                            <c-components.form_fields.radio field=form.civility />
+                            <c-components.form_fields.input field=form.first_name autocomplete="given-name" />
+                            <c-components.form_fields.input field=form.last_name autocomplete="family-name" />
+                            <c-components.form_fields.input field=form.email autocomplete="email" />
+                            <c-components.form_fields.select field=form.job_title />
+                            <c-components.form_fields.school_search
+                                name_field=form.structure_name
+                                id_field=form.structure_id
+                                postal_field=form.postal_code
+                                description="Recherchez par nom et/ou code postal"
+                            />
+                            <c-components.form_fields.checkbox_group field=form.ateliers description="Vous pouvez choisir plusieurs ateliers" />
+                            <c-components.form_fields.textarea field=form.remark />
+                            <c-components.form_fields.checkbox field=form.terms_accepted />
+                            <div class="flex justify-center">
+                                <c-components.button type="submit" label="Je demande un atelier Latitudes" class="justify-center" />
+                            </div>
+                        </c-patterns.form>
+                    </c-components.card-shadow>
+                </div>
+            </div>
+
+            <c-components.button label="Organiser un atelier Chiche !" icon="external-link" href="https://connexion-chiche.inria.fr/" class="my-5" />
+        </div>
+    </c-slot>
+</c-layout.base>

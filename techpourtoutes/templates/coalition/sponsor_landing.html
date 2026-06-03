@@ -5,11 +5,11 @@
     </p>
 
     <c-components.card title="Participez au financement des études des futures talents de la tech">
-         <c-components.title title="1. Contribuez à des bourses allant jusqu'à 7&nbsp;000 euros" variant="intertitre" />
+         <c-components.title title="1. Contribuez à des bourses allant jusqu'à 7&nbsp;000 euros" variant="intertitre" class="mt-5" />
         <c-components.text>
             Ces bourses permettront concrètement à des lycéennes et étudiantes de poursuivre leurs études dans la voie qui les motive et pour laquelle elles sont talentueuses. Attribuées sur critères sociaux et venant en complément des bourses du CROUS, elles permettront de lever les freins matériels, témoignant d’un soutien concret à la féminisation et d’un engagement des entreprises qui veulent élargir le vivier de leurs futures collaboratrices. La boursière est libre d'utiliser l'aide selon ses besoins réels et sans lourdeur administrative.
         </c-components.text>
-         <c-components.title title="2. Donnez du matériel" variant="intertitre" />
+         <c-components.title title="2. Donnez du matériel" variant="intertitre" class="mt-5" />
         <c-components.text>
             Vous pouvez également aller plus loin en équipant les bénéficiaires du programme qui n'y ont pas accès avec des ordinateurs, des tablettes, etc. pour qu'elles puissent suivre leurs études dans les meilleures conditions. Ce don de matériel pourrait aussi venir en complément des programmes de recyclage en vigueur dans votre structure.
         </c-components.text>
@@ -54,46 +54,46 @@
             <c-components.title title="Rejoignez la coalition&nbsp;!" class="justify-center w-[300px] h-16" variant="h3" />
             <div x-data="{ showForm: {{ form.is_bound|yesno:'true,false' }} }" id="sponsor-card">
                 <div x-show="!showForm" @click.prevent="showForm = true; $nextTick(() => { if (window.innerWidth < 768) $refs.formCard.scrollIntoView({ behavior: 'smooth', block: 'start' }) })" class="cursor-pointer">
-                <c-components.card-shadow id="sponsor-member-card" class="my-5">
-                    <div class="flex">
-                        <c-components.icon name="badge-coeur" class="w-15 h-15 shrink-0 mx-5" />
-                        <div class="mt-5 [&>p]:pb-3 [&>p]:font-medium">
-                            <p>Prénom</p>
-                            <p>Nom</p>
-                            <p>Mécène TechPourToutes</p>
+                    <c-components.card-shadow id="sponsor-member-card" class="w-[320px] my-5">
+                        <div class="flex gap-5">
+                            <c-components.icon name="badge-coeur" class="shrink-0 w-15 h-15" />
+                            <div class="mt-5 [&>p]:pb-3 [&>p]:font-medium">
+                                <p>Prénom</p>
+                                <p>Nom</p>
+                                <p>Mécène TechPourToutes</p>
+                            </div>
                         </div>
-                    </div>
-                    <div class="flex justify-center">
-                        <c-components.button href="" label="Je deviens mécène" />
-                    </div>
-                </c-components.card-shadow>
-            </div>
-            <div x-ref="formCard" x-show="showForm" x-cloak
-                 x-transition:enter="transition ease-out duration-300 origin-top"
-                 x-transition:enter-start="scale-y-20"
-                 x-transition:enter-end="scale-y-100"
-            />
-                <c-components.card-shadow id="sponsor-form-card" class="my-5 p-5 relative">
-                    <c-components.icon name="badge-coeur" class="w-15 h-15 shrink-0 mx-5 absolute -top-5 -right-10" />
-                    <c-patterns.form url="{% url 'sponsor_landing' %}">
-                        <c-components.title title="Engagement mécène" variant="h3" />
-                        <p class="description-text-xxs">Les champs suivis d'un astérisque (*) sont obligatoires.</p>
-                        <c-components.form_fields.radio field=form.civility />
-                        <c-components.form_fields.input field=form.first_name autocomplete="given-name" />
-                        <c-components.form_fields.input field=form.last_name autocomplete="family-name" />
-                        <c-components.form_fields.input field=form.email autocomplete="email" />
-                        <c-components.form_fields.input field=form.phone autocomplete="tel" />
-                        <c-components.form_fields.input field=form.postal_code autocomplete="postal-code" />
-                        <input type="hidden" name="professional_situation" value="working">
-                        <c-components.form_fields.input field=form.job_title autocomplete="organization-title" />
-                        <c-components.form_fields.input field=form.structure_name autocomplete="organization" />
-                        <c-components.form_fields.checkbox field=form.terms_accepted />
                         <div class="flex justify-center">
-                            <c-components.button type="submit" label="Je deviens mécène" />
+                            <c-components.button href="" label="Je deviens mécène" />
                         </div>
-                    </c-patterns.form>
-                </c-components.card-shadow>
-            </div>
+                    </c-components.card-shadow>
+                </div>
+                <div x-ref="formCard" x-show="showForm" x-cloak
+                    x-transition:enter="transition ease-out duration-300 origin-top"
+                    x-transition:enter-start="scale-y-20"
+                    x-transition:enter-end="scale-y-100"
+                />
+                    <c-components.card-shadow id="sponsor-form-card" class="w-[320px] my-5 p-5 relative">
+                        <c-components.icon name="badge-coeur" class="shrink-0 w-15 h-15 absolute -top-5 -right-5" />
+                        <c-patterns.form url="{% url 'sponsor_landing' %}">
+                            <c-components.title title="Engagement mécène" variant="h3" />
+                            <p class="description-text-xxs">Les champs suivis d'un astérisque (*) sont obligatoires.</p>
+                            <c-components.form_fields.radio field=form.civility />
+                            <c-components.form_fields.input field=form.first_name autocomplete="given-name" />
+                            <c-components.form_fields.input field=form.last_name autocomplete="family-name" />
+                            <c-components.form_fields.input field=form.email autocomplete="email" />
+                            <c-components.form_fields.input field=form.phone autocomplete="tel" />
+                            <c-components.form_fields.input field=form.postal_code autocomplete="postal-code" />
+                            <input type="hidden" name="professional_situation" value="working">
+                            <c-components.form_fields.input field=form.job_title autocomplete="organization-title" />
+                            <c-components.form_fields.input field=form.structure_name autocomplete="organization" />
+                            <c-components.form_fields.checkbox field=form.terms_accepted />
+                            <div class="flex justify-center">
+                                <c-components.button type="submit" label="Je deviens mécène" />
+                            </div>
+                        </c-patterns.form>
+                    </c-components.card-shadow>
+                </div>
             </div>
         </div>
     </c-slot>

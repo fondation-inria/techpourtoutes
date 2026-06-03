@@ -84,6 +84,21 @@ make run # lance uv run python manage.py tailwind runserver
 Le premier lancement installera Tailwind CSS CLI si nécessaire.
 L'application est disponible sur [http://localhost:8000](http://localhost:8000).
 
+## Commandes utiles
+
+Un `Makefile` expose des raccourcis pour les commandes courantes :
+
+```bash
+make install      # setup complet (première installation)
+make sync         # installer/mettre à jour les dépendances et lancer les migrations
+make run          # lancer le serveur de dev avec le watcher Tailwind
+make test         # lancer les tests
+make lint         # linter avec ruff
+make format       # formater avec ruff
+make pre-commit   # lancer les hooks pre-commits manuellement (lint + format)
+make icons        # rebuilder le sprite SVG
+make seed         # peupler la DB avec des données minimales de dev
+```
 
 ## Tester les emails en local
 
@@ -103,41 +118,6 @@ mailpit
 L'interface est disponible sur [http://localhost:8025](http://localhost:8025). Tous les emails envoyés par l'application y apparaissent.
 
 > En production, les emails sont envoyés via [Brevo](https://www.brevo.com/) (Anymail). La variable `BREVO_API_KEY` doit être renseignée dans le `.env`.
-
-## Synchronisation des contacts Brevo
-
-À la création/mise à jour/suppression d'un `Pro`, un signal déclenche une tâche Celery qui synchronise le contact dans Brevo (liste configurée via `BREVO_PRO_LIST_ID`).
-
-La synchro est désactivée par défaut en local (`BREVO_SYNC_ENABLED=False`). Pour l'activer (en prod ou pour tester en local), passer `BREVO_SYNC_ENABLED=True`.
-
-En local, le plus simple est de mettre `CELERY_TASK_ALWAYS_EAGER=True` dans le `.env` : les tâches s'exécutent en synchrone dans le process Django, sans avoir besoin de Redis ni d'un worker. Sans cette variable, il faut lancer Redis et un worker Celery :
-
-```bash
-# Redis
-brew install redis
-brew services start redis
-
-# Worker Celery (dans un terminal séparé)
-uv run celery -A conf worker --loglevel=info
-```
-
-En tests, les tâches sont forcées en mode eager et le SDK Brevo est mocké (cf. `conftest.py`) — aucun appel réseau n'est effectué.
-
-## Commandes utiles
-
-Un `Makefile` expose des raccourcis pour les commandes courantes :
-
-```bash
-make install      # setup complet (première installation)
-make sync         # installer/mettre à jour les dépendances et lancer les migrations
-make run          # lancer le serveur de dev avec le watcher Tailwind
-make test         # lancer les tests
-make lint         # linter avec ruff
-make format       # formater avec ruff
-make pre-commit   # lancer les hooks pre-commits manuellement (lint + format)
-make icons        # rebuilder le sprite SVG
-make seed         # peupler la DB avec des données minimales de dev
-```
 
 ## Icônes SVG
 
@@ -161,3 +141,36 @@ Le sprite est écrit dans `ui/static/svg/sprite.svg`.
 ```
 
 Le composant cotton `ui/templates/cotton/icon.html` génère un `<svg><use>` qui pointe vers le sprite.
+
+## Synchronisation des contacts Brevo
+
+À la création/mise à jour/suppression d'un `Pro`, un signal déclenche une tâche Celery qui synchronise le contact dans Brevo (liste configurée via `BREVO_PRO_LIST_ID`).
+
+La synchro est désactivée par défaut en local (`BREVO_SYNC_ENABLED=False`). Pour l'activer (en prod ou pour tester en local), passer `BREVO_SYNC_ENABLED=True`.
+
+En local, le plus simple est de mettre `CELERY_TASK_ALWAYS_EAGER=True` dans le `.env` : les tâches s'exécutent en synchrone dans le process Django, sans avoir besoin de Redis ni d'un worker. Sans cette variable, il faut lancer Redis et un worker Celery :
+
+```bash
+# Redis
+brew install redis
+brew services start redis
+
+# Worker Celery (dans un terminal séparé)
+uv run celery -A conf worker --loglevel=info
+```
+
+En tests, les tâches sont forcées en mode eager et le SDK Brevo est mocké (cf. `conftest.py`) — aucun appel réseau n'est effectué.
+
+## Import des établissements
+
+Le formulaire de demande d'atelier utilise la table `School` pour proposer une recherche d'établissement par nom ou code postal.
+
+Les établissements sont importés depuis le jeu de données `fr-en-annuaire-education` de `data.education.gouv.fr`, en excluant les écoles. L'import est idempotent : relancer la commande met à jour les établissements existants à partir de leur identifiant unique.
+
+```bash
+uv run python manage.py import_schools
+```
+
+La commande utilise la variable d'environnement `HUWISE_API_KEY` pour appeler l'API. En local, renseigner cette clé dans `.env` avant de lancer l'import.
+
+Les noms d'établissements sont aussi stockés dans une version normalisée sans accents (`name_normalized`) afin de permettre une recherche accent-insensitive dans le formulaire.
