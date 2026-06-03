@@ -52,11 +52,12 @@
     </c-components.accordion>
 
     <c-slot name="right">
-        <div class="flex flex-col items-center px-4 md:mt-[65px]">
+        <div class="flex flex-col items-center px-4 md:mt-[65px] md:self-start"
+             x-data="{ showForm: {{ form.is_bound|yesno:'true,false' }}, situation: '{{ form.professional_situation.value|default:'' }}' }"
+             @select-change="situation = $event.detail.value"
+             :class="{ 'md:sticky md:top-14 xl:top-8': !showForm }">
             <c-components.title title="Rejoignez la coalition&nbsp;!" class="justify-center w-[300px] h-16" variant="h3" />
-            <div x-data="{ showForm: {{ form.is_bound|yesno:'true,false' }}, situation: '{{ form.professional_situation.value|default:'' }}' }"
-                 @select-change="situation = $event.detail.value"
-                 id="work-ambassador-card">
+            <div id="work-ambassador-card">
                 <div x-show="!showForm" @click.prevent="showForm = true; $nextTick(() => { if (window.innerWidth < 768) $refs.formCard.scrollIntoView({ behavior: 'smooth', block: 'start' }) })" class="cursor-pointer">
                     <c-components.card-shadow id="work-ambassador-member-card" class="w-[320px] my-5">
                         <div class="flex gap-5">

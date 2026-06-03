@@ -83,11 +83,12 @@
     </c-components.accordion>
 
     <c-slot name="right">
-        <div class="flex flex-col items-center px-4 md:mt-[65px]">
+        <div class="flex flex-col items-center px-4 md:mt-[65px] md:self-start"
+             x-data="{ showForm: {{ form.is_bound|yesno:'true,false' }} }"
+             :class="{ 'md:sticky md:top-14 xl:top-8': !showForm }">
             <c-components.title title="Demandez un atelier&nbsp;!" class="justify-center text-center w-[250px] h-16" variant="h3" />
 
-            <div x-data="{ showForm: {{ form.is_bound|yesno:'true,false' }} }"
-                 id="latitudes-form">
+            <div id="latitudes-form">
                 <div x-show="!showForm" @click.prevent="showForm = true; $nextTick(() => { if (window.innerWidth < 768) $refs.formCard.scrollIntoView({ behavior: 'smooth', block: 'start' }) })" class="cursor-pointer">
                     <div class="flex justify-center">
                         <c-components.button id="latitudes-cta" href="" label="Organiser un atelier Latitudes" />
