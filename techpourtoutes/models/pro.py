@@ -16,6 +16,7 @@ class Pro(User):
         WORK_AMBASSADOR = "work_ambassador", _("pitcher son métier")
         TRAINING_AMBASSADOR = "training_ambassador", _("pitcher sa formation")
         SPONSOR = "sponsor", _("devenir mécène")
+        WORKSHOPS = "workshops", _("organiser un atelier")
 
     class ProfessionalSituation(models.TextChoices):
         WORKING = "working", _("En emploi")
@@ -29,7 +30,7 @@ class Pro(User):
     civility = models.CharField(
         max_length=10, choices=Civility.choices, verbose_name=_("civilité")
     )
-    phone = PhoneNumberField(region="FR", verbose_name=_("téléphone"))
+    phone = PhoneNumberField(region="FR", blank=True, verbose_name=_("téléphone"))
     professional_situation = models.CharField(
         max_length=20,
         choices=ProfessionalSituation.choices,
@@ -37,6 +38,9 @@ class Pro(User):
     )
     structure_name = models.CharField(
         max_length=255, blank=True, verbose_name=_("nom de la structure")
+    )
+    structure_id = models.CharField(
+        max_length=20, blank=True, verbose_name=_("identifiant de la structure")
     )
     job_title = models.CharField(max_length=255, verbose_name=_("métier"))
     postal_code = models.CharField(

@@ -1,0 +1,20 @@
+{% for school in schools %}
+    <li>
+        <button type="button"
+            @click="select('{{ school.identifier|escapejs }}', '{{ school.name|escapejs }}', '{{ school.postal_code|escapejs }}')"
+            class="w-full text-left px-3 py-2 text-sm hover:bg-primary-50 text-neutral-950">
+            {{ school.name }} ({{ school.postal_code }})
+        </button>
+    </li>
+{% endfor %}
+{% if next_page %}
+    <li hx-get="{% url 'search_schools' %}?q={{ q|urlencode }}&page={{ next_page }}"
+        hx-trigger="intersect once root:#school-results"
+        hx-target="this"
+        hx-swap="outerHTML"
+        class="px-3 py-2 text-xs text-neutral-500">
+        Chargement…
+    </li>
+{% elif not schools and page == 1 %}
+    <li class="px-3 py-2 text-sm text-neutral-500">Aucun établissement trouvé</li>
+{% endif %}
