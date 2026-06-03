@@ -13,8 +13,10 @@ from .coalition_views import (
     coalition_welcome,
     internships_landing,
     mentor_landing,
+    search_schools,
     sponsor_landing,
     work_ambassador_landing,
+    workshops_landing,
 )
 from .legal_views import (
     accessibilite,
@@ -42,6 +44,8 @@ __all__ = [
     "mentor_landing",
     "coalition_welcome",
     "schema_pluriannuel",
+    "search_schools",
     "sponsor_landing",
     "work_ambassador_landing",
+    "workshops_landing",
 ]

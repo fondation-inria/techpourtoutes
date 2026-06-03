@@ -115,6 +115,81 @@ def test_work_ambassador_landing_post_invalid_rerenders_with_errors(client, vali
     assert len(messages) > 0
 
 
+def _workshop_data(**overrides):
+    return {
+        "civility": "Madame",
+        "first_name": "Manon",
+        "last_name": "Desbordes",
+        "email": "manon@example.com",
+        "job_title": "Enseignante",
+        "structure_id": "0750001A",
+        "structure_name": "Lycée Voltaire",
+        "postal_code": "75011",
+        "remark": "",
+        "ateliers": ["future_of_tech", "future_of_ia"],
+        "terms_accepted": True,
+        **overrides,
+    }
+
+
+@pytest.mark.django_db
+def test_workshops_landing_get(client):
+    assert client.get(reverse("workshops_landing")).status_code == 200
+
+
+@pytest.mark.django_db
+@override_settings(EMAIL_BACKEND="django.core.mail.backends.locmem.EmailBackend")
+def test_workshops_landing_post_valid_creates_pro_and_enqueues_task(client):
+    from techpourtoutes.models import Pro
+
+    with patch("techpourtoutes.views.coalition_views.notify_workshop_request_task") as mock_task:
+        response = client.post(reverse("workshops_landing"), data=_workshop_data())
+
+    assert response.status_code == 302
+    assert response["Location"] == reverse("coalition_welcome")
+
+    pro = Pro.objects.get(email="manon@example.com")
+    assert pro.structure_id == "0750001A"
+    assert "workshops" in pro.engagements
+    mock_task.delay.assert_called_once_with(str(pro.pk), ["future_of_tech", "future_of_ia"], "")
+
+
+@pytest.mark.django_db
+@override_settings(EMAIL_BACKEND="django.core.mail.backends.locmem.EmailBackend")
+def test_workshops_landing_post_valid_sends_welcome_email(client):
+    from django.core import mail
+
+    with patch("techpourtoutes.views.coalition_views.notify_workshop_request_task"):
+        client.post(reverse("workshops_landing"), data=_workshop_data())
+
+    assert len(mail.outbox) == 1
+    assert mail.outbox[0].to == ["manon@example.com"]
+
+
+@pytest.mark.django_db
+@override_settings(EMAIL_BACKEND="django.core.mail.backends.locmem.EmailBackend")
+def test_workshops_landing_post_valid_persists_one_request_per_type(client):
+    from techpourtoutes.models import Pro, WorkshopRequest
+
+    with patch("techpourtoutes.views.coalition_views.notify_workshop_request_task"):
+        client.post(reverse("workshops_landing"), data=_workshop_data(remark="Une note"))
+
+    pro = Pro.objects.get(email="manon@example.com")
+    requests = pro.workshop_requests.all()
+    assert {r.type for r in requests} == {"future_of_tech", "future_of_ia"}
+    assert all(r.remark == "Une note" for r in requests)
+    assert WorkshopRequest.objects.count() == 2
+
+
+@pytest.mark.django_db
+def test_workshops_landing_post_invalid_rerenders_with_errors(client):
+    response = client.post(reverse("workshops_landing"), data=_workshop_data(ateliers=[]))
+    assert response.status_code == 200
+    assert response.context["form"].errors
+    messages = list(response.context["messages"])
+    assert len(messages) > 0
+
+
 @pytest.mark.django_db
 def test_sponsor_landing_get(client):
     assert client.get(reverse("sponsor_landing")).status_code == 200

@@ -19,21 +19,21 @@ class JobirlApiBaseService(BaseService):
 
     Subclasses must implement `perform(**kwargs)`, which is called automatically on
     instantiation (see BaseService). A typical implementation calls `self.request()`
-    with a method, path, and optional payload, then reads data off
+    with a method, path, and optional form data, then reads data off
     `self.jobirl_response_body`.
 
     Flow:
         1. `MyService(foo=bar)` → `perform(foo=bar)` is called automatically.
-        2. `perform` calls `self.request(method="post", path="some_endpoint", payload={...})`.
+        2. `perform` calls `self.request(method="post", path="some_endpoint", data={...})`.
         3. On success, `self.jobirl_response_body` exposes the parsed `datas` dict from
            the Jobirl JSON response. On network or HTTP error, `self.fail()` is called,
            which raises `FailedServiceError` and populates `self.errors`.
         4. After instantiation, callers check `service.success` / `service.failure`.
     """
 
-    def request(self, *, method: str, path: str, payload: dict | None = None) -> None:
+    def request(self, *, method: str, path: str, data: dict | None = None) -> None:
         try:
-            self._jobirl_response = getattr(JobirlClient(), method)(path=path, payload=payload)
+            self._jobirl_response = getattr(JobirlClient(), method)(path=path, data=data)
         except httpx.RequestError:
             self.fail(NETWORK_ERROR_MESSAGE)
             return

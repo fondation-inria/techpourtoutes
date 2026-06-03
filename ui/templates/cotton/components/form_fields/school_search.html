@@ -1,0 +1,67 @@
+<c-vars
+    name_field
+    id_field
+    postal_field
+    label=""
+    description=""
+    class=""
+/>
+
+<c-components.form-fields.base :field=name_field label=label description=description class=class>
+    <div x-data="{
+            open: false,
+            query: '{{ name_field.value|default:"" }}{% if name_field.value and postal_field.value %} ({{ postal_field.value }}){% endif %}',
+            structureName: '{{ name_field.value|default:"" }}',
+            structureId: '{{ id_field.value|default:"" }}',
+            postalCode: '{{ postal_field.value|default:"" }}',
+            select(id, name, postal) {
+                this.structureId = id;
+                this.structureName = name;
+                this.postalCode = postal;
+                this.query = name + ' (' + postal + ')';
+                this.open = false;
+            },
+            clear() {
+                this.structureId = '';
+                this.structureName = '';
+                this.postalCode = '';
+                this.query = '';
+                this.open = true;
+                this.$nextTick(() => this.$refs.searchInput.focus());
+            }
+         }"
+         @click.outside="open = false"
+         @keydown.escape="open = false"
+         class="relative">
+        <input type="hidden" name="{{ name_field.html_name }}" :value="structureName">
+        <input type="hidden" name="{{ id_field.html_name }}" :value="structureId">
+        <input type="hidden" name="{{ postal_field.html_name }}" :value="postalCode">
+        <input type="text"
+               x-show="!structureId"
+               x-ref="searchInput"
+               id="{{ name_field.id_for_label }}"
+               x-model="query"
+               @focus="open = true"
+               @input="open = true"
+               name="q"
+               autocomplete="off"
+               placeholder="Rechercher un établissement…"
+               hx-get="{% url 'search_schools' %}"
+               hx-trigger="focus, input changed delay:300ms"
+               hx-target="#school-results"
+               class="field-base field-default" />
+        <div x-show="structureId" x-cloak
+             class="field-base field-default flex items-start justify-between gap-2">
+            <span class="wrap-break-word" x-text="query"></span>
+            <button type="button" @click="clear()"
+                    class="shrink-0 text-neutral-500 hover:text-neutral-950 cursor-pointer"
+                    aria-label="Effacer la sélection">
+                <c-components.icon name="close" class="w-4 h-4" />
+            </button>
+        </div>
+        <ul x-show="open && !structureId" x-cloak
+            id="school-results"
+            class="absolute z-10 mt-1 w-full bg-neutral-50 rounded shadow-thin-bottom shadow-primary-700 max-h-60 overflow-y-auto"
+            role="listbox"></ul>
+    </div>
+</c-components.form-fields.base>

@@ -57,50 +57,50 @@
                  @select-change="situation = $event.detail.value"
                  id="mentor-card">
                 <div x-show="!showForm" @click.prevent="showForm = true; $nextTick(() => { if (window.innerWidth < 768) $refs.formCard.scrollIntoView({ behavior: 'smooth', block: 'start' }) })" class="cursor-pointer">
-                <c-components.card-shadow id="mentor-member-card" class="my-5">
-                    <div class="flex">
-                        <c-components.icon name="badge-coeur" class="w-15 h-15 shrink-0 mx-5" />
-                        <div class="mt-5 [&>p]:pb-3 [&>p]:font-medium">
-                            <p>Prénom</p>
-                            <p>Nom</p>
-                            <p>Mentor TechPourToutes</p>
+                    <c-components.card-shadow id="mentor-member-card" class="w-[320px] my-5">
+                        <div class="flex gap-5">
+                            <c-components.icon name="badge-coeur" class="shrink-0 w-15 h-15" />
+                            <div class="mt-5 [&>p]:pb-3 [&>p]:font-medium">
+                                <p>Prénom</p>
+                                <p>Nom</p>
+                                <p>Mentor TechPourToutes</p>
+                            </div>
                         </div>
-                    </div>
-                    <div class="flex justify-center">
-                        <c-components.button href="" label="Je deviens mentor" />
-                    </div>
-                </c-components.card-shadow>
-            </div>
-            <div x-ref="formCard" x-show="showForm" x-cloak
-                 x-transition:enter="transition ease-out duration-300 origin-top"
-                 x-transition:enter-start="scale-y-20"
-                 x-transition:enter-end="scale-y-100"
-            />
-                <c-components.card-shadow id="mentor-form-card" class="my-5 p-5 relative">
-                    <c-components.icon name="badge-coeur" class="w-15 h-15 shrink-0 mx-5 absolute -top-5 -right-10" />
-                    <c-patterns.form url="{% url 'mentor_landing' %}">
-                        <c-components.title title="Engagement mentor" variant="h3" />
-                        <p class="description-text-xxs">Les champs suivis d'un astérisque (*) sont obligatoires.</p>
-                        <c-components.form_fields.radio field=form.civility />
-                        <c-components.form_fields.input field=form.first_name autocomplete="given-name" />
-                        <c-components.form_fields.input field=form.last_name autocomplete="family-name" />
-                        <c-components.form_fields.input field=form.email autocomplete="email" />
-                        <c-components.form_fields.input field=form.phone autocomplete="tel" />
-                        <c-components.form_fields.input field=form.postal_code autocomplete="postal-code" />
-                        <c-components.form_fields.select field=form.professional_situation :watchable=True />
-                        <div x-show="situation != ''" x-cloak>
-                            <c-components.form_fields.input field=form.job_title autocomplete="organization-title" />
-                        </div>
-                        <div x-show="situation == 'working'" x-cloak>
-                            <c-components.form_fields.input field=form.structure_name autocomplete="organization" />
-                        </div>
-                        <c-components.form_fields.checkbox field=form.terms_accepted />
                         <div class="flex justify-center">
-                            <c-components.button type="submit" label="Je deviens mentor" class="justify-center" />
+                            <c-components.button href="" label="Je deviens mentor" />
                         </div>
-                    </c-patterns.form>
-                </c-components.card-shadow>
-            </div>
+                    </c-components.card-shadow>
+                </div>
+                <div x-ref="formCard" x-show="showForm" x-cloak
+                    x-transition:enter="transition ease-out duration-300 origin-top"
+                    x-transition:enter-start="scale-y-20"
+                    x-transition:enter-end="scale-y-100"
+                />
+                    <c-components.card-shadow id="mentor-form-card" class="w-[320px] my-5 p-5 relative">
+                        <c-components.icon name="badge-coeur" class="shrink-0 w-15 h-15 absolute -top-5 -right-5" />
+                        <c-patterns.form url="{% url 'mentor_landing' %}">
+                            <c-components.title title="Engagement mentor" variant="h3" />
+                            <p class="description-text-xxs">Les champs suivis d'un astérisque (*) sont obligatoires.</p>
+                            <c-components.form_fields.radio field=form.civility />
+                            <c-components.form_fields.input field=form.first_name autocomplete="given-name" />
+                            <c-components.form_fields.input field=form.last_name autocomplete="family-name" />
+                            <c-components.form_fields.input field=form.email autocomplete="email" />
+                            <c-components.form_fields.input field=form.phone autocomplete="tel" />
+                            <c-components.form_fields.input field=form.postal_code autocomplete="postal-code" />
+                            <c-components.form_fields.select field=form.professional_situation :watchable=True />
+                            <div x-show="situation != ''" x-cloak>
+                                <c-components.form_fields.input field=form.job_title autocomplete="organization-title" />
+                            </div>
+                            <div x-show="situation == 'working'" x-cloak>
+                                <c-components.form_fields.input field=form.structure_name autocomplete="organization" />
+                            </div>
+                            <c-components.form_fields.checkbox field=form.terms_accepted />
+                            <div class="flex justify-center">
+                                <c-components.button type="submit" label="Je deviens mentor" class="justify-center" />
+                            </div>
+                        </c-patterns.form>
+                    </c-components.card-shadow>
+                </div>
             </div>
         </div>
     </c-slot>

@@ -10,7 +10,7 @@ SITUATION_PRO_MAPPING = {
 
 class RegisterMentorOnJobirl(JobirlApiBaseService):
     def perform(self, *, pro) -> None:
-        payload = {
+        data = {
             "jobirl_profil": "pro",
             "mentorat_profil": "mentor",
             "choix": "projet",
@@ -25,7 +25,7 @@ class RegisterMentorOnJobirl(JobirlApiBaseService):
             "poste": pro.job_title,
         }
         if pro.professional_situation == "working":
-            payload.update(
+            data.update(
                 {
                     "nom_structure": pro.structure_name,
                 }
@@ -34,7 +34,7 @@ class RegisterMentorOnJobirl(JobirlApiBaseService):
         self.request(
             method="post",
             path="user_register",
-            payload=payload,
+            data=data,
         )
 
         self.user_id = self.jobirl_response_body["id"]

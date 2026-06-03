@@ -146,7 +146,14 @@ def test_pro_engagement_choices():
     from techpourtoutes.models import Pro
 
     values = {e.value for e in Pro.Engagement}
-    assert values == {"mentor", "internships", "work_ambassador", "training_ambassador", "sponsor"}
+    assert values == {
+        "mentor",
+        "internships",
+        "work_ambassador",
+        "training_ambassador",
+        "sponsor",
+        "workshops",
+    }
 
 
 @pytest.mark.django_db
@@ -156,3 +163,97 @@ def test_pro_engagements_defaults_to_empty_list(valid_pro_model_data):
     Pro(username="marie.dupont@example.com", **valid_pro_model_data).save()
     saved = Pro.objects.get(email="marie.dupont@example.com")
     assert saved.engagements == []
+
+
+@pytest.mark.django_db
+def test_pro_workshops_engagement_is_valid(valid_pro_model_data):
+    from techpourtoutes.models import Pro
+
+    pro = Pro(username="marie.dupont@example.com", **valid_pro_model_data)
+    pro.engagements = ["workshops"]
+    pro.save()
+    assert Pro.objects.get(email="marie.dupont@example.com").engagements == ["workshops"]
+
+
+@pytest.mark.django_db
+def test_pro_phone_is_optional(valid_pro_model_data):
+    from techpourtoutes.models import Pro
+
+    data = {**valid_pro_model_data, "email": "sansinfos@example.com", "phone": ""}
+    Pro(username="sansinfos@example.com", **data).save()
+
+    assert Pro.objects.get(email="sansinfos@example.com").phone == ""
+
+
+@pytest.mark.django_db
+def test_pro_stores_structure_id(valid_pro_model_data):
+    from techpourtoutes.models import Pro
+
+    Pro(
+        username="marie.dupont@example.com", structure_id="0123456A", **valid_pro_model_data
+    ).save()
+    assert Pro.objects.get(email="marie.dupont@example.com").structure_id == "0123456A"
+
+
+@pytest.mark.django_db
+def test_school_str_shows_name_and_postal_code():
+    from techpourtoutes.models import School
+
+    school = School(identifier="0750001A", name="Lycée Voltaire", postal_code="75011")
+    school.save()
+    assert str(school) == "Lycée Voltaire (75011)"
+
+
+@pytest.mark.django_db
+def test_school_identifier_is_unique():
+    from techpourtoutes.models import School
+
+    School(identifier="0750001A", name="Lycée Voltaire", postal_code="75011").save()
+    with pytest.raises(ValidationError):
+        School(identifier="0750001A", name="Autre lycée", postal_code="75012").save()
+
+
+@pytest.mark.django_db
+def test_workshop_request_links_to_pro_and_stores_data(pro):
+    from techpourtoutes.models import WorkshopRequest
+
+    req = WorkshopRequest(pro=pro, type="future_of_tech", remark="Top")
+    req.save()
+
+    assert list(pro.workshop_requests.all()) == [req]
+    assert req.type == "future_of_tech"
+    assert req.remark == "Top"
+    assert req.created_at is not None
+
+
+@pytest.mark.django_db
+def test_workshop_request_rejects_invalid_type(pro):
+    from techpourtoutes.models import WorkshopRequest
+
+    with pytest.raises(ValidationError):
+        WorkshopRequest(pro=pro, type="not-a-real-atelier").save()
+
+
+@pytest.mark.django_db
+def test_workshop_request_query_pros_by_type(pro):
+    from techpourtoutes.models import Pro, WorkshopRequest
+
+    WorkshopRequest(pro=pro, type="future_of_tech").save()
+
+    matching = Pro.objects.filter(workshop_requests__type="future_of_tech")
+    assert pro in matching
+
+
+def test_school_normalize_strips_accents():
+    from techpourtoutes.models import School
+
+    assert School.normalize("Lycée privée à Nîmes") == "Lycee privee a Nimes"
+
+
+@pytest.mark.django_db
+def test_school_save_populates_normalized_name():
+    from techpourtoutes.models import School
+
+    school = School(identifier="0750001A", name="Lycée Privée", postal_code="75001")
+    school.save()
+    assert school.name_normalized == "Lycee Privee"

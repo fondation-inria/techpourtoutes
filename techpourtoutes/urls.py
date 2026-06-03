@@ -10,6 +10,12 @@ urlpatterns = [
     path("pitcher-mon-metier/", views.work_ambassador_landing, name="work_ambassador_landing"),
     path("accueillir-une-stagiaire/", views.internships_landing, name="internships_landing"),
     path("devenir-mecene", views.sponsor_landing, name="sponsor_landing"),
+    path("organiser-un-atelier", views.workshops_landing, name="workshops_landing"),
+    path(
+        "organiser-un-atelier/recherche-etablissements/",
+        views.search_schools,
+        name="search_schools",
+    ),
     path("bienvenue-dans-la-coalition/", views.coalition_welcome, name="coalition_welcome"),
     # Auth
     path("se-connecter/", views.login_request, name="login_request"),

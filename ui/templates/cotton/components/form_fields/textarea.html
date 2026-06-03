@@ -1,0 +1,26 @@
+<c-vars
+    field=field
+    label=""
+    description=""
+    message=""
+    :errors=[]
+    placeholder=""
+    name=""
+    id=""
+    value=""
+    variant="default"
+    rows="2"
+    class=""
+/>
+
+<c-components.form-fields.base label=label description=description message=message class=class>
+    <textarea
+        id="{{ id|default:field.id_for_label }}"
+        name="{{ name|default:field.html_name }}"
+        rows="{{ rows }}"
+        {% if placeholder %}placeholder="{{ placeholder }}"{% endif %}
+        {% if variant == "disabled" %}disabled aria-disabled="true"{% endif %}
+        {% if field.errors or errors or variant == "error" %}aria-invalid="true"{% endif %}
+        class="field-base {% if variant == "disabled" %}field-disabled{% elif field.errors or errors or variant == "error" %}field-error{% elif variant == "valid" %}field-valid{% else %}field-default{% endif %}"
+    >{{ value|default:field.value|default:"" }}</textarea>
+</c-components.form-fields.base>

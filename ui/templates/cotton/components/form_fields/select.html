@@ -34,9 +34,9 @@
                     <span x-show="selected === '{{ opt_value|escapejs }}'">{{ opt_label }}</span>
                 {% endfor %}
             </span>
-            <svg class="pointer-events-none h-4 w-4 flex-shrink-0 transition-transform {% if variant == "disabled" %}text-disabled{% else %}text-neutral-950{% endif %}" :class="open && 'rotate-180'" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
-                <path stroke-linecap="round" stroke-linejoin="round" d="M6 8l4 4 4-4" />
-            </svg>
+            <span class="pointer-events-none shrink-0 transition-transform {% if variant == "disabled" %}text-disabled{% else %}text-neutral-950{% endif %}" :class="open && 'rotate-180'">
+                <c-components.icon name="chevron-down" class="h-4 w-4" />
+            </span>
         </button>
         <ul x-show="open" x-cloak x-transition.opacity.duration.150ms
             class="absolute z-10 mt-1 w-full bg-neutral-50 rounded shadow-thin-bottom shadow-primary-700 overflow-hidden"

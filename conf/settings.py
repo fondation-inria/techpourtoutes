@@ -98,6 +98,11 @@ LOGGING = {
             "level": "DEBUG" if DEBUG else "INFO",
             "propagate": False,
         },
+        "techpourtoutes.services": {
+            "handlers": ["console"],
+            "level": "DEBUG" if DEBUG else "INFO",
+            "propagate": False,
+        },
     },
 }
 
@@ -138,6 +143,19 @@ else:
 # Jobirl API
 JOBIRL_API_KEY = env("JOBIRL_API_KEY", default="")
 JOBIRL_URL = env("JOBIRL_URL", default="")
+
+# Schools import (data.education.gouv.fr)
+HUWISE_API_KEY = env("HUWISE_API_KEY", default="")
+
+# n8n webhooks
+N8N_WORKSHOP_WEBHOOK_URL = env(
+    "N8N_WORKSHOP_WEBHOOK_URL",
+    default="https://n8n.yunohost.latitudes.cc/webhook/techpourtoutes-atelier",
+)
+N8N_WORKSHOP_WEBHOOK_BASIC_AUTH_USER = env("N8N_WORKSHOP_WEBHOOK_BASIC_AUTH_USER", default="")
+N8N_WORKSHOP_WEBHOOK_BASIC_AUTH_PASSWORD = env(
+    "N8N_WORKSHOP_WEBHOOK_BASIC_AUTH_PASSWORD", default=""
+)
 
 # Brevo contacts API
 BREVO_PRO_LIST_ID = env.int("BREVO_PRO_LIST_ID", default=0)
