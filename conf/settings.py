@@ -152,6 +152,10 @@ N8N_WORKSHOP_WEBHOOK_URL = env(
     "N8N_WORKSHOP_WEBHOOK_URL",
     default="https://n8n.yunohost.latitudes.cc/webhook/techpourtoutes-atelier",
 )
+N8N_WORKSHOP_WEBHOOK_BASIC_AUTH_USER = env("N8N_WORKSHOP_WEBHOOK_BASIC_AUTH_USER", default="")
+N8N_WORKSHOP_WEBHOOK_BASIC_AUTH_PASSWORD = env(
+    "N8N_WORKSHOP_WEBHOOK_BASIC_AUTH_PASSWORD", default=""
+)
 
 # Brevo contacts API
 BREVO_PRO_LIST_ID = env.int("BREVO_PRO_LIST_ID", default=0)

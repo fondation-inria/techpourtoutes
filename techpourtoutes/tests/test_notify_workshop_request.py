@@ -39,16 +39,16 @@ def pro(db):
 @pytest.mark.django_db
 @override_settings(N8N_WORKSHOP_WEBHOOK_URL=WEBHOOK_URL)
 def test_notify_workshop_request_posts_expected_payload(pro):
-    with patch("techpourtoutes.services.n8n_api.base_service.httpx.post") as mock_post:
-        mock_post.return_value = _response(200)
+    with patch("techpourtoutes.services.n8n_api.base_service.LatitudesN8nClient") as MockClient:
+        mock_client = MockClient.return_value
+        mock_client.notify_workshop_request.return_value = _response(200)
         result = NotifyWorkshopRequest(
             pro=pro, ateliers=["future_of_tech", "future_of_ia"], remark="Merci !"
         )
 
     assert result.success
-    args, kwargs = mock_post.call_args
-    assert args[0] == WEBHOOK_URL
-    payload = kwargs["json"]
+    _, kwargs = mock_client.notify_workshop_request.call_args
+    payload = kwargs["payload"]
     assert payload["type_atelier"] == ["future_of_tech", "future_of_ia"]
     assert payload["prenom"] == "Manon"
     assert payload["nom"] == "Desbordes"
@@ -64,8 +64,8 @@ def test_notify_workshop_request_posts_expected_payload(pro):
 @pytest.mark.django_db
 @override_settings(N8N_WORKSHOP_WEBHOOK_URL=WEBHOOK_URL)
 def test_notify_workshop_request_fails_on_server_error_marked_transient(pro):
-    with patch("techpourtoutes.services.n8n_api.base_service.httpx.post") as mock_post:
-        mock_post.return_value = _response(503)
+    with patch("techpourtoutes.services.n8n_api.base_service.LatitudesN8nClient") as MockClient:
+        MockClient.return_value.notify_workshop_request.return_value = _response(503)
         result = NotifyWorkshopRequest(pro=pro, ateliers=["future_of_tech"], remark="")
 
     assert result.failure
@@ -75,8 +75,8 @@ def test_notify_workshop_request_fails_on_server_error_marked_transient(pro):
 @pytest.mark.django_db
 @override_settings(N8N_WORKSHOP_WEBHOOK_URL=WEBHOOK_URL)
 def test_notify_workshop_request_client_error_not_transient(pro):
-    with patch("techpourtoutes.services.n8n_api.base_service.httpx.post") as mock_post:
-        mock_post.return_value = _response(400)
+    with patch("techpourtoutes.services.n8n_api.base_service.LatitudesN8nClient") as MockClient:
+        MockClient.return_value.notify_workshop_request.return_value = _response(400)
         result = NotifyWorkshopRequest(pro=pro, ateliers=["future_of_tech"], remark="")
 
     assert result.failure
@@ -86,10 +86,8 @@ def test_notify_workshop_request_client_error_not_transient(pro):
 @pytest.mark.django_db
 @override_settings(N8N_WORKSHOP_WEBHOOK_URL=WEBHOOK_URL)
 def test_notify_workshop_request_network_error_marked_transient(pro):
-    with patch(
-        "techpourtoutes.services.n8n_api.base_service.httpx.post",
-        side_effect=httpx.ConnectError("boom"),
-    ):
+    with patch("techpourtoutes.services.n8n_api.base_service.LatitudesN8nClient") as MockClient:
+        MockClient.return_value.notify_workshop_request.side_effect = httpx.ConnectError("boom")
         result = NotifyWorkshopRequest(pro=pro, ateliers=["future_of_tech"], remark="")
 
     assert result.failure

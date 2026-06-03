@@ -1,4 +1,3 @@
-from django.conf import settings
 from django.utils import timezone
 
 from .base_service import N8nApiBaseService
@@ -7,7 +6,7 @@ from .base_service import N8nApiBaseService
 class NotifyWorkshopRequest(N8nApiBaseService):
     def perform(self, *, pro, ateliers, remark):
         self.request(
-            path=settings.N8N_WORKSHOP_WEBHOOK_URL,
+            method="notify_workshop_request",
             payload={
                 "type_atelier": ateliers,
                 "civilite": pro.civility,

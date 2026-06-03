@@ -8,7 +8,7 @@ JOBIRL_TEST_API_KEY = "test-api-key-abc"
 
 @pytest.mark.django_db
 @override_settings(JOBIRL_URL=JOBIRL_TEST_URL, JOBIRL_API_KEY=JOBIRL_TEST_API_KEY)
-def test_refresh_access_token_sends_correct_payload_and_exposes_token(httpx_mock, pro):
+def test_refresh_access_token_sends_correct_data_and_exposes_token(httpx_mock, pro):
     from techpourtoutes.services.jobirl_api.refresh_access_token import RefreshAccessToken
 
     pro.jobirl_user_id = 12345
@@ -83,7 +83,7 @@ def test_refresh_access_token_fails_on_network_error(httpx_mock, pro):
 
 
 @override_settings(JOBIRL_URL=JOBIRL_TEST_URL, JOBIRL_API_KEY=JOBIRL_TEST_API_KEY)
-def test_register_mentor_on_jobirl_sends_correct_payload_and_exposes_ids(httpx_mock, pro):
+def test_register_mentor_on_jobirl_sends_correct_data_and_exposes_ids(httpx_mock, pro):
     from techpourtoutes.services.jobirl_api.register_mentor import RegisterMentorOnJobirl
 
     register_url = f"{JOBIRL_TEST_URL}/techpourtoutes/api/user_register"
