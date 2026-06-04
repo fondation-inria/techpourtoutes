@@ -2,7 +2,7 @@ from django.contrib import messages
 from django.db.models import Q
 from django.shortcuts import redirect, render
 
-from ..forms import ProForm, WorkshopForm
+from ..forms import ProForm, TrainingAmbassadorForm, WorkshopForm
 from ..mailers import CoalitionMailer
 from ..models import School, WorkshopRequest
 from ..services.create_mentor import CreateMentor
@@ -47,6 +47,26 @@ def work_ambassador_landing(request):
     else:
         form = ProForm(pro=pro)
     return render(request, "coalition/work_ambassador_landing.html", {"form": form, "pro": pro})
+
+
+def training_ambassador_landing(request):
+    pro = request.user.pro if hasattr(request.user, "pro") else None
+    if request.method == "POST":
+        form = TrainingAmbassadorForm(data=request.POST, pro=pro)
+        if form.is_valid():
+            pro = form.save(commit=False)
+            pro.engagements.append("training_ambassador")
+            pro.save()
+            CoalitionMailer.welcome(pro=pro, token=pro.issue_login_token())
+            CoalitionMailer.new_pro(pro=pro, engagement="training_ambassador")
+            return redirect("coalition_welcome")
+        else:
+            _render_errors(request, form)
+    else:
+        form = TrainingAmbassadorForm(pro=pro)
+    return render(
+        request, "coalition/training_ambassador_landing.html", {"form": form, "pro": pro}
+    )
 
 
 def internships_landing(request):
