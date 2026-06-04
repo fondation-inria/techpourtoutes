@@ -5,6 +5,7 @@
             hx-post="{% url 'account_edit' %}"
             hx-target="#account-info-card"
             hx-swap="outerHTML">
+            <p class="description-text-xxs">Les champs suivis d'un astérisque (*) sont obligatoires.</p>
             <c-components.form_fields.input field=form.first_name />
             <c-components.form_fields.input field=form.last_name />
             <c-components.form_fields.input field=form.phone />

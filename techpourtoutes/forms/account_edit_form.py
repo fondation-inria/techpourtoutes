@@ -7,17 +7,17 @@ from ..models import Pro
 
 
 class AccountEditForm(forms.Form):
-    first_name = forms.CharField(label=_("Prénom"))
-    last_name = forms.CharField(label=_("Nom"))
-    phone = PhoneNumberField(region="FR", label=_("Numéro de téléphone"))
+    first_name = forms.CharField(label=_("Prénom*"))
+    last_name = forms.CharField(label=_("Nom*"))
+    phone = PhoneNumberField(region="FR", label=_("Numéro de téléphone"), required=False)
     professional_situation = forms.ChoiceField(
-        label=_("Situation professionnelle"),
+        label=_("Situation professionnelle*"),
         choices=[("", _("Sélectionner une option")), *Pro.ProfessionalSituation.choices],
     )
     structure_name = forms.CharField(label=_("Structure"), required=False)
-    job_title = forms.CharField(label=_("Métier"))
+    job_title = forms.CharField(label=_("Métier*"))
     postal_code = forms.CharField(
-        label=_("Code postal"),
+        label=_("Code postal*"),
         validators=[RegexValidator(r"^\d{5}$", _("Entrez un code postal valide à 5 chiffres."))],
     )
 
