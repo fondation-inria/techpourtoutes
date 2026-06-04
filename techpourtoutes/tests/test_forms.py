@@ -99,3 +99,88 @@ def test_pro_form_structure_name_not_required_when_retired(valid_pro_data):
     }
     form = ProForm(data=data)
     assert form.is_valid(), form.errors
+
+
+@pytest.mark.django_db
+def test_pro_form_with_pro_email_is_disabled(pro):
+    from techpourtoutes.forms import ProForm
+
+    form = ProForm(pro=pro)
+    assert form.fields["email"].disabled
+
+
+@pytest.mark.django_db
+def test_pro_form_with_pro_sets_initial_values(pro):
+    from techpourtoutes.forms import ProForm
+
+    form = ProForm(pro=pro)
+    assert form.initial["email"] == pro.email
+    assert form.initial["first_name"] == pro.first_name
+    assert form.initial["last_name"] == pro.last_name
+
+
+@pytest.mark.django_db
+def test_pro_form_with_pro_terms_not_required(pro):
+    from techpourtoutes.forms import ProForm
+
+    data = {
+        "civility": pro.civility,
+        "first_name": pro.first_name,
+        "last_name": pro.last_name,
+        "email": pro.email,
+        "phone": str(pro.phone),
+        "postal_code": pro.postal_code,
+        "professional_situation": pro.professional_situation,
+        "job_title": pro.job_title,
+        "structure_name": pro.structure_name,
+    }
+    form = ProForm(data=data, pro=pro)
+    assert form.is_valid(), form.errors
+
+
+@pytest.mark.django_db
+def test_pro_form_with_pro_allows_own_email(pro):
+    from techpourtoutes.forms import ProForm
+
+    data = {
+        "civility": pro.civility,
+        "first_name": pro.first_name,
+        "last_name": pro.last_name,
+        "email": pro.email,
+        "phone": str(pro.phone),
+        "postal_code": pro.postal_code,
+        "professional_situation": pro.professional_situation,
+        "job_title": pro.job_title,
+        "structure_name": pro.structure_name,
+        "terms_accepted": True,
+    }
+    form = ProForm(data=data, pro=pro)
+    assert form.is_valid(), form.errors
+
+
+@pytest.mark.django_db
+def test_pro_form_with_pro_save_updates_in_place(pro):
+    from techpourtoutes.forms import ProForm
+    from techpourtoutes.models import Pro
+
+    data = {
+        "civility": pro.civility,
+        "first_name": "Nouveau Prénom",
+        "last_name": pro.last_name,
+        "email": pro.email,
+        "phone": str(pro.phone),
+        "postal_code": "69001",
+        "professional_situation": pro.professional_situation,
+        "job_title": "Nouveau métier",
+        "structure_name": pro.structure_name,
+        "terms_accepted": True,
+    }
+    form = ProForm(data=data, pro=pro)
+    assert form.is_valid(), form.errors
+    saved = form.save()
+
+    assert saved.pk == pro.pk
+    assert Pro.objects.count() == 1
+    pro.refresh_from_db()
+    assert pro.first_name == "Nouveau Prénom"
+    assert pro.postal_code == "69001"

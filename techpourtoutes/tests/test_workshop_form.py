@@ -102,3 +102,65 @@ def test_workshop_form_exposes_remark_and_ateliers():
     assert form.is_valid(), form.errors
     assert form.cleaned_data["remark"] == "Une remarque"
     assert form.cleaned_data["ateliers"] == ["future_of_tech", "future_of_ia"]
+
+
+@pytest.mark.django_db
+def test_workshop_form_with_pro_email_is_disabled(pro):
+    from techpourtoutes.forms import WorkshopForm
+
+    form = WorkshopForm(pro=pro)
+    assert form.fields["email"].disabled
+
+
+@pytest.mark.django_db
+def test_workshop_form_with_pro_sets_initial_values(pro):
+    from techpourtoutes.forms import WorkshopForm
+
+    form = WorkshopForm(pro=pro)
+    assert form.initial["email"] == pro.email
+    assert form.initial["first_name"] == pro.first_name
+
+
+@pytest.mark.django_db
+def test_workshop_form_with_pro_terms_not_required(pro):
+    from techpourtoutes.forms import WorkshopForm
+
+    data = valid_data(
+        email=pro.email,
+        # terms_accepted NOT submitted
+    )
+    del data["terms_accepted"]
+    form = WorkshopForm(data=data, pro=pro)
+    assert form.is_valid(), form.errors
+
+
+@pytest.mark.django_db
+def test_workshop_form_with_pro_allows_own_email(pro):
+    from techpourtoutes.forms import WorkshopForm
+
+    data = valid_data(email=pro.email)
+    form = WorkshopForm(data=data, pro=pro)
+    assert form.is_valid(), form.errors
+
+
+@pytest.mark.django_db
+def test_workshop_form_with_pro_save_updates_in_place(pro):
+    from techpourtoutes.forms import WorkshopForm
+    from techpourtoutes.models import Pro
+
+    data = valid_data(
+        email=pro.email,
+        first_name="Modifiée",
+        structure_name="Nouveau lycée",
+        structure_id="0750002B",
+        postal_code="69001",
+    )
+    form = WorkshopForm(data=data, pro=pro)
+    assert form.is_valid(), form.errors
+    saved = form.save()
+
+    assert saved.pk == pro.pk
+    assert Pro.objects.count() == 1
+    pro.refresh_from_db()
+    assert pro.first_name == "Modifiée"
+    assert pro.structure_name == "Nouveau lycée"
