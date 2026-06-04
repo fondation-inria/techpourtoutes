@@ -2299,6 +2299,9 @@
   .pb-2 {
     padding-bottom: calc(var(--spacing) * 2);
   }
+  .pb-3 {
+    padding-bottom: calc(var(--spacing) * 3);
+  }
   .pb-4 {
     padding-bottom: calc(var(--spacing) * 4);
   }
@@ -2854,17 +2857,6 @@
   .xl\:inline {
     @media (width >= 80rem) {
       display: inline;
-    }
-  }
-  .\[\&\>p\]\:pb-3 {
-    &>p {
-      padding-bottom: calc(var(--spacing) * 3);
-    }
-  }
-  .\[\&\>p\]\:font-medium {
-    &>p {
-      --tw-font-weight: var(--font-weight-medium);
-      font-weight: var(--font-weight-medium);
     }
   }
   .\[body\:has\(\#sidebar-drawer\:checked\)_\&\]\:block {

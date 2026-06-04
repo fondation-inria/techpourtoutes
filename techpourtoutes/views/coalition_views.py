@@ -14,29 +14,27 @@ def coalition_home(request):
 
 
 def mentor_landing(request):
+    pro = request.user.pro if hasattr(request.user, "pro") else None
     if request.method == "POST":
-        form = ProForm(data=request.POST)
+        form = ProForm(data=request.POST, pro=pro)
         if form.is_valid():
             result = CreateMentor(pro=form.save(commit=False))
             if result.failure:
                 for error in result.errors:
                     messages.error(request, error)
-                return render(request, "coalition/mentor_landing.html", {"form": form})
+                return render(request, "coalition/mentor_landing.html", {"form": form, "pro": pro})
             return redirect("coalition_welcome")
         else:
-            messages.error(
-                request,
-                "Des erreurs empêchent la validation du formulaire, "
-                "merci de les corriger et de réessayer à nouveau.",
-            )
+            _render_errors(request, form)
     else:
-        form = ProForm()
-    return render(request, "coalition/mentor_landing.html", {"form": form})
+        form = ProForm(pro=pro)
+    return render(request, "coalition/mentor_landing.html", {"form": form, "pro": pro})
 
 
 def work_ambassador_landing(request):
+    pro = request.user.pro if hasattr(request.user, "pro") else None
     if request.method == "POST":
-        form = ProForm(data=request.POST)
+        form = ProForm(data=request.POST, pro=pro)
         if form.is_valid():
             pro = form.save(commit=False)
             pro.engagements.append("work_ambassador")
@@ -45,14 +43,10 @@ def work_ambassador_landing(request):
             CoalitionMailer.new_pro(pro=pro, engagement="work_ambassador")
             return redirect("coalition_welcome")
         else:
-            messages.error(
-                request,
-                "Des erreurs empêchent la validation du formulaire, "
-                "merci de les corriger et de réessayer à nouveau.",
-            )
+            _render_errors(request, form)
     else:
-        form = ProForm()
-    return render(request, "coalition/work_ambassador_landing.html", {"form": form})
+        form = ProForm(pro=pro)
+    return render(request, "coalition/work_ambassador_landing.html", {"form": form, "pro": pro})
 
 
 def internships_landing(request):
@@ -60,8 +54,9 @@ def internships_landing(request):
 
 
 def workshops_landing(request):
+    pro = request.user.pro if hasattr(request.user, "pro") else None
     if request.method == "POST":
-        form = WorkshopForm(data=request.POST)
+        form = WorkshopForm(data=request.POST, pro=pro)
         if form.is_valid():
             pro = form.save(commit=False)
             pro.engagements.append("workshops")
@@ -76,19 +71,16 @@ def workshops_landing(request):
             CoalitionMailer.welcome(pro=pro, token=pro.issue_login_token())
             return redirect("coalition_welcome")
         else:
-            messages.error(
-                request,
-                "Des erreurs empêchent la validation du formulaire, "
-                "merci de les corriger et de réessayer à nouveau.",
-            )
+            _render_errors(request, form)
     else:
-        form = WorkshopForm()
-    return render(request, "coalition/workshops_landing.html", {"form": form})
+        form = WorkshopForm(pro=pro)
+    return render(request, "coalition/workshops_landing.html", {"form": form, "pro": pro})
 
 
 def sponsor_landing(request):
+    pro = request.user.pro if hasattr(request.user, "pro") else None
     if request.method == "POST":
-        form = ProForm(data=request.POST)
+        form = ProForm(data=request.POST, pro=pro)
         if form.is_valid():
             pro = form.save(commit=False)
             pro.engagements.append("sponsor")
@@ -97,14 +89,10 @@ def sponsor_landing(request):
             CoalitionMailer.new_pro(pro=pro, engagement="sponsor")
             return redirect("coalition_welcome")
         else:
-            messages.error(
-                request,
-                "Des erreurs empêchent la validation du formulaire, "
-                "merci de les corriger et de réessayer à nouveau.",
-            )
+            _render_errors(request, form)
     else:
-        form = ProForm()
-    return render(request, "coalition/sponsor_landing.html", {"form": form})
+        form = ProForm(pro=pro)
+    return render(request, "coalition/sponsor_landing.html", {"form": form, "pro": pro})
 
 
 def search_schools(request):
@@ -120,7 +108,7 @@ def search_schools(request):
             Q(name_normalized__icontains=School.normalize(token))
             | Q(postal_code__startswith=token)
         )
-    schools = schools.order_by("name")
+    schools = schools.order_by("identifier")
 
     SCHOOL_PAGE_SIZE = 20
     start = (page - 1) * SCHOOL_PAGE_SIZE
@@ -136,3 +124,18 @@ def search_schools(request):
 
 def coalition_welcome(request):
     return render(request, "coalition/coalition_welcome.html", {})
+
+
+def _render_errors(request, form):
+    if form.has_error("email", "email_exists"):
+        messages.error(
+            request,
+            "Un compte existe déjà pour cet email, merci de vous connecter "
+            "avant de soumettre votre engagement.",
+        )
+    else:
+        messages.error(
+            request,
+            "Des erreurs empêchent la validation du formulaire, "
+            "merci de les corriger et de réessayer à nouveau.",
+        )

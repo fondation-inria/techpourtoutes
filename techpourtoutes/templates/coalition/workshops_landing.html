@@ -107,7 +107,7 @@
                             <c-components.form_fields.radio field=form.civility />
                             <c-components.form_fields.input field=form.first_name autocomplete="given-name" />
                             <c-components.form_fields.input field=form.last_name autocomplete="family-name" />
-                            <c-components.form_fields.input field=form.email autocomplete="email" />
+                            <c-components.form_fields.input field=form.email autocomplete="email" variant="{% if pro %}disabled{% endif %}" />
                             <c-components.form_fields.select field=form.job_title />
                             <c-components.form_fields.school_search
                                 name_field=form.structure_name
@@ -117,7 +117,7 @@
                             />
                             <c-components.form_fields.checkbox_group field=form.ateliers description="Vous pouvez choisir plusieurs ateliers" />
                             <c-components.form_fields.textarea field=form.remark />
-                            <c-components.form_fields.checkbox field=form.terms_accepted />
+                            {% if not pro %}<c-components.form_fields.checkbox field=form.terms_accepted />{% endif %}
                             <div class="flex justify-center">
                                 <c-components.button type="submit" label="Je demande un atelier Latitudes" class="justify-center" />
                             </div>

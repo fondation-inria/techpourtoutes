@@ -58,19 +58,26 @@
              :class="{ 'md:sticky md:top-14 xl:top-8': !showForm }">
             <c-components.title title="Rejoignez la coalition&nbsp;!" class="justify-center w-[300px] h-16" variant="h3" />
             <div id="work-ambassador-card">
-                <div x-show="!showForm" @click.prevent="showForm = true; $nextTick(() => { $refs.formCard.scrollIntoView({ behavior: 'smooth', block: 'start' }) })" class="cursor-pointer">
+                <div x-show="!showForm" {% if not pro or "work_ambassador" not in pro.engagements %}@click.prevent="showForm = true; $nextTick(() => { $refs.formCard.scrollIntoView({ behavior: 'smooth', block: 'start' }) })" class="cursor-pointer"{% endif %}>
                     <c-components.card-shadow id="work-ambassador-member-card" class="w-[320px] my-5">
                         <div class="flex gap-5">
                             <c-components.icon name="badge-coeur" class="shrink-0 w-15 h-15" />
-                            <div class="mt-5 [&>p]:pb-3 [&>p]:font-medium">
-                                <p>Prénom</p>
-                                <p>Nom</p>
-                                <p>Ambassadrice TechPourToutes</p>
+                            <div>
+                                {% if pro %}
+                                    <p class="font-medium pb-3">{{ pro.first_name }}</p>
+                                    <p class="font-medium pb-3">{{ pro.last_name }}</p>
+                                {% else %}
+                                    <p class="font-light pb-3">Prénom</p>
+                                    <p class="font-light pb-3">Nom</p>
+                                {% endif %}
+                                <p class="font-medium">Ambassadrice TechPourToutes</p>
                             </div>
                         </div>
-                        <div class="flex justify-center">
-                            <c-components.button href="" label="Je deviens ambassadrice" />
-                        </div>
+                        {% if not pro or "work_ambassador" not in pro.engagements %}
+                            <div class="flex justify-center mt-3">
+                                <c-components.button href="" label="Je deviens ambassadrice" />
+                            </div>
+                        {% endif %}
                     </c-components.card-shadow>
                 </div>
                 <div x-ref="formCard" x-show="showForm" x-cloak
@@ -86,7 +93,7 @@
                             <c-components.form_fields.radio field=form.civility />
                             <c-components.form_fields.input field=form.first_name autocomplete="given-name" />
                             <c-components.form_fields.input field=form.last_name autocomplete="family-name" />
-                            <c-components.form_fields.input field=form.email autocomplete="email" />
+                            <c-components.form_fields.input field=form.email autocomplete="email" variant="{% if pro %}disabled{% endif %}" />
                             <c-components.form_fields.input field=form.phone autocomplete="tel" />
                             <c-components.form_fields.input field=form.postal_code autocomplete="postal-code" />
                             <c-components.form_fields.select field=form.professional_situation :watchable=True />
@@ -96,7 +103,7 @@
                             <div x-show="situation == 'working'" x-cloak>
                                 <c-components.form_fields.input field=form.structure_name autocomplete="organization" />
                             </div>
-                            <c-components.form_fields.checkbox field=form.terms_accepted />
+                            {% if not pro %}<c-components.form_fields.checkbox field=form.terms_accepted />{% endif %}
                             <div class="flex justify-center">
                                 <c-components.button type="submit" label="Je deviens ambassadrice" />
                             </div>
