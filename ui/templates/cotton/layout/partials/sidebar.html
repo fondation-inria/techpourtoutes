@@ -24,11 +24,11 @@
     <div class="border-t border-blue-background p-3">
         <ul class="flex flex-col gap-1 mb-5">
         {% if request.user.is_authenticated %}
-            <c-components.nav-link href="{% url 'account' %}" label="Mon compte" icon-active="mon-compte-bold" icon="mon-compte-light" />
+            <c-components.nav-link href="{% url "account" %}" label="Mon compte" icon-active="mon-compte-bold" icon="mon-compte-light" />
         {% else %}
-            <c-components.nav-link href="{% url 'login_request' %}" label="Se connecter" icon-active="mon-compte-bold" icon="mon-compte-light" />
+            <c-components.nav-link href="{% url "login_request" %}" label="Se connecter" icon-active="mon-compte-bold" icon="mon-compte-light" />
         {% endif %}
-            <c-components.nav-link href="#" label="A propos" />
+            <c-components.nav-link href="{% url "a_propos" %}" label="À propos" />
         <c-components.button href="/" label="Découvrir le programme" variant="secondary" />
         </ul>
         <div class="flex items-center justify-between">
