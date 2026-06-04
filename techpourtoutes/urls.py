@@ -26,10 +26,19 @@ urlpatterns = [
     path("mon-compte/modifier/", views.account_edit, name="account_edit"),
     path("se-deconnecter/", views.logout_view, name="logout"),
     path("mon-compte-mentor/", views.login_to_jobirl, name="login_to_jobirl"),
-    # Legals
+    # Static
     path("donnees-personnelles/", views.donnees_personnelles, name="donnees_personnelles"),
     path("conditions-generales/", views.conditions_generales, name="conditions_generales"),
     path("mentions-legales/", views.mentions_legales, name="mentions_legales"),
     path("accessibilite/", views.accessibilite, name="accessibilite"),
-    path("schema-pluriannuel-accessibilite", views.schema_pluriannuel, name="schema_pluriannuel"),
+    path("schema-pluriannuel-accessibilite/", views.schema_pluriannuel, name="schema_pluriannuel"),
+    path("a-propos/", views.a_propos, name="a_propos"),
+    path("notre-manifeste/", views.notre_manifeste, name="notre_manifeste"),
+    path("qui-sommes-nous/", views.qui_sommes_nous, name="qui_sommes_nous"),
+    path(
+        "pourquoi-nous-ecrivons-au-feminin/",
+        views.pourquoi_nous_ecrivons_au_feminin,
+        name="pourquoi_nous_ecrivons_au_feminin",
+    ),
+    path("contact/", views.contact, name="contact"),
 ]

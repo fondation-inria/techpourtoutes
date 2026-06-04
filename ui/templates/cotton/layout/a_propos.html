@@ -1,0 +1,16 @@
+<c-layout.base>
+    <c-components.title title="À propos" />
+
+    <div class="w-full mt-5">
+        <c-components.tabs>
+            <c-components.tab_link href="{% url 'notre_manifeste' %}" label="Notre manifeste" />
+            <c-components.tab_link href="{% url 'qui_sommes_nous' %}" label="Qui sommes-nous&nbsp;?" />
+            <c-components.tab_link href="{% url 'pourquoi_nous_ecrivons_au_feminin' %}" label="Pourquoi nous écrivons au féminin" />
+            <c-components.tab_link href="{% url 'contact' %}" label="Contact" />
+        </c-components.tabs>
+        <c-components.card class="relative -mt-0.5 rounded-tl-none w-full z-10">
+            {{ slot }}
+        </c-components.card>
+        {{ additional_content }}
+    </div>
+</c-layout.base>
