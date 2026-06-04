@@ -59,7 +59,7 @@
 
             <div id="mentor-card">
 
-                <div x-show="!showForm" @click.prevent="showForm = true; $nextTick(() => { if (window.innerWidth < 768) $refs.formCard.scrollIntoView({ behavior: 'smooth', block: 'start' }) })" class="cursor-pointer">
+                <div x-show="!showForm" @click.prevent="showForm = true; $nextTick(() => { $refs.formCard.scrollIntoView({ behavior: 'smooth', block: 'start' }) })" class="cursor-pointer">
                     <c-components.card-shadow id="mentor-member-card" class="w-[320px] my-5">
                         <div class="flex gap-5">
                             <c-components.icon name="badge-coeur" class="shrink-0 w-15 h-15" />
