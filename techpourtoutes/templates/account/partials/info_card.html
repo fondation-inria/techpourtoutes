@@ -1,21 +1,21 @@
 <div id="account-info-card" class="w-full">
     <c-components.card title="Informations personnelles">
-        <c-components.text>
-            Prénom : <span class="font-semibold">{{ user.first_name }}</span>
+        <c-components.text class="font-light">
+            Prénom : <span class="font-medium">{{ user.first_name }}</span>
 
-            Nom : <span class="font-semibold">{{ user.last_name }}</span>
+            Nom : <span class="font-medium">{{ user.last_name }}</span>
 
-            Email : <span class="font-semibold">{{ user.email }}</span>
+            Email : <span class="font-medium">{{ user.email }}</span>
 
-            Numéro de téléphone : <span class="font-semibold">{{ user.phone }}</span>
+            Numéro de téléphone : <span class="font-medium">{{ user.phone }}</span>
 
-            Situation professionnelle : <span class="font-semibold">{{ user.professional_situation }}</span>
+            Situation professionnelle : <span class="font-medium">{{ user.professional_situation }}</span>
 
-            Structure : <span class="font-semibold">{{ user.structure_name }}</span>
+            Structure : <span class="font-medium">{{ user.structure_name }}</span>
 
-            Métier : <span class="font-semibold">{{ user.job_title }}</span>
+            Métier : <span class="font-medium">{{ user.job_title }}</span>
 
-            Code postal : <span class="font-semibold">{{ user.postal_code }}</span>
+            Code postal : <span class="font-medium">{{ user.postal_code }}</span>
         </c-components.text>
         <div class="flex mt-3 justify-end">
             <c-components.button label="Modifier" variant="secondary"

@@ -1938,9 +1938,6 @@
   .h-16 {
     height: calc(var(--spacing) * 16);
   }
-  .h-20 {
-    height: calc(var(--spacing) * 20);
-  }
   .h-42 {
     height: calc(var(--spacing) * 42);
   }
@@ -1988,9 +1985,6 @@
   }
   .w-15 {
     width: calc(var(--spacing) * 15);
-  }
-  .w-20 {
-    width: calc(var(--spacing) * 20);
   }
   .w-\[250px\] {
     width: 250px;
@@ -2126,17 +2120,8 @@
   .gap-5 {
     gap: calc(var(--spacing) * 5);
   }
-  .gap-8 {
-    gap: calc(var(--spacing) * 8);
-  }
-  .gap-16 {
-    gap: calc(var(--spacing) * 16);
-  }
   .gap-20 {
     gap: calc(var(--spacing) * 20);
-  }
-  .gap-24 {
-    gap: calc(var(--spacing) * 24);
   }
   .gap-x-2 {
     column-gap: calc(var(--spacing) * 2);
@@ -2304,6 +2289,9 @@
   }
   .pb-2 {
     padding-bottom: calc(var(--spacing) * 2);
+  }
+  .pb-3 {
+    padding-bottom: calc(var(--spacing) * 3);
   }
   .pb-4 {
     padding-bottom: calc(var(--spacing) * 4);
@@ -2800,17 +2788,6 @@
   .xl\:inline {
     @media (width >= 80rem) {
       display: inline;
-    }
-  }
-  .\[\&\>p\]\:pb-3 {
-    &>p {
-      padding-bottom: calc(var(--spacing) * 3);
-    }
-  }
-  .\[\&\>p\]\:font-medium {
-    &>p {
-      --tw-font-weight: var(--font-weight-medium);
-      font-weight: var(--font-weight-medium);
     }
   }
   .\[body\:has\(\#sidebar-drawer\:checked\)_\&\]\:block {
