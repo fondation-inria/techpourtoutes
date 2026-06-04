@@ -89,7 +89,7 @@
             <c-components.title title="Demandez un atelier&nbsp;!" class="justify-center text-center w-[250px] h-16" variant="h3" />
 
             <div id="latitudes-form">
-                <div x-show="!showForm" @click.prevent="showForm = true; $nextTick(() => { if (window.innerWidth < 768) $refs.formCard.scrollIntoView({ behavior: 'smooth', block: 'start' }) })" class="cursor-pointer">
+                <div x-show="!showForm" @click.prevent="showForm = true; $nextTick(() => { $refs.formCard.scrollIntoView({ behavior: 'smooth', block: 'start' }) })" class="cursor-pointer">
                     <div class="flex justify-center">
                         <c-components.button id="latitudes-cta" href="" label="Organiser un atelier Latitudes" />
                     </div>
