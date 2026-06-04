@@ -58,7 +58,7 @@
              :class="{ 'md:sticky md:top-14 xl:top-8': !showForm }">
             <c-components.title title="Rejoignez la coalition&nbsp;!" class="justify-center w-[300px] h-16" variant="h3" />
             <div id="work-ambassador-card">
-                <div x-show="!showForm" @click.prevent="showForm = true; $nextTick(() => { if (window.innerWidth < 768) $refs.formCard.scrollIntoView({ behavior: 'smooth', block: 'start' }) })" class="cursor-pointer">
+                <div x-show="!showForm" @click.prevent="showForm = true; $nextTick(() => { $refs.formCard.scrollIntoView({ behavior: 'smooth', block: 'start' }) })" class="cursor-pointer">
                     <c-components.card-shadow id="work-ambassador-member-card" class="w-[320px] my-5">
                         <div class="flex gap-5">
                             <c-components.icon name="badge-coeur" class="shrink-0 w-15 h-15" />
