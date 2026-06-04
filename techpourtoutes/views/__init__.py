@@ -15,6 +15,7 @@ from .coalition_views import (
     mentor_landing,
     search_schools,
     sponsor_landing,
+    training_ambassador_landing,
     work_ambassador_landing,
     workshops_landing,
 )
@@ -56,6 +57,7 @@ __all__ = [
     "schema_pluriannuel",
     "search_schools",
     "sponsor_landing",
+    "training_ambassador_landing",
     "work_ambassador_landing",
     "workshops_landing",
 ]

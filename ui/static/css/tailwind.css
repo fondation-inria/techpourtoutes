@@ -2034,12 +2034,6 @@
   .origin-top {
     transform-origin: top;
   }
-  .scale-50 {
-    --tw-scale-x: 50%;
-    --tw-scale-y: 50%;
-    --tw-scale-z: 50%;
-    scale: var(--tw-scale-x) var(--tw-scale-y);
-  }
   .scale-y-20 {
     --tw-scale-y: 20%;
     scale: var(--tw-scale-x) var(--tw-scale-y);
@@ -2077,9 +2071,6 @@
   }
   .cursor-pointer {
     cursor: pointer;
-  }
-  .cursor-zoom-in {
-    cursor: zoom-in;
   }
   .resize {
     resize: both;
@@ -2446,6 +2437,9 @@
   .text-white {
     color: var(--color-white);
   }
+  .italic {
+    font-style: italic;
+  }
   .link-hover {
     @layer daisyui.l1.l2 {
       text-decoration-line: none;
@@ -2534,62 +2528,12 @@
       background-color: var(--color-primary-700);
     }
   }
-  .hover\:scale-50 {
-    &:hover {
-      @media (hover: hover) {
-        --tw-scale-x: 50%;
-        --tw-scale-y: 50%;
-        --tw-scale-z: 50%;
-        scale: var(--tw-scale-x) var(--tw-scale-y);
-      }
-    }
-  }
-  .hover\:scale-101 {
-    &:hover {
-      @media (hover: hover) {
-        --tw-scale-x: 101%;
-        --tw-scale-y: 101%;
-        --tw-scale-z: 101%;
-        scale: var(--tw-scale-x) var(--tw-scale-y);
-      }
-    }
-  }
-  .hover\:scale-102 {
-    &:hover {
-      @media (hover: hover) {
-        --tw-scale-x: 102%;
-        --tw-scale-y: 102%;
-        --tw-scale-z: 102%;
-        scale: var(--tw-scale-x) var(--tw-scale-y);
-      }
-    }
-  }
   .hover\:scale-103 {
     &:hover {
       @media (hover: hover) {
         --tw-scale-x: 103%;
         --tw-scale-y: 103%;
         --tw-scale-z: 103%;
-        scale: var(--tw-scale-x) var(--tw-scale-y);
-      }
-    }
-  }
-  .hover\:scale-110 {
-    &:hover {
-      @media (hover: hover) {
-        --tw-scale-x: 110%;
-        --tw-scale-y: 110%;
-        --tw-scale-z: 110%;
-        scale: var(--tw-scale-x) var(--tw-scale-y);
-      }
-    }
-  }
-  .hover\:scale-120 {
-    &:hover {
-      @media (hover: hover) {
-        --tw-scale-x: 120%;
-        --tw-scale-y: 120%;
-        --tw-scale-z: 120%;
         scale: var(--tw-scale-x) var(--tw-scale-y);
       }
     }

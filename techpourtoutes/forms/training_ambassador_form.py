@@ -1,23 +1,11 @@
 from django import forms
 from django.utils.translation import gettext_lazy as _
+from phonenumber_field.formfields import PhoneNumberField
 
-from ..models import Pro, User, WorkshopRequest
-
-FONCTION_CHOICES = [
-    ("", _("Sélectionner une option")),
-    ("Enseignante", _("Enseignante")),
-    ("Documentaliste", _("Documentaliste")),
-    ("CPE", _("CPE")),
-    ("Responsable établissement", _("Responsable établissement")),
-    ("Référente mission EDD", _("Référente mission EDD")),
-    ("DRANE / DAN / IAN", _("DRANE / DAN / IAN")),
-    ("Autre mission au sein d'un établissement", _("Autre mission au sein d'un établissement")),
-    ("parent d'élèves", _("Parent d'élève")),
-    ("je ne travaille pas dans un établissement", _("Je ne travaille pas dans un établissement")),
-]
+from ..models import Pro, User
 
 
-class WorkshopForm(forms.Form):
+class TrainingAmbassadorForm(forms.Form):
     civility = forms.ChoiceField(label=_("Votre civilité*"), choices=Pro.Civility.choices)
     first_name = forms.CharField(label=_("Votre prénom*"))
     last_name = forms.CharField(label=_("Votre nom*"))
@@ -25,16 +13,10 @@ class WorkshopForm(forms.Form):
         label=_("Votre email*"),
         error_messages={"invalid": _("Saisissez une adresse mail valide.")},
     )
+    phone = PhoneNumberField(required=False, region="FR", label=_("Votre n° de téléphone"))
     structure_id = forms.CharField(widget=forms.HiddenInput)
     structure_name = forms.CharField(label=_("Établissement*"))
     postal_code = forms.CharField(widget=forms.HiddenInput)
-    job_title = forms.ChoiceField(label=_("Fonction*"), choices=FONCTION_CHOICES)
-    remark = forms.CharField(label=_("Remarque"), required=False, widget=forms.Textarea)
-    ateliers = forms.MultipleChoiceField(
-        label=_("Atelier demandé*"),
-        choices=WorkshopRequest.Type.choices,
-        widget=forms.CheckboxSelectMultiple,
-    )
     terms_accepted = forms.BooleanField(
         label=_(
             "J'accepte la création de mon compte, les conditions d'utilisation et la "
@@ -55,6 +37,7 @@ class WorkshopForm(forms.Form):
                     "first_name": pro.first_name,
                     "last_name": pro.last_name,
                     "email": pro.email,
+                    "phone": pro.phone,
                 },
             )
         super().__init__(*args, **kwargs)
@@ -79,10 +62,11 @@ class WorkshopForm(forms.Form):
             pro.civility = data["civility"]
             pro.first_name = data["first_name"]
             pro.last_name = data["last_name"]
-            pro.professional_situation = Pro.ProfessionalSituation.WORKING
+            pro.phone = data["phone"]
+            pro.professional_situation = Pro.ProfessionalSituation.STUDENT
             pro.structure_name = data["structure_name"]
             pro.structure_id = data["structure_id"]
-            pro.job_title = data["job_title"]
+            pro.job_title = "Étudiante"
             pro.postal_code = data["postal_code"]
         else:
             pro = Pro(
@@ -91,10 +75,11 @@ class WorkshopForm(forms.Form):
                 first_name=data["first_name"],
                 last_name=data["last_name"],
                 email=data["email"],
-                professional_situation=Pro.ProfessionalSituation.WORKING,
+                phone=data["phone"],
+                professional_situation=Pro.ProfessionalSituation.STUDENT,
                 structure_name=data["structure_name"],
                 structure_id=data["structure_id"],
-                job_title=data["job_title"],
+                job_title="Étudiante",
                 postal_code=data["postal_code"],
             )
         if commit:
