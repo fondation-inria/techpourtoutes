@@ -21,7 +21,8 @@ class ProForm(forms.Form):
     )
     professional_situation = forms.ChoiceField(
         label=_("Votre situation professionnelle*"),
-        choices=[("", _("Sélectionner une option")), *Pro.ProfessionalSituation.choices],
+        choices=[("", _("Sélectionner une option"))]
+        + [c for c in Pro.ProfessionalSituation.choices if c[0] != "student"],
     )
     structure_name = forms.CharField(label=_("Nom de votre structure*"), required=False)
     job_title = forms.CharField(label=_("Votre métier*"))
@@ -69,12 +70,11 @@ class ProForm(forms.Form):
 
     def clean_email(self):
         email = self.cleaned_data["email"]
-        if self.pro and email == self.pro.email:
-            return email
-        if User.objects.filter(email=email).exists():
-            raise forms.ValidationError(
-                _("Un compte avec cet email existe déjà."), code="email_exists"
-            )
+        if (
+            not (self.pro and email == self.pro.email)
+            and User.objects.filter(email=email).exists()
+        ):
+            raise forms.ValidationError(_("Un compte avec cet email existe déjà."))
         return email
 
     def save(self, commit=True):

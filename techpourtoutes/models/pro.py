@@ -20,6 +20,7 @@ class Pro(User):
 
     class ProfessionalSituation(models.TextChoices):
         WORKING = "working", _("En emploi")
+        STUDENT = "student", _("En étude")
         RETIRED = "retired", _("À la retraite")
         JOBLESS = "jobless", _("Sans emploi")
 

@@ -120,6 +120,76 @@ def test_work_ambassador_landing_post_invalid_rerenders_with_errors(client, vali
     assert len(messages) > 0
 
 
+def _training_ambassador_data(**overrides):
+    return {
+        "civility": "Madame",
+        "first_name": "Manon",
+        "last_name": "Desbordes",
+        "email": "manon@example.com",
+        "phone": "0612345678",
+        "structure_id": "0750001A",
+        "structure_name": "Université Paris-Saclay",
+        "postal_code": "75011",
+        "terms_accepted": True,
+        **overrides,
+    }
+
+
+@pytest.mark.django_db
+def test_training_ambassador_landing_get(client):
+    assert client.get(reverse("training_ambassador_landing")).status_code == 200
+
+
+@pytest.mark.django_db
+@override_settings(EMAIL_BACKEND="django.core.mail.backends.locmem.EmailBackend")
+def test_training_ambassador_landing_post_valid_redirects(client):
+    response = client.post(
+        reverse("training_ambassador_landing"), data=_training_ambassador_data()
+    )
+    assert response.status_code == 302
+    assert response["Location"] == reverse("coalition_welcome")
+
+
+@pytest.mark.django_db
+@override_settings(EMAIL_BACKEND="django.core.mail.backends.locmem.EmailBackend")
+def test_training_ambassador_landing_post_valid_persists_student_pro(client):
+    from techpourtoutes.models import Pro
+
+    client.post(reverse("training_ambassador_landing"), data=_training_ambassador_data())
+
+    pro = Pro.objects.get(email="manon@example.com")
+    assert "training_ambassador" in pro.engagements
+    assert pro.professional_situation == "student"
+    assert pro.job_title == "Étudiante"
+
+
+@pytest.mark.django_db
+def test_training_ambassador_landing_get_authenticated_pro_does_not_prefill_structure_name(
+    client, pro
+):
+    client.force_login(pro)
+    response = client.get(reverse("training_ambassador_landing"))
+    assert response.status_code == 200
+    assert not response.context["form"].initial.get("structure_name")
+
+
+@pytest.mark.django_db
+@override_settings(EMAIL_BACKEND="django.core.mail.backends.locmem.EmailBackend")
+def test_training_ambassador_landing_post_authenticated_pro_updates_pro(client, pro):
+    from techpourtoutes.models import Pro
+
+    client.force_login(pro)
+    client.post(
+        reverse("training_ambassador_landing"),
+        data=_training_ambassador_data(email=pro.email, first_name="Modifiée"),
+    )
+
+    assert Pro.objects.count() == 1
+    pro.refresh_from_db()
+    assert pro.first_name == "Modifiée"
+    assert "training_ambassador" in pro.engagements
+
+
 def _workshop_data(**overrides):
     return {
         "civility": "Madame",
