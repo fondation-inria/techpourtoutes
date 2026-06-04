@@ -1,4 +1,4 @@
-<c-vars href="#" icon="" icon_active="" label="" disabled="" class="" />
+<c-vars href="#" icon="" icon_active="" label="" disabled="" class="" active="" />
 
 <li>
     {% if disabled %}
@@ -8,10 +8,10 @@
         </span>
     {% else %}
         <a href="{{ href }}"
-           class="flex items-center gap-3 px-3 py-2 rounded-md text-sm font-medium text-neutral-900 transition-colors hover:bg-blue-background active:bg-primary-100 focus-visible:outline-none focus-visible:bg-neutral-0 focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-primary-700{% if request.path == href %} font-semibold bg-primary-100{% endif %} {{ class }}">
+           class="flex items-center gap-3 px-3 py-2 rounded-md text-sm font-medium text-neutral-900 transition-colors hover:bg-blue-background active:bg-primary-100 focus-visible:outline-none focus-visible:bg-neutral-0 focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-primary-700{% if request.path == href or active %} font-semibold bg-primary-100{% endif %} {{ class }}">
             {% if icon %}
                 <c-components.icon
-                    name="{% if request.path == href and icon_active %}{{ icon_active }}{% else %}{{ icon }}{% endif %}"
+                    name="{% if request.path == href and icon_active or active and icon_active %}{{ icon_active }}{% else %}{{ icon }}{% endif %}"
                     class="w-5 h-5"
                 />
             {% endif %}

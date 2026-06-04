@@ -18,21 +18,29 @@ from .coalition_views import (
     work_ambassador_landing,
     workshops_landing,
 )
-from .legal_views import (
+from .static_views import (
+    a_propos,
     accessibilite,
     conditions_generales,
+    contact,
     donnees_personnelles,
     mentions_legales,
+    notre_manifeste,
+    pourquoi_nous_ecrivons_au_feminin,
+    qui_sommes_nous,
     schema_pluriannuel,
 )
 
 __all__ = [
+    "a_propos",
     "accessibilite",
     "account",
     "account_edit",
     "account_info",
     "coalition_home",
+    "coalition_welcome",
     "conditions_generales",
+    "contact",
     "donnees_personnelles",
     "internships_landing",
     "login_email_sent",
@@ -42,7 +50,9 @@ __all__ = [
     "logout_view",
     "mentions_legales",
     "mentor_landing",
-    "coalition_welcome",
+    "notre_manifeste",
+    "pourquoi_nous_ecrivons_au_feminin",
+    "qui_sommes_nous",
     "schema_pluriannuel",
     "search_schools",
     "sponsor_landing",
