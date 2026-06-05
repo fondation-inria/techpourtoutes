@@ -1,7 +1,7 @@
 {
   "name": "techpourtoutes",
   "version": "1.0.0",
-  "description": "Plateforme web Django pour la communauté Tech Pour Toutes.",
+  "description": "Plateforme web Django pour la communauté TechPourToutes.",
   "main": "index.js",
   "scripts": {
     "copy-assets": "mkdir -p ui/static/js && cp node_modules/htmx.org/dist/htmx.min.js ui/static/js/htmx.min.js && cp node_modules/alpinejs/dist/cdn.min.js ui/static/js/alpine.min.js"
