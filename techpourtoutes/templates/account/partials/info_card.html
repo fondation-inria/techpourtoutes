@@ -1,3 +1,4 @@
+{% load phone_filters %}
 <div id="account-info-card" class="w-full">
     <c-components.card title="Informations personnelles">
         <c-components.text class="font-light">
@@ -7,7 +8,7 @@
 
             Email : <span class="font-medium">{{ user.email }}</span>
 
-            Numéro de téléphone : <span class="font-medium">{{ user.phone }}</span>
+            Numéro de téléphone : <span class="font-medium">{{ user.phone|phone_national }}</span>
 
             Situation professionnelle : <span class="font-medium">{{ user.get_professional_situation_display }}</span>
 

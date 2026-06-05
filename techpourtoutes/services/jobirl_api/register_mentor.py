@@ -10,6 +10,7 @@ SITUATION_PRO_MAPPING = {
 
 class RegisterMentorOnJobirl(JobirlApiBaseService):
     def perform(self, *, pro) -> None:
+        mobile = "".join(c for c in pro.phone.as_national if c.isdigit()) if pro.phone else ""
         data = {
             "jobirl_profil": "pro",
             "mentorat_profil": "mentor",
@@ -19,7 +20,7 @@ class RegisterMentorOnJobirl(JobirlApiBaseService):
             "prenom": pro.first_name,
             "nom": pro.last_name,
             "email": pro.email,
-            "mobile": f"0{pro.phone.national_number}" if pro.phone else "",
+            "mobile": mobile,
             "cp": pro.postal_code,
             "situation_pro": SITUATION_PRO_MAPPING[pro.professional_situation],
             "poste": pro.job_title,

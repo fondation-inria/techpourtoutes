@@ -14,13 +14,13 @@
                 Sinon, demandez l'envoi d'un nouvel email
             </c-components.list>
 
-            <c-patterns.form url="{% url 'login_request' %}" class="mt-3">
+            <c-patterns.form url="{% url 'login_request' %}" class="mt-2">
                 <input type="hidden" name="email" value="{{ email }}">
-                <c-components.button type="submit" label="Demander l'envoi d'un nouvel email" variant="quaternaly" class="text-left" />
+                <c-components.button type="submit" label="Demander l'envoi d'un nouvel email" variant="quaternaly" class="text-left w-fit" />
             </c-patterns.form>
 
-            <c-components.title title="L'adresse mail saisie est erronée ?" variant="intertitre" class="mt-5" class="mb-3" />
-            <c-components.button href="{% url 'login_request' %}" label="Modifier mon adresse mail" variant="quaternaly" />
+            <c-components.title title="L'adresse mail saisie est erronée ?" variant="intertitre" class="mt-5 mb-3" />
+            <c-components.button href="{% url 'login_request' %}" label="Modifier mon adresse mail" variant="quaternaly" class="block w-fit" />
         </c-components.card>
         <div class="flex items-center">
             <p class="text-sm text-center">
