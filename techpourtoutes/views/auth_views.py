@@ -62,8 +62,7 @@ def login_email_sent(request):
 
 def login_verify(request, token):
     if request.user.is_authenticated:
-        return redirect(reverse("account"))
-
+        logout(request)
     next_url = _safe_next(request, request.GET.get(REDIRECT_FIELD_NAME, ""))
     User = get_user_model()
     user = User.consume_login_token(plaintext=token)
