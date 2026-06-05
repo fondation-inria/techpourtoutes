@@ -196,16 +196,20 @@ def test_login_verify_with_already_used_token_does_not_log_in(client, pro):
 
 
 @pytest.mark.django_db
-def test_login_verify_while_authenticated_does_not_consume_token(client, pro):
+def test_login_verify_while_another_user_authenticated_logs_them_out_and_logs_in_token_user(
+    client, pro
+):
+    from django.contrib.auth import get_user_model
+
+    User = get_user_model()
+    other_user = User.objects.create_user(username="other@example.com", email="other@example.com")
     plaintext = pro.issue_login_token()
-    client.force_login(pro)
+    client.force_login(other_user)
 
     response = client.get(reverse("login_verify", args=[plaintext]))
 
     assert response.status_code == 302
-    assert response["Location"] == reverse("account")
-    pro.refresh_from_db()
-    assert pro.login_token_hash != ""
+    assert client.session.get("_auth_user_id") == str(pro.pk)
 
 
 @pytest.mark.django_db
