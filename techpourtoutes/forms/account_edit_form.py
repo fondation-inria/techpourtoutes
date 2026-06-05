@@ -28,7 +28,7 @@ class AccountEditForm(forms.Form):
                 {
                     "first_name": pro.first_name,
                     "last_name": pro.last_name,
-                    "phone": str(pro.phone),
+                    "phone": pro.phone.as_national if pro.phone else "",
                     "professional_situation": pro.professional_situation,
                     "structure_name": pro.structure_name,
                     "job_title": pro.job_title,

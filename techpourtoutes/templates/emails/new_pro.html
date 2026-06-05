@@ -1,3 +1,4 @@
+{% load phone_filters %}
 <c-layout.email>
   <p style="font-size:15px;color:#374151;">Bonjour,</p>
   <p style="font-size:15px;color:#374151;">
@@ -11,6 +12,6 @@
     - <strong>{{ pro.email }}</strong>
   </p>
   <p style="font-size:15px;color:#374151;">
-    - <strong>{{ pro.phone }}</strong>
+    - <strong>{{ pro.phone|phone_national }}</strong>
   </p>
 </c-layout.email>

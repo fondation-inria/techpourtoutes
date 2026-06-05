@@ -46,7 +46,7 @@ class ProForm(forms.Form):
                     "first_name": pro.first_name,
                     "last_name": pro.last_name,
                     "email": pro.email,
-                    "phone": str(pro.phone),
+                    "phone": pro.phone.as_national if pro.phone else "",
                     "postal_code": pro.postal_code,
                     "professional_situation": pro.professional_situation,
                     "structure_name": pro.structure_name,

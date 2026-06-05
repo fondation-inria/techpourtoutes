@@ -1,9 +1,10 @@
+{% load phone_filters %}
 Bonjour,
 
 {{ pro.civility }} {{ pro.first_name }} {{ pro.last_name }}, de la structure {{ pro.structure_name }} souhaite {{ engagement }}.
 
 Peux-tu {% if pro.civility == "Madame" %}la{% else %}le{% endif %} recontacter ?
 - {{ pro.email }}
-- {{ pro.phone }}
+- {{ pro.phone|phone_national }}
 
 L'équipe TechPourToutes
