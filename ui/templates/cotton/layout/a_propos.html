@@ -2,11 +2,11 @@
     <c-components.title title="À propos" />
 
     <div class="w-full mt-5">
-        <c-components.tabs>
-            <c-components.tab_link href="{% url 'notre_manifeste' %}" label="Notre manifeste" />
-            <c-components.tab_link href="{% url 'qui_sommes_nous' %}" label="Qui sommes-nous&nbsp;?" />
-            <c-components.tab_link href="{% url 'pourquoi_nous_ecrivons_au_feminin' %}" label="Pourquoi nous écrivons au féminin" />
-            <c-components.tab_link href="{% url 'contact' %}" label="Contact" />
+        <c-components.tabs class="flex">
+            <c-components.tab_link href="{% url 'notre_manifeste' %}" label="Notre manifeste" class="md:flex-none flex-auto" />
+            <c-components.tab_link href="{% url 'qui_sommes_nous' %}" label="Qui sommes-nous&nbsp;?" class="md:flex-none flex-auto" />
+            <c-components.tab_link href="{% url 'pourquoi_nous_ecrivons_au_feminin' %}" label="Pourquoi nous écrivons au féminin" class="md:flex-none flex-auto" />
+            <c-components.tab_link href="{% url 'contact' %}" label="Contact" class="md:flex-none flex-auto" />
         </c-components.tabs>
         <c-components.card class="relative -mt-0.5 rounded-tl-none w-full z-10">
             {{ slot }}
