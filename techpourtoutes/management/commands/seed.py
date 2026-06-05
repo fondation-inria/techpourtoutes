@@ -20,7 +20,7 @@ class Command(BaseCommand):
             username=ADMIN_EMAIL,
             email=ADMIN_EMAIL,
             first_name="Admin",
-            last_name="Tech Pour Toutes",
+            last_name="TechPourToutes",
             civility=Pro.Civility.MADAME,
             phone="+33600000000",
             postal_code="75001",

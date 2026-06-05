@@ -1,6 +1,6 @@
-# Tech Pour Toutes
+# TechPourToutes
 
-Plateforme web Django pour la communauté Tech Pour Toutes.
+Plateforme web Django pour la communauté TechPourToutes.
 
 ## Stack technique
 

@@ -21,7 +21,7 @@ exit_with_message() {
   exit 1
 }
 
-print_text "\nTech Pour Toutes: merge sur main, déploiement en production\n" "info"
+print_text "\ntechpourtoutes: merge sur main, déploiement en production\n" "info"
 print_text "--------------------------------------------\n\n"
 
 # Gets the current branch by looking for `*` character
