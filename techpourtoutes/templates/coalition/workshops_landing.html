@@ -1,6 +1,6 @@
 <c-layout.base>
     <c-components.title icon-name="organiser-un-atelier-bold" title="Organiser un atelier" />
-    <div class="flex gap-x-4">
+    <div class="flex flex-wrap gap-2 md:gap-4">
         <c-components.badge label="Ponctuel" />
         <c-components.badge label="2 heures" />
         <c-components.badge label="En présentiel" />
@@ -16,8 +16,8 @@
         </c-components.text>
     </c-components.card>
 
-    <div class="flex gap-x-5 justify-between max-w-2xl mb">
-        <c-components.card-shadow variant="blue" class="flex flex-1 flex-col gap-3 justify-between h-60">
+    <div class="grid grid-cols-2 w-full gap-5 lg:gap-10 justify-between max-w-2xl mb">
+        <c-components.card-shadow variant="blue" class="flex flex-1 flex-col gap-3 justify-between">
             <c-components.title title="L'enquête TechPourToutes" variant="intertitre" class="text-center" />
             <div class="flex flex-1 justify-center">
                 <c-components.icon name="atelier-latitudes-tech-pour-toutes" variant="png" class="max-w-30 max-h-25" />
@@ -27,7 +27,7 @@
             </p>
         </c-components.card-shadow>
 
-        <c-components.card-shadow variant="blue" class="flex flex-1 flex-col gap-3 justify-between h-60">
+        <c-components.card-shadow variant="blue" class="flex flex-1 flex-col gap-3 justify-between">
             <c-components.title title="Future of Tech" variant="intertitre" class="text-center" />
             <div class="flex flex-1 justify-center">
                 <c-components.icon name="atelier-latitudes-future-of-tech" variant="png" class="max-w-30 max-h-25" />
@@ -36,10 +36,8 @@
                 Découvrir les métiers du numérique et ses impacts sociaux et environnementaux
             </p>
         </c-components.card-shadow>
-    </div>
 
-    <div class="flex gap-x-5 justify-between max-w-2xl">
-        <c-components.card-shadow variant="blue" class="flex flex-1 flex-col gap-3 justify-between h-60">
+        <c-components.card-shadow variant="blue" class="flex flex-1 flex-col gap-3 justify-between">
             <c-components.title title="Future of IA" variant="intertitre" class="text-center" />
             <div class="flex flex-1 justify-center">
                 <c-components.icon name="atelier-latitudes-future-of-ia" variant="png" class="max-w-30 max-h-25" />
@@ -49,7 +47,7 @@
             </p>
         </c-components.card-shadow>
 
-        <c-components.card-shadow variant="blue" class="flex flex-1 flex-col gap-3 justify-between h-60">
+        <c-components.card-shadow variant="blue" class="flex flex-1 flex-col gap-3 justify-between">
             <c-components.title title="Future of Cyber" variant="intertitre" class="text-center" />
             <div class="flex flex-1 justify-center">
                 <c-components.icon name="atelier-latitudes-future-of-cyber" variant="png" class="max-w-30 max-h-25" />

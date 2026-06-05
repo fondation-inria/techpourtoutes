@@ -2008,9 +2008,6 @@
   .h-16 {
     height: calc(var(--spacing) * 16);
   }
-  .h-22 {
-    height: calc(var(--spacing) * 22);
-  }
   .h-25 {
     height: calc(var(--spacing) * 25);
   }
@@ -2020,8 +2017,8 @@
   .h-60 {
     height: calc(var(--spacing) * 60);
   }
-  .h-auto {
-    height: auto;
+  .h-dvh {
+    height: 100dvh;
   }
   .h-full {
     height: 100%;
@@ -2064,9 +2061,6 @@
   }
   .w-15 {
     width: calc(var(--spacing) * 15);
-  }
-  .w-22 {
-    width: calc(var(--spacing) * 22);
   }
   .w-25 {
     width: calc(var(--spacing) * 25);
@@ -2115,6 +2109,9 @@
   }
   .flex-1 {
     flex: 1;
+  }
+  .flex-auto {
+    flex: auto;
   }
   .shrink-0 {
     flex-shrink: 0;
@@ -2166,8 +2163,14 @@
   .list-disc {
     list-style-type: disc;
   }
+  .grid-cols-1 {
+    grid-template-columns: repeat(1, minmax(0, 1fr));
+  }
   .grid-cols-2 {
     grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .grid-cols-3 {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
   }
   .flex-col {
     flex-direction: column;
@@ -2222,9 +2225,6 @@
   }
   .gap-x-5 {
     column-gap: calc(var(--spacing) * 5);
-  }
-  .gap-x-10 {
-    column-gap: calc(var(--spacing) * 10);
   }
   .gap-y-2 {
     row-gap: calc(var(--spacing) * 2);
@@ -2348,9 +2348,6 @@
   .object-contain {
     object-fit: contain;
   }
-  .object-cover {
-    object-fit: cover;
-  }
   .p-1 {
     padding: calc(var(--spacing) * 1);
   }
@@ -2386,6 +2383,15 @@
   }
   .pt-4 {
     padding-top: calc(var(--spacing) * 4);
+  }
+  .pt-10 {
+    padding-top: calc(var(--spacing) * 10);
+  }
+  .pt-12 {
+    padding-top: calc(var(--spacing) * 12);
+  }
+  .pt-14 {
+    padding-top: calc(var(--spacing) * 14);
   }
   .pb-2 {
     padding-bottom: calc(var(--spacing) * 2);
@@ -2513,6 +2519,9 @@
   }
   .text-\[\#ff00ff\] {
     color: #ff00ff;
+  }
+  .text-accent-500 {
+    color: var(--color-accent-500);
   }
   .text-black {
     color: var(--color-black);
@@ -2771,6 +2780,26 @@
       color: var(--color-neutral-0);
     }
   }
+  .sm\:w-full {
+    @media (width >= 40rem) {
+      width: 100%;
+    }
+  }
+  .sm\:grid-cols-2 {
+    @media (width >= 40rem) {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+  }
+  .sm\:grid-cols-3 {
+    @media (width >= 40rem) {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+  }
+  .sm\:gap-10 {
+    @media (width >= 40rem) {
+      gap: calc(var(--spacing) * 10);
+    }
+  }
   .md\:sticky {
     @media (width >= 48rem) {
       position: sticky;
@@ -2784,6 +2813,16 @@
   .md\:mt-\[65px\] {
     @media (width >= 48rem) {
       margin-top: 65px;
+    }
+  }
+  .md\:block {
+    @media (width >= 48rem) {
+      display: block;
+    }
+  }
+  .md\:flex {
+    @media (width >= 48rem) {
+      display: flex;
     }
   }
   .md\:hidden {
@@ -2801,6 +2840,21 @@
       min-width: 560px;
     }
   }
+  .md\:flex-1 {
+    @media (width >= 48rem) {
+      flex: 1;
+    }
+  }
+  .md\:flex-auto {
+    @media (width >= 48rem) {
+      flex: auto;
+    }
+  }
+  .md\:flex-none {
+    @media (width >= 48rem) {
+      flex: none;
+    }
+  }
   .md\:grid-cols-3 {
     @media (width >= 48rem) {
       grid-template-columns: repeat(3, minmax(0, 1fr));
@@ -2814,6 +2868,21 @@
   .md\:justify-around {
     @media (width >= 48rem) {
       justify-content: space-around;
+    }
+  }
+  .md\:gap-4 {
+    @media (width >= 48rem) {
+      gap: calc(var(--spacing) * 4);
+    }
+  }
+  .md\:gap-10 {
+    @media (width >= 48rem) {
+      gap: calc(var(--spacing) * 10);
+    }
+  }
+  .md\:gap-15 {
+    @media (width >= 48rem) {
+      gap: calc(var(--spacing) * 15);
     }
   }
   .md\:self-start {
@@ -2846,6 +2915,16 @@
   .md\:px-32 {
     @media (width >= 48rem) {
       padding-inline: calc(var(--spacing) * 32);
+    }
+  }
+  .lg\:gap-10 {
+    @media (width >= 64rem) {
+      gap: calc(var(--spacing) * 10);
+    }
+  }
+  .lg\:gap-15 {
+    @media (width >= 64rem) {
+      gap: calc(var(--spacing) * 15);
     }
   }
   .xl\:drawer-open {
@@ -2914,6 +2993,16 @@
   .xl\:inline {
     @media (width >= 80rem) {
       display: inline;
+    }
+  }
+  .xl\:w-\[264px\] {
+    @media (width >= 80rem) {
+      width: 264px;
+    }
+  }
+  .xl\:pt-3 {
+    @media (width >= 80rem) {
+      padding-top: calc(var(--spacing) * 3);
     }
   }
   .\[body\:has\(\#sidebar-drawer\:checked\)_\&\]\:block {
