@@ -2,7 +2,7 @@ from django.contrib import messages
 from django.db.models import Q
 from django.shortcuts import redirect, render
 
-from ..forms import ProForm, TrainingAmbassadorForm, WorkshopForm
+from ..forms import EngagementForm, TrainingAmbassadorForm, WorkshopForm
 from ..mailers import CoalitionMailer
 from ..models import School, WorkshopRequest
 from ..services.create_mentor import CreateMentor
@@ -16,7 +16,7 @@ def coalition_home(request):
 def mentor_landing(request):
     pro = request.user.pro if hasattr(request.user, "pro") else None
     if request.method == "POST":
-        form = ProForm(data=request.POST, pro=pro)
+        form = EngagementForm(data=request.POST, pro=pro)
         if form.is_valid():
             result = CreateMentor(pro=form.save(commit=False))
             if result.failure:
@@ -27,14 +27,14 @@ def mentor_landing(request):
         else:
             _render_errors(request, form)
     else:
-        form = ProForm(pro=pro)
+        form = EngagementForm(pro=pro)
     return render(request, "coalition/mentor_landing.html", {"form": form, "pro": pro})
 
 
 def work_ambassador_landing(request):
     pro = request.user.pro if hasattr(request.user, "pro") else None
     if request.method == "POST":
-        form = ProForm(data=request.POST, pro=pro)
+        form = EngagementForm(data=request.POST, pro=pro)
         if form.is_valid():
             pro = form.save(commit=False)
             pro.engagements.append("work_ambassador")
@@ -45,7 +45,7 @@ def work_ambassador_landing(request):
         else:
             _render_errors(request, form)
     else:
-        form = ProForm(pro=pro)
+        form = EngagementForm(pro=pro)
     return render(request, "coalition/work_ambassador_landing.html", {"form": form, "pro": pro})
 
 
@@ -100,7 +100,7 @@ def workshops_landing(request):
 def sponsor_landing(request):
     pro = request.user.pro if hasattr(request.user, "pro") else None
     if request.method == "POST":
-        form = ProForm(data=request.POST, pro=pro)
+        form = EngagementForm(data=request.POST, pro=pro)
         if form.is_valid():
             pro = form.save(commit=False)
             pro.engagements.append("sponsor")
@@ -111,7 +111,7 @@ def sponsor_landing(request):
         else:
             _render_errors(request, form)
     else:
-        form = ProForm(pro=pro)
+        form = EngagementForm(pro=pro)
     return render(request, "coalition/sponsor_landing.html", {"form": form, "pro": pro})
 
 

@@ -33,9 +33,9 @@ def test_mentor_landing_post_invalid_rerenders_with_errors(client, valid_pro_dat
 
 @pytest.mark.django_db
 def test_mentor_landing_post_duplicate_email_shows_error(client, valid_pro_data):
-    from techpourtoutes.forms import ProForm
+    from techpourtoutes.forms import EngagementForm
 
-    form = ProForm(data=valid_pro_data)
+    form = EngagementForm(data=valid_pro_data)
     assert form.is_valid()
     form.save()
 
