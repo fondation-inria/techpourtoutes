@@ -9,7 +9,7 @@ urlpatterns = [
     path("mentorer/", views.mentor_landing, name="mentor_landing"),
     path("pitcher-mon-metier/", views.work_ambassador_landing, name="work_ambassador_landing"),
     path(
-        "pitcher-ma-formation/",
+        "devenir-ambassadrice-etudiante/",
         views.training_ambassador_landing,
         name="training_ambassador_landing",
     ),
