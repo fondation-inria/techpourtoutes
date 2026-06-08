@@ -14,7 +14,7 @@ class Pro(User):
         MENTOR = "mentor", _("mentorer")
         INTERNSHIPS = "internships", _("accueillir une stagiaire")
         WORK_AMBASSADOR = "work_ambassador", _("pitcher son métier")
-        TRAINING_AMBASSADOR = "training_ambassador", _("pitcher sa formation")
+        TRAINING_AMBASSADOR = "training_ambassador", _("devenir ambassadrice étudiante")
         SPONSOR = "sponsor", _("devenir mécène")
         WORKSHOPS = "workshops", _("organiser un atelier")
 
