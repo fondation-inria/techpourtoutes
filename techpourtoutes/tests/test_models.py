@@ -176,6 +176,15 @@ def test_pro_workshops_engagement_is_valid(valid_pro_model_data):
 
 
 @pytest.mark.django_db
+def test_pro_rejects_invalid_postal_code(valid_pro_model_data):
+    from techpourtoutes.models import Pro
+
+    data = {**valid_pro_model_data, "email": "badcp@example.com", "postal_code": "123"}
+    with pytest.raises(ValidationError):
+        Pro(username="badcp@example.com", **data).save()
+
+
+@pytest.mark.django_db
 def test_add_engagement_appends_new_engagement(valid_pro_model_data):
     from techpourtoutes.models import Pro
 

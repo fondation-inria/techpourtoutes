@@ -8,6 +8,8 @@ from techpourtoutes.signals import connect_brevo_sync
 
 from .user import User
 
+POSTAL_CODE_VALIDATOR = RegexValidator(r"^\d{5}$", _("Entrez un code postal valide à 5 chiffres."))
+
 
 class Pro(User):
     class Engagement(models.TextChoices):
@@ -46,7 +48,7 @@ class Pro(User):
     job_title = models.CharField(max_length=255, verbose_name=_("métier"))
     postal_code = models.CharField(
         max_length=5,
-        validators=[RegexValidator(r"^\d{5}$", _("Entrez un code postal valide à 5 chiffres."))],
+        validators=[POSTAL_CODE_VALIDATOR],
         verbose_name=_("code postal"),
     )
     jobirl_user_id = models.BigIntegerField(
