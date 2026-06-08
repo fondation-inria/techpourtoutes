@@ -1,9 +1,10 @@
 <!DOCTYPE html>
-{% load tailwind_cli static %}
+{% load tailwind_cli static matomo %}
 <html data-theme="techpourtoutes">
     <head>
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        {% matomo_tracking %}
         <title>TechPourToutes</title>
         <link rel="icon" type="image/png" href="{% static 'images/favicon-tpt.png' %}">
         {% tailwind_css %}

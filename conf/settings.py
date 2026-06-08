@@ -182,6 +182,10 @@ CELERY_BROKER_URL = env("REDIS_URL", default="redis://localhost:6379/0")
 CELERY_TASK_ALWAYS_EAGER = env.bool("CELERY_TASK_ALWAYS_EAGER", default=False)
 CELERY_TASK_EAGER_PROPAGATES = True
 
+# Matomo analytics (values differ per environment; leave empty to disable tracking)
+MATOMO_URL = env("MATOMO_URL", default="").rstrip("/")
+MATOMO_SITE_ID = env("MATOMO_SITE_ID", default="")
+
 # Sentry
 SENTRY_DSN = env("SENTRY_DSN", default="")
 if SENTRY_DSN:
