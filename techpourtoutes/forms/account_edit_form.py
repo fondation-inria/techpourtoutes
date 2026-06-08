@@ -1,9 +1,9 @@
 from django import forms
-from django.core.validators import RegexValidator
 from django.utils.translation import gettext_lazy as _
 from phonenumber_field.formfields import PhoneNumberField
 
-from ..models import Pro
+from ..models import POSTAL_CODE_VALIDATOR, Pro
+from .validators import require_structure_when_working
 
 
 class AccountEditForm(forms.Form):
@@ -18,7 +18,7 @@ class AccountEditForm(forms.Form):
     job_title = forms.CharField(label=_("Métier*"))
     postal_code = forms.CharField(
         label=_("Code postal*"),
-        validators=[RegexValidator(r"^\d{5}$", _("Entrez un code postal valide à 5 chiffres."))],
+        validators=[POSTAL_CODE_VALIDATOR],
     )
 
     def __init__(self, *args, pro=None, **kwargs):
@@ -39,9 +39,7 @@ class AccountEditForm(forms.Form):
 
     def clean(self):
         cleaned_data = super().clean()
-        if cleaned_data.get("professional_situation") == "working":
-            if not cleaned_data.get("structure_name"):
-                self.add_error("structure_name", _("Ce champ est obligatoire."))
+        require_structure_when_working(self, cleaned_data)
         return cleaned_data
 
     def save(self, pro):

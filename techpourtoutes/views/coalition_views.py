@@ -4,7 +4,7 @@ from django.shortcuts import redirect, render
 
 from ..forms import EngagementForm, TrainingAmbassadorForm, WorkshopForm
 from ..mailers import CoalitionMailer
-from ..models import School, WorkshopRequest
+from ..models import Pro, School, WorkshopRequest
 from ..services.create_mentor import CreateMentor
 from ..tasks import notify_workshop_request_task
 
@@ -14,7 +14,7 @@ def coalition_home(request):
 
 
 def mentor_landing(request):
-    pro = request.user.pro if hasattr(request.user, "pro") else None
+    pro = _current_pro(request)
     if request.method == "POST":
         form = EngagementForm(data=request.POST, pro=pro)
         if form.is_valid():
@@ -32,40 +32,29 @@ def mentor_landing(request):
 
 
 def work_ambassador_landing(request):
-    pro = request.user.pro if hasattr(request.user, "pro") else None
-    if request.method == "POST":
-        form = EngagementForm(data=request.POST, pro=pro)
-        if form.is_valid():
-            pro = form.save(commit=False)
-            pro.engagements.append("work_ambassador")
-            pro.save()
-            CoalitionMailer.welcome(pro=pro, token=pro.issue_login_token())
-            CoalitionMailer.new_pro(pro=pro, engagement="work_ambassador")
-            return redirect("coalition_welcome")
-        else:
-            _render_errors(request, form)
-    else:
-        form = EngagementForm(pro=pro)
-    return render(request, "coalition/work_ambassador_landing.html", {"form": form, "pro": pro})
+    return _handle_engagement(
+        request,
+        form_class=EngagementForm,
+        engagement=Pro.Engagement.WORK_AMBASSADOR,
+        template="coalition/work_ambassador_landing.html",
+    )
 
 
 def training_ambassador_landing(request):
-    pro = request.user.pro if hasattr(request.user, "pro") else None
-    if request.method == "POST":
-        form = TrainingAmbassadorForm(data=request.POST, pro=pro)
-        if form.is_valid():
-            pro = form.save(commit=False)
-            pro.engagements.append("training_ambassador")
-            pro.save()
-            CoalitionMailer.welcome(pro=pro, token=pro.issue_login_token())
-            CoalitionMailer.new_pro(pro=pro, engagement="training_ambassador")
-            return redirect("coalition_welcome")
-        else:
-            _render_errors(request, form)
-    else:
-        form = TrainingAmbassadorForm(pro=pro)
-    return render(
-        request, "coalition/training_ambassador_landing.html", {"form": form, "pro": pro}
+    return _handle_engagement(
+        request,
+        form_class=TrainingAmbassadorForm,
+        engagement=Pro.Engagement.TRAINING_AMBASSADOR,
+        template="coalition/training_ambassador_landing.html",
+    )
+
+
+def sponsor_landing(request):
+    return _handle_engagement(
+        request,
+        form_class=EngagementForm,
+        engagement=Pro.Engagement.SPONSOR,
+        template="coalition/sponsor_landing.html",
     )
 
 
@@ -74,12 +63,12 @@ def internships_landing(request):
 
 
 def workshops_landing(request):
-    pro = request.user.pro if hasattr(request.user, "pro") else None
+    pro = _current_pro(request)
     if request.method == "POST":
         form = WorkshopForm(data=request.POST, pro=pro)
         if form.is_valid():
             pro = form.save(commit=False)
-            pro.engagements.append("workshops")
+            pro.add_engagement(Pro.Engagement.WORKSHOPS)
             pro.save()
             for atelier in form.cleaned_data["ateliers"]:
                 WorkshopRequest.objects.create(
@@ -95,24 +84,6 @@ def workshops_landing(request):
     else:
         form = WorkshopForm(pro=pro)
     return render(request, "coalition/workshops_landing.html", {"form": form, "pro": pro})
-
-
-def sponsor_landing(request):
-    pro = request.user.pro if hasattr(request.user, "pro") else None
-    if request.method == "POST":
-        form = EngagementForm(data=request.POST, pro=pro)
-        if form.is_valid():
-            pro = form.save(commit=False)
-            pro.engagements.append("sponsor")
-            pro.save()
-            CoalitionMailer.welcome(pro=pro, token=pro.issue_login_token())
-            CoalitionMailer.new_pro(pro=pro, engagement="sponsor")
-            return redirect("coalition_welcome")
-        else:
-            _render_errors(request, form)
-    else:
-        form = EngagementForm(pro=pro)
-    return render(request, "coalition/sponsor_landing.html", {"form": form, "pro": pro})
 
 
 def search_schools(request):
@@ -144,6 +115,31 @@ def search_schools(request):
 
 def coalition_welcome(request):
     return render(request, "coalition/coalition_welcome.html", {})
+
+
+# ------------------- private -------------------
+
+
+def _current_pro(request):
+    return request.user.pro if hasattr(request.user, "pro") else None
+
+
+def _handle_engagement(request, *, form_class, engagement, template):
+    pro = _current_pro(request)
+    if request.method == "POST":
+        form = form_class(data=request.POST, pro=pro)
+        if form.is_valid():
+            pro = form.save(commit=False)
+            pro.add_engagement(engagement)
+            pro.save()
+            CoalitionMailer.welcome(pro=pro, token=pro.issue_login_token())
+            CoalitionMailer.new_pro(pro=pro, engagement=engagement)
+            return redirect("coalition_welcome")
+        else:
+            _render_errors(request, form)
+    else:
+        form = form_class(pro=pro)
+    return render(request, template, {"form": form, "pro": pro})
 
 
 def _render_errors(request, form):

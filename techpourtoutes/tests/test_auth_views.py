@@ -66,6 +66,22 @@ def test_login_request_post_with_unknown_email_sends_nothing(client):
 
 
 @pytest.mark.django_db
+def test_login_request_post_from_email_sent_page_shows_confirmation_message(client):
+    from django.conf import settings
+
+    referer = f"{settings.SITE_URL}{reverse('login_email_sent')}"
+    response = client.post(
+        reverse("login_request"),
+        data={"email": "ghost@example.com"},
+        HTTP_REFERER=referer,
+    )
+
+    assert response.status_code == 302
+    stored = [str(m) for m in get_messages(response.wsgi_request)]
+    assert any("Votre demande a bien été prise en compte." in m for m in stored)
+
+
+@pytest.mark.django_db
 @override_settings(EMAIL_BACKEND="django.core.mail.backends.locmem.EmailBackend")
 def test_login_request_post_with_inactive_user_sends_nothing(client, inactive_user):
     response = client.post(reverse("login_request"), data={"email": inactive_user.email})
@@ -346,6 +362,19 @@ def test_account_edit_requires_login(client):
 
     assert response.status_code == 302
     assert reverse("login_request") in response["Location"]
+
+
+@pytest.mark.django_db
+def test_account_edit_redirects_user_without_pro(client, db):
+    from techpourtoutes.models import User
+
+    user = User.objects.create_user(username="plain@example.com", email="plain@example.com")
+    client.force_login(user)
+
+    response = client.get(reverse("account_edit"))
+
+    assert response.status_code == 302
+    assert response["Location"] == reverse("account")
 
 
 @pytest.mark.django_db

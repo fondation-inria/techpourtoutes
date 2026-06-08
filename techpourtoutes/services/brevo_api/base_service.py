@@ -1,5 +1,3 @@
-from functools import cached_property
-
 from brevo.core.api_error import ApiError
 
 from techpourtoutes.clients.brevo import BrevoClient
@@ -23,7 +21,7 @@ class BrevoApiBaseService(BaseService):
             self.status_code = exc.status_code
             self._fail_with_errors(exc)
 
-    @cached_property
+    @property
     def brevo_response_body(self):
         return getattr(self, "_brevo_response", None)
 
