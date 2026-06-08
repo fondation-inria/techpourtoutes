@@ -7,6 +7,24 @@ from ...models import Pro, User
 
 
 class BaseEngagementForm(forms.Form):
+    """Shared form for the engagement flows that create or update a `Pro`.
+
+    Every engagement (workshop, training ambassador, generic) collects the same
+    identity fields plus its own professional fields, then writes them onto a
+    `Pro`. Subclasses tailor the behaviour through three class attributes:
+
+    - `pro_fields`: form fields whose cleaned values are copied onto the `Pro`.
+    - `pro_constants`: `Pro` attributes forced to a fixed value regardless of
+      user input (e.g. a professional situation implied by the engagement).
+    - `prefill_fields`: extra fields, on top of the identity fields and email,
+      to prefill when editing an existing `Pro`.
+
+    Passing an existing `pro` switches the form into edit mode: its fields are
+    prefilled, the email becomes read-only, and the terms checkbox is no longer
+    required (the user already accepted them at sign-up).
+    """
+
+    # Identity fields written onto every Pro, whatever the engagement.
     BASE_FIELDS = ("civility", "first_name", "last_name")
 
     pro_fields: ClassVar[tuple[str, ...]] = ()
@@ -33,36 +51,53 @@ class BaseEngagementForm(forms.Form):
 
     def __init__(self, *args, pro=None, **kwargs):
         if pro is not None:
-            kwargs.setdefault("initial", self._initial_from_pro(pro))
+            kwargs.setdefault("initial", self._prefilled_values_from(pro))
         super().__init__(*args, **kwargs)
         self.pro = pro
         if pro is not None:
-            self.fields["email"].disabled = True
-            self.fields["terms_accepted"].required = False
-
-    def _initial_from_pro(self, pro):
-        fields = (*self.BASE_FIELDS, "email", *self.prefill_fields)
-        initial = {field: getattr(pro, field) for field in fields}
-        if "phone" in initial:
-            initial["phone"] = pro.phone.as_national if pro.phone else ""
-        return initial
+            self._lock_fields_for_existing_account()
 
     def clean_email(self):
         email = self.cleaned_data["email"]
-        if (
-            not (self.pro and email == self.pro.email)
-            and User.objects.filter(email=email).exists()
-        ):
+        if self._email_taken_by_another_account(email):
             raise forms.ValidationError(_("Un compte avec cet email existe déjà."))
         return email
 
     def save(self, commit=True):
-        data = self.cleaned_data
-        pro = self.pro or Pro(username=data["email"], email=data["email"])
-        for field in (*self.BASE_FIELDS, *self.pro_fields):
-            setattr(pro, field, data[field])
-        for attr, value in self.pro_constants.items():
-            setattr(pro, attr, value)
+        pro = self._get_or_build_pro()
+        self._copy_form_fields_onto(pro)
+        self._apply_constants_onto(pro)
         if commit:
             pro.save()
         return pro
+
+    # ------------------- private methods -------------------
+
+    def _prefilled_values_from(self, pro):
+        fields = (*self.BASE_FIELDS, "email", *self.prefill_fields)
+        values = {field: getattr(pro, field) for field in fields}
+        if "phone" in values:
+            values["phone"] = pro.phone.as_national if pro.phone else ""
+        return values
+
+    def _lock_fields_for_existing_account(self):
+        # The email identifies the account, and the terms were accepted at sign-up.
+        self.fields["email"].disabled = True
+        self.fields["terms_accepted"].required = False
+
+    def _email_taken_by_another_account(self, email):
+        if self.pro and email == self.pro.email:
+            return False
+        return User.objects.filter(email=email).exists()
+
+    def _get_or_build_pro(self):
+        email = self.cleaned_data["email"]
+        return self.pro or Pro(username=email, email=email)
+
+    def _copy_form_fields_onto(self, pro):
+        for field in (*self.BASE_FIELDS, *self.pro_fields):
+            setattr(pro, field, self.cleaned_data[field])
+
+    def _apply_constants_onto(self, pro):
+        for attr, value in self.pro_constants.items():
+            setattr(pro, attr, value)
