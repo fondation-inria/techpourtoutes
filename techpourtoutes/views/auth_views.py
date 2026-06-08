@@ -39,7 +39,8 @@ def login_request(request):
                 token = user.issue_login_token()
                 LoginMailer.send_link(user=user, token=token, next_url=next_url)
             request.session["login_email"] = email
-            if request.headers.get("referer") == f"{settings.SITE_URL}/se-connecter/email-envoye/":
+            email_sent_url = f"{settings.SITE_URL}{reverse('login_email_sent')}"
+            if request.headers.get("referer") == email_sent_url:
                 messages.success(request, "Votre demande a bien été prise en compte.")
             return redirect("login_email_sent")
     else:
@@ -110,6 +111,8 @@ def account_info(request):
 
 @login_required
 def account_edit(request):
+    if not hasattr(request.user, "pro"):
+        return redirect("account")
     pro = request.user.pro
     if request.method == "POST":
         form = AccountEditForm(data=request.POST)

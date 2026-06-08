@@ -7,6 +7,9 @@ SITUATION_PRO_MAPPING = {
     Pro.ProfessionalSituation.JOBLESS: "chomeur",
 }
 
+# Jobirl "secteurs_activites" identifier sent for every mentor registration.
+JOBIRL_SECTOR_ID = "75851"
+
 
 class RegisterMentorOnJobirl(JobirlApiBaseService):
     def perform(self, *, pro) -> None:
@@ -15,7 +18,7 @@ class RegisterMentorOnJobirl(JobirlApiBaseService):
             "jobirl_profil": "pro",
             "mentorat_profil": "mentor",
             "choix": "projet",
-            "secteurs_activites": "75851",
+            "secteurs_activites": JOBIRL_SECTOR_ID,
             "civilite": pro.civility,
             "prenom": pro.first_name,
             "nom": pro.last_name,
