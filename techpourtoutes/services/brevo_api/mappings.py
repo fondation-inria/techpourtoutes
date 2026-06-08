@@ -1,5 +1,6 @@
 from datetime import date, datetime
 
+from django.apps import apps
 from django.conf import settings
 from phonenumber_field.phonenumber import PhoneNumber
 
@@ -27,6 +28,29 @@ PRO_FIELDS = USER_FIELDS + [
 ]
 
 
+def brevo_attributes_for(instance) -> dict | None:
+    if _is_pro(instance):
+        return _attributes_from(instance, PRO_FIELDS)
+    return None
+
+
+def brevo_list_id_for(instance) -> int | None:
+    if _is_pro(instance):
+        return settings.BREVO_PRO_LIST_ID
+    return None
+
+
+# ------------------- private -------------------
+
+
+def _is_pro(instance) -> bool:
+    return isinstance(instance, apps.get_model("techpourtoutes", "Pro"))
+
+
+def _attributes_from(instance, fields: list[str]) -> dict:
+    return {FIELD_TO_BREVO_ATTR[f]: _serialize(getattr(instance, f)) for f in fields}
+
+
 def _serialize(value):
     if value is None:
         return None
@@ -35,19 +59,3 @@ def _serialize(value):
     if isinstance(value, (date, datetime)):
         return value.isoformat()
     return value
-
-
-def _attributes_from(instance, fields: list[str]) -> dict:
-    return {FIELD_TO_BREVO_ATTR[f]: _serialize(getattr(instance, f)) for f in fields}
-
-
-def brevo_attributes_for(instance) -> dict | None:
-    if instance.__class__.__name__ == "Pro":
-        return _attributes_from(instance, PRO_FIELDS)
-    return None
-
-
-def brevo_list_id_for(instance) -> int | None:
-    if instance.__class__.__name__ == "Pro":
-        return settings.BREVO_PRO_LIST_ID
-    return None

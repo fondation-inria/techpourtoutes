@@ -110,6 +110,8 @@ def account_info(request):
 
 @login_required
 def account_edit(request):
+    if not hasattr(request.user, "pro"):
+        return redirect("account")
     pro = request.user.pro
     if request.method == "POST":
         form = AccountEditForm(data=request.POST)

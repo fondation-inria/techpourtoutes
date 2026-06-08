@@ -176,6 +176,35 @@ def test_pro_workshops_engagement_is_valid(valid_pro_model_data):
 
 
 @pytest.mark.django_db
+def test_add_engagement_appends_new_engagement(valid_pro_model_data):
+    from techpourtoutes.models import Pro
+
+    pro = Pro(username="marie.dupont@example.com", **valid_pro_model_data)
+    pro.add_engagement(Pro.Engagement.MENTOR)
+    assert pro.engagements == ["mentor"]
+
+
+@pytest.mark.django_db
+def test_add_engagement_is_idempotent(valid_pro_model_data):
+    from techpourtoutes.models import Pro
+
+    pro = Pro(username="marie.dupont@example.com", **valid_pro_model_data)
+    pro.add_engagement(Pro.Engagement.MENTOR)
+    pro.add_engagement(Pro.Engagement.MENTOR)
+    assert pro.engagements == ["mentor"]
+
+
+@pytest.mark.django_db
+def test_add_engagement_does_not_save(valid_pro_model_data):
+    from techpourtoutes.models import Pro
+
+    pro = Pro(username="marie.dupont@example.com", **valid_pro_model_data)
+    pro.save()
+    pro.add_engagement(Pro.Engagement.SPONSOR)
+    assert Pro.objects.get(pk=pro.pk).engagements == []
+
+
+@pytest.mark.django_db
 def test_pro_phone_is_optional(valid_pro_model_data):
     from techpourtoutes.models import Pro
 

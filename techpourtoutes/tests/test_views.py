@@ -395,6 +395,19 @@ def test_work_ambassador_landing_post_authenticated_pro_updates_pro(client, pro)
 
 @pytest.mark.django_db
 @override_settings(EMAIL_BACKEND="django.core.mail.backends.locmem.EmailBackend")
+def test_work_ambassador_landing_does_not_duplicate_existing_engagement(client, pro):
+    pro.engagements = ["work_ambassador"]
+    pro.save()
+    client.force_login(pro)
+
+    client.post(reverse("work_ambassador_landing"), data=_pro_post_data(pro))
+
+    pro.refresh_from_db()
+    assert pro.engagements.count("work_ambassador") == 1
+
+
+@pytest.mark.django_db
+@override_settings(EMAIL_BACKEND="django.core.mail.backends.locmem.EmailBackend")
 def test_workshops_landing_post_authenticated_pro_updates_pro(client, pro):
     from techpourtoutes.models import Pro
 

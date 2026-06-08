@@ -349,6 +349,19 @@ def test_account_edit_requires_login(client):
 
 
 @pytest.mark.django_db
+def test_account_edit_redirects_user_without_pro(client, db):
+    from techpourtoutes.models import User
+
+    user = User.objects.create_user(username="plain@example.com", email="plain@example.com")
+    client.force_login(user)
+
+    response = client.get(reverse("account_edit"))
+
+    assert response.status_code == 302
+    assert response["Location"] == reverse("account")
+
+
+@pytest.mark.django_db
 def test_account_edit_get_renders_form(client, pro):
     client.force_login(pro)
 

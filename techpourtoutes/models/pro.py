@@ -71,5 +71,10 @@ class Pro(User):
             self.set_unusable_password()
         super().save(*args, **kwargs)
 
+    def add_engagement(self, engagement):
+        engagement = str(engagement)
+        if engagement not in self.engagements:
+            self.engagements.append(engagement)
+
 
 connect_brevo_sync(Pro)
