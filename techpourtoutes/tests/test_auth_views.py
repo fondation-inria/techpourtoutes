@@ -66,6 +66,22 @@ def test_login_request_post_with_unknown_email_sends_nothing(client):
 
 
 @pytest.mark.django_db
+def test_login_request_post_from_email_sent_page_shows_confirmation_message(client):
+    from django.conf import settings
+
+    referer = f"{settings.SITE_URL}{reverse('login_email_sent')}"
+    response = client.post(
+        reverse("login_request"),
+        data={"email": "ghost@example.com"},
+        HTTP_REFERER=referer,
+    )
+
+    assert response.status_code == 302
+    stored = [str(m) for m in get_messages(response.wsgi_request)]
+    assert any("Votre demande a bien été prise en compte." in m for m in stored)
+
+
+@pytest.mark.django_db
 @override_settings(EMAIL_BACKEND="django.core.mail.backends.locmem.EmailBackend")
 def test_login_request_post_with_inactive_user_sends_nothing(client, inactive_user):
     response = client.post(reverse("login_request"), data={"email": inactive_user.email})
