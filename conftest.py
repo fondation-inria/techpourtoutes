@@ -10,6 +10,13 @@ def use_simple_static_storage(settings):
 
 
 @pytest.fixture(autouse=True)
+def disable_https_redirect(settings):
+    # pytest-django forces DEBUG=False, which activates SECURE_SSL_REDIRECT and would
+    # 301-redirect every test-client request (the test client speaks plain HTTP).
+    settings.SECURE_SSL_REDIRECT = False
+
+
+@pytest.fixture(autouse=True)
 def celery_eager(settings):
     settings.CELERY_TASK_ALWAYS_EAGER = True
     settings.CELERY_TASK_EAGER_PROPAGATES = True

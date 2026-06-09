@@ -129,6 +129,19 @@ LOGOUT_REDIRECT_URL = "/"
 SESSION_COOKIE_AGE = 60 * 60 * 24 * 90  # 90 days
 SESSION_SAVE_EVERY_REQUEST = True
 
+# Security hardening (production only; local dev and tests run over plain HTTP)
+if not DEBUG:
+    # The platform proxy terminates TLS and forwards plain HTTP with this header, letting
+    # request.is_secure() recognise the original HTTPS request (cookies, redirect, HSTS).
+    SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
+    SECURE_SSL_REDIRECT = True
+    SESSION_COOKIE_SECURE = True
+    CSRF_COOKIE_SECURE = True
+    # Start conservative; ramp up to 31536000 (1 year) once HTTPS is confirmed stable.
+    SECURE_HSTS_SECONDS = 3600
+    SECURE_HSTS_INCLUDE_SUBDOMAINS = True
+    SECURE_HSTS_PRELOAD = True
+
 # Email
 DEFAULT_FROM_EMAIL = env(
     "DEFAULT_FROM_EMAIL", default="TechPourToutes <noreply@techpourtoutes.io>"
