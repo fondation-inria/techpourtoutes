@@ -55,6 +55,22 @@ def test_search_schools_empty_query_returns_first_page(client, schools):
 
 
 @pytest.mark.django_db
+def test_school_search_escapes_reflected_value_for_js_context(client):
+    # On a failed POST the form re-renders with the submitted structure_name interpolated
+    # into the Alpine x-data JS strings. escapejs emits ' for a single quote (safe in
+    # the JS context); plain HTML autoescaping would emit &#x27; which the browser decodes
+    # back to a real quote, breaking out of the string.
+    response = client.post(
+        reverse("training_ambassador_landing"),
+        {"structure_name": "Test'X"},
+    )
+    assert response.status_code == 200
+    content = response.content.decode()
+    assert "Test\\u0027X" in content
+    assert "Test&#x27;X" not in content
+
+
+@pytest.mark.django_db
 def test_search_schools_paginates_with_next_page_sentinel(client):
     from techpourtoutes.models import School
 
