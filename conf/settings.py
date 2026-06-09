@@ -23,6 +23,8 @@ SECRET_KEY = env("SECRET_KEY")
 DEBUG = env("DEBUG")
 ALLOWED_HOSTS = env.list("ALLOWED_HOSTS")
 SITE_URL = env("HOST", default="https://localhost:8000").rstrip("/")
+# Admin is mounted at this path; override in production to a non-guessable value.
+ADMIN_URL = env("ADMIN_URL", default="admin").strip("/")
 DATABASES = {"default": env.db("DATABASE_URL")}
 
 # Application definition
@@ -41,6 +43,8 @@ INSTALLED_APPS = [
     "simple_history",
     "phonenumber_field",
     "anymail",
+    "django_otp",
+    "django_otp.plugins.otp_totp",
     # Apps techpourtoutes
     "techpourtoutes",
     "ui",
@@ -55,6 +59,7 @@ MIDDLEWARE = [
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
     "django.contrib.auth.middleware.AuthenticationMiddleware",
+    "django_otp.middleware.OTPMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
     "simple_history.middleware.HistoryRequestMiddleware",

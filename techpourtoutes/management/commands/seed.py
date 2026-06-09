@@ -1,4 +1,5 @@
-from django.core.management.base import BaseCommand
+from django.conf import settings
+from django.core.management.base import BaseCommand, CommandError
 
 from techpourtoutes.models import Pro
 
@@ -10,6 +11,11 @@ class Command(BaseCommand):
     help = "Seed the database with minimal dev data"
 
     def handle(self, *args, **options):
+        if not settings.DEBUG:
+            raise CommandError(
+                "seed creates an account with a well-known password and is for local "
+                "development only; it refuses to run with DEBUG=False."
+            )
         self._create_admin_pro()
 
     def _create_admin_pro(self):
