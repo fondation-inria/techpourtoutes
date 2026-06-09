@@ -10,10 +10,10 @@
 <c-components.form-fields.base :field=name_field label=label description=description class=class>
     <div x-data="{
             open: false,
-            query: '{{ name_field.value|default:"" }}{% if name_field.value and postal_field.value %} ({{ postal_field.value }}){% endif %}',
-            structureName: '{{ name_field.value|default:"" }}',
-            structureId: '{{ id_field.value|default:"" }}',
-            postalCode: '{{ postal_field.value|default:"" }}',
+            query: '{{ name_field.value|default:""|escapejs }}{% if name_field.value and postal_field.value %} ({{ postal_field.value|escapejs }}){% endif %}',
+            structureName: '{{ name_field.value|default:""|escapejs }}',
+            structureId: '{{ id_field.value|default:""|escapejs }}',
+            postalCode: '{{ postal_field.value|default:""|escapejs }}',
             select(id, name, postal) {
                 this.structureId = id;
                 this.structureName = name;
