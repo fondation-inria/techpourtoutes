@@ -10,6 +10,7 @@ Plateforme web Django pour la communauté TechPourToutes.
 - **Ruff** pour le linting et le formatage
 - **Tailwind CSS** + **DaisyUI** (via django-tailwind-cli)
 - **django-cotton** pour les composants UI
+- **django-otp** pour la double authentification (2FA) de l'admin
 
 ## Structure du projet
 
@@ -118,6 +119,20 @@ mailpit
 L'interface est disponible sur [http://localhost:8025](http://localhost:8025). Tous les emails envoyés par l'application y apparaissent.
 
 > En production, les emails sont envoyés via [Brevo](https://www.brevo.com/) (Anymail). La variable `BREVO_API_KEY` doit être renseignée dans le `.env`.
+
+## Admin
+
+Par défaut, l'interface d'administration Django est servie sur `/admin/`. En production, l'url est déterminée par la variable d'environnement `ADMIN_URL` (ex. `ADMIN_URL=mon-chemin-prive`).
+
+### Double authentification (2FA)
+
+En production, l'accès à l'admin exige un second facteur TOTP en plus du mot de passe, via [django-otp](https://github.com/django-otp/django-otp). En local, la 2FA est désactivée : le formulaire de connexion standard suffit. Pour enregistrer un appareil :
+
+```bash
+uv run python manage.py add_totp_device <email>
+```
+
+La commande crée un appareil TOTP confirmé et affiche la clé secrète à saisir manuellement dans l'application d'authentification.
 
 ## Icônes SVG
 

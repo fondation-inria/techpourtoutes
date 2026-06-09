@@ -1,6 +1,43 @@
+from django.conf import settings
 from django.contrib import admin
+from django.contrib.admin import AdminSite
+from django_otp.admin import OTPAdminSite
 
 from .models import Pro, User
 
-admin.site.register(User)
-admin.site.register(Pro)
+
+class AdminSiteWith2FA(OTPAdminSite):
+    # Require a verified TOTP device (2FA) for admin access, except in local development (DEBUG),
+    # where the stock login form and permissions apply so no second factor is needed. DEBUG is
+    # read per request because admin autodiscover runs before the test runner forces DEBUG=False.
+    @property
+    def login_form(self):
+        return None if settings.DEBUG else OTPAdminSite.login_form
+
+    @property
+    def login_template(self):
+        return None if settings.DEBUG else OTPAdminSite.login_template
+
+    def has_permission(self, request):
+        if settings.DEBUG:
+            return AdminSite.has_permission(self, request)
+        return super().has_permission(request)
+
+
+admin.site.__class__ = AdminSiteWith2FA
+
+# Credentials and login-token fields must never be exposed through the admin: a password
+# typed here would be stored unhashed
+CREDENTIAL_FIELDS = ("password", "login_token_hash")
+
+
+@admin.register(User)
+class AccountAdmin(admin.ModelAdmin):
+    exclude = CREDENTIAL_FIELDS
+
+
+@admin.register(Pro)
+class ProAdmin(AccountAdmin):
+    # The Jobirl token is a credential; the Jobirl id is set by the API, so show it read-only.
+    exclude = (*CREDENTIAL_FIELDS, "jobirl_user_token")
+    readonly_fields = ("jobirl_user_id",)

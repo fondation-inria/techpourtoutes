@@ -86,6 +86,10 @@ def workshops_landing(request):
     return render(request, "coalition/workshops_landing.html", {"form": form, "pro": pro})
 
 
+def coalition_welcome(request):
+    return render(request, "coalition/coalition_welcome.html", {})
+
+
 def search_schools(request):
     q = request.GET.get("q", "").strip()
     try:
@@ -111,10 +115,6 @@ def search_schools(request):
         "coalition/partials/school_results.html",
         {"schools": items[:SCHOOL_PAGE_SIZE], "q": q, "page": page, "next_page": next_page},
     )
-
-
-def coalition_welcome(request):
-    return render(request, "coalition/coalition_welcome.html", {})
 
 
 # ------------------- private -------------------
