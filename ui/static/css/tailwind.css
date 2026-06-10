@@ -1970,6 +1970,9 @@
   .inline-block {
     display: inline-block;
   }
+  .inline-block\! {
+    display: inline-block !important;
+  }
   .inline-flex {
     display: inline-flex;
   }
