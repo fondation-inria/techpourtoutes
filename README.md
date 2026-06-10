@@ -11,6 +11,7 @@ Plateforme web Django pour la communauté TechPourToutes.
 - **Tailwind CSS** + **DaisyUI** (via django-tailwind-cli)
 - **django-cotton** pour les composants UI
 - **django-otp** pour la double authentification (2FA) de l'admin
+- **django-axes** pour le verrouillage du login admin après échecs répétés
 
 ## Structure du projet
 
@@ -120,6 +121,12 @@ L'interface est disponible sur [http://localhost:8025](http://localhost:8025). T
 
 > En production, les emails sont envoyés via [Brevo](https://www.brevo.com/) (Anymail). La variable `BREVO_API_KEY` doit être renseignée dans le `.env`.
 
+## Rate limiting (anti-abus)
+
+L'endpoint POST `login_request` est throttlés **en production** (désactivé en local, `DEBUG=True`) **par email** pour éviter le spam (défaut `5 tentatives/300 secondes`). Au-delà de la limite : réponse `HTTP 429`.
+
+Les compteurs vivent dans le cache Redis : **en production**, définir `CACHE_URL` vers une URL Redis, si possible dans une base logique différente de celle utilisée par Celery si les deux utilisent le même Redis
+
 ## Admin
 
 Par défaut, l'interface d'administration Django est servie sur `/admin/`. En production, l'url est déterminée par la variable d'environnement `ADMIN_URL` (ex. `ADMIN_URL=mon-chemin-prive`).
@@ -133,6 +140,12 @@ uv run python manage.py add_totp_device <email>
 ```
 
 La commande crée un appareil TOTP confirmé et affiche la clé secrète à saisir manuellement dans l'application d'authentification.
+
+### Verrouillage après échecs répétés
+
+En production, [django-axes](https://github.com/jazzband/django-axes) verrouille le login admin après plusieurs échecs de mot de passe (anti-brute-force). Le verrouillage est scopé au couple (identifiant, IP) — personne ne peut donc bloquer un admin de façon globale — et expire automatiquement après `AXES_COOLOFF_TIME` (1 h). Désactivé en local (`DEBUG`).
+
+Variables : `AXES_FAILURE_LIMIT` (défaut 5), `AXES_ENABLED` (défaut : activé hors `DEBUG`). Pour lever un verrou manuellement : `uv run python manage.py axes_reset`.
 
 ## Icônes SVG
 
