@@ -5,7 +5,7 @@
 {% else %}
     <div class="flex items-center gap-x-3 text-primary-700 {{ class }}">
         {% if icon_name %}
-            <c-components.icon name="{{ icon_name }}" class="size-12" />
+            <c-components.icon name="{{ icon_name }}" class="size-12 shrink-0" />
         {% endif %}
         {% if variant == "h2" %}
             <h2 class="text-xl font-medium leading-[1.2]">{{ title|safe }}</h2>
