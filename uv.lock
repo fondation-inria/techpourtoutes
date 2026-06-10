@@ -232,6 +232,7 @@ dependencies = [
     { name = "celery" },
     { name = "django" },
     { name = "django-anymail" },
+    { name = "django-axes" },
     { name = "django-cotton" },
     { name = "django-environ" },
     { name = "django-extensions" },
@@ -265,10 +266,11 @@ requires-dist = [
     { name = "celery", specifier = ">=5.6.3" },
     { name = "django", specifier = ">=6.0.4" },
     { name = "django-anymail", extras = ["brevo"], specifier = ">=15" },
+    { name = "django-axes", specifier = ">=8.3.1" },
     { name = "django-cotton", specifier = ">=2.6.2" },
     { name = "django-environ", specifier = ">=0.13" },
     { name = "django-extensions", specifier = ">=4.1" },
-    { name = "django-otp", specifier = ">=1.7.0" },
+    { name = "django-otp", specifier = ">=1.7" },
     { name = "django-phonenumber-field", specifier = ">=8.4" },
     { name = "django-simple-history", specifier = ">=3.11" },
     { name = "django-tailwind-cli", specifier = ">=4.6" },
@@ -376,6 +378,19 @@ dependencies = [
 sdist = { url = "https://files.pythonhosted.org/packages/00/43/f0aadb31f2c58afcd9f001f4291998cbd6d289898167e79d908506fc6faf/django_anymail-15.0.tar.gz", hash = "sha256:23d8ab6589afe8cc1ae7665c26879814ad192f4c3ed837a2a1868b0a056869e0", size = 106985, upload-time = "2026-04-18T20:44:19.237Z" }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/75/d1/daae99ec3b30886010a499975880ec20c32c622bee6b92c226b715e42f0c/django_anymail-15.0-py3-none-any.whl", hash = "sha256:64d33dd1084bfc8e4e12245f56629be40aa0b0498fc7fc7544d87b9b2048be1e", size = 147229, upload-time = "2026-04-18T20:44:17.323Z" },
+]
+
+[[package]]
+name = "django-axes"
+version = "8.3.1"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "asgiref" },
+    { name = "django" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/f0/b4/00c701a22d46288e3eb1340a1c141f5b4002572ce836a3e8d069f1e1de8a/django_axes-8.3.1.tar.gz", hash = "sha256:d57e923c0ba33cf45275253dd1313c3a3ff04bec686b38d677beb2b3d43c7bcd", size = 254715, upload-time = "2026-02-11T20:19:52.172Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/46/f6/777a5df7d5698eeb23c7c496cc268c0181f0489dbc5b5f2b235b30e5d8dd/django_axes-8.3.1-py3-none-any.whl", hash = "sha256:f7887582fd12713064f1602091ff6152752becae5e891a15bf802746cab0f51a", size = 74213, upload-time = "2026-02-11T20:19:48.646Z" },
 ]
 
 [[package]]
