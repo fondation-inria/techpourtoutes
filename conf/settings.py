@@ -45,6 +45,7 @@ INSTALLED_APPS = [
     "anymail",
     "django_otp",
     "django_otp.plugins.otp_totp",
+    "axes",
     # Apps techpourtoutes
     "techpourtoutes",
     "ui",
@@ -63,6 +64,7 @@ MIDDLEWARE = [
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
     "simple_history.middleware.HistoryRequestMiddleware",
+    "axes.middleware.AxesMiddleware",
 ]
 
 ROOT_URLCONF = "conf.urls"
@@ -199,6 +201,33 @@ COALITION_SPONSOR_RECIPIENTS = env.list(
 CELERY_BROKER_URL = env("REDIS_URL", default="redis://localhost:6379/0")
 CELERY_TASK_ALWAYS_EAGER = env.bool("CELERY_TASK_ALWAYS_EAGER", default=False)
 CELERY_TASK_EAGER_PROPAGATES = True
+
+# Cache for the rate-limit counters. CACHE_URL should be a Redis instance
+if env("CACHE_URL", default=""):
+    CACHES = {
+        "default": {
+            "BACKEND": "django.core.cache.backends.redis.RedisCache",
+            "LOCATION": env("CACHE_URL"),
+        }
+    }
+
+# Rate limiting of public POST endpoints, as "<max_requests>/<window_seconds>" per client.
+RATELIMIT_LOGIN = env("RATELIMIT_LOGIN", default="5/300")
+
+# django-axes — locks out repeated failed password logins (admin brute-force protection).
+# Disabled in local dev (DEBUG); the test suite enables it explicitly where needed.
+AUTHENTICATION_BACKENDS = [
+    "axes.backends.AxesStandaloneBackend",  # must come first
+    "django.contrib.auth.backends.ModelBackend",
+]
+AXES_ENABLED = env.bool("AXES_ENABLED", default=not DEBUG)
+AXES_FAILURE_LIMIT = env.int("AXES_FAILURE_LIMIT", default=5)
+AXES_COOLOFF_TIME = 1  # hours before a lock-out expires
+# Scope lock-outs to the (username, IP) pair so nobody can lock a real admin out globally.
+AXES_LOCKOUT_PARAMETERS = [["username", "ip_address"]]
+AXES_RESET_ON_SUCCESS = True
+# Resolve the client IP the same way as the rate limiter (1st X-Forwarded-For entry).
+AXES_CLIENT_IP_CALLABLE = "techpourtoutes.ratelimit.client_ip"
 
 # Matomo analytics (values differ per environment; leave empty to disable tracking)
 MATOMO_URL = env("MATOMO_URL", default="").rstrip("/")

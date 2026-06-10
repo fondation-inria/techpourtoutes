@@ -11,6 +11,7 @@ from django.views.decorators.http import require_POST
 
 from ..forms import AccountEditForm, LoginRequestForm
 from ..mailers import LoginMailer
+from ..ratelimit import rate_limit
 from ..services.jobirl_api.refresh_access_token import RefreshAccessToken
 
 
@@ -24,6 +25,7 @@ def _safe_next(request, candidate):
     return ""
 
 
+@rate_limit("RATELIMIT_LOGIN", keys=("email",))
 def login_request(request):
     if request.user.is_authenticated:
         return redirect(reverse("account"))
@@ -78,6 +80,8 @@ def login_verify(request, token):
             target = f"{target}?{urlencode({'next': next_url})}"
         return redirect(target)
 
+    # the following line required because django-axes is configured
+    user.backend = "django.contrib.auth.backends.ModelBackend"
     login(request, user)
     messages.success(request, f"Vous accédez au compte {user.email}. Bienvenue !")
     return redirect(next_url or reverse("account"))

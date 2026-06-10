@@ -2,6 +2,16 @@ import pytest
 
 
 @pytest.fixture(autouse=True)
+def clear_cache(settings):
+    # Force in-memory cache so tests never hit a real server (CACHE_URL may be set in .env);
+    # reset the rate-limit counters between tests so they don't leak across them.
+    settings.CACHES = {"default": {"BACKEND": "django.core.cache.backends.locmem.LocMemCache"}}
+    from django.core.cache import cache
+
+    cache.clear()
+
+
+@pytest.fixture(autouse=True)
 def use_simple_static_storage(settings):
     settings.STORAGES = {
         "default": {"BACKEND": "django.core.files.storage.FileSystemStorage"},
