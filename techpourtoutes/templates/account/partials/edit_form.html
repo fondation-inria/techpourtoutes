@@ -8,11 +8,12 @@
             <p class="description-text-xxs">Les champs suivis d'un astérisque (*) sont obligatoires.</p>
             <c-components.form_fields.input field=form.first_name />
             <c-components.form_fields.input field=form.last_name />
+            <c-components.form_fields.input field=form.email variant="disabled" />
             <c-components.form_fields.input field=form.phone />
+            <c-components.form_fields.input field=form.postal_code />
             <c-components.form_fields.select field=form.professional_situation />
             <c-components.form_fields.input field=form.structure_name />
             <c-components.form_fields.input field=form.job_title />
-            <c-components.form_fields.input field=form.postal_code />
             <div class="flex justify-end gap-2">
                 <c-components.button label="Annuler" variant="secondary" type="button"
                     hx-get="{% url 'account_info' %}"

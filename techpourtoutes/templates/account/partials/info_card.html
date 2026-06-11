@@ -10,13 +10,13 @@
 
             Numéro de téléphone : <span class="font-medium">{{ user.phone|phone_national }}</span>
 
-            Situation professionnelle : <span class="font-medium">{{ user.get_professional_situation_display }}</span>
+            Code postal : <span class="font-medium">{{ user.postal_code }}</span>
 
-            Structure : <span class="font-medium">{{ user.structure_name }}</span>
+            Situation professionnelle : <span class="font-medium">{{ user.get_professional_situation_display }}</span>
 
             Métier : <span class="font-medium">{{ user.job_title }}</span>
 
-            Code postal : <span class="font-medium">{{ user.postal_code }}</span>
+            Structure : <span class="font-medium">{{ user.structure_name }}</span>
         </c-components.text>
         <div class="flex mt-3 justify-end">
             <c-components.button label="Modifier" variant="secondary"

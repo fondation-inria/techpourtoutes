@@ -45,9 +45,10 @@ class Pro(User):
     structure_id = models.CharField(
         max_length=20, blank=True, verbose_name=_("identifiant de la structure")
     )
-    job_title = models.CharField(max_length=255, verbose_name=_("métier"))
+    job_title = models.CharField(max_length=255, blank=True, verbose_name=_("métier"))
     postal_code = models.CharField(
         max_length=5,
+        blank=True,
         validators=[POSTAL_CODE_VALIDATOR],
         verbose_name=_("code postal"),
     )

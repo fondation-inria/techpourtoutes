@@ -26,7 +26,6 @@ class CoalitionMailer:
         recipients = {
             Pro.Engagement.INTERNSHIPS: settings.COALITION_INTERNSHIPS_RECIPIENTS,
             Pro.Engagement.WORK_AMBASSADOR: settings.COALITION_WORK_AMBASSADOR_RECIPIENTS,
-            Pro.Engagement.TRAINING_AMBASSADOR: settings.COALITION_TRAINING_AMBASSADOR_RECIPIENTS,
             Pro.Engagement.SPONSOR: settings.COALITION_SPONSOR_RECIPIENTS,
         }.get(engagement, [])
         context = {"pro": pro, "engagement": Pro.Engagement(engagement).label}
@@ -36,6 +35,21 @@ class CoalitionMailer:
             html_message=_render("emails/new_pro.html", context),
             from_email="TechPourToutes <agir@techpourtoutes.io>",
             recipient_list=recipients,
+        )
+
+    @classmethod
+    def new_training_ambassador(cls, *, pro, training_experience):
+        context = {
+            "pro": pro,
+            "training_experience": training_experience,
+            "engagement": Pro.Engagement("training_ambassador").label,
+        }
+        send_mail(
+            subject=f"Une nouvelle demande pour {Pro.Engagement('training_ambassador').label}",
+            message=_render("emails/new_training_ambassador.txt", context),
+            html_message=_render("emails/new_training_ambassador.html", context),
+            from_email="TechPourToutes <agir@techpourtoutes.io>",
+            recipient_list=settings.COALITION_TRAINING_AMBASSADOR_RECIPIENTS,
         )
 
     @classmethod

@@ -5,6 +5,6 @@ Bonjour,
 
 Peux-tu {% if pro.civility == "Madame" %}la{% else %}le{% endif %} recontacter ?
 - {{ pro.email }}
-- {{ pro.phone|phone_national }}
+{% if pro.phone %}- {{ pro.phone|phone_national }}{% endif %}
 
 L'équipe TechPourToutes

@@ -1,30 +1,26 @@
 <c-vars
-    name_field
     id_field
-    postal_field
+    label_field
     label=""
     description=""
     class=""
 />
 
-<c-components.form-fields.base :field=name_field label=label description=description class=class>
+<c-components.form-fields.base :field=id_field label=label description=description class=class>
     <div x-data="{
             open: false,
-            query: '{{ name_field.value|default:""|escapejs }}{% if name_field.value and postal_field.value %} ({{ postal_field.value|escapejs }}){% endif %}',
-            structureName: '{{ name_field.value|default:""|escapejs }}',
-            structureId: '{{ id_field.value|default:""|escapejs }}',
-            postalCode: '{{ postal_field.value|default:""|escapejs }}',
-            select(id, name, postal) {
-                this.structureId = id;
-                this.structureName = name;
-                this.postalCode = postal;
-                this.query = name + ' (' + postal + ')';
+            query: '{{ label_field.value|default:""|escapejs }}',
+            schoolId: '{{ id_field.value|default:""|escapejs }}',
+            schoolLabel: '{{ label_field.value|default:""|escapejs }}',
+            select(id, label) {
+                this.schoolId = id;
+                this.schoolLabel = label;
+                this.query = label;
                 this.open = false;
             },
             clear() {
-                this.structureId = '';
-                this.structureName = '';
-                this.postalCode = '';
+                this.schoolId = '';
+                this.schoolLabel = '';
                 this.query = '';
                 this.open = true;
                 this.$nextTick(() => this.$refs.searchInput.focus());
@@ -33,25 +29,24 @@
          @click.outside="open = false"
          @keydown.escape="open = false"
          class="relative">
-        <input type="hidden" name="{{ name_field.html_name }}" :value="structureName">
-        <input type="hidden" name="{{ id_field.html_name }}" :value="structureId">
-        <input type="hidden" name="{{ postal_field.html_name }}" :value="postalCode">
+        <input type="hidden" name="{{ id_field.html_name }}" :value="schoolId">
+        <input type="hidden" name="{{ label_field.html_name }}" :value="schoolLabel">
         <input type="text"
-               x-show="!structureId"
+               x-show="!schoolId"
                x-ref="searchInput"
-               id="{{ name_field.id_for_label }}"
+               id="{{ id_field.id_for_label }}"
                x-model="query"
                @focus="open = true"
                @input="open = true"
                name="q"
                autocomplete="off"
                placeholder="Rechercher un établissement…"
-               hx-get="{% url 'search_schools' %}"
+               hx-get="{% url 'search_higher_ed_schools' %}"
                hx-trigger="focus, input changed delay:300ms"
-               hx-target="#school-results"
+               hx-target="#higher-ed-school-results"
                hx-swap="innerHTML"
                class="field-base field-default" />
-        <div x-show="structureId" x-cloak
+        <div x-show="schoolId" x-cloak
              class="field-base field-default flex items-start justify-between gap-2">
             <span class="wrap-break-word" x-text="query"></span>
             <button type="button" @click="clear()"
@@ -60,9 +55,9 @@
                 <c-components.icon name="close" class="w-4 h-4" />
             </button>
         </div>
-        <ul x-show="open && !structureId" x-cloak
-            id="school-results"
+        <div x-show="open && !schoolId" x-cloak
+            id="higher-ed-school-results"
             class="absolute z-10 mt-1 w-full bg-neutral-50 rounded shadow-thin-bottom shadow-primary-700 max-h-60 overflow-y-auto"
-            role="listbox"></ul>
+            role="listbox"></div>
     </div>
 </c-components.form-fields.base>
