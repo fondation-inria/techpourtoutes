@@ -23,9 +23,9 @@ class WorkshopForm(BaseEngagementForm):
     pro_constants = {"professional_situation": Pro.ProfessionalSituation.WORKING}
 
     structure_id = forms.CharField(widget=forms.HiddenInput)
-    structure_name = forms.CharField(label=_("Établissement*"))
+    structure_name = forms.CharField(label=_("Votre établissement*"))
     postal_code = forms.CharField(widget=forms.HiddenInput)
-    job_title = forms.ChoiceField(label=_("Fonction*"), choices=FONCTION_CHOICES)
+    job_title = forms.ChoiceField(label=_("Votre fonction*"), choices=FONCTION_CHOICES)
     remark = forms.CharField(label=_("Remarque"), required=False, widget=forms.Textarea)
     ateliers = forms.MultipleChoiceField(
         label=_("Atelier demandé*"),

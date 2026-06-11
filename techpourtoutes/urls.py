@@ -20,6 +20,11 @@ urlpatterns = [
         views.search_schools,
         name="search_schools",
     ),
+    path(
+        "devenir-ambassadrice-etudiante/recherche-etablissements/",
+        views.search_higher_ed_schools,
+        name="search_higher_ed_schools",
+    ),
     path("bienvenue-dans-la-coalition/", views.coalition_welcome, name="coalition_welcome"),
     # Auth
     path("se-connecter/", views.login_request, name="login_request"),
@@ -28,6 +33,16 @@ urlpatterns = [
     path("mon-compte/", views.account, name="account"),
     path("mon-compte/infos/", views.account_info, name="account_info"),
     path("mon-compte/modifier/", views.account_edit, name="account_edit"),
+    path(
+        "mon-compte/formations/<uuid:pk>/",
+        views.training_experience_info,
+        name="training_experience_info",
+    ),
+    path(
+        "mon-compte/formations/<uuid:pk>/modifier/",
+        views.training_experience_edit,
+        name="training_experience_edit",
+    ),
     path("se-deconnecter/", views.logout_view, name="logout"),
     path("mon-compte-mentor/", views.login_to_jobirl, name="login_to_jobirl"),
     # Static

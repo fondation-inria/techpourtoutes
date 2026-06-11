@@ -41,7 +41,6 @@ def test_welcome_includes_account_login_url(pro):
     [
         (Pro.Engagement.INTERNSHIPS, "internships@example.com"),
         (Pro.Engagement.WORK_AMBASSADOR, "ambassador@example.com"),
-        (Pro.Engagement.TRAINING_AMBASSADOR, "training@example.com"),
         (Pro.Engagement.SPONSOR, "sponsor@example.com"),
     ],
 )
@@ -52,6 +51,25 @@ def test_new_pro_routes_to_engagement_recipient(pro, engagement, recipient):
     message = mail.outbox[0]
     assert message.to == [recipient]
     assert str(Pro.Engagement(engagement).label) in message.subject
+
+
+@pytest.mark.django_db
+@override_settings(
+    EMAIL_BACKEND="django.core.mail.backends.locmem.EmailBackend",
+    COALITION_TRAINING_AMBASSADOR_RECIPIENTS=["training@example.com"],
+)
+def test_new_training_ambassador_includes_experience_in_body(pro, higher_ed_school):
+    from techpourtoutes.models import TrainingExperience
+
+    experience = TrainingExperience.objects.create(
+        pro=pro, higher_ed_school=higher_ed_school, course="Master IA"
+    )
+    CoalitionMailer.new_training_ambassador(pro=pro, training_experience=experience)
+
+    message = mail.outbox[0]
+    assert message.to == ["training@example.com"]
+    assert "Master IA" in message.body
+    assert higher_ed_school.full_name in message.body
 
 
 @pytest.mark.django_db

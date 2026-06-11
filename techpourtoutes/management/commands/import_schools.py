@@ -3,6 +3,7 @@ from django.conf import settings
 from django.core.management.base import BaseCommand, CommandError
 
 from techpourtoutes.models import School
+from techpourtoutes.text import strip_accents
 
 DATASET_URL = (
     "https://data.education.gouv.fr/api/explore/v2.1/catalog/datasets/"
@@ -21,7 +22,7 @@ class Command(BaseCommand):
             record["identifiant_de_l_etablissement"]: School(
                 identifier=record["identifiant_de_l_etablissement"],
                 name=record["nom_etablissement"],
-                name_normalized=School.normalize(record["nom_etablissement"]),
+                name_normalized=strip_accents(record["nom_etablissement"]),
                 postal_code=record.get("code_postal") or "",
             )
             for record in records

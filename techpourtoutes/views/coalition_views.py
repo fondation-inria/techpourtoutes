@@ -1,10 +1,9 @@
 from django.contrib import messages
-from django.db.models import Q
 from django.shortcuts import redirect, render
 
 from ..forms import EngagementForm, TrainingAmbassadorForm, WorkshopForm
 from ..mailers import CoalitionMailer
-from ..models import Pro, School, WorkshopRequest
+from ..models import Pro, WorkshopRequest
 from ..services.create_mentor import CreateMentor
 from ..tasks import notify_workshop_request_task
 
@@ -41,11 +40,25 @@ def work_ambassador_landing(request):
 
 
 def training_ambassador_landing(request):
-    return _handle_engagement(
-        request,
-        form_class=TrainingAmbassadorForm,
-        engagement=Pro.Engagement.TRAINING_AMBASSADOR,
-        template="coalition/training_ambassador_landing.html",
+    pro = _current_pro(request)
+    if request.method == "POST":
+        form = TrainingAmbassadorForm(data=request.POST, pro=pro)
+        if form.is_valid():
+            pro = form.save(commit=False)
+            pro.add_engagement(Pro.Engagement.TRAINING_AMBASSADOR)
+            pro.save()
+            training_experience = form.after_save(pro)
+            CoalitionMailer.welcome(pro=pro, token=pro.issue_login_token())
+            CoalitionMailer.new_training_ambassador(
+                pro=pro, training_experience=training_experience
+            )
+            return redirect("coalition_welcome")
+        else:
+            _render_errors(request, form)
+    else:
+        form = TrainingAmbassadorForm(pro=pro)
+    return render(
+        request, "coalition/training_ambassador_landing.html", {"form": form, "pro": pro}
     )
 
 
@@ -88,33 +101,6 @@ def workshops_landing(request):
 
 def coalition_welcome(request):
     return render(request, "coalition/coalition_welcome.html", {})
-
-
-def search_schools(request):
-    q = request.GET.get("q", "").strip()
-    try:
-        page = max(int(request.GET.get("page", 1)), 1)
-    except ValueError:
-        page = 1
-
-    schools = School.objects.all()
-    for token in q.split():
-        schools = schools.filter(
-            Q(name_normalized__icontains=School.normalize(token))
-            | Q(postal_code__startswith=token)
-        )
-    schools = schools.order_by("identifier")
-
-    SCHOOL_PAGE_SIZE = 20
-    start = (page - 1) * SCHOOL_PAGE_SIZE
-    items = list(schools[start : start + SCHOOL_PAGE_SIZE + 1])
-    next_page = page + 1 if len(items) > SCHOOL_PAGE_SIZE else None
-
-    return render(
-        request,
-        "coalition/partials/school_results.html",
-        {"schools": items[:SCHOOL_PAGE_SIZE], "q": q, "page": page, "next_page": next_page},
-    )
 
 
 # ------------------- private -------------------

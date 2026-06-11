@@ -1,0 +1,10 @@
+{% load phone_filters %}
+Bonjour,
+
+{{ pro.civility }} {{ pro.first_name }} {{ pro.last_name }}, qui étudie à {{ training_experience.higher_ed_school.full_name }} (spécialité/cursus : {{ training_experience.course }}) souhaite devenir ambassadrice étudiante.
+
+Peux-tu {% if pro.civility == "Madame" %}la{% else %}le{% endif %} recontacter ?
+- {{ pro.email }}
+{% if pro.phone %}- {{ pro.phone|phone_national }}{% endif %}
+
+L'équipe TechPourToutes

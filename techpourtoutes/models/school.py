@@ -1,7 +1,7 @@
-import unicodedata
-
 from django.db import models
 from django.utils.translation import gettext_lazy as _
+
+from techpourtoutes.text import strip_accents
 
 from .base import BaseModel
 
@@ -18,15 +18,8 @@ class School(BaseModel):
         verbose_name = _("établissement")
         verbose_name_plural = _("établissements")
 
-    @staticmethod
-    def normalize(text: str) -> str:
-        """Strip accents so search is accent-insensitive (e.g. "Lycée" -> "Lycee")."""
-        return "".join(
-            char for char in unicodedata.normalize("NFKD", text) if not unicodedata.combining(char)
-        )
-
     def save(self, *args, **kwargs):
-        self.name_normalized = self.normalize(self.name)
+        self.name_normalized = strip_accents(self.name)
         super().save(*args, **kwargs)
 
     def __str__(self):

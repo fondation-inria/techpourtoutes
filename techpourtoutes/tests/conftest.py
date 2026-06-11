@@ -24,6 +24,20 @@ def pro(db):
 
 
 @pytest.fixture
+def higher_ed_school(db):
+    from techpourtoutes.models import HigherEdSchool
+
+    school = HigherEdSchool(
+        full_name="Université Paris-Saclay",
+        name="UPSaclay",
+        siret="13002602400054",
+        uai="0911101X",
+    )
+    school.save()
+    return school
+
+
+@pytest.fixture
 def mock_create_mentor():
     instance = MagicMock(success=True, failure=False, errors=[])
     with patch(
