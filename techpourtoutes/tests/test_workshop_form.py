@@ -14,6 +14,7 @@ def valid_data(**overrides):
         "remark": "Une remarque",
         "ateliers": ["future_of_tech", "future_of_ia"],
         "terms_accepted": True,
+        "manifeste_accepted": True,
         **overrides,
     }
 
