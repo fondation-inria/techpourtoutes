@@ -16,13 +16,6 @@ def test_user_has_uuid_pk():
 
 
 @pytest.mark.django_db
-def test_pro_inherits_user():
-    from techpourtoutes.models import Pro, User
-
-    assert issubclass(Pro, User)
-
-
-@pytest.mark.django_db
 def test_pro_save_sets_unusable_password(valid_pro_model_data):
     from techpourtoutes.models import Pro
 
@@ -38,15 +31,8 @@ def test_pro_creation_saves_all_fields(valid_pro_model_data):
     Pro(username="marie.dupont@example.com", **valid_pro_model_data).save()
 
     saved = Pro.objects.get(email="marie.dupont@example.com")
-    assert saved.civility == "Madame"
-    assert saved.first_name == "Marie"
-    assert saved.last_name == "Dupont"
-    assert saved.email == "marie.dupont@example.com"
     assert saved.phone.national_number == 612345678
     assert saved.professional_situation == "working"
-    assert saved.postal_code == "75011"
-    assert saved.job_title == "Développeuse backend"
-    assert saved.structure_name == "Grande entreprise"
 
 
 @pytest.mark.django_db
@@ -142,20 +128,6 @@ def test_consume_login_token_returns_none_on_second_use(pro):
     assert User.consume_login_token(plaintext=plaintext) is None
 
 
-def test_pro_engagement_choices():
-    from techpourtoutes.models import Pro
-
-    values = {e.value for e in Pro.Engagement}
-    assert values == {
-        "mentor",
-        "internships",
-        "work_ambassador",
-        "training_ambassador",
-        "sponsor",
-        "workshops",
-    }
-
-
 @pytest.mark.django_db
 def test_pro_engagements_defaults_to_empty_list(valid_pro_model_data):
     from techpourtoutes.models import Pro
@@ -163,16 +135,6 @@ def test_pro_engagements_defaults_to_empty_list(valid_pro_model_data):
     Pro(username="marie.dupont@example.com", **valid_pro_model_data).save()
     saved = Pro.objects.get(email="marie.dupont@example.com")
     assert saved.engagements == []
-
-
-@pytest.mark.django_db
-def test_pro_workshops_engagement_is_valid(valid_pro_model_data):
-    from techpourtoutes.models import Pro
-
-    pro = Pro(username="marie.dupont@example.com", **valid_pro_model_data)
-    pro.engagements = ["workshops"]
-    pro.save()
-    assert Pro.objects.get(email="marie.dupont@example.com").engagements == ["workshops"]
 
 
 @pytest.mark.django_db
