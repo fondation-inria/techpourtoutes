@@ -4,12 +4,13 @@ from django.conf import settings
 from django.contrib import messages
 from django.contrib.auth import REDIRECT_FIELD_NAME, get_user_model, login, logout
 from django.contrib.auth.decorators import login_required
-from django.shortcuts import redirect, render
+from django.http import Http404
+from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
 from django.utils.http import url_has_allowed_host_and_scheme
 from django.views.decorators.http import require_POST
 
-from ..forms import AccountEditForm, LoginRequestForm
+from ..forms import AccountEditForm, LoginRequestForm, TrainingExperienceForm
 from ..mailers import LoginMailer
 from ..ratelimit import rate_limit
 from ..services.jobirl_api.refresh_access_token import RefreshAccessToken
@@ -119,7 +120,7 @@ def account_edit(request):
         return redirect("account")
     pro = request.user.pro
     if request.method == "POST":
-        form = AccountEditForm(data=request.POST)
+        form = AccountEditForm(data=request.POST, pro=pro)
         if form.is_valid():
             form.save(pro)
             return render(request, "account/partials/info_card.html", {"user": pro})
@@ -127,6 +128,43 @@ def account_edit(request):
     else:
         form = AccountEditForm(pro=pro)
         return render(request, "account/partials/edit_form.html", {"form": form, "user": pro})
+
+
+@login_required
+def training_experience_info(request, pk):
+    experience = _get_training_experience(request, pk)
+    return render(
+        request,
+        "account/partials/training_experience_card.html",
+        {"experience": experience},
+    )
+
+
+@login_required
+def training_experience_edit(request, pk):
+    experience = _get_training_experience(request, pk)
+    if request.method == "POST":
+        form = TrainingExperienceForm(data=request.POST)
+        if form.is_valid():
+            form.save(experience)
+            return render(
+                request,
+                "account/partials/training_experience_card.html",
+                {"experience": experience},
+            )
+    else:
+        form = TrainingExperienceForm(experience=experience)
+    return render(
+        request,
+        "account/partials/training_experience_edit_form.html",
+        {"form": form, "experience": experience},
+    )
+
+
+def _get_training_experience(request, pk):
+    if not hasattr(request.user, "pro"):
+        raise Http404
+    return get_object_or_404(request.user.pro.training_experiences, pk=pk)
 
 
 @require_POST

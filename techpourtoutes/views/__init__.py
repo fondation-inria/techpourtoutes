@@ -7,18 +7,20 @@ from .auth_views import (
     login_to_jobirl,
     login_verify,
     logout_view,
+    training_experience_edit,
+    training_experience_info,
 )
 from .coalition_views import (
     coalition_home,
     coalition_welcome,
     internships_landing,
     mentor_landing,
-    search_schools,
     sponsor_landing,
     training_ambassador_landing,
     work_ambassador_landing,
     workshops_landing,
 )
+from .search_views import search_higher_ed_schools, search_schools
 from .static_views import (
     a_propos,
     accessibilite,
@@ -55,9 +57,12 @@ __all__ = [
     "pourquoi_nous_ecrivons_au_feminin",
     "qui_sommes_nous",
     "schema_pluriannuel",
+    "search_higher_ed_schools",
     "search_schools",
     "sponsor_landing",
     "training_ambassador_landing",
+    "training_experience_edit",
+    "training_experience_info",
     "work_ambassador_landing",
     "workshops_landing",
 ]

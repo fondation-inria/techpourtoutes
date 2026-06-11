@@ -1,0 +1,18 @@
+{% for school in schools %}
+    <button type="button" role="option"
+        @click="select('{{ school.id|escapejs }}', '{{ school.display_label|escapejs }}')"
+        class="block w-full text-left px-3 py-2 text-sm hover:bg-primary-50 text-neutral-950">
+        {{ school.display_label }}
+    </button>
+{% endfor %}
+{% if next_page %}
+    <div hx-get="{% url 'search_higher_ed_schools' %}?q={{ q|urlencode }}&page={{ next_page }}"
+        hx-trigger="intersect once root:#higher-ed-school-results"
+        hx-target="this"
+        hx-swap="outerHTML"
+        class="px-3 py-2 text-xs text-neutral-500">
+        Chargement…
+    </div>
+{% elif not schools and page == 1 %}
+    <div class="px-3 py-2 text-sm text-neutral-500">Aucun établissement trouvé</div>
+{% endif %}

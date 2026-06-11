@@ -282,10 +282,10 @@ def test_workshop_request_query_pros_by_type(pro):
     assert pro in matching
 
 
-def test_school_normalize_strips_accents():
-    from techpourtoutes.models import School
+def test_strip_accents():
+    from techpourtoutes.text import strip_accents
 
-    assert School.normalize("Lycée privée à Nîmes") == "Lycee privee a Nimes"
+    assert strip_accents("Lycée privée à Nîmes") == "Lycee privee a Nimes"
 
 
 @pytest.mark.django_db
@@ -295,3 +295,16 @@ def test_school_save_populates_normalized_name():
     school = School(identifier="0750001A", name="Lycée Privée", postal_code="75001")
     school.save()
     assert school.name_normalized == "Lycee Privee"
+
+
+@pytest.mark.django_db
+def test_training_experience_links_pro_and_higher_ed_school(pro, higher_ed_school):
+    from techpourtoutes.models import TrainingExperience
+
+    experience = TrainingExperience(
+        pro=pro, higher_ed_school=higher_ed_school, course="Master Informatique"
+    )
+    experience.save()
+
+    assert experience in pro.training_experiences.all()
+    assert experience in higher_ed_school.training_experiences.all()

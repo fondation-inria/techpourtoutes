@@ -9,15 +9,17 @@ from .validators import require_structure_when_working
 class AccountEditForm(forms.Form):
     first_name = forms.CharField(label=_("Prénom*"))
     last_name = forms.CharField(label=_("Nom*"))
+    email = forms.EmailField(label=_("Email*"))
     phone = PhoneNumberField(region="FR", label=_("Numéro de téléphone"), required=False)
     professional_situation = forms.ChoiceField(
         label=_("Situation professionnelle*"),
         choices=[("", _("Sélectionner une option")), *Pro.ProfessionalSituation.choices],
     )
     structure_name = forms.CharField(label=_("Structure"), required=False)
-    job_title = forms.CharField(label=_("Métier*"))
+    job_title = forms.CharField(label=_("Métier"), required=False)
     postal_code = forms.CharField(
-        label=_("Code postal*"),
+        label=_("Code postal"),
+        required=False,
         validators=[POSTAL_CODE_VALIDATOR],
     )
 
@@ -28,6 +30,7 @@ class AccountEditForm(forms.Form):
                 {
                     "first_name": pro.first_name,
                     "last_name": pro.last_name,
+                    "email": pro.email,
                     "phone": pro.phone.as_national if pro.phone else "",
                     "professional_situation": pro.professional_situation,
                     "structure_name": pro.structure_name,
@@ -36,6 +39,8 @@ class AccountEditForm(forms.Form):
                 },
             )
         super().__init__(*args, **kwargs)
+        self.fields["email"].disabled = True
+        self.fields["email"].required = False
 
     def clean(self):
         cleaned_data = super().clean()

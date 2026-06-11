@@ -95,6 +95,9 @@ class BaseEngagementForm(forms.Form):
             pro.save()
         return pro
 
+    def after_save(self, pro):
+        """Hook for subclasses to persist objects related to the saved Pro."""
+
     # ------------------- private methods -------------------
 
     def _prefilled_values_from(self, pro):

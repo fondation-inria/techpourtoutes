@@ -7,6 +7,10 @@
 
     {% include "account/partials/info_card.html" %}
 
+    {% for experience in user.training_experiences.all %}
+        {% include "account/partials/training_experience_card.html" %}
+    {% endfor %}
+
     <c-patterns.form url="{% url 'logout' %}">
         <c-components.button type="submit" label="Se déconnecter" variant="secondary" />
     </c-patterns.form>
