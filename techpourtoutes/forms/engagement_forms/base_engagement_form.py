@@ -1,6 +1,8 @@
 from typing import Any, ClassVar
 
 from django import forms
+from django.urls import reverse_lazy
+from django.utils.html import format_html
 from django.utils.translation import gettext_lazy as _
 
 from ...models import Pro, User
@@ -48,12 +50,34 @@ class BaseEngagementForm(forms.Form):
             "required": _("Vous devez accepter les conditions d'utilisation pour continuer."),
         },
     )
+    manifeste_accepted = forms.BooleanField(
+        label=_("J'adhère au manifeste TechPourToutes"),
+        required=True,
+        error_messages={
+            "required": _("Vous devez adhérer au manifeste pour continuer."),
+        },
+    )
 
     def __init__(self, *args, pro=None, **kwargs):
         if pro is not None:
             kwargs.setdefault("initial", self._prefilled_values_from(pro))
         super().__init__(*args, **kwargs)
         self.pro = pro
+        self.fields["terms_accepted"].label = format_html(
+            "J'accepte la création de mon compte, les "
+            "<a href='{}' class='underline' target='_blank'>conditions d'utilisation</a>"
+            " et la "
+            "<a href='{}' class='underline' target='_blank'>"
+            "politique de gestion des données personnelles"
+            "</a>",
+            reverse_lazy("conditions_generales"),
+            reverse_lazy("donnees_personnelles"),
+        )
+        self.fields["manifeste_accepted"].label = format_html(
+            "J'adhère au "
+            "<a href='{}' class='underline' target='_blank'>manifeste TechPourToutes</a>",
+            reverse_lazy("notre_manifeste"),
+        )
         if pro is not None:
             self._lock_fields_for_existing_account()
 

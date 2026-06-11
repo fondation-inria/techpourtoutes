@@ -115,7 +115,10 @@
                             />
                             <c-components.form_fields.checkbox_group field=form.ateliers description="Vous pouvez choisir plusieurs ateliers" />
                             <c-components.form_fields.textarea field=form.remark />
-                            {% if not pro %}<c-components.form_fields.checkbox field=form.terms_accepted />{% endif %}
+                            {% if not pro %}
+                                <c-components.form_fields.checkbox field=form.terms_accepted />
+                                <c-components.form_fields.checkbox field=form.manifeste_accepted />
+                            {% endif %}
                             <div class="flex justify-center">
                                 <c-components.button type="submit" label="Je demande un atelier Latitudes" class="justify-center" />
                             </div>
