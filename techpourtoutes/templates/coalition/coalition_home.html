@@ -1,8 +1,23 @@
 <c-layout.base>
     <c-components.title title="La mixité, là où la tech se fait" />
-    <p class="text-xl my-3">
-        Entièrement gratuit, le programme TechPourToutes vise à soutenir les filles et les jeunes femmes dans leur parcours dans le numérique, en leur donnant les moyens d'atteindre le job de leurs rêves.
+    <p class="text-lg">
+        Entièrement gratuit, le programme TechPourToutes vise à soutenir les filles et les jeunes femmes dans leur parcours dans le numérique. C'est un programme national porté par un consortium réunissant recherche, enseignement supérieur, associations et entreprises du numérique.
     </p>
+
+    <c-components.card-shadow variant="blue" class="mb-3">
+        <div class="flex gap-2">
+            <div>
+                <c-components.icon name="quote-start" class="w-8 h-8" />
+            </div>
+            <div>
+                Aujourd'hui, les femmes ne représentent qu'environ 17 à 19&nbsp;% des étudiantes dans les filières techniques du numérique1 et 17&nbsp;% des professionnelles. Dans les années 1980, elles représentaient plus de 40&nbsp;% des ingénieures en informatique dans les grandes écoles françaises. Ce n'est pas un retard à combler, mais un recul à inverser.
+            </div>
+        </div>
+
+        <div class="flex justify-end mt-3">
+            <c-components.button href="{% url "notre_manifeste" %}" label="Découvrir notre manifeste" variant="quaternaly" />
+        </div>
+    </c-components.card-shadow >
 
     <c-components.title title="Comment contribuer&nbsp;?" variant="h2-thin" />
     <div class="grid grid-cols-2 md:grid-cols-3 gap-5 w-full">

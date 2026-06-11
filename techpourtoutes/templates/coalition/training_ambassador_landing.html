@@ -131,7 +131,10 @@
                                 postal_field=form.postal_code
                                 description="Recherchez par nom et/ou code postal"
                             />
-                            {% if not pro %}<c-components.form_fields.checkbox field=form.terms_accepted />{% endif %}
+                            {% if not pro %}
+                                <c-components.form_fields.checkbox field=form.terms_accepted />
+                                <c-components.form_fields.checkbox field=form.manifeste_accepted />
+                            {% endif %}
                             <div class="flex justify-center">
                                 <c-components.button type="submit" label="Je deviens ambassadrice" />
                             </div>

@@ -12,6 +12,7 @@ def valid_data(**overrides):
         "structure_name": "Université Paris-Saclay",
         "postal_code": "75011",
         "terms_accepted": True,
+        "manifeste_accepted": True,
         **overrides,
     }
 
