@@ -50,7 +50,7 @@ def valid_pro_model_data():
 
 @pytest.fixture
 def valid_pro_data(valid_pro_model_data):
-    return {**valid_pro_model_data, "terms_accepted": True}
+    return {**valid_pro_model_data, "terms_accepted": True, "manifeste_accepted": True}
 
 
 @pytest.fixture

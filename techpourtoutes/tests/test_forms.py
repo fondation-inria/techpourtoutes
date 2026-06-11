@@ -162,6 +162,7 @@ def test_pro_form_with_pro_allows_own_email(pro):
         "job_title": pro.job_title,
         "structure_name": pro.structure_name,
         "terms_accepted": True,
+        "manifeste_accepted": True,
     }
     form = EngagementForm(data=data, pro=pro)
     assert form.is_valid(), form.errors
@@ -183,6 +184,7 @@ def test_pro_form_with_pro_save_updates_in_place(pro):
         "job_title": "Nouveau métier",
         "structure_name": pro.structure_name,
         "terms_accepted": True,
+        "manifeste_accepted": True,
     }
     form = EngagementForm(data=data, pro=pro)
     assert form.is_valid(), form.errors

@@ -105,9 +105,10 @@ class BaseEngagementForm(forms.Form):
         return values
 
     def _lock_fields_for_existing_account(self):
-        # The email identifies the account, and the terms were accepted at sign-up.
+        # The email identifies the account; terms and manifeste were accepted at sign-up.
         self.fields["email"].disabled = True
         self.fields["terms_accepted"].required = False
+        self.fields["manifeste_accepted"].required = False
 
     def _email_taken_by_another_account(self, email):
         if self.pro and email == self.pro.email:

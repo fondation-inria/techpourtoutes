@@ -131,6 +131,7 @@ def _training_ambassador_data(**overrides):
         "structure_name": "Université Paris-Saclay",
         "postal_code": "75011",
         "terms_accepted": True,
+        "manifeste_accepted": True,
         **overrides,
     }
 
@@ -203,6 +204,7 @@ def _workshop_data(**overrides):
         "remark": "",
         "ateliers": ["future_of_tech", "future_of_ia"],
         "terms_accepted": True,
+        "manifeste_accepted": True,
         **overrides,
     }
 
@@ -363,6 +365,7 @@ def _pro_post_data(pro, **overrides):
         "job_title": pro.job_title,
         "structure_name": pro.structure_name,
         "terms_accepted": True,
+        "manifeste_accepted": True,
         **overrides,
     }
 

@@ -2,11 +2,32 @@
     <div class="flex flex-col min-h-[80dvh] md:min-w-[560px] w-full items-center justify-center gap-y-8">
         <c-components.title title="Bienvenue dans la coalition" />
 
-        <c-components.text class="text-center">
-            Merci beaucoup pour votre engagement !
-
+        <p class="text-center">
+            Merci beaucoup pour votre engagement&nbsp;!
+            <br>
+            <br>
             Nous prendrons contact avec vous sous 48 heures pour vous accompagner dans le programme.
-        </c-components.text>
+        </p>
+
+        <c-components.card-shadow variant="blue" class="mb-3">
+            <div class="flex gap-2">
+                <div>
+                    <c-components.icon name="quote-start" class="w-8 h-8" />
+                </div>
+                <div>
+                    L'inaction n'est pas neutre. Elle choisit le camp du statu quo.
+                    <br><br>
+                    Chaque organisation a un rôle positif à jouer. Chaque entreprise a la possibilité d'ouvrir des stages, proposer de l'alternance, soutenir des parcours par le mentorat et des échanges que nous accompagnons. Et pour que le manque de moyens ne soit jamais un obstacle, des bourses TechPourToutes peuvent être financées par celles et ceux qui le souhaitent.
+                    <br><br>
+                    Aux jeunes femmes, nous voulons dire : votre place est partout. Aux organisations, nous voulons dire : votre responsabilité est engagée.
+                </div>
+            </div>
+
+            <div class="flex justify-end mt-3">
+                <c-components.button href="{% url "notre_manifeste" %}" label="Découvrir notre manifeste" variant="quaternaly" />
+            </div>
+        </c-components.card-shadow >
+
         <c-components.button href="/" label="Découvrir les autres engagements" />
     </div>
 </c-layout.base>
