@@ -1,11 +1,14 @@
 <!DOCTYPE html>
 {% load tailwind_cli static matomo %}
-<html data-theme="techpourtoutes">
+<c-vars title="TechPourToutes" description="" />
+<html lang="fr" data-theme="techpourtoutes">
     <head>
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        {% if description %}<meta name="description" content="{{ description }}">{% endif %}
+        <link rel="canonical" href="{{ request.build_absolute_uri }}">
         {% matomo_tracking %}
-        <title>TechPourToutes</title>
+        <title>{{ title }}</title>
         <link rel="icon" type="image/png" href="{% static 'images/favicon-tpt.png' %}">
         {% tailwind_css %}
         <script defer src="{% static 'js/alpine.min.js' %}"></script>
