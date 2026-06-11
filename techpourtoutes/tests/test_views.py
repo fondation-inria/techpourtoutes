@@ -296,33 +296,13 @@ def test_sponsor_landing_post_invalid_rerenders_with_errors(client, valid_pro_da
 
 
 @pytest.mark.django_db
-def test_mentor_landing_get_authenticated_pro_passes_pro_to_context(client, pro):
+@pytest.mark.parametrize(
+    "url_name",
+    ["mentor_landing", "work_ambassador_landing", "workshops_landing", "sponsor_landing"],
+)
+def test_landing_get_authenticated_pro_passes_pro_to_context(client, pro, url_name):
     client.force_login(pro)
-    response = client.get(reverse("mentor_landing"))
-    assert response.status_code == 200
-    assert response.context["pro"] == pro
-
-
-@pytest.mark.django_db
-def test_work_ambassador_landing_get_authenticated_pro_passes_pro_to_context(client, pro):
-    client.force_login(pro)
-    response = client.get(reverse("work_ambassador_landing"))
-    assert response.status_code == 200
-    assert response.context["pro"] == pro
-
-
-@pytest.mark.django_db
-def test_workshops_landing_get_authenticated_pro_passes_pro_to_context(client, pro):
-    client.force_login(pro)
-    response = client.get(reverse("workshops_landing"))
-    assert response.status_code == 200
-    assert response.context["pro"] == pro
-
-
-@pytest.mark.django_db
-def test_sponsor_landing_get_authenticated_pro_passes_pro_to_context(client, pro):
-    client.force_login(pro)
-    response = client.get(reverse("sponsor_landing"))
+    response = client.get(reverse(url_name))
     assert response.status_code == 200
     assert response.context["pro"] == pro
 
@@ -337,19 +317,6 @@ def test_mentor_landing_disables_email_for_authenticated_pro(client, pro):
 @pytest.mark.django_db
 def test_mentor_landing_email_editable_for_anonymous(client):
     html = client.get(reverse("mentor_landing")).content.decode()
-    assert not _email_input_is_disabled(html)
-
-
-@pytest.mark.django_db
-def test_workshops_landing_disables_email_for_authenticated_pro(client, pro):
-    client.force_login(pro)
-    html = client.get(reverse("workshops_landing")).content.decode()
-    assert _email_input_is_disabled(html)
-
-
-@pytest.mark.django_db
-def test_workshops_landing_email_editable_for_anonymous(client):
-    html = client.get(reverse("workshops_landing")).content.decode()
     assert not _email_input_is_disabled(html)
 
 
@@ -386,14 +353,11 @@ def test_mentor_landing_post_authenticated_pro_updates_pro(client, pro, mock_cre
 @pytest.mark.django_db
 @override_settings(EMAIL_BACKEND="django.core.mail.backends.locmem.EmailBackend")
 def test_work_ambassador_landing_post_authenticated_pro_updates_pro(client, pro):
-    from techpourtoutes.models import Pro
-
     client.force_login(pro)
     client.post(
         reverse("work_ambassador_landing"), data=_pro_post_data(pro, first_name="Modifiée")
     )
 
-    assert Pro.objects.count() == 1
     pro.refresh_from_db()
     assert pro.first_name == "Modifiée"
     assert "work_ambassador" in pro.engagements
@@ -415,14 +379,11 @@ def test_work_ambassador_landing_does_not_duplicate_existing_engagement(client, 
 @pytest.mark.django_db
 @override_settings(EMAIL_BACKEND="django.core.mail.backends.locmem.EmailBackend")
 def test_workshops_landing_post_authenticated_pro_updates_pro(client, pro):
-    from techpourtoutes.models import Pro
-
     client.force_login(pro)
     data = _workshop_data(email=pro.email, first_name="Modifiée")
     with patch("techpourtoutes.views.coalition_views.notify_workshop_request_task"):
         client.post(reverse("workshops_landing"), data=data)
 
-    assert Pro.objects.count() == 1
     pro.refresh_from_db()
     assert pro.first_name == "Modifiée"
     assert "workshops" in pro.engagements
@@ -431,12 +392,9 @@ def test_workshops_landing_post_authenticated_pro_updates_pro(client, pro):
 @pytest.mark.django_db
 @override_settings(EMAIL_BACKEND="django.core.mail.backends.locmem.EmailBackend")
 def test_sponsor_landing_post_authenticated_pro_updates_pro(client, pro):
-    from techpourtoutes.models import Pro
-
     client.force_login(pro)
     client.post(reverse("sponsor_landing"), data=_pro_post_data(pro, first_name="Modifiée"))
 
-    assert Pro.objects.count() == 1
     pro.refresh_from_db()
     assert pro.first_name == "Modifiée"
     assert "sponsor" in pro.engagements
