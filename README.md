@@ -202,3 +202,17 @@ uv run python manage.py import_schools
 La commande utilise la variable d'environnement `HUWISE_API_KEY` pour appeler l'API. En local, renseigner cette clé dans `.env` avant de lancer l'import.
 
 Les noms d'établissements sont aussi stockés dans une version normalisée sans accents (`name_normalized`) afin de permettre une recherche accent-insensitive dans le formulaire.
+
+## Déploiement (Scalingo)
+
+### Serveur web (Gunicorn)
+
+Le nombre de workers et de threads est configurable via des variables d'environnement, à définir dans le dashboard Scalingo pour chaque application :
+
+| Variable | Staging | Prod |
+|---|---|---|
+| `GUNICORN_WORKERS` | `1` | `3` |
+| `GUNICORN_THREADS` | `2` | `4` |
+
+Ces valeurs sont lues par `gunicorn.conf.py` à la racine du projet.
+
