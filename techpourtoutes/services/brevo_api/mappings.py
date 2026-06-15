@@ -4,16 +4,23 @@ from django.apps import apps
 from django.conf import settings
 from phonenumber_field.phonenumber import PhoneNumber
 
+BREVO_MULTIPLE_CHOICE_FIELDS = {"civility", "professional_situation", "engagements"}
+
+BREVO_PRO_CONSTANT_ATTRIBUTES = {
+    "TYPES_DE_CONTACT": ["Coalition TPT"],
+}
+
 FIELD_TO_BREVO_ATTR = {
     "email": "EMAIL",
     "first_name": "PRENOM",
     "last_name": "NOM",
-    "phone": "NUMERO_DE_TEL",
+    "phone": "SMS",
     "civility": "CIVILITE",
-    "job_title": "POSTE",
+    "job_title": "JOB_TITLE",
     "professional_situation": "SITUATION_PRO",
-    "structure_name": "STRUCTURE",
+    "structure_name": "NOM_DE_LA_STRUCTURE",
     "postal_code": "CODE_POSTAL",
+    "engagements": "ENGAGEMENTS",
 }
 
 USER_FIELDS = ["email", "first_name", "last_name"]
@@ -25,12 +32,16 @@ PRO_FIELDS = USER_FIELDS + [
     "professional_situation",
     "structure_name",
     "postal_code",
+    "engagements",
 ]
 
 
 def brevo_attributes_for(instance) -> dict | None:
     if _is_pro(instance):
-        return _attributes_from(instance, PRO_FIELDS)
+        attrs = _attributes_from(instance, PRO_FIELDS)
+        if instance.phone:
+            attrs["TELEPHONE_RAW_NUMBER"] = instance.phone.as_e164.replace("+", "00")
+        return {**attrs, **BREVO_PRO_CONSTANT_ATTRIBUTES}
     return None
 
 
@@ -48,7 +59,20 @@ def _is_pro(instance) -> bool:
 
 
 def _attributes_from(instance, fields: list[str]) -> dict:
-    return {FIELD_TO_BREVO_ATTR[f]: _serialize(getattr(instance, f)) for f in fields}
+    result = {}
+    for field in fields:
+        value = _serialize(getattr(instance, field))
+        if field in BREVO_MULTIPLE_CHOICE_FIELDS:
+            field_meta = instance._meta.get_field(field)
+            choices = dict(getattr(field_meta, "base_field", field_meta).choices)
+            value = [str(choices[v]) for v in (value if isinstance(value, list) else [value])]
+        attribute = FIELD_TO_BREVO_ATTR[field]
+        if isinstance(attribute, list):
+            for attr_name in attribute:
+                result[attr_name] = value
+        else:
+            result[attribute] = value
+    return result
 
 
 def _serialize(value):
