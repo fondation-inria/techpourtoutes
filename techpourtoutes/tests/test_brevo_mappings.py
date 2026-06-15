@@ -17,12 +17,15 @@ def test_brevo_attributes_for_pro_returns_mapped_attributes(pro):
         "EMAIL": "alice@example.com",
         "PRENOM": "Alice",
         "NOM": "Martin",
-        "NUMERO_DE_TEL": "+33612345678",
-        "CIVILITE": "Madame",
-        "POSTE": "Chercheuse",
-        "SITUATION_PRO": "working",
-        "STRUCTURE": "Inria",
+        "SMS": "+33612345678",
+        "TELEPHONE_RAW_NUMBER": "0033612345678",
+        "CIVILITE": ["Madame"],
+        "JOB_TITLE": "Chercheuse",
+        "SITUATION_PRO": ["En emploi"],
+        "NOM_DE_LA_STRUCTURE": "Inria",
         "CODE_POSTAL": "75001",
+        "ENGAGEMENTS": [],
+        "TYPES_DE_CONTACT": ["Coalition TPT"],
     }
 
 
@@ -48,6 +51,16 @@ def test_brevo_list_id_for_bare_user_returns_none(db):
     user = User.objects.create_user(username="bare@example.com", email="bare@example.com")
 
     assert brevo_list_id_for(user) is None
+
+
+@pytest.mark.django_db
+def test_brevo_attributes_engagements_are_translated_to_labels(pro):
+    from techpourtoutes.models import Pro
+
+    pro.engagements = [Pro.Engagement.MENTOR, Pro.Engagement.WORKSHOPS]
+    pro.save()
+
+    assert brevo_attributes_for(pro)["ENGAGEMENTS"] == ["mentorer", "organiser un atelier"]
 
 
 def test_serialize_phone_returns_e164():
