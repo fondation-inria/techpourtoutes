@@ -25,7 +25,13 @@ ALLOWED_HOSTS = env.list("ALLOWED_HOSTS")
 SITE_URL = env("HOST", default="https://localhost:8000").rstrip("/")
 # Admin is mounted at this path; override in production to a non-guessable value.
 ADMIN_URL = env("ADMIN_URL", default="admin").strip("/")
-DATABASES = {"default": env.db("DATABASE_URL")}
+DATABASES = {
+    "default": {
+        **env.db("DATABASE_URL"),
+        "CONN_MAX_AGE": 60,
+        "CONN_HEALTH_CHECKS": True,
+    }
+}
 
 # Application definition
 
@@ -203,7 +209,8 @@ CELERY_BROKER_URL = env("REDIS_URL", default="redis://localhost:6379/0")
 CELERY_TASK_ALWAYS_EAGER = env.bool("CELERY_TASK_ALWAYS_EAGER", default=False)
 CELERY_TASK_EAGER_PROPAGATES = True
 
-# Cache for the rate-limit counters. CACHE_URL should be a Redis instance
+# Cache and sessions. CACHE_URL should be a Redis instance.
+# When Redis is available, sessions are stored there instead of the database.
 if env("CACHE_URL", default=""):
     CACHES = {
         "default": {
@@ -211,6 +218,8 @@ if env("CACHE_URL", default=""):
             "LOCATION": env("CACHE_URL"),
         }
     }
+    SESSION_ENGINE = "django.contrib.sessions.backends.cache"
+    SESSION_CACHE_ALIAS = "default"
 
 # Rate limiting of public POST endpoints, as "<max_requests>/<window_seconds>" per client.
 RATELIMIT_LOGIN = env("RATELIMIT_LOGIN", default="5/300")
