@@ -30,7 +30,8 @@
       "Bash(ls *)",
       "Bash(pwd)",
       "Read(**/.env.example)",
-      "Read(.env.example)"
+      "Read(.env.example)",
+      "WebFetch(domain:developers.brevo.com)"
     ],
     "deny": [
       "Bash(uv run python manage.py flush *)",

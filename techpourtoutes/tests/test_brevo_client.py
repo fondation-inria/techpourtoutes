@@ -73,6 +73,36 @@ def test_remove_contact_from_list_calls_sdk_with_ext_id_body(mock_brevo_sdk):
 
 
 @override_settings(BREVO_API_KEY="test-key")
+@pytest.mark.parametrize(
+    "message",
+    [
+        "Unable to create contact, SMS is already associated with another Contact",
+        "Unable to update contact, SMS or EXT_ID are already associated with another Contact",
+    ],
+)
+def test_upsert_contact_retries_without_sms_on_sms_conflict(mock_brevo_sdk, message):
+    from brevo.core.api_error import ApiError
+
+    sdk_instance = mock_brevo_sdk.return_value
+    sdk_instance.contacts.create_contact.side_effect = [
+        ApiError(status_code=400, body={"message": message}),
+        None,
+    ]
+
+    BrevoClient().upsert_contact(
+        ext_id="abc-123",
+        list_id=42,
+        attributes={"EMAIL": "x@y.fr", "PRENOM": "X", "SMS": "+33612345678"},
+    )
+
+    assert sdk_instance.contacts.create_contact.call_count == 2
+    second_call_attributes = sdk_instance.contacts.create_contact.call_args_list[1].kwargs[
+        "attributes"
+    ]
+    assert "SMS" not in second_call_attributes
+
+
+@override_settings(BREVO_API_KEY="test-key")
 def test_client_methods_return_sdk_response(mock_brevo_sdk):
     sdk_instance = mock_brevo_sdk.return_value
     sdk_instance.contacts.get_contact_info.return_value = "response"
