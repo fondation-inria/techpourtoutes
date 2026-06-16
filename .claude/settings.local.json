@@ -51,7 +51,11 @@
       "Bash(pkill *)",
       "Read(.env)",
       "Read(**/.env)",
-      "Edit(.env)"
+      "Edit(.env)",
+      "Read(*/faveod_users.csv)",
+      "Read(**/faveod_users.csv)",
+      "Edit(*/faveod_users.csv)",
+      "Edit(**/faveod_users.csv)"
     ]
   }
 }
