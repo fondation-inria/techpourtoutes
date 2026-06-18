@@ -253,6 +253,7 @@ def test_create_mentor_syncs_contact_to_brevo(valid_pro_model_data, mock_brevo_s
     from techpourtoutes.services.create_mentor import CreateMentor
 
     pro = _unsaved_pro(valid_pro_model_data)
+    pro.brevo_sync_enabled = True
     mock = _mock_jobirl_registration()
 
     with patch("techpourtoutes.services.create_mentor.RegisterMentorOnJobirl", return_value=mock):

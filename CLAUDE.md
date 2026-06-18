@@ -153,6 +153,7 @@ Django 6 + PostgreSQL project. Locale is French (fr-FR), timezone Europe/Paris.
 
 - Ruff with line length 99, Django rules (DJ), PEP8 (E/W), logic (F), and import sorting (I)
 - Always use double quotes for strings
+- Favour human-readable code: the top-level function should read like prose, with the mechanics pushed into well-named private helpers (see `_on_user_saved` and its `_schedule_contact_upsert` / `_contact_was_previously_synced` helpers in `techpourtoutes/signals.py`)
 - When a method becomes complex, extract into well-named private methods for readability
 - Use mixins, custom Managers / QuerySets and utility modules to isolate behavior (equivalent of Basecamp style with concerns in Rails)
 - Service objects for procedural logic with success/failure states (sequential actions, external calls)

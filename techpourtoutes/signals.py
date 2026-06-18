@@ -8,11 +8,38 @@ from techpourtoutes.tasks.upsert_brevo_contact import upsert_brevo_contact_task
 
 
 def _on_user_saved(sender, instance, **kwargs):
-    if not settings.BREVO_SYNC_ENABLED or not instance.brevo_sync_enabled:
+    if not settings.BREVO_SYNC_ENABLED:
+        return
+    if instance.brevo_sync_enabled:
+        _schedule_contact_upsert(instance, sender)
+    elif _contact_was_previously_synced(instance):
+        _schedule_contact_deletion(instance)
+    _remember_sync_state(instance)
+
+
+def _contact_was_previously_synced(instance):
+    # True only when this row was loaded from the DB already opted in (set by User.from_db),
+    # i.e. this save is a genuine opt-out rather than a never-synced contact.
+    return getattr(instance, "_loaded_brevo_sync_enabled", False)
+
+
+def _schedule_contact_upsert(instance, sender):
+    pk, model_label = str(instance.pk), sender._meta.label
+    transaction.on_commit(lambda: upsert_brevo_contact_task.delay(pk, model_label))
+
+
+def _schedule_contact_deletion(instance):
+    list_id = brevo_list_id_for(instance)
+    if list_id is None:
         return
     pk = str(instance.pk)
-    model_label = sender._meta.label
-    transaction.on_commit(lambda: upsert_brevo_contact_task.delay(pk, model_label))
+    transaction.on_commit(lambda: delete_brevo_contact_task.delay(pk, list_id))
+
+
+def _remember_sync_state(instance):
+    # Keep the in-memory "previous" value in sync so a second save in the same request
+    # is not treated as another opt-out (avoids a duplicate delete).
+    instance._loaded_brevo_sync_enabled = instance.brevo_sync_enabled
 
 
 def _on_user_deleted(sender, instance, **kwargs):

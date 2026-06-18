@@ -10,7 +10,12 @@ from django.urls import reverse
 from django.utils.http import url_has_allowed_host_and_scheme
 from django.views.decorators.http import require_POST
 
-from ..forms import AccountEditForm, LoginRequestForm, TrainingExperienceForm
+from ..forms import (
+    AccountEditForm,
+    CommunicationForm,
+    LoginRequestForm,
+    TrainingExperienceForm,
+)
 from ..mailers import LoginMailer
 from ..ratelimit import rate_limit
 from ..services.jobirl_api.refresh_access_token import RefreshAccessToken
@@ -92,7 +97,8 @@ def login_verify(request, token):
 def login_to_jobirl(request):
     if not hasattr(request.user, "pro"):
         messages.error(request, "Vous n'avez pas de compte mentor sur JobIRL")
-        return render(request, "account/account.html", {})
+        form = CommunicationForm(pro=request.user)
+        return render(request, "account/account.html", {"form": form})
 
     result = RefreshAccessToken(pro=request.user.pro)
     if result.failure:
@@ -105,7 +111,24 @@ def login_to_jobirl(request):
 @login_required
 def account(request):
     user = request.user.pro if hasattr(request.user, "pro") else request.user
-    return render(request, "account/account.html", {"user": user})
+    form = CommunicationForm(pro=user)
+    return render(request, "account/account.html", {"user": user, "form": form})
+
+
+@require_POST
+@login_required
+def account_communication(request):
+    if not hasattr(request.user, "pro"):
+        return redirect("account")
+    pro = request.user.pro
+    form = CommunicationForm(data=request.POST, pro=pro)
+    if form.is_valid():
+        form.save(pro)
+    return render(
+        request,
+        "account/partials/communication_card.html",
+        {"user": pro, "form": form},
+    )
 
 
 @login_required

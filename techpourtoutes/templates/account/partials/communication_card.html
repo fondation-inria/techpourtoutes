@@ -1,0 +1,11 @@
+<div id="account-communication-card" class="w-full">
+    <c-components.card title="Communication">
+        <c-patterns.form
+            hx-post="{% url 'account_communication' %}"
+            hx-target="#account-communication-card"
+            hx-swap="outerHTML"
+            hx-trigger="change">
+            <c-components.form_fields.checkbox field=form.newsletter_consent full_width=True label_class="text-lg" />
+        </c-patterns.form>
+    </c-components.card>
+</div>
