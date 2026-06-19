@@ -6,11 +6,11 @@
 />
 
 {% if href %}
-<a href="{{ href }}" id="{{ id }}" class="rounded-2xl shadow-bottom-and-right border border-primary-700 p-5 focus:outline-primary-500 focus:outline-offset-3 {% if variant == "blue" %}bg-primary-100{% else %}bg-neutral-0{% endif %} {{ class }}">
+<a href="{{ href }}" id="{{ id }}" class="rounded-2xl shadow-bottom-and-right border border-primary-700 p-5 {% if variant == "blue" %}bg-primary-100{% else %}bg-neutral-0{% endif %} {{ class }}">
     {{ slot }}
 </a>
 {% else %}
-<div id="{{ id }}" class="rounded-2xl shadow-bottom-and-right border border-primary-700 p-5 focus:outline-primary-500 focus:outline-offset-3 {% if variant == "blue" %}bg-primary-100{% else %}bg-neutral-0{% endif %} {{ class }}">
+<div id="{{ id }}" class="rounded-2xl shadow-bottom-and-right border border-primary-700 p-5 {% if variant == "blue" %}bg-primary-100{% else %}bg-neutral-0{% endif %} {{ class }}">
     {{ slot }}
 </div>
 {% endif %}
