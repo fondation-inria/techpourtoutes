@@ -2245,6 +2245,24 @@
   .transform {
     transform: var(--tw-rotate-x,) var(--tw-rotate-y,) var(--tw-rotate-z,) var(--tw-skew-x,) var(--tw-skew-y,);
   }
+  .link {
+    @layer daisyui.l1.l2.l3 {
+      cursor: pointer;
+      text-decoration-line: underline;
+      &:focus {
+        --tw-outline-style: none;
+        outline-style: none;
+        @media (forced-colors: active) {
+          outline: 2px solid transparent;
+          outline-offset: 2px;
+        }
+      }
+      &:focus-visible {
+        outline: 2px solid currentColor;
+        outline-offset: 2px;
+      }
+    }
+  }
   .cursor-not-allowed {
     cursor: not-allowed;
   }
@@ -2321,9 +2339,6 @@
       margin-block-start: calc(calc(var(--spacing) * 3) * var(--tw-space-y-reverse));
       margin-block-end: calc(calc(var(--spacing) * 3) * calc(1 - var(--tw-space-y-reverse)));
     }
-  }
-  .gap-x-1 {
-    column-gap: calc(var(--spacing) * 1);
   }
   .gap-x-2 {
     column-gap: calc(var(--spacing) * 2);
@@ -2688,12 +2703,6 @@
   .underline {
     text-decoration-line: underline;
   }
-  .decoration-1 {
-    text-decoration-thickness: 1px;
-  }
-  .underline-offset-4 {
-    text-underline-offset: 4px;
-  }
   .opacity-60 {
     opacity: 60%;
   }
@@ -2824,13 +2833,6 @@
       }
     }
   }
-  .hover\:decoration-2 {
-    &:hover {
-      @media (hover: hover) {
-        text-decoration-thickness: 2px;
-      }
-    }
-  }
   .hover\:shadow-primary-500 {
     &:hover {
       @media (hover: hover) {
@@ -2839,21 +2841,6 @@
           --tw-shadow-color: color-mix(in oklab, var(--color-primary-500) var(--tw-shadow-alpha), transparent);
         }
       }
-    }
-  }
-  .focus\:outline-offset-2 {
-    &:focus {
-      outline-offset: 2px;
-    }
-  }
-  .focus\:outline-offset-3 {
-    &:focus {
-      outline-offset: 3px;
-    }
-  }
-  .focus\:outline-primary-500 {
-    &:focus {
-      outline-color: var(--color-primary-500);
     }
   }
   .focus-visible\:border {
@@ -2904,11 +2891,6 @@
       border-color: var(--color-neutral-0);
     }
   }
-  .active\:bg-neutral-200 {
-    &:active {
-      background-color: var(--color-neutral-200);
-    }
-  }
   .active\:bg-primary-100 {
     &:active {
       background-color: var(--color-primary-100);
@@ -2929,9 +2911,6 @@
       color: var(--color-neutral-0);
     }
   }
-  .active\:decoration-2 {
-    &:active {
-      text-decoration-thickness: 2px;
   .sm\:flex-nowrap {
     @media (width >= 40rem) {
       flex-wrap: nowrap;
