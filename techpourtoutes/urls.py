@@ -25,6 +25,7 @@ urlpatterns = [
         views.search_higher_ed_schools,
         name="search_higher_ed_schools",
     ),
+    path("signer-le-manifeste/", views.signer_manifeste, name="signer_manifeste"),
     path("bienvenue-dans-la-coalition/", views.coalition_welcome, name="coalition_welcome"),
     # Auth
     path("se-connecter/", views.login_request, name="login_request"),

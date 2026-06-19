@@ -2032,6 +2032,9 @@
   .h-42 {
     height: calc(var(--spacing) * 42);
   }
+  .h-\[80vh\] {
+    height: 80vh;
+  }
   .h-dvh {
     height: 100dvh;
   }
@@ -2115,6 +2118,9 @@
   }
   .max-w-\[90\%\] {
     max-width: 90%;
+  }
+  .max-w-\[420px\] {
+    max-width: 420px;
   }
   .max-w-md {
     max-width: var(--container-md);
@@ -2289,6 +2295,9 @@
   }
   .rounded-full {
     border-radius: calc(infinity * 1px);
+  }
+  .rounded-lg {
+    border-radius: var(--radius-lg);
   }
   .rounded-md {
     border-radius: var(--radius-md);
@@ -2807,6 +2816,11 @@
   .active\:text-neutral-0 {
     &:active {
       color: var(--color-neutral-0);
+    }
+  }
+  .sm\:hidden {
+    @media (width >= 40rem) {
+      display: none;
     }
   }
   .sm\:text-5xl {
