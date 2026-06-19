@@ -420,3 +420,59 @@ def test_sponsor_landing_post_authenticated_pro_updates_pro(client, pro):
     pro.refresh_from_db()
     assert pro.first_name == "Modifiée"
     assert "sponsor" in pro.engagements
+
+
+def _signature_data(**overrides):
+    return {
+        "first_name": "Manon",
+        "last_name": "Desbordes",
+        "email": "manon@example.com",
+        "structure_name": "Latitudes",
+        "terms_accepted": True,
+        **overrides,
+    }
+
+
+@pytest.mark.django_db
+def test_signer_manifeste_get(client):
+    assert client.get(reverse("signer_manifeste")).status_code == 200
+
+
+@pytest.mark.django_db
+@override_settings(BREVO_SYNC_ENABLED=True)
+def test_signer_manifeste_post_valid_pushes_brevo_contact_and_redirects(client):
+    from techpourtoutes.models import User
+
+    with patch(
+        "techpourtoutes.views.coalition_views.upsert_manifeste_signatory_task"
+    ) as mock_task:
+        response = client.post(reverse("signer_manifeste"), data=_signature_data())
+
+    assert response.status_code == 302
+    assert response["Location"] == reverse("signature_manifeste")
+    mock_task.delay.assert_called_once_with(
+        first_name="Manon",
+        last_name="Desbordes",
+        email="manon@example.com",
+        structure_name="Latitudes",
+    )
+    assert not User.objects.filter(email="manon@example.com").exists()
+
+
+@pytest.mark.django_db
+@override_settings(BREVO_SYNC_ENABLED=False)
+def test_signer_manifeste_post_skips_task_when_sync_disabled(client):
+    with patch(
+        "techpourtoutes.views.coalition_views.upsert_manifeste_signatory_task"
+    ) as mock_task:
+        response = client.post(reverse("signer_manifeste"), data=_signature_data())
+
+    assert response.status_code == 302
+    mock_task.delay.assert_not_called()
+
+
+@pytest.mark.django_db
+def test_signer_manifeste_post_invalid_rerenders_with_errors(client):
+    response = client.post(reverse("signer_manifeste"), data=_signature_data(terms_accepted=False))
+    assert response.status_code == 200
+    assert response.context["form"].errors
