@@ -18,13 +18,13 @@
             <p class="text-sm text-center">
                 Pas encore de compte ?
             </p>
-            <c-components.button href="{% url "coalition_home" %}" label="S'engager avec TechPourToutes" variant="quaternaly" class="ml-3" />
+            <c-components.button href="{% url "coalition_home" %}" label="S'engager avec TechPourToutes" variant="quaternary" class="ml-3" />
         </div>
         <p class="text-xs text-center">
             En continuant, vous reconnaissez avoir compris et accepté les
-            <a href="{% url 'conditions_generales' %}" class="link">Conditions d'utilisation</a>
+            <c-components.inline-link label="Conditions d'utilisation" href="{% url 'conditions_generales' %}" />
             et la
-            <a href="{% url 'donnees_personnelles' %}" class="link">politique de gestion des données personnelles</a>
+            <c-components.inline-link label="politique de gestion des données personnelles" href="{% url 'donnees_personnelles' %}" />
             de TechPourToutes.
         </p>
     </div>
