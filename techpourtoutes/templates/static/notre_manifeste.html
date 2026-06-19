@@ -1,6 +1,7 @@
 {% load static %}
+{% static 'images/manifeste-tpt-cover-white.png' as manifeste_og_image %}
 
-<c-layout.a_propos title="Notre manifeste – TechPourToutes" description="Le numérique est devenu l'infrastructure invisible qui organise nos sociétés, nos économies, nos démocraties. Et pourtant, dans ce monde, les femmes restent à la marge.">
+<c-layout.a_propos title="Notre manifeste – TechPourToutes" description="Le numérique est devenu l'infrastructure invisible qui organise nos sociétés, nos économies, nos démocraties. Et pourtant, dans ce monde, les femmes restent à la marge." og_image="{{ site_url }}{{ manifeste_og_image }}">
     <c-components.title title="Construisons ensemble la coalition qui manque à la tech" variant="Construisons ensemble la coalition qui manque à la tech" variant="h2" />
     <c-components.text>
         TechPourToutes est un programme national porté par un consortium réunissant recherche, enseignement supérieur, associations et entreprises du numérique, financé dans le cadre du plan France 2030. Ce manifeste est le nôtre. Bientôt le vôtre ?
@@ -81,7 +82,7 @@
                 <p>Aux jeunes femmes, nous voulons dire&nbsp;: vous avez votre place partout, nous avons besoin de vous. Aux organisations, nous voulons dire&nbsp;: rejoignez le collectif TechPourToutes.</p>
                 <p>En soutenant ce manifeste, nous nous engageons à nous mobiliser pour le succès du collectif TechPourToutes et donc pour la mixité dans le numérique. TechPourToutes est une coalition ouverte. Nous appelons, par la présente, toutes les organisations, entreprises, associations, institutions, à rejoindre ce mouvement, à prendre part aux actions d'engagement proposées par TechPourToutes et à porter cet engagement, en public comme en interne.</p>
             </div>
-            <c-components.button href="{% static 'pdf/manifeste_techpourtoutes.pdf' %}" label="Télécharger le manifeste au format PDF" target="_blank" icon="external link" variant="secondary" class="mt-5" />
+            <c-components.button href="{% static 'pdf/manifeste_techpourtoutes.pdf' %}" label="Télécharger le manifeste au format PDF" target="_blank" icon="external-link" variant="secondary" class="mt-5" />
 
             <hr class="mt-8 border-neutral-200" />
 

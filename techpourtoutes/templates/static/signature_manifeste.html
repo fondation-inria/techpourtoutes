@@ -1,0 +1,36 @@
+<c-layout.base>
+    <div class="flex flex-col min-h-[80dvh] md:min-w-[560px] w-full items-center justify-center gap-y-8">
+        <c-components.title title="Merci pour votre signature&nbsp;!" class="text-center" />
+
+        <c-components.card-shadow variant="blue" class="md:mb-3">
+            <div class="flex gap-2">
+                <div>
+                    <c-components.icon name="quote-start" class="w-8 h-8" />
+                </div>
+                <div>
+                    Rejoindre TechPourToutes, c'est reconnaître que le problème de la mixité dans la tech nous concerne. Ce choix a un sens précis&nbsp;: ce que chacun fait, ou ne fait pas, compte.
+                    <br><br>
+                    Aux jeunes femmes, nous voulons dire&nbsp;: vous avez votre place partout, nous avons besoin de vous. Aux organisations, nous voulons dire&nbsp;: rejoignez le collectif TechPourToutes.
+                </div>
+            </div>
+
+            <div class="flex justify-end mt-3">
+                <c-components.button href="{% url "notre_manifeste" %}" label="Lire le manifeste sur notre site" variant="quaternaly" />
+            </div>
+        </c-components.card-shadow >
+        <div class="flex w-full justify-around flex-wrap gap-y-5">
+            <c-components.button href="{{ linkedin_share_url }}" label="Partager le manifeste sur LinkedIn" target="_blank" icon="external-link" variant="secondary" />
+            {% comment %} <c-components.button href="/" label="Découvrir les actions TechPourToutes" /> {% endcomment %}
+        </div>
+        <p class="text-left">
+            Vous pouvez dès maintenant intégrer la coalition TechPourToutes en vous engageant dans l'une des actions proposées sur notre site, ou nous aider à faire connaître TechPourToutes en partageant le manifeste sur vos réseaux sociaux&nbsp;!
+            <br>
+            <br>
+            D'autres formes d'engagement seront prochainement disponibles, nous vous en informerons par email.
+        </p>
+        <div class="flex w-full justify-around flex-wrap gap-y-5">
+            {% comment %} <c-components.button href="{{ linkedin_share_url }}" label="Partager le manifeste sur LinkedIn" target="_blank" icon="external-link" variant="secondary" /> {% endcomment %}
+            <c-components.button href="/" label="Découvrir les actions TechPourToutes" />
+        </div>
+    </div>
+</c-layout.base>
