@@ -1,12 +1,17 @@
 <!DOCTYPE html>
 {% load tailwind_cli static matomo %}
-<c-vars title="TechPourToutes" description="" />
+<c-vars title="TechPourToutes" description="" og_image="" />
 
 <html lang="fr" data-theme="techpourtoutes">
     <head>
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
         {% if description %}<meta name="description" content="{{ description }}">{% endif %}
+        <meta property="og:title" content="{{ title }}">
+        {% if description %}<meta property="og:description" content="{{ description }}">{% endif %}
+        <meta property="og:url" content="{{ request.build_absolute_uri }}">
+        <meta property="og:type" content="website">
+        <meta property="og:image" content="{% if og_image %}{{ og_image }}{% else %}{{ site_url }}{% static 'images/coalition-tpt-white.png' %}{% endif %}">
         <link rel="canonical" href="{{ request.build_absolute_uri }}">
         {% matomo_tracking %}
         <title>{{ title }}</title>
