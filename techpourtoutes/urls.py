@@ -34,6 +34,11 @@ urlpatterns = [
     path("mon-compte/infos/", views.account_info, name="account_info"),
     path("mon-compte/modifier/", views.account_edit, name="account_edit"),
     path(
+        "mon-compte/communication/",
+        views.account_communication,
+        name="account_communication",
+    ),
+    path(
         "mon-compte/formations/<uuid:pk>/",
         views.training_experience_info,
         name="training_experience_info",

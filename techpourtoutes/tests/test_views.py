@@ -236,6 +236,28 @@ def test_workshops_landing_post_valid_creates_pro_and_enqueues_task(client):
 
 @pytest.mark.django_db
 @override_settings(EMAIL_BACKEND="django.core.mail.backends.locmem.EmailBackend")
+def test_workshops_landing_post_with_consent_enables_brevo_sync(client):
+    from techpourtoutes.models import Pro
+
+    with patch("techpourtoutes.views.coalition_views.notify_workshop_request_task"):
+        client.post(reverse("workshops_landing"), data=_workshop_data(newsletter_consent=True))
+
+    assert Pro.objects.get(email="manon@example.com").brevo_sync_enabled is True
+
+
+@pytest.mark.django_db
+@override_settings(EMAIL_BACKEND="django.core.mail.backends.locmem.EmailBackend")
+def test_workshops_landing_post_without_consent_leaves_brevo_sync_disabled(client):
+    from techpourtoutes.models import Pro
+
+    with patch("techpourtoutes.views.coalition_views.notify_workshop_request_task"):
+        client.post(reverse("workshops_landing"), data=_workshop_data())
+
+    assert Pro.objects.get(email="manon@example.com").brevo_sync_enabled is False
+
+
+@pytest.mark.django_db
+@override_settings(EMAIL_BACKEND="django.core.mail.backends.locmem.EmailBackend")
 def test_workshops_landing_post_valid_sends_welcome_email(client):
     from django.core import mail
 

@@ -1,5 +1,6 @@
 from .auth_views import (
     account,
+    account_communication,
     account_edit,
     account_info,
     login_email_sent,
@@ -38,6 +39,7 @@ __all__ = [
     "a_propos",
     "accessibilite",
     "account",
+    "account_communication",
     "account_edit",
     "account_info",
     "coalition_home",

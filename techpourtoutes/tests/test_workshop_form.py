@@ -145,6 +145,74 @@ def test_workshop_form_with_pro_allows_own_email(pro):
 
 
 @pytest.mark.django_db
+def test_workshop_form_newsletter_consent_enables_brevo_sync():
+    from techpourtoutes.forms import WorkshopForm
+
+    form = WorkshopForm(data=valid_data(newsletter_consent=True))
+    assert form.is_valid(), form.errors
+    saved = form.save()
+
+    assert saved.brevo_sync_enabled is True
+
+
+@pytest.mark.django_db
+def test_workshop_form_without_consent_leaves_brevo_sync_disabled():
+    from techpourtoutes.forms import WorkshopForm
+
+    form = WorkshopForm(data=valid_data())
+    assert form.is_valid(), form.errors
+    saved = form.save()
+
+    assert saved.brevo_sync_enabled is False
+
+
+@pytest.mark.django_db
+def test_workshop_form_hides_consent_for_already_consented_pro(pro):
+    from techpourtoutes.forms import WorkshopForm
+
+    pro.brevo_sync_enabled = True
+    pro.save()
+
+    form = WorkshopForm(pro=pro)
+    assert "newsletter_consent" not in form.fields
+
+
+@pytest.mark.django_db
+def test_workshop_form_consent_never_revokes_existing_sync(pro):
+    from techpourtoutes.forms import WorkshopForm
+
+    pro.brevo_sync_enabled = True
+    pro.save()
+
+    data = valid_data(email=pro.email)
+    del data["terms_accepted"]
+    form = WorkshopForm(data=data, pro=pro)
+    assert form.is_valid(), form.errors
+    saved = form.save()
+
+    assert saved.brevo_sync_enabled is True
+
+
+@pytest.mark.django_db
+def test_workshop_form_unconsented_pro_can_opt_in(pro):
+    from techpourtoutes.forms import WorkshopForm
+
+    pro.brevo_sync_enabled = False
+    pro.save()
+
+    form = WorkshopForm(pro=pro)
+    assert "newsletter_consent" in form.fields
+
+    data = valid_data(email=pro.email, newsletter_consent=True)
+    del data["terms_accepted"]
+    form = WorkshopForm(data=data, pro=pro)
+    assert form.is_valid(), form.errors
+    saved = form.save()
+
+    assert saved.brevo_sync_enabled is True
+
+
+@pytest.mark.django_db
 def test_workshop_form_with_pro_save_updates_in_place(pro):
     from techpourtoutes.forms import WorkshopForm
     from techpourtoutes.models import Pro
