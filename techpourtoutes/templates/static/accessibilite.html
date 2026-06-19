@@ -3,36 +3,35 @@
 
     <c-components.card title="Conformité au RGGA 4.1">
         <c-components.title variant="intertitre" class="mt-5" title="État de conformité" />
-
-        <c-components.text>
+        <br>
             La Fondation Inria s'engage à rendre accessible son site web conformément à l'article 47 de la loi n°2005–102 du 11 février 2005.
-
-            À cette fin, la Fondation Inria met en œuvre la stratégie décrite au sein de son <u><a href="{% url "schema_pluriannuel" %}">Schéma pluriannuel de mise en accessibilité 2026 - 2028</a></u>
-
-            Cette déclaration d'accessibilité s'applique au site <a href="{{ site_url }}">techpourtoutes.io</a>
-
-            À l'heure actuelle, le site <a href="{{ site_url }}">techpourtoutes.io</a> n'a pas encore été audité car il est toujours en cours de construction. Il est de facto considéré comme non conforme.
-        </c-components.text>
+        <br><br>
+            À cette fin, la Fondation Inria met en œuvre la stratégie décrite au sein de son <c-components.inline-link label="Schéma pluriannuel de mise en accessibilité 2026 - 2028" href="{% url "schema_pluriannuel" %}"/>
+        <br><br>
+            Cette déclaration d'accessibilité s'applique au site <c-components.inline-link label="techpourtoutes.io" href="{{ site_url}}"/>
+        <br><br>
+            À l'heure actuelle, le site <c-components.inline-link label="techpourtoutes.io" href="{{ site_url}}"/> n'a pas encore été audité car il est toujours en cours de construction. Il est de facto considéré comme non conforme.
     </c-components.card>
 
     <c-components.card title="Retour d’information et contact">
-        <c-components.text>
-            Si vous n’arrivez pas à accéder à un contenu ou à un service, vous pouvez contacter le responsable de l’application pour être orientée vers une alternative accessible ou obtenir le contenu sous une autre forme : <a href="mailto:accessibilite@techpourtoutes.io">accessibilite@techpourtoutes.io</a>
-        </c-components.text>
+        <br>
+            Si vous n’arrivez pas à accéder à un contenu ou à un service, vous pouvez contacter le responsable de l’application pour être orientée vers une alternative accessible ou obtenir le contenu sous une autre forme : <c-components.inline-link label="accessibilite@techpourtoutes.io" href="mailto:accessibilite@techpourtoutes.io"/>
     </c-components.card>
 
     <c-components.card title="Voie de recours">
-        <c-components.text>
+        <br>
             Cette procédure est à utiliser dans le cas suivant&nbsp;: Vous avez signalé au responsable du site internet un défaut d’accessibilité qui vous empêche d’accéder à un contenu ou à un des services du portail et vous n’avez pas obtenu de réponse satisfaisante.
-
-            Écrire un message au <u><a href="https://formulaire.defenseurdesdroits.fr/">Défenseur des droits</a></u>
-
-            Contacter le délégué du <u><a href="https://www.defenseurdesdroits.fr/saisir/delegues">Défenseur des droits dans votre région</a></u>
-
+            <br><br>
+            Écrire un message au <c-components.inline-link label="Défenseur des droits" href="https://formulaire.defenseurdesdroits.fr/" icon="external-link" target="_blank"/>
+            <br><br>
+            Contacter le délégué du <c-components.inline-link label="Défenseur des droits dans votre région" href="https://www.defenseurdesdroits.fr/saisir/delegues" icon="external-link" target="_blank"/>
+            <br><br>
             Envoyer un courrier par la poste (gratuit, ne pas mettre de timbre) :
+            <br>
             Défenseur des droits
+            <br>
             Libre réponse 71120
+            <br>
             75342 Paris CEDEX 07
-        </c-components.text>
     </c-components.card>
 </c-layout.base>
