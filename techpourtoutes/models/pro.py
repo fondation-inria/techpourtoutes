@@ -52,6 +52,9 @@ class Pro(User):
         validators=[POSTAL_CODE_VALIDATOR],
         verbose_name=_("code postal"),
     )
+    faveod_id = models.IntegerField(
+        null=True, blank=True, unique=True, verbose_name=_("identifiant faveod")
+    )
     jobirl_user_id = models.BigIntegerField(
         null=True, blank=True, verbose_name=_("identifiant utilisateur jobirl")
     )
