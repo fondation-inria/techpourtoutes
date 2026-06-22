@@ -1,11 +1,12 @@
+from django.conf import settings
 from django.contrib import messages
 from django.shortcuts import redirect, render
 
-from ..forms import EngagementForm, TrainingAmbassadorForm, WorkshopForm
+from ..forms import EngagementForm, ManifesteSignatureForm, TrainingAmbassadorForm, WorkshopForm
 from ..mailers import CoalitionMailer
 from ..models import Pro, WorkshopRequest
 from ..services.create_mentor import CreateMentor
-from ..tasks import notify_workshop_request_task
+from ..tasks import notify_workshop_request_task, upsert_manifeste_signatory_task
 
 
 def coalition_home(request):
@@ -97,6 +98,24 @@ def workshops_landing(request):
     else:
         form = WorkshopForm(pro=pro)
     return render(request, "coalition/workshops_landing.html", {"form": form, "pro": pro})
+
+
+def signer_manifeste(request):
+    if request.method == "POST":
+        form = ManifesteSignatureForm(data=request.POST)
+        if form.is_valid():
+            if settings.BREVO_SYNC_ENABLED:
+                upsert_manifeste_signatory_task.delay(
+                    first_name=form.cleaned_data["first_name"],
+                    last_name=form.cleaned_data["last_name"],
+                    email=form.cleaned_data["email"],
+                    structure_name=form.cleaned_data["structure_name"],
+                )
+            return redirect("signature_manifeste")
+        _render_errors(request, form)
+    else:
+        form = ManifesteSignatureForm()
+    return render(request, "static/signer_manifeste.html", {"form": form})
 
 
 def coalition_welcome(request):

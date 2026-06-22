@@ -59,3 +59,23 @@ def test_base_template_has_lang_fr(client):
 def test_base_template_has_canonical(client):
     content = client.get(reverse("coalition_home")).content.decode()
     assert 'rel="canonical"' in content
+
+
+@pytest.mark.django_db
+def test_base_template_has_og_tags(client):
+    content = client.get(reverse("coalition_home")).content.decode()
+    assert 'property="og:title"' in content
+    assert 'property="og:url"' in content
+    assert 'property="og:image"' in content
+
+
+@pytest.mark.django_db
+def test_default_og_image_uses_coalition_cover(client):
+    content = client.get(reverse("coalition_home")).content.decode()
+    assert "coalition-tpt-white.png" in content
+
+
+@pytest.mark.django_db
+def test_notre_manifeste_og_image_uses_manifeste_cover(client):
+    content = client.get(reverse("notre_manifeste")).content.decode()
+    assert "manifeste-tpt-cover-white.png" in content

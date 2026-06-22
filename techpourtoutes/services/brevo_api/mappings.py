@@ -45,6 +45,18 @@ def brevo_attributes_for(instance) -> dict | None:
     return None
 
 
+def brevo_attributes_for_manifeste_signatory(
+    *, first_name, last_name, email, structure_name
+) -> dict:
+    return {
+        FIELD_TO_BREVO_ATTR["email"]: email,
+        FIELD_TO_BREVO_ATTR["first_name"]: first_name,
+        FIELD_TO_BREVO_ATTR["last_name"]: last_name,
+        FIELD_TO_BREVO_ATTR["structure_name"]: structure_name,
+        **BREVO_PRO_CONSTANT_ATTRIBUTES,
+    }
+
+
 def brevo_list_id_for(instance) -> int | None:
     if _is_pro(instance):
         return settings.BREVO_PRO_LIST_ID

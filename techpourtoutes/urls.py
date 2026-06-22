@@ -25,6 +25,7 @@ urlpatterns = [
         views.search_higher_ed_schools,
         name="search_higher_ed_schools",
     ),
+    path("signer-le-manifeste/", views.signer_manifeste, name="signer_manifeste"),
     path("bienvenue-dans-la-coalition/", views.coalition_welcome, name="coalition_welcome"),
     # Auth
     path("se-connecter/", views.login_request, name="login_request"),
@@ -33,6 +34,11 @@ urlpatterns = [
     path("mon-compte/", views.account, name="account"),
     path("mon-compte/infos/", views.account_info, name="account_info"),
     path("mon-compte/modifier/", views.account_edit, name="account_edit"),
+    path(
+        "mon-compte/communication/",
+        views.account_communication,
+        name="account_communication",
+    ),
     path(
         "mon-compte/formations/<uuid:pk>/",
         views.training_experience_info,
@@ -53,6 +59,7 @@ urlpatterns = [
     path("schema-pluriannuel-accessibilite/", views.schema_pluriannuel, name="schema_pluriannuel"),
     path("a-propos/", views.a_propos, name="a_propos"),
     path("notre-manifeste/", views.notre_manifeste, name="notre_manifeste"),
+    path("signature-manifeste/", views.signature_manifeste, name="signature_manifeste"),
     path("qui-sommes-nous/", views.qui_sommes_nous, name="qui_sommes_nous"),
     path(
         "pourquoi-nous-ecrivons-au-feminin/",

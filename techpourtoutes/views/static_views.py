@@ -30,6 +30,18 @@ def notre_manifeste(request):
     return render(request, "static/notre_manifeste.html", {"site_url": settings.SITE_URL})
 
 
+def signature_manifeste(request):
+    manifeste_url = f"{settings.SITE_URL}/notre-manifeste/"
+    return render(
+        request,
+        "static/signature_manifeste.html",
+        {
+            "site_url": settings.SITE_URL,
+            "linkedin_share_url": f"https://www.linkedin.com/sharing/share-offsite/?url={manifeste_url}",
+        },
+    )
+
+
 def qui_sommes_nous(request):
     return render(request, "static/qui_sommes_nous.html", {"site_url": settings.SITE_URL})
 

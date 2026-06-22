@@ -7,6 +7,17 @@ from django.test import override_settings
 
 from techpourtoutes.services.brevo_api.delete_contact import DeleteBrevoContact
 from techpourtoutes.services.brevo_api.upsert_contact import UpsertBrevoContact
+from techpourtoutes.services.brevo_api.upsert_manifeste_signatory import UpsertManifesteSignatory
+
+
+def _signatory_kwargs(**overrides):
+    return {
+        "first_name": "Manon",
+        "last_name": "Desbordes",
+        "email": "manon@example.com",
+        "structure_name": "Latitudes",
+        **overrides,
+    }
 
 
 @pytest.fixture
@@ -79,6 +90,40 @@ def test_is_transient_failure_false_on_success(pro, mock_brevo_client):
 
     assert result.success
     assert result.is_transient_failure is False
+
+
+@override_settings(BREVO_MANIFESTE_LIST_ID=99, BREVO_API_KEY="test")
+def test_upsert_manifeste_signatory_calls_client_upsert(mock_brevo_client):
+    result = UpsertManifesteSignatory(**_signatory_kwargs())
+
+    assert result.success
+    mock_brevo_client.upsert_contact.assert_called_once()
+    call_kwargs = mock_brevo_client.upsert_contact.call_args.kwargs
+    assert call_kwargs["ext_id"] == "manon@example.com"
+    assert call_kwargs["list_id"] == 99
+    assert call_kwargs["attributes"]["EMAIL"] == "manon@example.com"
+    assert call_kwargs["attributes"]["PRENOM"] == "Manon"
+    assert call_kwargs["attributes"]["NOM_DE_LA_STRUCTURE"] == "Latitudes"
+
+
+@override_settings(BREVO_MANIFESTE_LIST_ID=0, BREVO_API_KEY="test")
+def test_upsert_manifeste_signatory_skips_without_list(mock_brevo_client):
+    result = UpsertManifesteSignatory(**_signatory_kwargs())
+
+    assert result.success
+    mock_brevo_client.upsert_contact.assert_not_called()
+
+
+@override_settings(BREVO_MANIFESTE_LIST_ID=99, BREVO_API_KEY="test")
+def test_upsert_manifeste_signatory_captures_api_error(mock_brevo_client):
+    mock_brevo_client.upsert_contact.side_effect = ApiError(
+        status_code=400, body={"message": "bad"}
+    )
+
+    result = UpsertManifesteSignatory(**_signatory_kwargs())
+
+    assert result.failure
+    assert result.errors
 
 
 @pytest.mark.django_db

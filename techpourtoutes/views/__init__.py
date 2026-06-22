@@ -1,5 +1,6 @@
 from .auth_views import (
     account,
+    account_communication,
     account_edit,
     account_info,
     login_email_sent,
@@ -15,6 +16,7 @@ from .coalition_views import (
     coalition_welcome,
     internships_landing,
     mentor_landing,
+    signer_manifeste,
     sponsor_landing,
     training_ambassador_landing,
     work_ambassador_landing,
@@ -32,12 +34,14 @@ from .static_views import (
     pourquoi_nous_ecrivons_au_feminin,
     qui_sommes_nous,
     schema_pluriannuel,
+    signature_manifeste,
 )
 
 __all__ = [
     "a_propos",
     "accessibilite",
     "account",
+    "account_communication",
     "account_edit",
     "account_info",
     "coalition_home",
@@ -59,6 +63,8 @@ __all__ = [
     "schema_pluriannuel",
     "search_higher_ed_schools",
     "search_schools",
+    "signature_manifeste",
+    "signer_manifeste",
     "sponsor_landing",
     "training_ambassador_landing",
     "training_experience_edit",

@@ -195,6 +195,7 @@ N8N_WORKSHOP_WEBHOOK_BASIC_AUTH_PASSWORD = env(
 
 # Brevo contacts API
 BREVO_PRO_LIST_ID = env.int("BREVO_PRO_LIST_ID", default=0)
+BREVO_MANIFESTE_LIST_ID = env.int("BREVO_MANIFESTE_LIST_ID", default=0)
 BREVO_SYNC_ENABLED = env.bool("BREVO_SYNC_ENABLED", default=False)
 
 # Coalition engagement notification recipients
