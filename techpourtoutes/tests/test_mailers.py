@@ -9,7 +9,9 @@ from techpourtoutes.models import Pro
 
 
 @pytest.mark.django_db
-@override_settings(EMAIL_BACKEND="django.core.mail.backends.locmem.EmailBackend")
+@override_settings(
+    EMAIL_BACKEND="django.core.mail.backends.locmem.EmailBackend", USE_BREVO_TEMPLATES=False
+)
 def test_welcome_sends_email_to_pro(pro):
     CoalitionMailer.welcome(pro=pro, token="tok-abc")
 
@@ -21,7 +23,9 @@ def test_welcome_sends_email_to_pro(pro):
 
 
 @pytest.mark.django_db
-@override_settings(EMAIL_BACKEND="django.core.mail.backends.locmem.EmailBackend")
+@override_settings(
+    EMAIL_BACKEND="django.core.mail.backends.locmem.EmailBackend", USE_BREVO_TEMPLATES=False
+)
 def test_welcome_includes_account_login_url(pro):
     CoalitionMailer.welcome(pro=pro, token="tok-abc")
 
@@ -31,6 +35,7 @@ def test_welcome_includes_account_login_url(pro):
 @pytest.mark.django_db
 @override_settings(
     EMAIL_BACKEND="django.core.mail.backends.locmem.EmailBackend",
+    USE_BREVO_TEMPLATES=False,
     COALITION_INTERNSHIPS_RECIPIENTS=["internships@example.com"],
     COALITION_WORK_AMBASSADOR_RECIPIENTS=["ambassador@example.com"],
     COALITION_TRAINING_AMBASSADOR_RECIPIENTS=["training@example.com"],
@@ -56,6 +61,7 @@ def test_new_pro_routes_to_engagement_recipient(pro, engagement, recipient):
 @pytest.mark.django_db
 @override_settings(
     EMAIL_BACKEND="django.core.mail.backends.locmem.EmailBackend",
+    USE_BREVO_TEMPLATES=False,
     COALITION_TRAINING_AMBASSADOR_RECIPIENTS=["training@example.com"],
 )
 def test_new_training_ambassador_includes_experience_in_body(pro, higher_ed_school):
@@ -75,6 +81,7 @@ def test_new_training_ambassador_includes_experience_in_body(pro, higher_ed_scho
 @pytest.mark.django_db
 @override_settings(
     EMAIL_BACKEND="django.core.mail.backends.locmem.EmailBackend",
+    USE_BREVO_TEMPLATES=False,
     COALITION_WORK_AMBASSADOR_RECIPIENTS=["ambassador@example.com"],
 )
 def test_new_pro_includes_pro_details_in_body(pro):
@@ -87,7 +94,9 @@ def test_new_pro_includes_pro_details_in_body(pro):
 
 
 @pytest.mark.django_db
-@override_settings(EMAIL_BACKEND="django.core.mail.backends.locmem.EmailBackend")
+@override_settings(
+    EMAIL_BACKEND="django.core.mail.backends.locmem.EmailBackend", USE_BREVO_TEMPLATES=False
+)
 def test_login_send_link_sends_email_to_user(pro):
     LoginMailer.send_link(user=pro, token="tok-abc")
 
@@ -98,7 +107,9 @@ def test_login_send_link_sends_email_to_user(pro):
 
 
 @pytest.mark.django_db
-@override_settings(EMAIL_BACKEND="django.core.mail.backends.locmem.EmailBackend")
+@override_settings(
+    EMAIL_BACKEND="django.core.mail.backends.locmem.EmailBackend", USE_BREVO_TEMPLATES=False
+)
 def test_login_send_link_body_contains_absolute_login_url(pro):
     LoginMailer.send_link(user=pro, token="tok-abc")
 
@@ -107,7 +118,9 @@ def test_login_send_link_body_contains_absolute_login_url(pro):
 
 
 @pytest.mark.django_db
-@override_settings(EMAIL_BACKEND="django.core.mail.backends.locmem.EmailBackend")
+@override_settings(
+    EMAIL_BACKEND="django.core.mail.backends.locmem.EmailBackend", USE_BREVO_TEMPLATES=False
+)
 def test_login_send_link_appends_next_url_when_provided(pro):
     LoginMailer.send_link(user=pro, token="tok-abc", next_url="/mon-compte/")
 
@@ -116,7 +129,9 @@ def test_login_send_link_appends_next_url_when_provided(pro):
 
 
 @pytest.mark.django_db
-@override_settings(EMAIL_BACKEND="django.core.mail.backends.locmem.EmailBackend")
+@override_settings(
+    EMAIL_BACKEND="django.core.mail.backends.locmem.EmailBackend", USE_BREVO_TEMPLATES=False
+)
 def test_login_send_link_omits_next_query_when_empty(pro):
     LoginMailer.send_link(user=pro, token="tok-abc")
 

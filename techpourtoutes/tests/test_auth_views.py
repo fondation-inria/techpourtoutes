@@ -44,7 +44,9 @@ def test_login_request_get_while_authenticated_redirects_to_account(client, pro)
 
 
 @pytest.mark.django_db
-@override_settings(EMAIL_BACKEND="django.core.mail.backends.locmem.EmailBackend")
+@override_settings(
+    EMAIL_BACKEND="django.core.mail.backends.locmem.EmailBackend", USE_BREVO_TEMPLATES=False
+)
 def test_login_request_post_with_known_email_sends_link(client, pro):
     response = client.post(reverse("login_request"), data={"email": pro.email})
 
@@ -56,7 +58,9 @@ def test_login_request_post_with_known_email_sends_link(client, pro):
 
 
 @pytest.mark.django_db
-@override_settings(EMAIL_BACKEND="django.core.mail.backends.locmem.EmailBackend")
+@override_settings(
+    EMAIL_BACKEND="django.core.mail.backends.locmem.EmailBackend", USE_BREVO_TEMPLATES=False
+)
 def test_login_request_post_with_unknown_email_sends_nothing(client):
     response = client.post(reverse("login_request"), data={"email": "ghost@example.com"})
 
@@ -92,7 +96,9 @@ def test_login_request_post_with_inactive_user_sends_nothing(client, inactive_us
 
 
 @pytest.mark.django_db
-@override_settings(EMAIL_BACKEND="django.core.mail.backends.locmem.EmailBackend")
+@override_settings(
+    EMAIL_BACKEND="django.core.mail.backends.locmem.EmailBackend", USE_BREVO_TEMPLATES=False
+)
 def test_login_request_post_embeds_safe_next_in_link(client, pro):
     client.post(
         reverse("login_request"),
@@ -104,7 +110,9 @@ def test_login_request_post_embeds_safe_next_in_link(client, pro):
 
 
 @pytest.mark.django_db
-@override_settings(EMAIL_BACKEND="django.core.mail.backends.locmem.EmailBackend")
+@override_settings(
+    EMAIL_BACKEND="django.core.mail.backends.locmem.EmailBackend", USE_BREVO_TEMPLATES=False
+)
 def test_login_request_post_strips_external_next_from_link(client, pro):
     client.post(
         reverse("login_request"),
