@@ -14,10 +14,10 @@
     icon=""
 />
 
-{% if variant == "quaternaly" %}
+{% if variant == "quaternary" %}
     {% if href %}
         <a href="{{ href }}"
-           class="text-primary-700 font-medium {{ class }}"
+           class="text-primary-700 font-medium focus:outline-primary-500 focus:outline-offset-2 {{ class }}"
            {{ attrs }}
         >
             <div class="flex {% if icon %}{{ icon_class }}{% endif %}">
