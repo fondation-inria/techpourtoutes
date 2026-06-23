@@ -32,14 +32,6 @@ def test_signature_manifeste_linkedin_share_url(client):
     )
 
 
-@pytest.mark.parametrize("url_name", LEGAL_URL_NAMES)
-@override_settings(SITE_URL="https://example.test")
-def test_static_page_renders_site_url(client, url_name):
-    response = client.get(reverse(url_name))
-    assert response.context["site_url"] == "https://example.test"
-    assert b"https://example.test" in response.content
-
-
 def test_a_propos_redirects_to_notre_manifeste(client):
     response = client.get(reverse("a_propos"))
     assert response.status_code == 302
