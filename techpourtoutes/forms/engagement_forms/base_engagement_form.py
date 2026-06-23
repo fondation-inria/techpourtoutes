@@ -90,7 +90,9 @@ class BaseEngagementForm(forms.Form):
     def clean_email(self):
         email = self.cleaned_data["email"]
         if self._email_taken_by_another_account(email):
-            raise forms.ValidationError(_("Un compte avec cet email existe déjà."))
+            raise forms.ValidationError(
+                _("Un compte avec cet email existe déjà."), code="email_exists"
+            )
         return email
 
     def save(self, commit=True):
