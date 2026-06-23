@@ -11,17 +11,19 @@
         <br><br>
     <c-components.title title="Suivez-nous sur les réseaux" variant="h2" class="mb-5" />
     <div class="flex justify-center gap-20">
-        <div class="flex flex-col items-center gap-2">
-            <a href="https://instagram.com/techpourtoutes" target="_blank">
-                <c-components.icon name="instagram-bold" class="w-15 h-15" />
-            </a>
-            <c-components.inline-link label="Instagram" href="https://instagram.com/techpourtoutes" icon="external-link" target="_blank"/>
-        </div>
-        <div class="flex flex-col items-center gap-2">
-            <a href="https://www.linkedin.com/showcase/techpourtoutes/" target="_blank">
-                <c-components.icon name="linkedin-bold" class="w-15 h-15" />
-            </a>
-            <c-components.inline-link label="LinkedIn" href="https://www.linkedin.com/showcase/techpourtoutes/" icon="external-link" target="_blank"/>
-        </div>
+        <a href="https://instagram.com/techpourtoutes/" class="flex flex-col items-center link-hover underline decoration-1 underline-offset-4" target="_blank">
+            <c-components.icon name="instagram-bold" class="w-15 h-15" />
+            <span class="flex items-center gap-1 hover:decoration-2 active:bg-neutral-200 active:decoration-2 focus:outline-primary-500 focus:outline-offset-2">
+                Instagram 
+                <c-components.icon name="external-link" class="w-5 h-5" />
+            </span>
+        </a>
+        <a href="https://linkedin.com/showcase/techpourtoutes/" class="flex flex-col items-center link-hover underline decoration-1 underline-offset-4" target="_blank">
+            <c-components.icon name="linkedin-bold" class="w-15 h-15" />
+            <span class="flex items-center gap-1 hover:decoration-2 active:bg-neutral-200 active:decoration-2 focus:outline-primary-500 focus:outline-offset-2">
+                LinkedIn 
+                <c-components.icon name="external-link" class="w-5 h-5" />
+            </span>
+        </a>
     </div>
 </c-layout.a_propos>

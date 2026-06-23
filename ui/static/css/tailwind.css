@@ -2580,6 +2580,16 @@
   .italic {
     font-style: italic;
   }
+  .link-hover {
+    @layer daisyui.l1.l2 {
+      text-decoration-line: none;
+      &:hover {
+        @media (hover: hover) {
+          text-decoration-line: underline;
+        }
+      }
+    }
+  }
   .underline {
     text-decoration-line: underline;
   }
