@@ -3,7 +3,7 @@
 <div x-data={% if open %}"{ open: true }"{% else %}"{ open: false }"{% endif %} class="w-full {{ class }}">
     <button @click="open = !open" type="button"
             :class="open ? 'rounded-t-2xl border-b-0 shadow-right' : 'rounded-2xl shadow-bottom-and-right'"
-            class="relative z-10 flex items-center max-w-[90%] text-lg text-left gap-2 px-4 py-3 w-fit cursor-pointer border border-primary-700 {% if variant == "green" %}bg-success-50{% else %}bg-error-100{% endif %}">
+            class="relative z-10 flex items-center max-w-[90%] text-lg text-left gap-2 px-4 py-3 w-fit cursor-pointer border border-primary-700 focus:outline-primary-500 focus:outline-offset-3 {% if variant == "green" %}bg-success-50{% else %}bg-error-100{% endif %}">
         {{ title|safe }}
         <span class="w-4 h-4 block transition-transform duration-200 min-w-4" :class="{ 'rotate-180': open }">
             <c-components.icon name="chevron-down" class="w-full h-full text-primary-700" />
