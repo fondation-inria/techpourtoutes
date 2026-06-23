@@ -2146,6 +2146,24 @@
   .transform {
     transform: var(--tw-rotate-x,) var(--tw-rotate-y,) var(--tw-rotate-z,) var(--tw-skew-x,) var(--tw-skew-y,);
   }
+  .link {
+    @layer daisyui.l1.l2.l3 {
+      cursor: pointer;
+      text-decoration-line: underline;
+      &:focus {
+        --tw-outline-style: none;
+        outline-style: none;
+        @media (forced-colors: active) {
+          outline: 2px solid transparent;
+          outline-offset: 2px;
+        }
+      }
+      &:focus-visible {
+        outline: 2px solid currentColor;
+        outline-offset: 2px;
+      }
+    }
+  }
   .cursor-not-allowed {
     cursor: not-allowed;
   }
@@ -2562,16 +2580,6 @@
   .italic {
     font-style: italic;
   }
-  .link-hover {
-    @layer daisyui.l1.l2 {
-      text-decoration-line: none;
-      &:hover {
-        @media (hover: hover) {
-          text-decoration-line: underline;
-        }
-      }
-    }
-  }
   .underline {
     text-decoration-line: underline;
   }
@@ -2819,20 +2827,6 @@
   .active\:decoration-2 {
     &:active {
       text-decoration-thickness: 2px;
-  .sm\:flex-nowrap {
-    @media (width >= 40rem) {
-      flex-wrap: nowrap;
-    }
-  }
-  .sm\:border-l {
-    @media (width >= 40rem) {
-      border-left-style: var(--tw-border-style);
-      border-left-width: 1px;
-    }
-  }
-  .sm\:border-primary-700 {
-    @media (width >= 40rem) {
-      border-color: var(--color-primary-700);
     }
   }
   .md\:sticky {
