@@ -428,7 +428,6 @@ def _signature_data(**overrides):
         "last_name": "Desbordes",
         "email": "manon@example.com",
         "structure_name": "Latitudes",
-        "terms_accepted": True,
         **overrides,
     }
 

@@ -39,6 +39,19 @@ def test_upsert_contact_calls_create_contact_with_update_enabled(mock_brevo_sdk)
 
 
 @override_settings(BREVO_API_KEY="test-key")
+def test_upsert_contact_omits_ext_id_when_not_provided(mock_brevo_sdk):
+    sdk_instance = mock_brevo_sdk.return_value
+
+    BrevoClient().upsert_contact(
+        list_id=42,
+        attributes={"EMAIL": "x@y.fr", "PRENOM": "X"},
+    )
+
+    call_kwargs = sdk_instance.contacts.create_contact.call_args.kwargs
+    assert "ext_id" not in call_kwargs
+
+
+@override_settings(BREVO_API_KEY="test-key")
 def test_delete_contact_calls_sdk_with_ext_id_identifier(mock_brevo_sdk):
     sdk_instance = mock_brevo_sdk.return_value
 
@@ -50,13 +63,24 @@ def test_delete_contact_calls_sdk_with_ext_id_identifier(mock_brevo_sdk):
 
 
 @override_settings(BREVO_API_KEY="test-key")
-def test_get_contact_calls_sdk_with_ext_id_identifier(mock_brevo_sdk):
+def test_get_contact_defaults_to_ext_id_identifier(mock_brevo_sdk):
     sdk_instance = mock_brevo_sdk.return_value
 
-    BrevoClient().get_contact(ext_id="abc-123")
+    BrevoClient().get_contact(identifier="abc-123")
 
     sdk_instance.contacts.get_contact_info.assert_called_once_with(
         "abc-123", identifier_type="ext_id"
+    )
+
+
+@override_settings(BREVO_API_KEY="test-key")
+def test_get_contact_supports_email_id_identifier(mock_brevo_sdk):
+    sdk_instance = mock_brevo_sdk.return_value
+
+    BrevoClient().get_contact(identifier="x@y.fr", identifier_type="email_id")
+
+    sdk_instance.contacts.get_contact_info.assert_called_once_with(
+        "x@y.fr", identifier_type="email_id"
     )
 
 
@@ -73,38 +97,45 @@ def test_remove_contact_from_list_calls_sdk_with_ext_id_body(mock_brevo_sdk):
 
 
 @override_settings(BREVO_API_KEY="test-key")
-@pytest.mark.parametrize(
-    "message",
-    [
-        "Unable to create contact, SMS is already associated with another Contact",
-        "Unable to update contact, SMS or EXT_ID are already associated with another Contact",
-    ],
-)
-def test_upsert_contact_retries_without_sms_on_sms_conflict(mock_brevo_sdk, message):
-    from brevo.core.api_error import ApiError
-
-    sdk_instance = mock_brevo_sdk.return_value
-    sdk_instance.contacts.create_contact.side_effect = [
-        ApiError(status_code=400, body={"message": message}),
-        None,
-    ]
-
-    BrevoClient().upsert_contact(
-        ext_id="abc-123",
-        list_id=42,
-        attributes={"EMAIL": "x@y.fr", "PRENOM": "X", "SMS": "+33612345678"},
-    )
-
-    assert sdk_instance.contacts.create_contact.call_count == 2
-    second_call_attributes = sdk_instance.contacts.create_contact.call_args_list[1].kwargs[
-        "attributes"
-    ]
-    assert "SMS" not in second_call_attributes
-
-
-@override_settings(BREVO_API_KEY="test-key")
 def test_client_methods_return_sdk_response(mock_brevo_sdk):
     sdk_instance = mock_brevo_sdk.return_value
     sdk_instance.contacts.get_contact_info.return_value = "response"
 
-    assert BrevoClient().get_contact(ext_id="abc") == "response"
+    assert BrevoClient().get_contact(identifier="abc") == "response"
+
+
+@override_settings(BREVO_API_KEY="test-key")
+def test_update_contact_defaults_to_ext_id_identifier(mock_brevo_sdk):
+    sdk_instance = mock_brevo_sdk.return_value
+
+    BrevoClient().update_contact(
+        identifier="abc-123",
+        list_id=99,
+        attributes={"EMAIL": "manon@example.com", "PRENOM": "Manon"},
+    )
+
+    sdk_instance.contacts.update_contact.assert_called_once_with(
+        "abc-123",
+        identifier_type="ext_id",
+        attributes={"PRENOM": "Manon"},
+        list_ids=[99],
+    )
+
+
+@override_settings(BREVO_API_KEY="test-key")
+def test_update_contact_supports_email_id_identifier(mock_brevo_sdk):
+    sdk_instance = mock_brevo_sdk.return_value
+
+    BrevoClient().update_contact(
+        identifier="manon@example.com",
+        identifier_type="email_id",
+        list_id=99,
+        attributes={"PRENOM": "Manon"},
+    )
+
+    sdk_instance.contacts.update_contact.assert_called_once_with(
+        "manon@example.com",
+        identifier_type="email_id",
+        attributes={"PRENOM": "Manon"},
+        list_ids=[99],
+    )
