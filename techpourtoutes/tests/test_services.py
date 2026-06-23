@@ -198,9 +198,7 @@ def test_create_mentor_saves_mentor_with_jobirl_fields(valid_pro_model_data):
 
 
 @pytest.mark.django_db
-@override_settings(
-    EMAIL_BACKEND="django.core.mail.backends.locmem.EmailBackend", USE_BREVO_TEMPLATES=False
-)
+@override_settings(EMAIL_BACKEND="django.core.mail.backends.locmem.EmailBackend", USE_BREVO=False)
 def test_create_mentor_sends_welcome_email(valid_pro_model_data):
     from django.core import mail
 

@@ -161,8 +161,8 @@ DEFAULT_FROM_EMAIL = env(
     "DEFAULT_FROM_EMAIL", default="TechPourToutes <noreply@techpourtoutes.io>"
 )
 BREVO_API_KEY = env("BREVO_API_KEY", default="")
-USE_BREVO_TEMPLATES = env.bool("USE_BREVO_TEMPLATES", default=not DEBUG)
-if DEBUG and not USE_BREVO_TEMPLATES:
+USE_BREVO = env.bool("USE_BREVO", default=not DEBUG)
+if DEBUG and not USE_BREVO:
     EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
     EMAIL_HOST = "localhost"
     EMAIL_PORT = 1025
@@ -175,6 +175,7 @@ BREVO_TEMPLATE_ID_NEW_PRO = env.int("BREVO_TEMPLATE_ID_NEW_PRO", default=0)
 BREVO_TEMPLATE_ID_NEW_TRAINING_AMBASSADOR = env.int(
     "BREVO_TEMPLATE_ID_NEW_TRAINING_AMBASSADOR", default=0
 )
+BREVO_TEMPLATE_ID_NEW_ENGAGEMENT = env.int("BREVO_TEMPLATE_ID_NEW_ENGAGEMENT", default=0)
 
 # Jobirl API
 JOBIRL_API_KEY = env("JOBIRL_API_KEY", default="")

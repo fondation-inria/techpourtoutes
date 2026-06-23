@@ -31,7 +31,7 @@ def _deliver_mail(
     params,
     fail_silently=False,
 ):
-    if settings.USE_BREVO_TEMPLATES:
+    if settings.USE_BREVO:
         return _send_template_mail(
             recipient_list=recipient_list,
             template_id=template_id,
@@ -118,6 +118,19 @@ class CoalitionMailer:
                 "school_name": training_experience.higher_ed_school.full_name,
                 "course": training_experience.course,
             },
+        )
+
+    @classmethod
+    def new_engagement(cls, *, pro, engagement):
+        engagement_label = Pro.Engagement(engagement).label
+        context = {"first_name": pro.first_name}
+        _deliver_mail(
+            recipient_list=[pro.email],
+            subject=f"Une nouvelle demande pour {engagement_label}",
+            message=_render("emails/new_engagement.txt", context),
+            html_message=_render("emails/new_engagement.html", context),
+            template_id=settings.BREVO_TEMPLATE_ID_NEW_ENGAGEMENT,
+            params=context,
         )
 
     @classmethod

@@ -12,5 +12,9 @@ class CreateMentor(BaseService):
         pro.engagements = [*pro.engagements, "mentor"]
         pro.jobirl_user_id = result.user_id
         pro.jobirl_user_token = result.token
+        already_exists = pro.pk is not None
         pro.save()
-        CoalitionMailer.welcome(pro=pro, token=pro.issue_login_token())
+        if already_exists:
+            CoalitionMailer.new_engagement(pro=pro, engagement=pro.Engagement.MENTOR)
+        else:
+            CoalitionMailer.welcome(pro=pro, token=pro.issue_login_token())

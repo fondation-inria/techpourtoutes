@@ -46,13 +46,18 @@ def training_ambassador_landing(request):
         form = TrainingAmbassadorForm(data=request.POST, pro=pro)
         if form.is_valid():
             pro = form.save(commit=False)
-            pro.add_engagement(Pro.Engagement.TRAINING_AMBASSADOR)
+            already_exists = pro.pk is not None
+            engagement = Pro.Engagement.TRAINING_AMBASSADOR
+            pro.add_engagement(engagement)
             pro.save()
             training_experience = form.after_save(pro)
-            CoalitionMailer.welcome(pro=pro, token=pro.issue_login_token())
             CoalitionMailer.new_training_ambassador(
                 pro=pro, training_experience=training_experience
             )
+            if already_exists:
+                CoalitionMailer.new_engagement(pro=pro, engagement=engagement)
+            else:
+                CoalitionMailer.welcome(pro=pro, token=pro.issue_login_token())
             return redirect("coalition_welcome")
         else:
             _render_errors(request, form)
@@ -82,6 +87,8 @@ def workshops_landing(request):
         form = WorkshopForm(data=request.POST, pro=pro)
         if form.is_valid():
             pro = form.save(commit=False)
+            already_exists = pro.pk is not None
+            engagement = Pro.Engagement.WORKSHOPS
             pro.add_engagement(Pro.Engagement.WORKSHOPS)
             pro.save()
             for atelier in form.cleaned_data["ateliers"]:
@@ -91,7 +98,10 @@ def workshops_landing(request):
             notify_workshop_request_task.delay(
                 str(pro.pk), form.cleaned_data["ateliers"], form.cleaned_data["remark"]
             )
-            CoalitionMailer.welcome(pro=pro, token=pro.issue_login_token())
+            if already_exists:
+                CoalitionMailer.new_engagement(pro=pro, engagement=engagement)
+            else:
+                CoalitionMailer.welcome(pro=pro, token=pro.issue_login_token())
             return redirect("coalition_welcome")
         else:
             _render_errors(request, form)
@@ -135,10 +145,14 @@ def _handle_engagement(request, *, form_class, engagement, template):
         form = form_class(data=request.POST, pro=pro)
         if form.is_valid():
             pro = form.save(commit=False)
+            already_exists = pro.pk is not None
             pro.add_engagement(engagement)
             pro.save()
-            CoalitionMailer.welcome(pro=pro, token=pro.issue_login_token())
             CoalitionMailer.new_pro(pro=pro, engagement=engagement)
+            if already_exists:
+                CoalitionMailer.new_engagement(pro=pro, engagement=engagement)
+            else:
+                CoalitionMailer.welcome(pro=pro, token=pro.issue_login_token())
             return redirect("coalition_welcome")
         else:
             _render_errors(request, form)
