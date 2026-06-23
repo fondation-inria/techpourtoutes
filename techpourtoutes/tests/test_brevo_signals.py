@@ -21,7 +21,11 @@ def test_post_save_signal_dispatches_upsert_task_after_commit(valid_pro_model_da
     from techpourtoutes.models import Pro
 
     with transaction.atomic():
-        pro = Pro(username=valid_pro_model_data["email"], **valid_pro_model_data)
+        pro = Pro(
+            username=valid_pro_model_data["email"],
+            brevo_sync_enabled=True,
+            **valid_pro_model_data,
+        )
         pro.save()
         upsert_task.delay.assert_not_called()
 
@@ -80,6 +84,58 @@ def test_delete_signal_skipped_when_brevo_sync_globally_disabled(pro, mock_tasks
         pro.delete()
 
     delete_task.delay.assert_not_called()
+
+
+@pytest.mark.django_db(transaction=True)
+@override_settings(BREVO_API_KEY="test", BREVO_PRO_LIST_ID=42)
+def test_opt_out_transition_dispatches_delete(pro, mock_tasks):
+    upsert_task, delete_task = mock_tasks
+    from techpourtoutes.models import Pro
+
+    reloaded = Pro.objects.get(pk=pro.pk)
+    upsert_task.delay.reset_mock()
+    delete_task.delay.reset_mock()
+
+    with transaction.atomic():
+        reloaded.brevo_sync_enabled = False
+        reloaded.save()
+
+    delete_task.delay.assert_called_once_with(str(pro.pk), 42)
+    upsert_task.delay.assert_not_called()
+
+
+@pytest.mark.django_db(transaction=True)
+@override_settings(BREVO_API_KEY="test", BREVO_PRO_LIST_ID=42)
+def test_opt_out_delete_dispatched_only_once_across_saves(pro, mock_tasks):
+    _upsert_task, delete_task = mock_tasks
+    from techpourtoutes.models import Pro
+
+    reloaded = Pro.objects.get(pk=pro.pk)
+    delete_task.delay.reset_mock()
+
+    with transaction.atomic():
+        reloaded.brevo_sync_enabled = False
+        reloaded.save()
+        reloaded.save()
+
+    delete_task.delay.assert_called_once_with(str(pro.pk), 42)
+
+
+@pytest.mark.django_db(transaction=True)
+@override_settings(BREVO_API_KEY="test", BREVO_PRO_LIST_ID=42)
+def test_new_unsynced_pro_does_not_dispatch_delete(valid_pro_model_data, mock_tasks):
+    upsert_task, delete_task = mock_tasks
+    from techpourtoutes.models import Pro
+
+    with transaction.atomic():
+        Pro(
+            username=valid_pro_model_data["email"],
+            brevo_sync_enabled=False,
+            **valid_pro_model_data,
+        ).save()
+
+    delete_task.delay.assert_not_called()
+    upsert_task.delay.assert_not_called()
 
 
 @pytest.mark.django_db(transaction=True)

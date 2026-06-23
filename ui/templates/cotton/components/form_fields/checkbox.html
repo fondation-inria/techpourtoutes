@@ -7,11 +7,12 @@
     name=""
     id=""
     variant="default"
+    full_width=False
     class=""
 />
 
 <div class="flex flex-col gap-2 {{ class }}">
-    <label class="inline-flex items-center gap-3 cursor-pointer">
+    <label class="{% if full_width %}flex w-full justify-between flex-row-reverse{% else %}inline-flex{% endif %} items-center gap-3 cursor-pointer">
         <span class="inline-flex items-center justify-center">
             <input
                 type="checkbox"
@@ -26,7 +27,7 @@
                 <path stroke-linecap="round" stroke-linejoin="round" d="M5 10l4 4 7-8" />
             </svg>
         </span>
-        <span class="text-xs leading-[1.4] font-light {% if variant == "disabled" %}text-disabled{% else %}text-neutral-950{% endif %}">
+        <span class="{% if full_width %}text-base font-normal{% else %}text-xs font-light{% endif %} leading-[1.4] {% if variant == "disabled" %}text-disabled{% else %}text-neutral-950{% endif %}">
             {{ label|default:field.label }}
         </span>
     </label>

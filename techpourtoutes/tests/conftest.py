@@ -18,6 +18,7 @@ def pro(db):
         professional_situation=Pro.ProfessionalSituation.WORKING,
         job_title="Chercheuse",
         structure_name="Inria",
+        brevo_sync_enabled=True,
     )
     pro.save()
     return pro

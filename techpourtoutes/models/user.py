@@ -34,7 +34,7 @@ class User(BaseModel, AbstractUser):
         verbose_name=_("datetime d'expiration du token de connexion envoyé par mail au user"),
     )
     brevo_sync_enabled = models.BooleanField(
-        default=True,
+        default=False,
         verbose_name=_("synchroniser avec Brevo"),
         help_text=_("Si décoché, ce compte n'est pas synchronisé vers Brevo."),
     )
@@ -42,6 +42,14 @@ class User(BaseModel, AbstractUser):
     class Meta(AbstractUser.Meta):
         abstract = False
         swappable = "AUTH_USER_MODEL"
+
+    @classmethod
+    def from_db(cls, db, field_names, values):
+        # Remember the stored Brevo sync state so the post_save signal can tell a genuine
+        # opt-out (True -> False) from a contact that was never synced.
+        instance = super().from_db(db, field_names, values)
+        instance._loaded_brevo_sync_enabled = instance.brevo_sync_enabled
+        return instance
 
     def issue_login_token(self) -> str:
         plaintext = secrets.token_urlsafe(32)

@@ -57,6 +57,10 @@ class BaseEngagementForm(forms.Form):
             "required": _("Vous devez adhérer au manifeste pour continuer."),
         },
     )
+    newsletter_consent = forms.BooleanField(
+        label=_("Je veux recevoir ponctuellement des nouvelles de TechPourToutes"),
+        required=False,
+    )
 
     def __init__(self, *args, pro=None, **kwargs):
         if pro is not None:
@@ -69,17 +73,19 @@ class BaseEngagementForm(forms.Form):
             " et la "
             "<a href='{}' class='underline' target='_blank'>"
             "politique de gestion des données personnelles"
-            "</a>",
+            "</a>*",
             reverse_lazy("conditions_generales"),
             reverse_lazy("donnees_personnelles"),
         )
         self.fields["manifeste_accepted"].label = format_html(
             "J'adhère au "
-            "<a href='{}' class='underline' target='_blank'>manifeste TechPourToutes</a>",
+            "<a href='{}' class='underline' target='_blank'>manifeste TechPourToutes</a>*",
             reverse_lazy("notre_manifeste"),
         )
         if pro is not None:
             self._lock_fields_for_existing_account()
+            if pro.brevo_sync_enabled:
+                del self.fields["newsletter_consent"]
 
     def clean_email(self):
         email = self.cleaned_data["email"]
@@ -91,6 +97,8 @@ class BaseEngagementForm(forms.Form):
         pro = self._get_or_build_pro()
         self._copy_form_fields_onto(pro)
         self._apply_constants_onto(pro)
+        if self.cleaned_data.get("newsletter_consent"):
+            pro.brevo_sync_enabled = True
         if commit:
             pro.save()
         return pro

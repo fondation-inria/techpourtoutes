@@ -106,6 +106,9 @@
                                 <c-components.form_fields.checkbox field=form.terms_accepted />
                                 <c-components.form_fields.checkbox field=form.manifeste_accepted />
                             {% endif %}
+                            {% if form.newsletter_consent %}
+                                <c-components.form_fields.checkbox field=form.newsletter_consent />
+                            {% endif %}
                             <div class="flex justify-center">
                                 <c-components.button type="submit" label="Je deviens ambassadrice" />
                             </div>
