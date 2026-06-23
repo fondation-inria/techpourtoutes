@@ -1,8 +1,8 @@
 from celery import shared_task
 
-from techpourtoutes.services.brevo_api.upsert_manifeste_signatory import UpsertManifesteSignatory
+from techpourtoutes.services.upsert_manifeste_signatory import UpsertManifesteSignatory
 
-from ._retry import RETRY_KWARGS, TransientError
+from ._retry import RETRY_KWARGS, is_transient_status, retry_task_later
 
 
 @shared_task(bind=True, **RETRY_KWARGS)
@@ -17,6 +17,6 @@ def upsert_manifeste_signatory_task(
     )
     if result.failure:
         message = ", ".join(result.errors)
-        if result.is_transient_failure:
-            raise TransientError(message)
+        if is_transient_status(getattr(result, "status_code", None)):
+            retry_task_later(message)
         raise RuntimeError(message)
