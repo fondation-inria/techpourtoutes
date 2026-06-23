@@ -89,7 +89,7 @@ def workshops_landing(request):
             pro = form.save(commit=False)
             already_exists = pro.pk is not None
             engagement = Pro.Engagement.WORKSHOPS
-            pro.add_engagement(Pro.Engagement.WORKSHOPS)
+            pro.add_engagement(engagement)
             pro.save()
             for atelier in form.cleaned_data["ateliers"]:
                 WorkshopRequest.objects.create(
