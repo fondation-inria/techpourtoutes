@@ -1,6 +1,7 @@
 <div id="account-communication-card" class="w-full">
     <c-components.card title="Communication">
         <c-patterns.form
+            class="mt-3"
             hx-post="{% url 'account_communication' %}"
             hx-target="#account-communication-card"
             hx-swap="outerHTML"
