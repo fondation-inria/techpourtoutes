@@ -21,6 +21,8 @@ environ.Env.read_env(BASE_DIR / ".env")
 
 SECRET_KEY = env("SECRET_KEY")
 DEBUG = env("DEBUG")
+FAVICON_NAMEFILE = env("FAVICON_NAMEFILE", default="images/favicon-tpt")
+
 ALLOWED_HOSTS = env.list("ALLOWED_HOSTS")
 SITE_URL = env("HOST", default="https://localhost:8000").rstrip("/")
 # Admin is mounted at this path; override in production to a non-guessable value.
@@ -86,6 +88,7 @@ TEMPLATES = [
                 "django.template.context_processors.request",
                 "django.contrib.auth.context_processors.auth",
                 "django.contrib.messages.context_processors.messages",
+                "conf.context_processors.global_settings",
             ],
         },
     },
