@@ -3159,6 +3159,28 @@
     cursor: not-allowed;
     border-color: var(--color-neutral-300);
   }
+  .inline-link {
+    text-decoration-line: underline;
+    text-decoration-thickness: 1px;
+    text-underline-offset: 4px;
+    &:hover {
+      @media (hover: hover) {
+        text-decoration-thickness: 2px;
+      }
+    }
+    &:focus {
+      outline-offset: 2px;
+    }
+    &:focus {
+      outline-color: var(--color-primary-500);
+    }
+    &:active {
+      background-color: var(--color-neutral-200);
+    }
+    &:active {
+      text-decoration-thickness: 2px;
+    }
+  }
 }
 [x-cloak] {
   display: none !important;

@@ -69,9 +69,9 @@ class BaseEngagementForm(forms.Form):
         self.pro = pro
         self.fields["terms_accepted"].label = format_html(
             "J'accepte la création de mon compte, les "
-            "<a href='{}' class='underline' target='_blank'>conditions d'utilisation</a>"
+            "<a href='{}' class='inline-link' target='_blank'>conditions d'utilisation</a>"
             " et la "
-            "<a href='{}' class='underline' target='_blank'>"
+            "<a href='{}' class='inline-link' target='_blank'>"
             "politique de gestion des données personnelles"
             "</a>*",
             reverse_lazy("conditions_generales"),
@@ -79,7 +79,7 @@ class BaseEngagementForm(forms.Form):
         )
         self.fields["manifeste_accepted"].label = format_html(
             "J'adhère au "
-            "<a href='{}' class='underline' target='_blank'>manifeste TechPourToutes</a>*",
+            "<a href='{}' class='inline-link' target='_blank'>manifeste TechPourToutes</a>*",
             reverse_lazy("notre_manifeste"),
         )
         if pro is not None:
