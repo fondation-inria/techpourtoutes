@@ -36,6 +36,29 @@
             </div>
         </button>
     {% endif %}
+{% elif variant == "tertiary" %}
+    {% if href %}
+        <a href="{{ href }}"
+           class="text-neutral-950 text-[11px] hover:bg-primary-50 active:bg-primary-100 focus:outline-primary-500 focus:outline-offset-2 {{ class }}"
+           {{ attrs }}
+        >
+            <div class="flex {% if icon %}{{ icon_class }}{% endif %}">
+                {% if slot %}{{ slot|safe }}{% else %}{{ label|safe }}{% endif %}
+                {% if icon %}<c-components.icon name="{{ icon }}" class="w-5 h-5" />{% endif %}
+            </div>
+        </a>
+    {% else %}
+        <button aria-disabled="true"
+                type="{{ type }}"
+                class="text-neutral-500 cursor-not-allowed {{ class }}"
+                {{ attrs }}
+        >
+            <div class="flex {% if icon %}{{ icon_class }}{% endif %}">
+                {% if slot %}{{ slot|safe }}{% else %}{{ label|safe }}{% endif %}
+                {% if icon %}<c-components.icon name="{{ icon }}" class="w-5 h-5" />{% endif %}
+            </div>
+        </button>
+    {% endif %}
 {% else %}
     {% if href and not disabled %}
         <a href="{{ href }}"
