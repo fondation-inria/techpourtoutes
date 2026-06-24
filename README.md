@@ -104,7 +104,7 @@ make seed         # peupler la DB avec des données minimales de dev
 
 ## Tester les emails en local
 
-En développement (`DEBUG=True`), Django envoie les emails via SMTP sur `localhost:1025`. [Mailpit](https://mailpit.axllent.org/) intercepte ces emails et les affiche dans une interface web.
+En développement (`DEBUG=True` et `USE_BREVO=False`), Django envoie les emails via SMTP sur `localhost:1025`. [Mailpit](https://mailpit.axllent.org/) intercepte ces emails et les affiche dans une interface web.
 
 > La connexion des users passe par un lien magique envoyé par email — Mailpit est donc **nécessaire** pour s'authentifier en local.
 
@@ -119,7 +119,7 @@ mailpit
 
 L'interface est disponible sur [http://localhost:8025](http://localhost:8025). Tous les emails envoyés par l'application y apparaissent.
 
-> En production, les emails sont envoyés via [Brevo](https://www.brevo.com/) (Anymail). La variable `BREVO_API_KEY` doit être renseignée dans le `.env`.
+> En production, les emails sont envoyés via [Brevo](https://www.brevo.com/) (Anymail). La variable `BREVO_API_KEY` doit être renseignée dans le `.env` et `USE_BREVO` doit être défini à True.
 
 ## Rate limiting (anti-abus)
 
