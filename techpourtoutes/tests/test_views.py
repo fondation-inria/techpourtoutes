@@ -475,3 +475,200 @@ def test_signer_manifeste_post_invalid_rerenders_with_errors(client):
     response = client.post(reverse("signer_manifeste"), data=_signature_data(email="not-an-email"))
     assert response.status_code == 200
     assert response.context["form"].errors
+
+
+# --- New pro receives welcome email ---
+
+
+@pytest.mark.parametrize(
+    "url_name",
+    [
+        "work_ambassador_landing",
+        "sponsor_landing",
+    ],
+)
+@pytest.mark.django_db
+def test_new_pro_receives_welcome_email(client, valid_pro_data, url_name):
+    from techpourtoutes.mailers import CoalitionMailer
+
+    with (
+        patch.object(CoalitionMailer, "new_engagement") as new_engagement,
+        patch.object(CoalitionMailer, "welcome") as welcome,
+    ):
+        response = client.post(
+            reverse(url_name),
+            data=valid_pro_data,
+        )
+
+    assert response.status_code == 302
+
+    new_engagement.assert_not_called()
+    welcome.assert_called_once()
+
+
+@pytest.mark.django_db
+def test_training_ambassador_new_pro_receives_welcome_email(
+    client,
+    higher_ed_school,
+):
+    from techpourtoutes.mailers import CoalitionMailer
+
+    with (
+        patch.object(
+            CoalitionMailer,
+            "new_training_ambassador",
+        ) as new_training_ambassador,
+        patch.object(
+            CoalitionMailer,
+            "new_engagement",
+        ) as new_engagement,
+        patch.object(
+            CoalitionMailer,
+            "welcome",
+        ) as welcome,
+    ):
+        response = client.post(
+            reverse("training_ambassador_landing"),
+            data=_training_ambassador_data(
+                higher_ed_school.id,
+            ),
+        )
+
+    assert response.status_code == 302
+
+    new_training_ambassador.assert_called_once()
+    new_engagement.assert_not_called()
+    welcome.assert_called_once()
+
+
+@pytest.mark.django_db
+def test_workshops_new_pro_receives_welcome_email(
+    client,
+):
+    from techpourtoutes.mailers import CoalitionMailer
+
+    with (
+        patch.object(
+            CoalitionMailer,
+            "new_engagement",
+        ) as new_engagement,
+        patch.object(
+            CoalitionMailer,
+            "welcome",
+        ) as welcome,
+        patch("techpourtoutes.views.coalition_views.notify_workshop_request_task") as mock_task,
+    ):
+        response = client.post(
+            reverse("workshops_landing"),
+            data=_workshop_data(),
+        )
+
+    assert response.status_code == 302
+
+    mock_task.delay.assert_called_once()
+    new_engagement.assert_not_called()
+    welcome.assert_called_once()
+
+
+# --- Existing pro receives new engagement email ---
+
+
+@pytest.mark.parametrize(
+    "url_name",
+    [
+        "work_ambassador_landing",
+        "sponsor_landing",
+    ],
+)
+@pytest.mark.django_db
+def test_existing_pro_receives_new_engagement_email(client, pro, url_name):
+    from techpourtoutes.mailers import CoalitionMailer
+
+    client.force_login(pro)
+
+    with (
+        patch.object(CoalitionMailer, "new_engagement") as new_engagement,
+        patch.object(CoalitionMailer, "welcome") as welcome,
+    ):
+        response = client.post(
+            reverse(url_name),
+            data=_pro_post_data(pro),
+        )
+
+    assert response.status_code == 302
+
+    new_engagement.assert_called_once_with(pro=pro)
+    welcome.assert_not_called()
+
+
+@pytest.mark.django_db
+def test_training_ambassador_existing_pro_receives_new_engagement_email(
+    client,
+    pro,
+    higher_ed_school,
+):
+    from techpourtoutes.mailers import CoalitionMailer
+
+    client.force_login(pro)
+
+    with (
+        patch.object(
+            CoalitionMailer,
+            "new_training_ambassador",
+        ) as new_training_ambassador,
+        patch.object(
+            CoalitionMailer,
+            "new_engagement",
+        ) as new_engagement,
+        patch.object(
+            CoalitionMailer,
+            "welcome",
+        ) as welcome,
+    ):
+        response = client.post(
+            reverse("training_ambassador_landing"),
+            data=_training_ambassador_data(
+                higher_ed_school.id,
+                email=pro.email,
+            ),
+        )
+
+    assert response.status_code == 302
+
+    new_training_ambassador.assert_called_once()
+    new_engagement.assert_called_once()
+    welcome.assert_not_called()
+
+
+@pytest.mark.django_db
+def test_workshops_existing_pro_receives_new_engagement_email(
+    client,
+    pro,
+):
+    from techpourtoutes.mailers import CoalitionMailer
+
+    client.force_login(pro)
+
+    with (
+        patch.object(
+            CoalitionMailer,
+            "new_engagement",
+        ) as new_engagement,
+        patch.object(
+            CoalitionMailer,
+            "welcome",
+        ) as welcome,
+        patch("techpourtoutes.views.coalition_views.notify_workshop_request_task") as mock_task,
+    ):
+        response = client.post(
+            reverse("workshops_landing"),
+            data=_workshop_data(
+                email=pro.email,
+            ),
+        )
+
+    assert response.status_code == 302
+
+    mock_task.delay.assert_called_once()
+    new_engagement.assert_called_once()
+    welcome.assert_not_called()

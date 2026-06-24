@@ -121,16 +121,15 @@ class CoalitionMailer:
         )
 
     @classmethod
-    def new_engagement(cls, *, pro, engagement):
-        engagement_label = Pro.Engagement(engagement).label
-        context = {"first_name": pro.first_name}
+    def new_engagement(cls, *, pro):
+        context = {"pro": pro}
         _deliver_mail(
             recipient_list=[pro.email],
-            subject=f"Une nouvelle demande pour {engagement_label}",
+            subject="Votre nouvelle demande d'engagement auprès de TechPourToutes",
             message=_render("emails/new_engagement.txt", context),
             html_message=_render("emails/new_engagement.html", context),
             template_id=settings.BREVO_TEMPLATE_ID_NEW_ENGAGEMENT,
-            params=context,
+            params={"first_name": pro.first_name},
         )
 
     @classmethod

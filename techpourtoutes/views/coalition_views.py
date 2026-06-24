@@ -47,15 +47,14 @@ def training_ambassador_landing(request):
         if form.is_valid():
             pro = form.save(commit=False)
             already_exists = pro.pk is not None
-            engagement = Pro.Engagement.TRAINING_AMBASSADOR
-            pro.add_engagement(engagement)
+            pro.add_engagement(Pro.Engagement.TRAINING_AMBASSADOR)
             pro.save()
             training_experience = form.after_save(pro)
             CoalitionMailer.new_training_ambassador(
                 pro=pro, training_experience=training_experience
             )
             if already_exists:
-                CoalitionMailer.new_engagement(pro=pro, engagement=engagement)
+                CoalitionMailer.new_engagement(pro=pro)
             else:
                 CoalitionMailer.welcome(pro=pro, token=pro.issue_login_token())
             return redirect("coalition_welcome")
@@ -88,8 +87,7 @@ def workshops_landing(request):
         if form.is_valid():
             pro = form.save(commit=False)
             already_exists = pro.pk is not None
-            engagement = Pro.Engagement.WORKSHOPS
-            pro.add_engagement(engagement)
+            pro.add_engagement(Pro.Engagement.WORKSHOPS)
             pro.save()
             for atelier in form.cleaned_data["ateliers"]:
                 WorkshopRequest.objects.create(
@@ -99,7 +97,7 @@ def workshops_landing(request):
                 str(pro.pk), form.cleaned_data["ateliers"], form.cleaned_data["remark"]
             )
             if already_exists:
-                CoalitionMailer.new_engagement(pro=pro, engagement=engagement)
+                CoalitionMailer.new_engagement(pro=pro)
             else:
                 CoalitionMailer.welcome(pro=pro, token=pro.issue_login_token())
             return redirect("coalition_welcome")
@@ -150,7 +148,7 @@ def _handle_engagement(request, *, form_class, engagement, template):
             pro.save()
             CoalitionMailer.new_pro(pro=pro, engagement=engagement)
             if already_exists:
-                CoalitionMailer.new_engagement(pro=pro, engagement=engagement)
+                CoalitionMailer.new_engagement(pro=pro)
             else:
                 CoalitionMailer.welcome(pro=pro, token=pro.issue_login_token())
             return redirect("coalition_welcome")

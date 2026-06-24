@@ -15,6 +15,6 @@ class CreateMentor(BaseService):
         already_exists = pro.pk is not None
         pro.save()
         if already_exists:
-            CoalitionMailer.new_engagement(pro=pro, engagement=pro.Engagement.MENTOR)
+            CoalitionMailer.new_engagement(pro=pro)
         else:
             CoalitionMailer.welcome(pro=pro, token=pro.issue_login_token())

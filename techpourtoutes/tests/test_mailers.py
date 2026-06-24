@@ -124,3 +124,15 @@ def test_login_send_link_omits_next_query_when_empty(pro):
     LoginMailer.send_link(user=pro, token="tok-abc")
 
     assert "next=" not in mail.outbox[0].body
+
+
+@pytest.mark.django_db
+@override_settings(EMAIL_BACKEND="django.core.mail.backends.locmem.EmailBackend", USE_BREVO=False)
+def test_new_engagement_sends_email_to_pro(pro):
+    CoalitionMailer.new_engagement(pro=pro)
+
+    assert len(mail.outbox) == 1
+    message = mail.outbox[0]
+    assert message.to == [pro.email]
+    assert "Votre nouvelle demande d'engagement" in message.subject
+    assert pro.first_name in message.body
