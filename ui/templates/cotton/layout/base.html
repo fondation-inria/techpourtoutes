@@ -11,11 +11,11 @@
         {% if description %}<meta property="og:description" content="{{ description }}">{% endif %}
         <meta property="og:url" content="{{ request.build_absolute_uri }}">
         <meta property="og:type" content="website">
-        <meta property="og:image" content="{% if og_image %}{{ og_image }}{% else %}{{ site_url }}{% static 'images/coalition-tpt-white.png' %}{% endif %}">
+        <meta property="og:image" content="{% if og_image %}{{ og_image }}{% else %}{{ SITE_URL }}{% static 'images/coalition-tpt-white.png' %}{% endif %}">
         <link rel="canonical" href="{{ request.build_absolute_uri }}">
         {% matomo_tracking %}
         <title>{{ title }}</title>
-        <link rel="icon" type="image/png" href="{% static 'images/favicon-tpt.png' %}">
+        <link rel="icon" type="image/png" href="{% static FAVICON_NAMEFILE|add:".png" %}">
         {% tailwind_css %}
         <script defer src="{% static 'js/alpine.min.js' %}"></script>
         <script defer src="{% static 'js/htmx.min.js' %}"></script>
