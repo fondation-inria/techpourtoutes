@@ -4,43 +4,34 @@
     disabled=False
     type="button"
     base_class="inline-block px-6 py-3 rounded-sm text-sm font-medium leading-[1.4] focus-visible:outline-none focus-visible:border"
-    primary_classes="bg-primary-700 text-neutral-0 shadow-bottom-and-right shadow-black focus-visible:border-neutral-0 hover:bg-primary-500 active:bg-primary-500 cursor-pointer"
-    secondary_classes="bg-neutral-0 text-primary-700 shadow-bottom-and-right shadow-primary-700 border border-primary-700 focus-visible:border-neutral-0 hover:border-primary-500 hover:shadow-primary-500 hover:text-primary-500 active:bg-primary-700 active:text-neutral-0 active:border-neutral-0 cursor-pointer"
-    disabled_primary_classes="bg-neutral-300 text-black cursor-not-allowed select-none shadow-black"
-    disabled_secondary_classes="bg-neutral-500 text-neutral-0 cursor-not-allowed select-none shadow-black"
+    primary_class="bg-primary-700 text-neutral-0 shadow-bottom-and-right shadow-black focus-visible:border-neutral-0 hover:bg-primary-500 active:bg-primary-500 cursor-pointer"
+    secondary_class="bg-neutral-0 text-primary-700 shadow-bottom-and-right shadow-primary-700 border border-primary-700 focus-visible:border-neutral-0 hover:border-primary-500 hover:shadow-primary-500 hover:text-primary-500 active:bg-primary-700 active:text-neutral-0 active:border-neutral-0 cursor-pointer"
+    tertiary_class="text-neutral-950 text-[11px] hover:bg-primary-50 active:bg-primary-100 focus:outline-primary-500 focus:outline-offset-2"
+    quaternary_class="text-primary-700 font-medium focus:outline-primary-500 focus:outline-offset-2"
+    disabled_primary_class="bg-neutral-300 text-black cursor-not-allowed select-none shadow-black"
+    disabled_secondary_class="bg-neutral-500 text-neutral-0 cursor-not-allowed select-none shadow-black"
+    disabled_tertiary_class="text-neutral-500 cursor-not-allowed"
+    disabled_quaternary_class="text-primary-700 font-medium cursor-not-allowed"
     icon_class="gap-x-2"
     class=""
     variant=""
     icon=""
 />
 
-{% if variant == "quaternary" %}
-    {% if href %}
-        <a href="{{ href }}"
-           class="text-primary-700 font-medium focus:outline-primary-500 focus:outline-offset-2 {{ class }}"
-           {{ attrs }}
-        >
-            <div class="flex {% if icon %}{{ icon_class }}{% endif %}">
-                {% if slot %}{{ slot|safe }}{% else %}{{ label|safe }}{% endif %}
-                {% if icon %}<c-components.icon name="{{ icon }}" class="w-5 h-5" />{% endif %}
-            </div>
-        </a>
-    {% else %}
-        <button type="{{ type }}"
-                class="text-primary-700 font-medium cursor-pointer {{ class }}"
-                {{ attrs }}
-        >
-            <div class="flex {% if icon %}{{ icon_class }}{% endif %}">
-                {% if slot %}{{ slot|safe }}{% else %}{{ label|safe }}{% endif %}
-                {% if icon %}<c-components.icon name="{{ icon }}" class="w-5 h-5" />{% endif %}
-            </div>
-        </button>
-    {% endif %}
-{% else %}
     {% if href and not disabled %}
         <a href="{{ href }}"
-           class="{{ base_class }} {% if disabled and variant == "secondary" %}{{ disabled_secondary_classes }}{% elif disabled %}{{ disabled_primary_classes }}{% elif variant == "secondary" %}{{ secondary_classes }}{% else %}{{ primary_classes }}{% endif %} {{ class }}"
-           {{ attrs }}
+           class="
+            {% if variant == "secondary" %}
+                {{ base_class }} {{ secondary_class }}
+            {% elif variant == "tertiary" %}
+                {{ tertiary_class }}
+            {% elif variant == "quaternary" %}
+                {{ base_class }} {{ quaternary_class }}
+            {% else %}
+                {{ base_class }} {{ primary_class }}
+            {% endif %}
+            {{ class }}"
+            {{ attrs }}
         >
             <div class="flex {% if icon %}{{ icon_class }}{% endif %} justify-center">
                 {% if slot %}{{ slot|safe }}{% else %}{{ label|safe }}{% endif %}
@@ -50,7 +41,29 @@
     {% else %}
         <button type="{{ type }}"
                 {% if disabled %}disabled{% endif %}
-                class="{{ base_class }} {% if disabled and variant == "secondary" %}{{ disabled_secondary_classes }}{% elif disabled %}{{ disabled_primary_classes }}{% elif variant == "secondary" %}{{ secondary_classes }}{% else %}{{ primary_classes }}{% endif %} {{ class }}"
+                class="
+                {% if disabled %}
+                    {% if variant == "secondary" %}
+                        {{ base_class }} {{ disabled_secondary_class }}
+                    {% elif variant == "tertiary" %}
+                        {{ disabled_tertiary_class }}
+                    {% elif variant == "quaternary" %}
+                        {{ base_class }} {{ disabled_quaternary_class }}
+                    {% else %}
+                        {{ base_class }} {{ disabled_primary_class }}
+                    {% endif %}
+                {% else %}
+                    {% if variant == "secondary" %}
+                        {{ base_class }} {{ secondary_class }}
+                    {% elif variant == "tertiary" %}
+                        {{ tertiary_class }}
+                    {% elif variant == "quaternary" %}
+                        {{ base_class }} {{ quaternary_class }}
+                    {% else %}
+                        {{ base_class }} {{ primary_class }}
+                    {% endif %}
+                {% endif %}
+                {{ class }}"
                 {{ attrs }}
         >
             <div class="flex {% if icon %}{{ icon_class }}{% endif %} justify-center">
@@ -59,4 +72,3 @@
             </div>
         </button>
     {% endif %}
-{% endif %}
