@@ -269,3 +269,30 @@ def test_create_mentor_syncs_contact_to_brevo(valid_pro_model_data, mock_brevo_s
     assert call_kwargs["list_ids"] == [42]
     assert call_kwargs["attributes"]["PRENOM"] == valid_pro_model_data["first_name"]
     assert call_kwargs["attributes"]["NOM"] == valid_pro_model_data["last_name"]
+
+
+@pytest.mark.django_db
+def test_create_mentor_existing_pro_sends_new_engagement(pro):
+    from techpourtoutes.mailers import CoalitionUserMailer
+    from techpourtoutes.services.create_mentor import CreateMentor
+
+    mock = _mock_jobirl_registration()
+
+    with (
+        patch(
+            "techpourtoutes.services.create_mentor.RegisterMentorOnJobirl",
+            return_value=mock,
+        ),
+        patch.object(
+            CoalitionUserMailer,
+            "new_engagement",
+        ) as new_engagement,
+        patch.object(
+            CoalitionUserMailer,
+            "welcome",
+        ) as welcome,
+    ):
+        CreateMentor(pro=pro)
+
+    new_engagement.assert_called_once_with(pro=pro)
+    welcome.assert_not_called()
