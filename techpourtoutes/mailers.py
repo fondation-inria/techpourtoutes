@@ -10,62 +10,6 @@ from django.urls import reverse
 from .models import Pro
 
 
-def _base_context():
-    return {
-        "logo_url": settings.SITE_URL + staticfiles_storage.url("images/techpourtoutes-logo.png"),
-        "base_url": settings.SITE_URL,
-    }
-
-
-def _render(template, context=None):
-    return render_to_string(template, _base_context() | (context or {}))
-
-
-def _deliver_mail(
-    *,
-    recipient_list,
-    subject,
-    message,
-    html_message,
-    template_id,
-    params,
-    fail_silently=False,
-):
-    if settings.USE_BREVO:
-        return _send_template_mail(
-            recipient_list=recipient_list,
-            template_id=template_id,
-            params=params,
-            fail_silently=fail_silently,
-        )
-    return send_mail(
-        subject=subject,
-        message=message,
-        html_message=html_message,
-        from_email="TechPourToutes <agir@techpourtoutes.io>",
-        recipient_list=recipient_list,
-        fail_silently=fail_silently,
-    )
-
-
-def _send_template_mail(
-    *,
-    recipient_list,
-    template_id,
-    params,
-    fail_silently=False,
-):
-    mail = EmailMessage(
-        to=recipient_list,
-    )
-
-    mail.from_email = None
-    mail.template_id = template_id
-    mail.merge_global_data = params
-
-    return mail.send(fail_silently=fail_silently)
-
-
 class CoalitionMailer:
     @classmethod
     def new_pro(cls, *, pro, engagement):
@@ -165,3 +109,39 @@ class LoginMailer:
             template_id=settings.BREVO_TEMPLATE_ID_LOGIN,
             params={"first_name": user.first_name, "login_url": login_url},
         )
+
+
+def _base_context():
+    return {
+        "logo_url": settings.SITE_URL + staticfiles_storage.url("images/techpourtoutes-logo.png"),
+        "base_url": settings.SITE_URL,
+    }
+
+
+def _render(template, context=None):
+    return render_to_string(template, _base_context() | (context or {}))
+
+
+def _deliver_mail(
+    *,
+    recipient_list,
+    subject,
+    message,
+    html_message,
+    template_id,
+    params,
+):
+    if settings.EMAIL_BACKEND == "anymail.backends.brevo.EmailBackend":
+        mail = EmailMessage(to=recipient_list)
+        mail.from_email = None
+        mail.template_id = template_id
+        mail.merge_global_data = params
+        return mail.send()
+
+    return send_mail(
+        subject=subject,
+        message=message,
+        html_message=html_message,
+        from_email="TechPourToutes <agir@techpourtoutes.io>",
+        recipient_list=recipient_list,
+    )
