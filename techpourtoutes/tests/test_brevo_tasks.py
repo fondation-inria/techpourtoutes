@@ -11,10 +11,8 @@ from techpourtoutes.tasks.upsert_brevo_contact import upsert_brevo_contact_task
 @pytest.mark.django_db
 @override_settings(CELERY_TASK_ALWAYS_EAGER=True, BREVO_API_KEY="test", BREVO_PRO_LIST_ID=42)
 def test_upsert_brevo_contact_task_loads_subclass_and_runs_service(pro):
-    with patch("techpourtoutes.tasks.upsert_brevo_contact.UpsertBrevoContact") as mock_service:
-        mock_service.return_value = MagicMock(
-            success=True, failure=False, errors=[], is_transient_failure=False
-        )
+    with patch("techpourtoutes.tasks.upsert_brevo_contact.SyncBrevoContact") as mock_service:
+        mock_service.return_value = MagicMock(success=True, failure=False, errors=[])
 
         upsert_brevo_contact_task(str(pro.pk), "techpourtoutes.Pro")
 
@@ -27,9 +25,9 @@ def test_upsert_brevo_contact_task_loads_subclass_and_runs_service(pro):
 @pytest.mark.django_db
 @override_settings(CELERY_TASK_ALWAYS_EAGER=True, BREVO_API_KEY="test")
 def test_upsert_brevo_contact_task_raises_runtime_error_on_permanent_failure(pro):
-    with patch("techpourtoutes.tasks.upsert_brevo_contact.UpsertBrevoContact") as mock_service:
+    with patch("techpourtoutes.tasks.upsert_brevo_contact.SyncBrevoContact") as mock_service:
         mock_service.return_value = MagicMock(
-            success=False, failure=True, errors=["boom"], is_transient_failure=False
+            success=False, failure=True, errors=["boom"], status_code=400
         )
 
         with pytest.raises(RuntimeError, match="boom"):
@@ -39,9 +37,9 @@ def test_upsert_brevo_contact_task_raises_runtime_error_on_permanent_failure(pro
 @pytest.mark.django_db
 @override_settings(CELERY_TASK_ALWAYS_EAGER=True, BREVO_API_KEY="test")
 def test_upsert_brevo_contact_task_raises_transient_error_on_transient_failure(pro):
-    with patch("techpourtoutes.tasks.upsert_brevo_contact.UpsertBrevoContact") as mock_service:
+    with patch("techpourtoutes.tasks.upsert_brevo_contact.SyncBrevoContact") as mock_service:
         mock_service.return_value = MagicMock(
-            success=False, failure=True, errors=["boom"], is_transient_failure=True
+            success=False, failure=True, errors=["boom"], status_code=500
         )
 
         with pytest.raises(TransientError, match="boom"):
@@ -51,9 +49,7 @@ def test_upsert_brevo_contact_task_raises_transient_error_on_transient_failure(p
 @override_settings(CELERY_TASK_ALWAYS_EAGER=True, BREVO_API_KEY="test")
 def test_delete_brevo_contact_task_runs_service():
     with patch("techpourtoutes.tasks.delete_brevo_contact.DeleteBrevoContact") as mock_service:
-        mock_service.return_value = MagicMock(
-            success=True, failure=False, errors=[], is_transient_failure=False
-        )
+        mock_service.return_value = MagicMock(success=True, failure=False, errors=[])
 
         delete_brevo_contact_task("abc-123", 42)
 
@@ -64,7 +60,7 @@ def test_delete_brevo_contact_task_runs_service():
 def test_delete_brevo_contact_task_raises_runtime_error_on_permanent_failure():
     with patch("techpourtoutes.tasks.delete_brevo_contact.DeleteBrevoContact") as mock_service:
         mock_service.return_value = MagicMock(
-            success=False, failure=True, errors=["nope"], is_transient_failure=False
+            success=False, failure=True, errors=["nope"], status_code=400
         )
 
         with pytest.raises(RuntimeError, match="nope"):
@@ -75,7 +71,7 @@ def test_delete_brevo_contact_task_raises_runtime_error_on_permanent_failure():
 def test_delete_brevo_contact_task_raises_transient_error_on_transient_failure():
     with patch("techpourtoutes.tasks.delete_brevo_contact.DeleteBrevoContact") as mock_service:
         mock_service.return_value = MagicMock(
-            success=False, failure=True, errors=["nope"], is_transient_failure=True
+            success=False, failure=True, errors=["nope"], status_code=500
         )
 
         with pytest.raises(TransientError, match="nope"):

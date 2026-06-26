@@ -428,7 +428,6 @@ def _signature_data(**overrides):
         "last_name": "Desbordes",
         "email": "manon@example.com",
         "structure_name": "Latitudes",
-        "terms_accepted": True,
         **overrides,
     }
 
@@ -473,6 +472,6 @@ def test_signer_manifeste_post_skips_task_when_sync_disabled(client):
 
 @pytest.mark.django_db
 def test_signer_manifeste_post_invalid_rerenders_with_errors(client):
-    response = client.post(reverse("signer_manifeste"), data=_signature_data(terms_accepted=False))
+    response = client.post(reverse("signer_manifeste"), data=_signature_data(email="not-an-email"))
     assert response.status_code == 200
     assert response.context["form"].errors

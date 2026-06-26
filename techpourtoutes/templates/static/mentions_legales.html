@@ -1,38 +1,42 @@
 <c-layout.base title="Mentions légales – TechPourToutes">
     <c-components.title title="Mentions légales" />
 
-    <p>Le site <u><a href="{{ site_url }}">techpourtoutes.io</a></u> est édité par la Fondation Inria.</p>
+    <p>Le site <c-components.inline-link label="techpourtoutes.io" href="{{ SITE_URL }}"/> est édité par la Fondation Inria.</p>
 
     <c-components.card title="Informations légales">
-        <c-components.text>
+            <br>
             Fondation Inria
+            <br>
             Domaine de Voluceau – BP 10578153 Le Chesnay Cedex – France
+            <br>
             Tél : +33 (0)1 80 49 43 24
-            Email : <a href="mailto:contact@fondation-inria.fr">contact@fondation-inria.fr</a>
+            <br>
+            Email : <c-components.inline-link label="contact@fondation-inria.fr" href="mailto:contact@fondation-inria.fr"/>
+            <br>
             SIREN : 829 176 098
+            <br>
             TVA : FR 69 82917609
-
+            <br><br>
             Directeur de la publication : Bruno Sportisse, président de la Fondation Inria
             Rédacteur en chef : Henri Verdier, directeur général de la Fondation Inria
-
+            <br><br>
             La Fondation Inria est une fondation partenariale dont la création a été autorisée par le recteur de l’académie de Versailles le 6 février 2017, ainsi que publiée au bulletin officiel de l’enseignement supérieur et de la recherche en date du 30 mars 2017.
-        </c-components.text>
     </c-components.card>
 
     <c-components.card title="Hébergement">
-        <c-components.text>
-            Le site <a href="{{ site_url }}">TechPourToutes</a> est hébergé par Scalingo sur des serveurs géographiquement localisés en France.
-
+            <br>
+            Le site <c-components.inline-link label="TechPourToutes" href="{{ SITE_URL }}"/> est hébergé par Scalingo sur des serveurs géographiquement localisés en France.
+            <br><br>
             Scalingo SAS
+            <br>
             13, rue Jacques Peirot, 67000 Strasbourg 1
-            <a href="https://scalingo.com/fr/">https://scalingo.com/fr/</a>
-        </c-components.text>
+            <br>
+            <c-components.inline-link label="https://scalingo.com/fr/" href="https://scalingo.com/fr/" icon="external-link" target="_blank" />
     </c-components.card>
 
     <c-components.card title="Protection des données à caractère personnel">
-        <c-components.text>
-            La Fondation Inria est engagée dans une démarche de protection des données à caractère personnel qu’elle traite. Pour plus d’informations, vous pouvez consulter notre politique de gestion des données personnelles ou nous contacter : <a href="mailto:dpo@fondation-inria.fr">dpo@fondation-inria.fr</a>.
-        </c-components.text>
+            <br>
+            La Fondation Inria est engagée dans une démarche de protection des données à caractère personnel qu’elle traite. Pour plus d’informations, vous pouvez consulter notre politique de gestion des données personnelles ou nous contacter : <c-components.inline-link label="dpo@fondation-inria.fr" href="mailto:dpo@fondation-inria.fr"/>.
     </c-components.card>
     <c-components.card title="Propriété intellectuelle">
         <c-components.text>
@@ -42,9 +46,8 @@
         </c-components.text>
     </c-components.card>
     <c-components.card title="Contenu du site">
-        <c-components.text>
-            La Fondation Inria s’efforce d’assurer au mieux de ses possibilités l’exactitude et la mise à jour des informations diffusées au moment de leur mise en ligne sur le site. Cependant, la Fondation Inria ne garantit en aucune façon l’exactitude, la précision ou l’exhaustivité des informations mises à disposition sur le site. Les informations présentes sur le site sont non-contractuelles et peuvent être modifiées à tout moment. Si des informations vous semblent inexactes, n'hésitez pas à nous écrire à <a href="mailto:perfectible@techpourtoutes.io">perfectible@techpourtoutes.io</a>.
-        </c-components.text>
+            <br>
+            La Fondation Inria s’efforce d’assurer au mieux de ses possibilités l’exactitude et la mise à jour des informations diffusées au moment de leur mise en ligne sur le site. Cependant, la Fondation Inria ne garantit en aucune façon l’exactitude, la précision ou l’exhaustivité des informations mises à disposition sur le site. Les informations présentes sur le site sont non-contractuelles et peuvent être modifiées à tout moment. Si des informations vous semblent inexactes, n'hésitez pas à nous écrire à <c-components.inline-link label="perfectible@techpourtoutes.io" href="mailto:perfectible@techpourtoutes.io"/>.
     </c-components.card>
     <c-components.card title="Liens hypertextes">
         <c-components.text>
