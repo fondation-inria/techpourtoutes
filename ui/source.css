@@ -153,6 +153,11 @@
   .tick-disabled {
     @apply border-neutral-300 cursor-not-allowed;
   }
+
+  /* Form inline link */
+  .inline-link {
+    @apply underline decoration-1 underline-offset-4 hover:decoration-2 active:bg-neutral-200 active:decoration-2 focus:outline-primary-500 focus:outline-offset-2;
+  }
 }
 
 @plugin "daisyui";
