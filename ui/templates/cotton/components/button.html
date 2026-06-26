@@ -4,14 +4,14 @@
     disabled=False
     type="button"
     base_class="inline-block px-6 py-3 rounded-sm text-sm font-medium leading-[1.4] focus-visible:outline-none focus-visible:border"
-    primary_classes="bg-primary-700 text-neutral-0 shadow-bottom-and-right shadow-black focus-visible:border-neutral-0 hover:bg-primary-500 active:bg-primary-500 cursor-pointer"
-    secondary_classes="bg-neutral-0 text-primary-700 shadow-bottom-and-right shadow-primary-700 border border-primary-700 focus-visible:border-neutral-0 hover:border-primary-500 hover:shadow-primary-500 hover:text-primary-500 active:bg-primary-700 active:text-neutral-0 active:border-neutral-0 cursor-pointer"
-    tertiary_classes="text-neutral-950 text-[11px] hover:bg-primary-50 active:bg-primary-100 focus:outline-primary-500 focus:outline-offset-2"
-    quaternary_classes="text-primary-700 font-medium focus:outline-primary-500 focus:outline-offset-2"
-    disabled_primary_classes="bg-neutral-300 text-black cursor-not-allowed select-none shadow-black"
-    disabled_secondary_classes="bg-neutral-500 text-neutral-0 cursor-not-allowed select-none shadow-black"
-    disabled_tertiary_classes="text-neutral-500 cursor-not-allowed"
-    disabled_quaternary_classes="text-primary-700 font-medium cursor-not-allowed"
+    primary_class="bg-primary-700 text-neutral-0 shadow-bottom-and-right shadow-black focus-visible:border-neutral-0 hover:bg-primary-500 active:bg-primary-500 cursor-pointer"
+    secondary_class="bg-neutral-0 text-primary-700 shadow-bottom-and-right shadow-primary-700 border border-primary-700 focus-visible:border-neutral-0 hover:border-primary-500 hover:shadow-primary-500 hover:text-primary-500 active:bg-primary-700 active:text-neutral-0 active:border-neutral-0 cursor-pointer"
+    tertiary_class="text-neutral-950 text-[11px] hover:bg-primary-50 active:bg-primary-100 focus:outline-primary-500 focus:outline-offset-2"
+    quaternary_class="text-primary-700 font-medium focus:outline-primary-500 focus:outline-offset-2"
+    disabled_primary_class="bg-neutral-300 text-black cursor-not-allowed select-none shadow-black"
+    disabled_secondary_class="bg-neutral-500 text-neutral-0 cursor-not-allowed select-none shadow-black"
+    disabled_tertiary_class="text-neutral-500 cursor-not-allowed"
+    disabled_quaternary_class="text-primary-700 font-medium cursor-not-allowed"
     icon_class="gap-x-2"
     class=""
     variant=""
@@ -20,15 +20,15 @@
 
     {% if href and not disabled %}
         <a href="{{ href }}"
-           class="{{ base_class }} 
+           class="
             {% if variant == "secondary" %}
-                {{ secondary_classes }}
+                {{ base_class }} {{ secondary_class }}
             {% elif variant == "tertiary" %}
-                {{ tertiary_classes }}
+                {{ tertiary_class }}
             {% elif variant == "quaternary" %}
-                {{ quaternary_classes }}
+                {{ base_class }} {{ quaternary_class }}
             {% else %}
-                {{ primary_classes }}
+                {{ base_class }} {{ primary_class }}
             {% endif %}
             {{ class }}"
             {{ attrs }}
@@ -41,26 +41,26 @@
     {% else %}
         <button type="{{ type }}"
                 {% if disabled %}disabled{% endif %}
-                class="{{ base_class }} 
+                class="
                 {% if disabled %}
                     {% if variant == "secondary" %}
-                        {{ disabled_secondary_classes }}
+                        {{ base_class }} {{ disabled_secondary_class }}
                     {% elif variant == "tertiary" %}
-                        {{ disabled_tertiary_classes }}
+                        {{ disabled_tertiary_class }}
                     {% elif variant == "quaternary" %}
-                        {{ disabled_quaternary_classes }}
+                        {{ base_class }} {{ disabled_quaternary_class }}
                     {% else %}
-                        {{ disabled_primary_classes }}
+                        {{ base_class }} {{ disabled_primary_class }}
                     {% endif %}
                 {% else %}
                     {% if variant == "secondary" %}
-                        {{ secondary_classes }}
+                        {{ base_class }} {{ secondary_class }}
                     {% elif variant == "tertiary" %}
-                        {{ tertiary_classes }}
+                        {{ tertiary_class }}
                     {% elif variant == "quaternary" %}
-                        {{ quaternary_classes }}
+                        {{ base_class }} {{ quaternary_class }}
                     {% else %}
-                        {{ primary_classes }}
+                        {{ base_class }} {{ primary_class }}
                     {% endif %}
                 {% endif %}
                 {{ class }}"
