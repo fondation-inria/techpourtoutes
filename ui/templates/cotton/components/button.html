@@ -33,7 +33,12 @@
             {{ class }}"
             {{ attrs }}
         >
-            <div class="flex {% if icon %}{{ icon_class }}{% endif %}">
+            <div class="flex
+                {% if icon %}{{ icon_class }}{% endif %}
+                {% if variant != "tertiary" and variant != "quaternary" %}
+                    justify-center
+                {% endif %}
+            ">
                 {% if slot %}{{ slot|safe }}{% else %}{{ label|safe }}{% endif %}
                 {% if icon %}<c-components.icon name="{{ icon }}" class="w-5 h-5" />{% endif %}
             </div>
@@ -66,7 +71,12 @@
                 {{ class }}"
                 {{ attrs }}
         >
-            <div class="flex {% if icon %}{{ icon_class }}{% endif %}">
+        <div class="flex
+            {% if icon %}{{ icon_class }}{% endif %}
+            {% if variant != "tertiary" and variant != "quaternary" %}
+                justify-center
+            {% endif %}
+        ">
                 {% if slot %}{{ slot|safe }}{% else %}{{ label|safe }}{% endif %}
                 {% if icon %}<c-components.icon name="{{ icon }}" class="w-5 h-5" />{% endif %}
             </div>
