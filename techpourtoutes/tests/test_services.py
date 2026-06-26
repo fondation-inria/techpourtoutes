@@ -273,7 +273,7 @@ def test_create_mentor_syncs_contact_to_brevo(valid_pro_model_data, mock_brevo_s
 
 @pytest.mark.django_db
 def test_create_mentor_existing_pro_sends_new_engagement(pro):
-    from techpourtoutes.mailers import CoalitionMailer
+    from techpourtoutes.mailers import CoalitionUserMailer
     from techpourtoutes.services.create_mentor import CreateMentor
 
     mock = _mock_jobirl_registration()
@@ -284,11 +284,11 @@ def test_create_mentor_existing_pro_sends_new_engagement(pro):
             return_value=mock,
         ),
         patch.object(
-            CoalitionMailer,
+            CoalitionUserMailer,
             "new_engagement",
         ) as new_engagement,
         patch.object(
-            CoalitionMailer,
+            CoalitionUserMailer,
             "welcome",
         ) as welcome,
     ):

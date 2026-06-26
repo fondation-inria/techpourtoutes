@@ -489,11 +489,11 @@ def test_signer_manifeste_post_invalid_rerenders_with_errors(client):
 )
 @pytest.mark.django_db
 def test_new_pro_receives_welcome_email(client, valid_pro_data, url_name):
-    from techpourtoutes.mailers import CoalitionMailer
+    from techpourtoutes.mailers import CoalitionUserMailer
 
     with (
-        patch.object(CoalitionMailer, "new_engagement") as new_engagement,
-        patch.object(CoalitionMailer, "welcome") as welcome,
+        patch.object(CoalitionUserMailer, "new_engagement") as new_engagement,
+        patch.object(CoalitionUserMailer, "welcome") as welcome,
     ):
         response = client.post(
             reverse(url_name),
@@ -511,19 +511,19 @@ def test_training_ambassador_new_pro_receives_welcome_email(
     client,
     higher_ed_school,
 ):
-    from techpourtoutes.mailers import CoalitionMailer
+    from techpourtoutes.mailers import CoalitionInternalMailer, CoalitionUserMailer
 
     with (
         patch.object(
-            CoalitionMailer,
+            CoalitionInternalMailer,
             "new_training_ambassador",
         ) as new_training_ambassador,
         patch.object(
-            CoalitionMailer,
+            CoalitionUserMailer,
             "new_engagement",
         ) as new_engagement,
         patch.object(
-            CoalitionMailer,
+            CoalitionUserMailer,
             "welcome",
         ) as welcome,
     ):
@@ -545,15 +545,15 @@ def test_training_ambassador_new_pro_receives_welcome_email(
 def test_workshops_new_pro_receives_welcome_email(
     client,
 ):
-    from techpourtoutes.mailers import CoalitionMailer
+    from techpourtoutes.mailers import CoalitionUserMailer
 
     with (
         patch.object(
-            CoalitionMailer,
+            CoalitionUserMailer,
             "new_engagement",
         ) as new_engagement,
         patch.object(
-            CoalitionMailer,
+            CoalitionUserMailer,
             "welcome",
         ) as welcome,
         patch("techpourtoutes.views.coalition_views.notify_workshop_request_task") as mock_task,
@@ -582,13 +582,13 @@ def test_workshops_new_pro_receives_welcome_email(
 )
 @pytest.mark.django_db
 def test_existing_pro_receives_new_engagement_email(client, pro, url_name):
-    from techpourtoutes.mailers import CoalitionMailer
+    from techpourtoutes.mailers import CoalitionUserMailer
 
     client.force_login(pro)
 
     with (
-        patch.object(CoalitionMailer, "new_engagement") as new_engagement,
-        patch.object(CoalitionMailer, "welcome") as welcome,
+        patch.object(CoalitionUserMailer, "new_engagement") as new_engagement,
+        patch.object(CoalitionUserMailer, "welcome") as welcome,
     ):
         response = client.post(
             reverse(url_name),
@@ -607,21 +607,21 @@ def test_training_ambassador_existing_pro_receives_new_engagement_email(
     pro,
     higher_ed_school,
 ):
-    from techpourtoutes.mailers import CoalitionMailer
+    from techpourtoutes.mailers import CoalitionInternalMailer, CoalitionUserMailer
 
     client.force_login(pro)
 
     with (
         patch.object(
-            CoalitionMailer,
+            CoalitionInternalMailer,
             "new_training_ambassador",
         ) as new_training_ambassador,
         patch.object(
-            CoalitionMailer,
+            CoalitionUserMailer,
             "new_engagement",
         ) as new_engagement,
         patch.object(
-            CoalitionMailer,
+            CoalitionUserMailer,
             "welcome",
         ) as welcome,
     ):
@@ -645,17 +645,17 @@ def test_workshops_existing_pro_receives_new_engagement_email(
     client,
     pro,
 ):
-    from techpourtoutes.mailers import CoalitionMailer
+    from techpourtoutes.mailers import CoalitionUserMailer
 
     client.force_login(pro)
 
     with (
         patch.object(
-            CoalitionMailer,
+            CoalitionUserMailer,
             "new_engagement",
         ) as new_engagement,
         patch.object(
-            CoalitionMailer,
+            CoalitionUserMailer,
             "welcome",
         ) as welcome,
         patch("techpourtoutes.views.coalition_views.notify_workshop_request_task") as mock_task,

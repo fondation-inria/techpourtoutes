@@ -10,7 +10,7 @@ from django.urls import reverse
 from .models import Pro
 
 
-class CoalitionMailer:
+class CoalitionInternalMailer:
     @classmethod
     def new_pro(cls, *, pro, engagement):
         recipient_list = {
@@ -64,6 +64,8 @@ class CoalitionMailer:
             },
         )
 
+
+class CoalitionUserMailer:
     @classmethod
     def new_engagement(cls, *, pro):
         context = {"pro": pro}

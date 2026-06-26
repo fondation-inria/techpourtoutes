@@ -1,17 +1,19 @@
+from unittest.mock import patch
+
 import pytest
 from django.conf import settings
 from django.core import mail
 from django.test import override_settings
 from django.urls import reverse
 
-from techpourtoutes.mailers import CoalitionMailer, LoginMailer
+from techpourtoutes.mailers import CoalitionInternalMailer, CoalitionUserMailer, LoginMailer
 from techpourtoutes.models import Pro
 
 
 @pytest.mark.django_db
 @override_settings(EMAIL_BACKEND="django.core.mail.backends.locmem.EmailBackend")
 def test_welcome_sends_email_to_pro(pro):
-    CoalitionMailer.welcome(pro=pro, token="tok-abc")
+    CoalitionUserMailer.welcome(pro=pro, token="tok-abc")
 
     assert len(mail.outbox) == 1
     message = mail.outbox[0]
@@ -23,7 +25,7 @@ def test_welcome_sends_email_to_pro(pro):
 @pytest.mark.django_db
 @override_settings(EMAIL_BACKEND="django.core.mail.backends.locmem.EmailBackend")
 def test_welcome_includes_account_login_url(pro):
-    CoalitionMailer.welcome(pro=pro, token="tok-abc")
+    CoalitionUserMailer.welcome(pro=pro, token="tok-abc")
 
     assert "/se-connecter/token/tok-abc" in mail.outbox[0].body
 
@@ -45,7 +47,7 @@ def test_welcome_includes_account_login_url(pro):
     ],
 )
 def test_new_pro_routes_to_engagement_recipient(pro, engagement, recipient):
-    CoalitionMailer.new_pro(pro=pro, engagement=engagement)
+    CoalitionInternalMailer.new_pro(pro=pro, engagement=engagement)
 
     assert len(mail.outbox) == 1
     message = mail.outbox[0]
@@ -64,7 +66,7 @@ def test_new_training_ambassador_includes_experience_in_body(pro, higher_ed_scho
     experience = TrainingExperience.objects.create(
         pro=pro, higher_ed_school=higher_ed_school, course="Master IA"
     )
-    CoalitionMailer.new_training_ambassador(pro=pro, training_experience=experience)
+    CoalitionInternalMailer.new_training_ambassador(pro=pro, training_experience=experience)
 
     message = mail.outbox[0]
     assert message.to == ["training@example.com"]
@@ -78,7 +80,7 @@ def test_new_training_ambassador_includes_experience_in_body(pro, higher_ed_scho
     COALITION_WORK_AMBASSADOR_RECIPIENTS=["ambassador@example.com"],
 )
 def test_new_pro_includes_pro_details_in_body(pro):
-    CoalitionMailer.new_pro(pro=pro, engagement=Pro.Engagement.WORK_AMBASSADOR)
+    CoalitionInternalMailer.new_pro(pro=pro, engagement=Pro.Engagement.WORK_AMBASSADOR)
 
     body = mail.outbox[0].body
     assert pro.first_name in body
@@ -126,10 +128,28 @@ def test_login_send_link_omits_next_query_when_empty(pro):
 @pytest.mark.django_db
 @override_settings(EMAIL_BACKEND="django.core.mail.backends.locmem.EmailBackend")
 def test_new_engagement_sends_email_to_pro(pro):
-    CoalitionMailer.new_engagement(pro=pro)
+    CoalitionUserMailer.new_engagement(pro=pro)
 
     assert len(mail.outbox) == 1
     message = mail.outbox[0]
     assert message.to == [pro.email]
     assert "Votre nouvelle demande d'engagement" in message.subject
     assert pro.first_name in message.body
+
+
+@pytest.mark.django_db
+@override_settings(
+    EMAIL_BACKEND="anymail.backends.brevo.EmailBackend",
+    BREVO_TEMPLATE_ID_WELCOME=123,
+)
+@patch("techpourtoutes.mailers.EmailMessage")
+def test_welcome_uses_brevo(mock_email, pro):
+    CoalitionUserMailer.welcome(pro=pro, token="tok-abc")
+
+    mock_email.assert_called_once_with(to=[pro.email])
+
+    message = mock_email.return_value
+    assert message.from_email is None
+    assert message.template_id == 123
+    assert message.merge_global_data["first_name"] == pro.first_name
+    message.send.assert_called_once()
