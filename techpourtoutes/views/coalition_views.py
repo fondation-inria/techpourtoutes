@@ -3,7 +3,7 @@ from django.contrib import messages
 from django.shortcuts import redirect, render
 
 from ..forms import EngagementForm, ManifesteSignatureForm, TrainingAmbassadorForm, WorkshopForm
-from ..mailers import CoalitionMailer
+from ..mailers import CoalitionInternalMailer, CoalitionUserMailer
 from ..models import Pro, WorkshopRequest
 from ..services.create_mentor import CreateMentor
 from ..tasks import notify_workshop_request_task, upsert_manifeste_signatory_task
@@ -46,13 +46,17 @@ def training_ambassador_landing(request):
         form = TrainingAmbassadorForm(data=request.POST, pro=pro)
         if form.is_valid():
             pro = form.save(commit=False)
+            already_exists = pro.pk is not None
             pro.add_engagement(Pro.Engagement.TRAINING_AMBASSADOR)
             pro.save()
             training_experience = form.after_save(pro)
-            CoalitionMailer.welcome(pro=pro, token=pro.issue_login_token())
-            CoalitionMailer.new_training_ambassador(
+            CoalitionInternalMailer.new_training_ambassador(
                 pro=pro, training_experience=training_experience
             )
+            if already_exists:
+                CoalitionUserMailer.new_engagement(pro=pro)
+            else:
+                CoalitionUserMailer.welcome(pro=pro, token=pro.issue_login_token())
             return redirect("coalition_welcome")
         else:
             _render_errors(request, form)
@@ -82,6 +86,7 @@ def workshops_landing(request):
         form = WorkshopForm(data=request.POST, pro=pro)
         if form.is_valid():
             pro = form.save(commit=False)
+            already_exists = pro.pk is not None
             pro.add_engagement(Pro.Engagement.WORKSHOPS)
             pro.save()
             for atelier in form.cleaned_data["ateliers"]:
@@ -91,7 +96,10 @@ def workshops_landing(request):
             notify_workshop_request_task.delay(
                 str(pro.pk), form.cleaned_data["ateliers"], form.cleaned_data["remark"]
             )
-            CoalitionMailer.welcome(pro=pro, token=pro.issue_login_token())
+            if already_exists:
+                CoalitionUserMailer.new_engagement(pro=pro)
+            else:
+                CoalitionUserMailer.welcome(pro=pro, token=pro.issue_login_token())
             return redirect("coalition_welcome")
         else:
             _render_errors(request, form)
@@ -135,10 +143,14 @@ def _handle_engagement(request, *, form_class, engagement, template):
         form = form_class(data=request.POST, pro=pro)
         if form.is_valid():
             pro = form.save(commit=False)
+            already_exists = pro.pk is not None
             pro.add_engagement(engagement)
             pro.save()
-            CoalitionMailer.welcome(pro=pro, token=pro.issue_login_token())
-            CoalitionMailer.new_pro(pro=pro, engagement=engagement)
+            CoalitionInternalMailer.new_pro(pro=pro, engagement=engagement)
+            if already_exists:
+                CoalitionUserMailer.new_engagement(pro=pro)
+            else:
+                CoalitionUserMailer.welcome(pro=pro, token=pro.issue_login_token())
             return redirect("coalition_welcome")
         else:
             _render_errors(request, form)
