@@ -64,6 +64,18 @@ class CoalitionInternalMailer:
             },
         )
 
+    @classmethod
+    def delete_account_external_request(cls, *, first_name, last_name, jobirl_id):
+        recipient_list = settings.COALITION_ACCOUNT_DELETION_RECIPIENTS
+        context = {"first_name": first_name, "last_name": last_name, "jobirl_id": jobirl_id}
+        send_mail(
+            subject="Demande de suppression de données personnelles",
+            message=_render("emails/delete_account_external_request.txt", context),
+            html_message=_render("emails/delete_account_external_request.html", context),
+            from_email="TechPourToutes <agir@techpourtoutes.io>",
+            recipient_list=recipient_list,
+        )
+
 
 class CoalitionUserMailer:
     @classmethod
@@ -92,6 +104,18 @@ class CoalitionUserMailer:
             html_message=_render("emails/coalition_welcome.html", context),
             template_id=settings.BREVO_TEMPLATE_ID_WELCOME,
             params={"first_name": pro.first_name, "account_url": account_url},
+        )
+
+    @classmethod
+    def delete_account(cls, *, recipient_email, first_name, engagements):
+        is_mentor = Pro.Engagement.MENTOR in engagements
+        context = {"first_name": first_name, "is_mentor": is_mentor}
+        send_mail(
+            subject="TechPourToutes - Confirmation de suppression de votre compte",
+            message=_render("emails/delete_account.txt", context),
+            html_message=_render("emails/delete_account.html", context),
+            from_email="TechPourToutes <agir@techpourtoutes.io>",
+            recipient_list=[recipient_email],
         )
 
 

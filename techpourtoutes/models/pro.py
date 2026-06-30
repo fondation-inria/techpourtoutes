@@ -84,14 +84,9 @@ class Pro(User):
 
     def deactivate_specific_fields(self):
         self.phone = ""
-        self.postal_code = ""
-        self.structure_name = ""
-        self.structure_id = ""
-        self.job_title = ""
         self.faveod_id = None
         self.jobirl_user_id = None
         self.jobirl_user_token = ""
-        self.engagements = []
 
 
 connect_brevo_sync(Pro)

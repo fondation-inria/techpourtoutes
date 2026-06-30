@@ -18,7 +18,7 @@ from ..forms import (
     LoginRequestForm,
     TrainingExperienceForm,
 )
-from ..mailers import LoginMailer
+from ..mailers import CoalitionInternalMailer, CoalitionUserMailer, LoginMailer
 from ..ratelimit import rate_limit
 from ..services.jobirl_api.refresh_access_token import RefreshAccessToken
 
@@ -212,9 +212,20 @@ def delete_account(request):
     user = request.user.pro if hasattr(request.user, "pro") else request.user
     form = DeleteAccountForm(request.POST)
     if form.is_valid():
+        recipient_email = user.email
+        first_name = user.first_name
+        last_name = user.last_name
+        engagements = user.engagements
+        jobirl_id = user.jobirl_user_id
         user.deactivate_user()
         user.save()
         logout(request)
+        CoalitionUserMailer.delete_account(
+            recipient_email=recipient_email, first_name=first_name, engagements=engagements
+        )
+        CoalitionInternalMailer.delete_account_external_request(
+            first_name=first_name, last_name=last_name, jobirl_id=jobirl_id
+        )
         messages.success(request, "Votre compte a été supprimé.")
         return HttpResponse('<script>window.location = "/";</script>')
     return render(
