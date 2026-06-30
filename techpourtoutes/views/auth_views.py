@@ -225,7 +225,7 @@ def delete_account(request):
         CoalitionUserMailer.delete_account(
             recipient_email=recipient_email, first_name=first_name, engagements=engagements
         )
-        CoalitionInternalMailer.delete_account_external_request(
+        CoalitionInternalMailer.delete_account_request(
             first_name=first_name, last_name=last_name, jobirl_id=jobirl_id
         )
         messages.success(request, "Votre compte a été supprimé.")

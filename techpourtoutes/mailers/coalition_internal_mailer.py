@@ -38,7 +38,7 @@ class CoalitionInternalMailer(BaseMailer):
         )
 
     @classmethod
-    def delete_account_external_request(cls, *, first_name, last_name, jobirl_id):
+    def delete_account_request(cls, *, first_name, last_name, jobirl_id):
         recipient_list = settings.COALITION_ACCOUNT_DELETION_RECIPIENTS
         cls.send_mail(
             subject="Demande de suppression de données personnelles",
