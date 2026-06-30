@@ -11,6 +11,8 @@ from django.utils.http import url_has_allowed_host_and_scheme
 from django.views.decorators.http import require_POST
 
 from techpourtoutes.forms.delete_account_form import DeleteAccountForm
+from techpourtoutes.mailers.coalition_internal_mailer import CoalitionInternalMailer
+from techpourtoutes.mailers.coalition_user_mailer import CoalitionUserMailer
 
 from ..forms import (
     AccountEditForm,
@@ -18,7 +20,7 @@ from ..forms import (
     LoginRequestForm,
     TrainingExperienceForm,
 )
-from ..mailers import CoalitionInternalMailer, CoalitionUserMailer, LoginMailer
+from ..mailers import AuthMailer
 from ..ratelimit import rate_limit
 from ..services.jobirl_api.refresh_access_token import RefreshAccessToken
 
@@ -47,7 +49,7 @@ def login_request(request):
             user = User.objects.filter(email=email, is_active=True).first()
             if user is not None:
                 token = user.issue_login_token()
-                LoginMailer.send_link(user=user, token=token, next_url=next_url)
+                AuthMailer.login_link(user=user, token=token, next_url=next_url)
             request.session["login_email"] = email
             email_sent_url = f"{settings.SITE_URL}{reverse('login_email_sent')}"
             if request.headers.get("referer") == email_sent_url:

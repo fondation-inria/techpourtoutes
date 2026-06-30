@@ -7,7 +7,12 @@ Nous prendrons contact avec vous sous 48 heures pour vous accompagner dans le pr
 
 Vous disposez dès à présent d'un compte auquel vous pouvez accéder via ce lien :
 
-{{ account_url }}
+{{ login_url }}
+
+Ce lien est valable pendant 1 heure. Il est à usage unique.
+
+Si vous n'avez pas demandé à vous connecter à votre compte TechPourToutes, il est possible que quelqu'un d'autre cherche à le faire. Nous vous recommandons de changer le mot de passe de votre boîte mail rapidement.
+
 
 À très bientôt,
 L'équipe TechPourToutes
