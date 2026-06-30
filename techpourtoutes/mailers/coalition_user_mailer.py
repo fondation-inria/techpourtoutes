@@ -34,4 +34,5 @@ class CoalitionUserMailer(BaseMailer):
             subject="TechPourToutes - Confirmation de suppression de votre compte",
             context={"first_name": first_name, "is_mentor": is_mentor},
             recipient_list=[recipient_email],
+            tags=["utilisateur", "coalition", "suppression du compte"],
         )

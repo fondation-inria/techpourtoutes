@@ -44,4 +44,5 @@ class CoalitionInternalMailer(BaseMailer):
             subject="Demande de suppression de données personnelles",
             context={"first_name": first_name, "last_name": last_name, "jobirl_id": jobirl_id},
             recipient_list=recipient_list,
+            tags=["interne", "coalition", "suppression du compte"],
         )
