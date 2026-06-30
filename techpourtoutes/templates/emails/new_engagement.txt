@@ -1,9 +1,0 @@
-Bonjour {{ pro.first_name }},
-
-Merci pour votre engagement renouvelé.
-
-Nous prendrons attache avec vous dans les 48 heures pour parler de votre nouvel engagement.
-
-Bonne journée,
-L'équipe TechPourToutes
-techpourtoutes.io

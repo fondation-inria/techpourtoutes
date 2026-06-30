@@ -123,7 +123,7 @@ Django 6 + PostgreSQL project. Locale is French (fr-FR), timezone Europe/Paris.
 
 **Service objects:** Inherit from `BaseService` (`techpourtoutes/services/base.py`). Implement `perform(**kwargs)`; call `self.fail("message")` to signal failure. Check `result.success` / `result.failure` and `result.errors` at the call site.
 
-**Mailers:** `techpourtoutes/mailers.py` — class-based, no inheritance. Each mailer exposes `@classmethod` methods that call `send_mail` with rendered txt+html templates (`CoalitionUserMailer`, `CoalitionInternalMailer`, `LoginMailer`).
+**Mailers:** `techpourtoutes/mailers.py` — class-based, no inheritance. Each mailer exposes `@classmethod` methods that call `send_mail` with rendered txt+html templates (`CoalitionUserMailer`, `CoalitionInternalMailer`, `AuthMailer`).
 
 **Jobirl integration:** External mentoring platform. Services live in `techpourtoutes/services/jobirl_api/`. Use `JobirlApiBaseService` (extends `BaseService`) for requests — it wraps `JobirlClient` (`techpourtoutes/clients/jobirl.py`) and exposes `result.jobirl_response_body` (the `datas` key from the response) on success.
 

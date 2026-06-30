@@ -1,0 +1,22 @@
+<c-layout.email>
+  <p style="font-size:15px;color:#374151;">Bonjour {{ pro.first_name }},</p>
+  <p style="font-size:15px;color:#374151;">
+    Bienvenue dans la <strong>coalition TechPourToutes</strong>, et merci beaucoup pour votre engagement&nbsp;!
+  </p>
+  <p style="font-size:15px;color:#374151;">
+    Nous prendrons contact avec vous sous 48 heures pour vous accompagner dans le programme.
+  </p>
+  <br>
+  <p style="font-size:15px;color:#374151;">
+    Vous disposez dès à présent d'un compte auquel vous pouvez vous connecter en cliquant sur le bouton ci-dessous&nbsp;:
+  </p>
+  <p style="text-align:center;margin:24px 0;">
+    <a href="{{ login_url }}" style="display:inline-block;padding:12px 24px;background:#4338ca;color:#ffffff;text-decoration:none;border-radius:4px;font-weight:600;">Accéder à mon compte</a>
+  </p>
+  <p style="font-size:15px;color:#374151;">
+    Ce lien est valable pendant 1 heure. Il est à usage unique.
+  </p>
+  <hr style="border:none;border-top:1px solid #e5e7eb;margin:24px 0;">
+  <p style="font-size:13px;color:#6b7280;">Si vous n'avez pas demandé à vous connecter à votre compte TechPourToutes, il est possible que quelqu'un d'autre cherche à le faire. Nous vous recommandons de changer le mot de passe de votre boîte mail rapidement.</p>
+  <p style="font-size:13px;color:#6b7280;">Si vous avez des difficultés pour vous connecter avec le bouton, vous pouvez cliquer sur ce lien ou le copier-coller dans un navigateur&nbsp;: <u><a href="{{ login_url }}">{{ login_url }}</a></u></p>
+</c-layout.email>
