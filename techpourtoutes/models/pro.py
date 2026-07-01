@@ -82,5 +82,11 @@ class Pro(User):
         if engagement not in self.engagements:
             self.engagements.append(engagement)
 
+    def deactivate_specific_fields(self):
+        self.phone = ""
+        self.faveod_id = None
+        self.jobirl_user_id = None
+        self.jobirl_user_token = ""
+
 
 connect_brevo_sync(Pro)

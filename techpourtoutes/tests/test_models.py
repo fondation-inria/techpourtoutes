@@ -270,3 +270,42 @@ def test_training_experience_links_pro_and_higher_ed_school(pro, higher_ed_schoo
 
     assert experience in pro.training_experiences.all()
     assert experience in higher_ed_school.training_experiences.all()
+
+
+@pytest.mark.django_db
+def test_deactivate_user_anonymizes_expected_fields(pro):
+    original_pk = pro.pk
+    original_professional_situation = pro.professional_situation
+    original_engagements = pro.engagements
+    original_postal_code = pro.postal_code
+    original_structure_name = pro.structure_name
+    original_structure_id = pro.structure_id
+    original_civility = pro.civility
+    original_job_title = pro.job_title
+
+    pro.deactivate_user()
+    pro.save()
+    pro.refresh_from_db()
+
+    assert not pro.is_active
+    assert not pro.has_usable_password()
+    assert pro.first_name == ""
+    assert pro.last_name == ""
+    assert pro.username == f"deleted_{original_pk}"
+    assert pro.email == f"deleted_{original_pk}@deleted.local"
+    assert pro.login_token_hash == ""
+    assert pro.login_token_expires_at is None
+    assert not pro.brevo_sync_enabled
+
+    assert pro.phone == ""
+    assert pro.faveod_id is None
+    assert pro.jobirl_user_id is None
+    assert pro.jobirl_user_token == ""
+
+    assert pro.professional_situation == original_professional_situation
+    assert pro.engagements == original_engagements
+    assert pro.postal_code == original_postal_code
+    assert pro.structure_name == original_structure_name
+    assert pro.structure_id == original_structure_id
+    assert pro.civility == original_civility
+    assert pro.job_title == original_job_title

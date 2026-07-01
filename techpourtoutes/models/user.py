@@ -2,7 +2,7 @@ import hashlib
 import secrets
 from datetime import timedelta
 
-from django.contrib.auth.models import AbstractUser
+from django.contrib.auth.models import AbstractUser, UserManager
 from django.core.validators import EmailValidator
 from django.db import models
 from django.utils import timezone
@@ -15,6 +15,11 @@ LOGIN_TOKEN_TTL = timedelta(hours=1)
 
 def _hash_login_token(plaintext: str) -> str:
     return hashlib.sha256(plaintext.encode()).hexdigest()
+
+
+class ActiveUserManager(UserManager):
+    def get_queryset(self):
+        return super().get_queryset().filter(is_active=True)
 
 
 class User(BaseModel, AbstractUser):
@@ -38,6 +43,13 @@ class User(BaseModel, AbstractUser):
         verbose_name=_("synchroniser avec Brevo"),
         help_text=_("Si décoché, ce compte n'est pas synchronisé vers Brevo."),
     )
+    is_active = models.BooleanField(
+        default=True,
+        verbose_name=_("est un compte activé"),
+        help_text=_("Si décoché, ce compte est désactivé"),
+    )
+    objects = ActiveUserManager()
+    all_objects = models.Manager()
 
     class Meta(AbstractUser.Meta):
         abstract = False
@@ -73,3 +85,18 @@ class User(BaseModel, AbstractUser):
         if not updated:
             return None
         return user
+
+    def deactivate_user(self):
+        self.is_active = False
+        self.set_unusable_password()
+        self.first_name = ""
+        self.last_name = ""
+        self.username = f"deleted_{self.pk}"
+        self.email = f"deleted_{self.pk}@deleted.local"
+        self.login_token_hash = ""
+        self.login_token_expires_at = None
+        self.brevo_sync_enabled = False
+        self.deactivate_specific_fields()
+
+    def deactivate_specific_fields(self):
+        pass
