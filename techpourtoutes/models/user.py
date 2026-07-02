@@ -23,6 +23,8 @@ class ActiveUserManager(UserManager):
 
 
 class User(BaseModel, AbstractUser):
+    objects = ActiveUserManager()
+    all_objects = models.Manager()
     email = models.EmailField(
         _("adresse email"),
         validators=[EmailValidator(message=_("Saisissez une adresse mail valide."))],
@@ -48,8 +50,6 @@ class User(BaseModel, AbstractUser):
         verbose_name=_("est un compte activé"),
         help_text=_("Si décoché, ce compte est désactivé"),
     )
-    objects = ActiveUserManager()
-    all_objects = models.Manager()
 
     class Meta(AbstractUser.Meta):
         abstract = False
@@ -86,7 +86,7 @@ class User(BaseModel, AbstractUser):
             return None
         return user
 
-    def deactivate_user(self):
+    def soft_delete(self):
         self.is_active = False
         self.set_unusable_password()
         self.first_name = ""
@@ -96,7 +96,3 @@ class User(BaseModel, AbstractUser):
         self.login_token_hash = ""
         self.login_token_expires_at = None
         self.brevo_sync_enabled = False
-        self.deactivate_specific_fields()
-
-    def deactivate_specific_fields(self):
-        pass

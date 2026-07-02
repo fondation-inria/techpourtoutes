@@ -10,13 +10,12 @@ from django.urls import reverse
 from django.utils.http import url_has_allowed_host_and_scheme
 from django.views.decorators.http import require_POST
 
-from techpourtoutes.forms.delete_account_form import DeleteAccountForm
-from techpourtoutes.mailers.coalition_internal_mailer import CoalitionInternalMailer
-from techpourtoutes.mailers.coalition_user_mailer import CoalitionUserMailer
+from techpourtoutes.services.soft_delete_account import SoftDeleteAccount
 
 from ..forms import (
     AccountEditForm,
     CommunicationForm,
+    DeleteAccountForm,
     LoginRequestForm,
     TrainingExperienceForm,
 )
@@ -214,22 +213,20 @@ def delete_account(request):
     user = request.user.pro if hasattr(request.user, "pro") else request.user
     form = DeleteAccountForm(request.POST)
     if form.is_valid():
-        recipient_email = user.email
-        first_name = user.first_name
-        last_name = user.last_name
-        engagements = user.engagements
-        jobirl_id = user.jobirl_user_id
-        user.deactivate_user()
-        user.save()
+        result = SoftDeleteAccount(user=user)
+        if result.failure:
+            for error in result.errors:
+                messages.error(request, error)
+            return render(
+                request,
+                "account/partials/delete_account_modal.html",
+                {"form": form},
+            )
         logout(request)
-        CoalitionUserMailer.delete_account(
-            recipient_email=recipient_email, first_name=first_name, engagements=engagements
-        )
-        CoalitionInternalMailer.delete_account_request(
-            first_name=first_name, last_name=last_name, jobirl_id=jobirl_id
-        )
         messages.success(request, "Votre compte a été supprimé.")
-        return HttpResponse('<script>window.location = "/";</script>')
+        response = HttpResponse()
+        response["HX-Redirect"] = "/"
+        return response
     return render(
         request,
         "account/partials/delete_account_modal.html",

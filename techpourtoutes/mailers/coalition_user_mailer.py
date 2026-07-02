@@ -31,7 +31,7 @@ class CoalitionUserMailer(BaseMailer):
     def delete_account(cls, *, recipient_email, first_name, engagements):
         is_mentor = Pro.Engagement.MENTOR in engagements
         cls.send_mail(
-            subject="TechPourToutes - Confirmation de suppression de votre compte",
+            subject="Confirmation de suppression de votre compte",
             context={"first_name": first_name, "is_mentor": is_mentor},
             recipient_list=[recipient_email],
             tags=["utilisateur", "coalition", "suppression du compte"],
