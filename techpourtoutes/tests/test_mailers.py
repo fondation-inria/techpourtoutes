@@ -163,7 +163,7 @@ def test_delete_account_sends_confirmation_email_to_user(pro):
     assert len(mail.outbox) == 1
     message = mail.outbox[0]
     assert message.to == [pro.email]
-    assert message.subject == "TechPourToutes - Confirmation de suppression de votre compte"
+    assert message.subject == "Confirmation de suppression de votre compte"
     assert pro.first_name in message.body
 
 

@@ -273,7 +273,7 @@ def test_training_experience_links_pro_and_higher_ed_school(pro, higher_ed_schoo
 
 
 @pytest.mark.django_db
-def test_deactivate_user_anonymizes_expected_fields(pro):
+def test_soft_delete_anonymizes_expected_fields(pro):
     original_pk = pro.pk
     original_professional_situation = pro.professional_situation
     original_engagements = pro.engagements
@@ -283,7 +283,7 @@ def test_deactivate_user_anonymizes_expected_fields(pro):
     original_civility = pro.civility
     original_job_title = pro.job_title
 
-    pro.deactivate_user()
+    pro.soft_delete()
     pro.save()
     pro.refresh_from_db()
 

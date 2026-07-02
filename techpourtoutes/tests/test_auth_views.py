@@ -455,47 +455,28 @@ def test_delete_account_with_invalid_form_rerenders_modal(client, pro):
     assert pro.is_active
 
 
-@patch("techpourtoutes.views.auth_views.CoalitionInternalMailer.delete_account_request")
-@patch("techpourtoutes.views.auth_views.CoalitionUserMailer.delete_account")
+@patch("techpourtoutes.views.auth_views.SoftDeleteAccount")
 @pytest.mark.django_db
-def test_delete_account_post_valid_deactivates_user_logs_out_and_sends_emails(
-    mock_user_mail,
-    mock_internal_mail,
+def test_delete_account_post_valid_logs_out_redirects_and_shows_success_message(
+    mock_service,
     client,
     pro,
 ):
     client.force_login(pro)
 
-    recipient_email = pro.email
-    first_name = pro.first_name
-    last_name = pro.last_name
-    engagements = pro.engagements
-    jobirl_id = pro.jobirl_user_id
+    mock_service.return_value.failure = False
 
     response = client.post(
         reverse("delete_account"),
         data={"confirm_delete": True},
     )
 
-    assert response.status_code == 200
-    assert response.content.decode() == '<script>window.location = "/";</script>'
+    mock_service.assert_called_once_with(user=pro)
 
-    pro.refresh_from_db()
-    assert not pro.is_active
+    assert response.status_code == 200
+    assert response["HX-Redirect"] == "/"
 
     assert client.session.get("_auth_user_id") is None
-
-    mock_user_mail.assert_called_once_with(
-        recipient_email=recipient_email,
-        first_name=first_name,
-        engagements=engagements,
-    )
-
-    mock_internal_mail.assert_called_once_with(
-        first_name=first_name,
-        last_name=last_name,
-        jobirl_id=jobirl_id,
-    )
 
     stored = [str(m) for m in get_messages(response.wsgi_request)]
     assert any("Votre compte a été supprimé." in m for m in stored)
