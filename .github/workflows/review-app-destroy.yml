@@ -1,0 +1,46 @@
+name: "Destroy review app"
+
+on:
+  pull_request:
+    types: [closed]
+  issue_comment:
+    types: [created]
+
+permissions:
+  contents: read
+  issues: write
+
+jobs:
+  destroy:
+    if: >
+      github.event_name == 'pull_request' ||
+      (
+        github.event.issue.pull_request != null &&
+        startsWith(github.event.comment.body, '/destroy-review-app') &&
+        contains(fromJSON('["OWNER", "MEMBER", "COLLABORATOR"]'), github.event.comment.author_association)
+      )
+    runs-on: ubuntu-latest
+    environment: review-app
+    concurrency:
+      group: review-app-destroy-${{ github.event.pull_request.number || github.event.issue.number }}
+      cancel-in-progress: true
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: ./.github/actions/install-scalingo-cli
+
+      - run: scalingo login --api-token ${{ secrets.SCALINGO_API_TOKEN }}
+
+      - name: Destroy review app
+        id: destroy
+        continue-on-error: true
+        env:
+          PR_NUMBER: ${{ github.event.pull_request.number || github.event.issue.number }}
+        run: scalingo --app "techpourtoutes-staging-pr${PR_NUMBER}" destroy --force
+
+      - name: Comment PR with destroy result
+        if: github.event_name == 'issue_comment'
+        uses: peter-evans/create-or-update-comment@v4
+        with:
+          issue-number: ${{ github.event.issue.number }}
+          body: ${{ steps.destroy.outcome == 'success' && 'Review app supprimée.' || 'Échec de la suppression de la review app (voir les logs du workflow).' }}

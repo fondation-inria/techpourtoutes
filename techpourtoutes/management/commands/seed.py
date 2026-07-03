@@ -3,28 +3,26 @@ from django.core.management.base import BaseCommand, CommandError
 
 from techpourtoutes.models import Pro
 
-ADMIN_EMAIL = "admin@techpourtoutes.io"
-ADMIN_PASSWORD = "admin"
-
 
 class Command(BaseCommand):
     help = "Seed the database with minimal dev data"
 
     def handle(self, *args, **options):
-        if not settings.DEBUG:
+        if not settings.SEED_ENABLED:
             raise CommandError(
-                "seed creates an account with a well-known password and is for local "
-                "development only; it refuses to run with DEBUG=False."
+                "seed creates an account with a well-known-by-default password; it refuses "
+                "to run unless SEED_ENABLED is set."
             )
         self._create_admin_pro()
 
     def _create_admin_pro(self):
-        if Pro.objects.filter(email=ADMIN_EMAIL).exists():
-            self.stdout.write(f"  Admin pro {ADMIN_EMAIL} already exists, skipping.")
+        email = settings.SEED_ADMIN_EMAIL
+        if Pro.objects.filter(email=email).exists():
+            self.stdout.write(f"  Admin pro {email} already exists, skipping.")
             return
         pro = Pro(
-            username=ADMIN_EMAIL,
-            email=ADMIN_EMAIL,
+            username=email,
+            email=email,
             first_name="Admin",
             last_name="TechPourToutes",
             civility=Pro.Civility.MADAME,
@@ -37,8 +35,8 @@ class Command(BaseCommand):
             is_staff=True,
         )
         pro.save()
-        pro.set_password(ADMIN_PASSWORD)
+        pro.set_password(settings.SEED_ADMIN_PASSWORD)
         pro.save(update_fields=["password"])
         self.stdout.write(
-            self.style.SUCCESS(f"  Admin pro created: {ADMIN_EMAIL} / {ADMIN_PASSWORD}")
+            self.style.SUCCESS(f"  Admin pro created: {email} / {settings.SEED_ADMIN_PASSWORD}")
         )

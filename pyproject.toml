@@ -21,6 +21,7 @@ dependencies = [
   "django-phonenumber-field>=8.4",
   "django-simple-history>=3.11",
   "django-tailwind-cli>=4.6",
+  "django-waffle>=5",
   "gunicorn>=25.3",
   "httpx>=0.28.1",
   "ipython>=9.12",

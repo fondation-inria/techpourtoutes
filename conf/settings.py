@@ -27,6 +27,14 @@ ALLOWED_HOSTS = env.list("ALLOWED_HOSTS")
 SITE_URL = env("HOST", default="https://localhost:8000").rstrip("/")
 # Admin is mounted at this path; override in production to a non-guessable value.
 ADMIN_URL = env("ADMIN_URL", default="admin").strip("/")
+# Escape hatch to disable the admin 2FA requirement outside local dev (e.g. review apps).
+DISABLE_ADMIN_2FA = env.bool("DISABLE_ADMIN_2FA", default=False)
+
+# `manage.py seed` creates an admin account with a well-known-by-default password. Enabled by
+# default in local dev (DEBUG); review apps opt in explicitly since they run with DEBUG=False.
+SEED_ENABLED = env.bool("SEED_ENABLED", default=DEBUG)
+SEED_ADMIN_EMAIL = env("SEED_ADMIN_EMAIL", default="admin@techpourtoutes.io")
+SEED_ADMIN_PASSWORD = env("SEED_ADMIN_PASSWORD", default="admin")
 DATABASES = {
     "default": {
         **env.db("DATABASE_URL"),
@@ -55,6 +63,7 @@ INSTALLED_APPS = [
     "django_otp",
     "django_otp.plugins.otp_totp",
     "axes",
+    "waffle",
     # Apps techpourtoutes
     "techpourtoutes",
     "ui",

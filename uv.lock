@@ -240,6 +240,7 @@ dependencies = [
     { name = "django-phonenumber-field" },
     { name = "django-simple-history" },
     { name = "django-tailwind-cli" },
+    { name = "django-waffle" },
     { name = "gunicorn" },
     { name = "httpx" },
     { name = "ipython" },
@@ -275,6 +276,7 @@ requires-dist = [
     { name = "django-phonenumber-field", specifier = ">=8.4" },
     { name = "django-simple-history", specifier = ">=3.11" },
     { name = "django-tailwind-cli", specifier = ">=4.6" },
+    { name = "django-waffle", specifier = ">=5.0.0" },
     { name = "gunicorn", specifier = ">=25.3" },
     { name = "httpx", specifier = ">=0.28.1" },
     { name = "ipython", specifier = ">=9.12" },
@@ -292,7 +294,7 @@ dev = [
     { name = "pytest-cov", specifier = ">=7.1" },
     { name = "pytest-django", specifier = ">=4.12" },
     { name = "pytest-httpx", specifier = ">=0.36.2" },
-    { name = "pytest-playwright", specifier = ">=0.8.0" },
+    { name = "pytest-playwright", specifier = ">=0.8" },
     { name = "ruff", specifier = ">=0.15.11" },
 ]
 
@@ -490,6 +492,18 @@ dependencies = [
 sdist = { url = "https://files.pythonhosted.org/packages/a8/3e/2c22722c02cbae3a1ba65a11b4764418562dd0962f533463dd4b8e2afb0f/django_typer-3.7.1.tar.gz", hash = "sha256:e20720f2f85e30db86be6abd2d5f67e673cfe0bebf7ef4ddd22c37bf8699ea06", size = 2975518, upload-time = "2026-03-31T23:14:15.061Z" }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/09/42/eceab8bfc51c43d9dca812fe7922d4eaaa4699a12e3eec3760adc3570e80/django_typer-3.7.1-py3-none-any.whl", hash = "sha256:239518e2ab93b3f5190a79e186589ef2f0c9c4344b6e004b49675ef8755dd4a3", size = 296773, upload-time = "2026-03-31T23:14:12.367Z" },
+]
+
+[[package]]
+name = "django-waffle"
+version = "5.0.0"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "django" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/22/e1/6f533da0d4ac89f427dfd9410e39bfc14ae3a23335ecd549d76be4b2a834/django_waffle-5.0.0.tar.gz", hash = "sha256:62f9d00eedf68dafb82657beab56e601bddedc1ea1ccfef91d83df8658708509", size = 37761, upload-time = "2025-06-12T07:38:54.895Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/7a/d2/6f0d664bd35a3fdd0403655c7c32ec290704923f11541ef356b180cd8fbf/django_waffle-5.0.0-py3-none-any.whl", hash = "sha256:3312851d9d926b76b9e90712355781700a383b82b5bf2b61e1f1be97532c0f3d", size = 48137, upload-time = "2025-06-12T07:38:53.698Z" },
 ]
 
 [[package]]

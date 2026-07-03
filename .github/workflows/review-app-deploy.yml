@@ -1,0 +1,146 @@
+name: "Deploy review app"
+
+on:
+  issue_comment:
+    types: [created]
+
+permissions:
+  contents: read
+  pull-requests: write
+  issues: write
+
+jobs:
+  deploy:
+    if: >
+      github.event.issue.pull_request != null &&
+      startsWith(github.event.comment.body, '/deploy-review-app') &&
+      contains(fromJSON('["OWNER", "MEMBER", "COLLABORATOR"]'), github.event.comment.author_association)
+    runs-on: ubuntu-latest
+    environment: review-app
+    concurrency:
+      group: review-app-deploy-${{ github.event.issue.number }}
+      cancel-in-progress: true
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: ./.github/actions/install-scalingo-cli
+
+      - run: scalingo login --api-token ${{ secrets.SCALINGO_API_TOKEN }}
+
+      - name: Set PR number
+        id: pr
+        run: echo "number=${{ github.event.issue.number }}" >> "$GITHUB_OUTPUT"
+
+      - name: Create review app and wait for its first deploy
+        id: review-app
+        env:
+          PR_NUMBER: ${{ steps.pr.outputs.number }}
+          SCALINGO_API_TOKEN: ${{ secrets.SCALINGO_API_TOKEN }}
+          SCALINGO_API_URL: https://api.osc-fr1.scalingo.com
+        run: |
+          bearer=$(curl -sf -u ":$SCALINGO_API_TOKEN" -X POST https://auth.scalingo.com/v1/tokens/exchange | jq -r .token)
+
+          find_review_app() {
+            curl -sf -H "Authorization: Bearer $bearer" \
+              "$SCALINGO_API_URL/v1/apps/techpourtoutes-staging/scm_repo_link/review_apps" |
+              jq -c --arg pr "$PR_NUMBER" '.review_apps[] | select(.pull_request.number == ($pr | tonumber))'
+          }
+
+          review_app=$(find_review_app)
+          if [ -z "$review_app" ]; then
+            echo "Creating review app for PR $PR_NUMBER..."
+            scalingo --app techpourtoutes-staging integration-link-manual-review-app --aware-of-security-risks "$PR_NUMBER"
+          else
+            echo "Review app for PR $PR_NUMBER already exists."
+          fi
+
+          status=""
+          for i in $(seq 1 30); do
+            review_app=$(find_review_app)
+            status=$(echo "$review_app" | jq -r '.last_deployment.status // empty')
+            [ "$status" = "success" ] && break
+            echo "Waiting for review app deploy to finish (status: ${status:-pending})..."
+            sleep 10
+          done
+
+          if [ "$status" != "success" ]; then
+            echo "Timed out waiting for the review app deploy to succeed." >&2
+            exit 1
+          fi
+
+          app_name=$(echo "$review_app" | jq -r '.app_name')
+          url=$(curl -sf -H "Authorization: Bearer $bearer" "$SCALINGO_API_URL/v1/apps/$app_name" | jq -r '.app.url')
+          echo "url=$url" >> "$GITHUB_OUTPUT"
+
+      - name: Configure review app host
+        env:
+          REVIEW_APP: techpourtoutes-staging-pr${{ steps.pr.outputs.number }}
+          URL: ${{ steps.review-app.outputs.url }}
+        run: |
+          domain="${URL#https://}"
+          domain="${domain#http://}"
+          domain="${domain%%/*}"
+          scalingo --app "$REVIEW_APP" env-set \
+            "ALLOWED_HOSTS=$domain" "HOST=$URL" "DISABLE_ADMIN_2FA=true" "SEED_ENABLED=true"
+
+      - name: Parse extra env vars from comment
+        id: extra-env
+        uses: actions/github-script@v7
+        env:
+          COMMENT_BODY: ${{ github.event.comment.body }}
+        with:
+          script: |
+            const body = process.env.COMMENT_BODY || "";
+            const tokens = body.trim().split(/\s+/).slice(1);
+            const setPattern = /^[A-Z_][A-Z0-9_]*=.*$/;
+            const unsetPattern = /^[A-Z_][A-Z0-9_]*-$/;
+            const sets = [];
+            const unsets = [];
+            for (const token of tokens) {
+              if (setPattern.test(token)) {
+                sets.push(token);
+              } else if (unsetPattern.test(token)) {
+                unsets.push(token.slice(0, -1));
+              } else {
+                core.setFailed(`Token invalide dans le commentaire : "${token}". Utilisez KEY=VALUE ou KEY-.`);
+                return;
+              }
+            }
+            core.setOutput("sets", JSON.stringify(sets));
+            core.setOutput("unsets", JSON.stringify(unsets));
+
+      - name: Apply extra env vars
+        env:
+          REVIEW_APP: techpourtoutes-staging-pr${{ steps.pr.outputs.number }}
+          SETS_JSON: ${{ steps.extra-env.outputs.sets }}
+          UNSETS_JSON: ${{ steps.extra-env.outputs.unsets }}
+        run: |
+          echo "$SETS_JSON" | jq -r '.[]' | while IFS= read -r pair; do
+            scalingo --app "$REVIEW_APP" env-set "$pair"
+          done
+          echo "$UNSETS_JSON" | jq -r '.[]' | while IFS= read -r key; do
+            scalingo --app "$REVIEW_APP" env-unset "$key"
+          done
+
+      - name: Seed review app
+        env:
+          REVIEW_APP: techpourtoutes-staging-pr${{ steps.pr.outputs.number }}
+        run: scalingo --app "$REVIEW_APP" run make seed
+
+      - name: Find existing review app comment
+        uses: peter-evans/find-comment@v3
+        id: find-comment
+        with:
+          issue-number: ${{ steps.pr.outputs.number }}
+          comment-author: "github-actions[bot]"
+          body-includes: "Review app :"
+
+      - name: Comment PR with review app URL
+        uses: peter-evans/create-or-update-comment@v4
+        with:
+          comment-id: ${{ steps.find-comment.outputs.comment-id }}
+          issue-number: ${{ steps.pr.outputs.number }}
+          edit-mode: replace
+          body: |
+            Review app :
+            ${{ steps.review-app.outputs.url }}
