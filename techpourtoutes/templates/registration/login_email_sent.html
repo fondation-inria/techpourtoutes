@@ -1,4 +1,4 @@
-<c-layout.base>
+<c-layout.auth_base>
     <div class="flex flex-col min-h-[80dvh] md:min-w-[560px] w-full items-center justify-center gap-y-8">
         <c-components.card class="py-8">
             <c-components.title title="Se connecter" variant="h1" class="text-center justify-center mb-4" />
@@ -16,11 +16,12 @@
 
             <c-patterns.form url="{% url 'login_request' %}" class="mt-2">
                 <input type="hidden" name="email" value="{{ email }}">
+                <input type="hidden" name="exit" value="{{ exit }}">
                 <c-components.button type="submit" label="Demander l'envoi d'un nouvel email" variant="quaternary" class="text-left w-fit" />
             </c-patterns.form>
 
             <c-components.title title="L'adresse mail saisie est erronée ?" variant="intertitre" class="mt-5 mb-3" />
-            <c-components.button href="{% url 'login_request' %}" label="Modifier mon adresse mail" variant="quaternary" class="block w-fit" />
+            <c-components.button href="{% url 'login_request' %}?exit={{ exit|urlencode }}" label="Modifier mon adresse mail" variant="quaternary" class="block w-fit" />
         </c-components.card>
         <div class="flex items-center">
             <p class="text-sm text-center">
@@ -36,4 +37,4 @@
             de TechPourToutes.
         </p>
     </div>
-</c-layout.base>
+</c-layout.auth_base>
