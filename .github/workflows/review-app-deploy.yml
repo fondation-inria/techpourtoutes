@@ -79,7 +79,8 @@ jobs:
           domain="${URL#https://}"
           domain="${domain#http://}"
           domain="${domain%%/*}"
-          scalingo --app "$REVIEW_APP" env-set "ALLOWED_HOSTS=$domain" "HOST=$URL" "DISABLE_ADMIN_2FA=true"
+          scalingo --app "$REVIEW_APP" env-set \
+            "ALLOWED_HOSTS=$domain" "HOST=$URL" "DISABLE_ADMIN_2FA=true" "SEED_ENABLED=true"
 
       - name: Parse extra env vars from comment
         id: extra-env
