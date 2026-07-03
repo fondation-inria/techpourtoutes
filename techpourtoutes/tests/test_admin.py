@@ -70,6 +70,13 @@ def test_admin_accessible_with_verified_otp_device(verified_admin_client):
 
 
 @pytest.mark.django_db
+def test_admin_2fa_can_be_disabled_outside_debug(client, admin_pro):
+    client.force_login(admin_pro)  # authenticated, no verified second factor
+    with override_settings(DISABLE_ADMIN_2FA=True):
+        assert client.get(reverse("admin:index")).status_code == 200
+
+
+@pytest.mark.django_db
 @pytest.mark.parametrize("model_name", ["user", "pro"])
 def test_admin_never_exposes_credential_fields(verified_admin_client, admin_pro, model_name):
     admin_pro.issue_login_token()  # populates login_token_hash

@@ -31,7 +31,8 @@
       "Bash(pwd)",
       "Read(**/.env.example)",
       "Read(.env.example)",
-      "WebFetch(domain:developers.brevo.com)"
+      "WebFetch(domain:developers.brevo.com)",
+      "WebFetch(domain:doc.scalingo.com)"
     ],
     "deny": [
       "Bash(uv run python manage.py flush *)",

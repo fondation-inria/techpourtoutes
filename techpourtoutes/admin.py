@@ -7,21 +7,26 @@ from .models import Pro, User
 
 
 class AdminSiteWith2FA(OTPAdminSite):
-    # Require a verified TOTP device (2FA) for admin access, except in local development (DEBUG),
-    # where the stock login form and permissions apply so no second factor is needed. DEBUG is
-    # read per request because admin autodiscover runs before the test runner forces DEBUG=False.
+    # Require a verified TOTP device (2FA) for admin access, except in local development (DEBUG)
+    # or when explicitly disabled (DISABLE_ADMIN_2FA, e.g. review apps), where the stock login
+    # form and permissions apply so no second factor is needed. Settings are read per request
+    # because admin autodiscover runs before the test runner forces DEBUG=False.
     @property
     def login_form(self):
-        return None if settings.DEBUG else OTPAdminSite.login_form
+        return None if self._2fa_disabled() else OTPAdminSite.login_form
 
     @property
     def login_template(self):
-        return None if settings.DEBUG else OTPAdminSite.login_template
+        return None if self._2fa_disabled() else OTPAdminSite.login_template
 
     def has_permission(self, request):
-        if settings.DEBUG:
+        if self._2fa_disabled():
             return AdminSite.has_permission(self, request)
         return super().has_permission(request)
+
+    @staticmethod
+    def _2fa_disabled():
+        return settings.DEBUG or settings.DISABLE_ADMIN_2FA
 
 
 admin.site.__class__ = AdminSiteWith2FA

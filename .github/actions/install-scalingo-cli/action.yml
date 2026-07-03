@@ -1,0 +1,10 @@
+name: "Install Scalingo CLI"
+
+runs:
+  using: "composite"
+  steps:
+    - name: Install Scalingo CLI (latest)
+      shell: bash
+      run: |
+        wget -qO- https://cli-dl.scalingo.com/install.sh | bash
+        echo "$HOME/bin" >> "$GITHUB_PATH"
