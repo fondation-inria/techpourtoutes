@@ -31,24 +31,23 @@ jobs:
         id: pr
         run: echo "number=${{ github.event.issue.number }}" >> "$GITHUB_OUTPUT"
 
-      # `scalingo review-apps` prints a table (App | PR | PR Branch | Created At | Status | URL)
-      # for every review app of the parent. Splitting on "|" survives the box-drawing borders;
-      # trimming handles the padding. It's the only command that reports both deploy status and
-      # URL for a given PR, so it doubles as our "does it exist yet" and "is it ready" check.
       - name: Create review app and wait for its first deploy
         id: review-app
         env:
           PR_NUMBER: ${{ steps.pr.outputs.number }}
+          SCALINGO_API_TOKEN: ${{ secrets.SCALINGO_API_TOKEN }}
+          SCALINGO_API_URL: https://api.osc-fr1.scalingo.com
         run: |
-          find_row() {
-            scalingo --app techpourtoutes-staging review-apps | awk -F'|' -v pr="$PR_NUMBER" '
-              { gsub(/^[ \t]+|[ \t]+$/, "", $3) }
-              $3 == pr { gsub(/^[ \t]+|[ \t]+$/, "", $6); gsub(/^[ \t]+|[ \t]+$/, "", $7); print $6 "|" $7 }
-            '
+          bearer=$(curl -sf -u ":$SCALINGO_API_TOKEN" -X POST https://auth.scalingo.com/v1/tokens/exchange | jq -r .token)
+
+          find_review_app() {
+            curl -sf -H "Authorization: Bearer $bearer" \
+              "$SCALINGO_API_URL/v1/apps/techpourtoutes-staging/scm_repo_link/review_apps" |
+              jq -c --arg pr "$PR_NUMBER" '.review_apps[] | select(.pull_request.number == ($pr | tonumber))'
           }
 
-          row=$(find_row)
-          if [ -z "$row" ]; then
+          review_app=$(find_review_app)
+          if [ -z "$review_app" ]; then
             echo "Creating review app for PR $PR_NUMBER..."
             scalingo --app techpourtoutes-staging integration-link-manual-review-app --aware-of-security-risks "$PR_NUMBER"
           else
@@ -57,8 +56,8 @@ jobs:
 
           status=""
           for i in $(seq 1 30); do
-            row=$(find_row)
-            status="${row%%|*}"
+            review_app=$(find_review_app)
+            status=$(echo "$review_app" | jq -r '.last_deployment.status // empty')
             [ "$status" = "success" ] && break
             echo "Waiting for review app deploy to finish (status: ${status:-pending})..."
             sleep 10
@@ -69,7 +68,9 @@ jobs:
             exit 1
           fi
 
-          echo "url=${row#*|}" >> "$GITHUB_OUTPUT"
+          app_name=$(echo "$review_app" | jq -r '.app_name')
+          url=$(curl -sf -H "Authorization: Bearer $bearer" "$SCALINGO_API_URL/v1/apps/$app_name" | jq -r '.app.url')
+          echo "url=$url" >> "$GITHUB_OUTPUT"
 
       - name: Configure review app host
         env:
