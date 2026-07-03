@@ -96,3 +96,4 @@ class User(BaseModel, AbstractUser):
         self.login_token_hash = ""
         self.login_token_expires_at = None
         self.brevo_sync_enabled = False
+        self.save()

@@ -83,11 +83,11 @@ class Pro(User):
             self.engagements.append(engagement)
 
     def soft_delete(self):
-        super().soft_delete()
         self.phone = ""
         self.faveod_id = None
         self.jobirl_user_id = None
         self.jobirl_user_token = ""
+        super().soft_delete()
 
 
 connect_brevo_sync(Pro)

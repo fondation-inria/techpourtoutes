@@ -12,7 +12,6 @@ class SoftDeleteAccount(BaseService):
         engagements = user.engagements
         jobirl_id = user.jobirl_user_id
         user.soft_delete()
-        user.save()
         CoalitionUserMailer.delete_account(
             recipient_email=recipient_email, first_name=first_name, engagements=engagements
         )
