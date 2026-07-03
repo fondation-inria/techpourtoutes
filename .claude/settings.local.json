@@ -32,7 +32,8 @@
       "Read(**/.env.example)",
       "Read(.env.example)",
       "WebFetch(domain:developers.brevo.com)",
-      "WebFetch(domain:doc.scalingo.com)"
+      "WebFetch(domain:doc.scalingo.com)",
+      "WebFetch(domain:developers.scalingo.com)"
     ],
     "deny": [
       "Bash(uv run python manage.py flush *)",
