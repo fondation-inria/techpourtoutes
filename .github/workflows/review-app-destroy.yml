@@ -8,7 +8,6 @@ on:
 
 permissions:
   contents: read
-  issues: write
 
 jobs:
   destroy:
@@ -25,7 +24,7 @@ jobs:
       group: review-app-destroy-${{ github.event.pull_request.number || github.event.issue.number }}
       cancel-in-progress: true
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       - uses: ./.github/actions/install-scalingo-cli
 
@@ -38,9 +37,18 @@ jobs:
           PR_NUMBER: ${{ github.event.pull_request.number || github.event.issue.number }}
         run: scalingo --app "techpourtoutes-staging-pr${PR_NUMBER}" destroy --force
 
+      - name: Generate app token for PR comment
+        id: app-token
+        if: github.event_name == 'issue_comment'
+        uses: actions/create-github-app-token@v3
+        with:
+          app-id: ${{ secrets.APP_ID }}
+          private-key: ${{ secrets.APP_PRIVATE_KEY }}
+
       - name: Comment PR with destroy result
         if: github.event_name == 'issue_comment'
-        uses: peter-evans/create-or-update-comment@v4
+        uses: peter-evans/create-or-update-comment@v5
         with:
+          token: ${{ steps.app-token.outputs.token }}
           issue-number: ${{ github.event.issue.number }}
           body: ${{ steps.destroy.outcome == 'success' && 'Review app supprimée.' || 'Échec de la suppression de la review app (voir les logs du workflow).' }}
