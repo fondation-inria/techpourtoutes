@@ -36,3 +36,13 @@ class CoalitionInternalMailer(BaseMailer):
             },
             tags=["interne", "coalition", "nouvelle demande d'engagement"],
         )
+
+    @classmethod
+    def delete_account_request(cls, *, first_name, last_name, jobirl_id):
+        recipient_list = settings.COALITION_ACCOUNT_DELETION_RECIPIENTS
+        cls.send_mail(
+            subject="Demande de suppression de données personnelles",
+            context={"first_name": first_name, "last_name": last_name, "jobirl_id": jobirl_id},
+            recipient_list=recipient_list,
+            tags=["interne", "coalition", "suppression du compte"],
+        )

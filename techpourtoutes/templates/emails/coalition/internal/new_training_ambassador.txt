@@ -7,4 +7,5 @@ Peux-tu {% if pro.civility == "Madame" %}la{% else %}le{% endif %} recontacter ?
 - {{ pro.email }}
 {% if pro.phone %}- {{ pro.phone|phone_national }}{% endif %}
 
+Bonne journée
 L'équipe TechPourToutes

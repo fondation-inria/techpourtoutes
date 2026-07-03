@@ -5,14 +5,19 @@
     type="button"
     base_class="inline-block px-6 py-3 rounded-sm text-sm font-medium leading-[1.4] focus-visible:outline-none focus-visible:border"
     primary_class="bg-primary-700 text-neutral-0 shadow-bottom-and-right shadow-black focus-visible:border-neutral-0 hover:bg-primary-500 active:bg-primary-500 cursor-pointer"
+    primary_danger_class="bg-error-700 text-neutral-0 shadow-bottom-and-right shadow-black focus-visible:border-neutral-0 hover:bg-error-500 active:bg-error-500 cursor-pointer"
     secondary_class="bg-neutral-0 text-primary-700 shadow-bottom-and-right shadow-primary-700 border border-primary-700 focus-visible:border-neutral-0 hover:border-primary-500 hover:shadow-primary-500 hover:text-primary-500 active:bg-primary-700 active:text-neutral-0 active:border-neutral-0 cursor-pointer"
-    tertiary_class="text-neutral-950 text-[11px] hover:bg-primary-50 active:bg-primary-100 focus:outline-primary-500 focus:outline-offset-2"
+    tertiary_class="text-neutral-950 hover:bg-primary-50 active:bg-primary-100 focus:outline-primary-500 focus:outline-offset-2 cursor-pointer"
+    tertiary_sm_class="text-[11px]"
+    tertiary_lg_class="text-sm font-medium p-3 rounded-sm"
     quaternary_class="text-primary-700 font-medium focus:outline-primary-500 focus:outline-offset-2"
+    danger_class="text-error-700 hover:bg-error-50 active:bg-error-100 active:text-error-900 focus:outline-error-500 focus:outline-offset-2 cursor-pointer"
     disabled_primary_class="bg-neutral-300 text-black cursor-not-allowed select-none shadow-black"
     disabled_secondary_class="bg-neutral-500 text-neutral-0 cursor-not-allowed select-none shadow-black"
     disabled_tertiary_class="text-neutral-500 cursor-not-allowed"
-    disabled_quaternary_class="text-primary-700 font-medium cursor-not-allowed"
+    disabled_quaternary_class="text-primary-700 cursor-not-allowed"
     icon_class="gap-x-2"
+    size=""
     class=""
     variant=""
     icon=""
@@ -25,8 +30,17 @@
                 {{ base_class }} {{ secondary_class }}
             {% elif variant == "tertiary" %}
                 {{ tertiary_class }}
+                {% if size == "sm" %}
+                    {{ tertiary_sm_class }}
+                {% else %}
+                    {{ tertiary_lg_class }}
+                {% endif %}
             {% elif variant == "quaternary" %}
                 {{ quaternary_class }}
+            {% elif variant == "danger" %}
+                {{ base_class }} {{ danger_class }}
+            {% elif variant == "primary_danger" %}
+                {{ base_class }} {{ primary_danger_class }}
             {% else %}
                 {{ base_class }} {{ primary_class }}
             {% endif %}
@@ -35,7 +49,7 @@
         >
             <div class="flex
                 {% if icon %}{{ icon_class }}{% endif %}
-                {% if variant != "tertiary" and variant != "quaternary" %}
+                {% if "primary" in variant or variant == "secondary" %}
                     justify-center
                 {% endif %}
             ">
@@ -50,8 +64,13 @@
                 {% if disabled %}
                     {% if variant == "secondary" %}
                         {{ base_class }} {{ disabled_secondary_class }}
-                    {% elif variant == "tertiary" %}
+                    {% elif variant == "tertiary" or variant == "danger" %}
                         {{ disabled_tertiary_class }}
+                        {% if size == "sm" %}
+                            {{ tertiary_sm_class }}
+                        {% else %}
+                            {{ tertiary_lg_class }}
+                        {% endif %}
                     {% elif variant == "quaternary" %}
                         {{ disabled_quaternary_class }}
                     {% else %}
@@ -62,8 +81,17 @@
                         {{ base_class }} {{ secondary_class }}
                     {% elif variant == "tertiary" %}
                         {{ tertiary_class }}
+                        {% if size == "sm" %}
+                            {{ tertiary_sm_class }}
+                        {% else %}
+                            {{ tertiary_lg_class }}
+                        {% endif %}
                     {% elif variant == "quaternary" %}
                         {{ quaternary_class }}
+                    {% elif variant == "danger" %}
+                        {{ base_class }} {{ danger_class }}
+                    {% elif variant == "primary_danger" %}
+                        {{ base_class }} {{ primary_danger_class }}
                     {% else %}
                         {{ base_class }} {{ primary_class }}
                     {% endif %}
@@ -73,7 +101,7 @@
         >
             <div class="flex
                 {% if icon %}{{ icon_class }}{% endif %}
-                {% if variant != "tertiary" and variant != "quaternary" %}
+                {% if "primary" in variant or variant == "secondary" %}
                     justify-center
                 {% endif %}
             ">

@@ -82,5 +82,12 @@ class Pro(User):
         if engagement not in self.engagements:
             self.engagements.append(engagement)
 
+    def soft_delete(self):
+        self.phone = ""
+        self.faveod_id = None
+        self.jobirl_user_id = None
+        self.jobirl_user_token = ""
+        super().soft_delete()
+
 
 connect_brevo_sync(Pro)

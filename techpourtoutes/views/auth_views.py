@@ -4,15 +4,18 @@ from django.conf import settings
 from django.contrib import messages
 from django.contrib.auth import REDIRECT_FIELD_NAME, get_user_model, login, logout
 from django.contrib.auth.decorators import login_required
-from django.http import Http404
+from django.http import Http404, HttpResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
 from django.utils.http import url_has_allowed_host_and_scheme
 from django.views.decorators.http import require_POST
 
+from techpourtoutes.services.soft_delete_account import SoftDeleteAccount
+
 from ..forms import (
     AccountEditForm,
     CommunicationForm,
+    DeleteAccountForm,
     LoginRequestForm,
     TrainingExperienceForm,
 )
@@ -196,3 +199,36 @@ def logout_view(request):
     logout(request)
     messages.success(request, "Au revoir - Déconnexion réalisée avec succès")
     return redirect("/")
+
+
+@login_required
+def delete_account_modal(request):
+    form = DeleteAccountForm()
+    return render(request, "account/partials/delete_account_modal.html", {"form": form})
+
+
+@require_POST
+@login_required
+def delete_account(request):
+    user = request.user.pro if hasattr(request.user, "pro") else request.user
+    form = DeleteAccountForm(request.POST)
+    if form.is_valid():
+        result = SoftDeleteAccount(user=user)
+        if result.failure:
+            for error in result.errors:
+                messages.error(request, error)
+            return render(
+                request,
+                "account/partials/delete_account_modal.html",
+                {"form": form},
+            )
+        logout(request)
+        messages.success(request, "Votre compte a été supprimé.")
+        response = HttpResponse()
+        response["HX-Redirect"] = "/"
+        return response
+    return render(
+        request,
+        "account/partials/delete_account_modal.html",
+        {"form": form},
+    )

@@ -1,0 +1,11 @@
+<div class="fixed inset-0 z-50 flex items-center justify-center bg-blue-background">
+    <div class="w-full max-w-xl rounded-lg bg-white p-8 mx-2 shadow-lg border border-primary-700">
+        {% if title %}
+            <h2 class="text-3xl text-primary-700 text-center">
+                {{ title }}
+            </h2>
+        {% endif %}
+
+        {{ slot }}
+    </div>
+</div>
