@@ -3,3 +3,5 @@ Bonjour Julie, Manon,
 {{ first_name }} {{ last_name }} a demandé la suppression de son compte sur TechPourToutes. Pouvez-vous supprimer les données de votre côté ou prendre contact avec elle ?
 
 id JobIRL : {{ jobirl_id }}
+
+Bonne journée

@@ -8,3 +8,5 @@ Julie Masmejean
 e-mentorat@jobirl.com
 06 31 59 74 43
 {% endif %}
+
+Bonne journée
