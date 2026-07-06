@@ -20,6 +20,7 @@
     --color-white: #fff;
     --spacing: 0.25rem;
     --container-md: 28rem;
+    --container-lg: 32rem;
     --container-xl: 36rem;
     --container-2xl: 42rem;
     --container-3xl: 48rem;
@@ -36,6 +37,8 @@
     --text-xl--line-height: calc(1.75 / 1.25);
     --text-2xl: 1.5rem;
     --text-2xl--line-height: calc(2 / 1.5);
+    --text-3xl: 1.875rem;
+    --text-3xl--line-height: calc(2.25 / 1.875);
     --text-4xl: 2.25rem;
     --text-4xl--line-height: calc(2.5 / 2.25);
     --text-5xl: 3rem;
@@ -69,8 +72,11 @@
     --color-success-50: #eefaf2;
     --color-success-500: #53ad78;
     --color-warning-500: #ffab00;
+    --color-error-50: #fff1f4;
     --color-error-100: #ffd7df;
     --color-error-500: #ed4b6a;
+    --color-error-700: #b82f4f;
+    --color-error-900: #6d1a2f;
     --color-blue-background: #f4f4ff;
     --text-xxs: 0.625rem;
   }
@@ -281,6 +287,61 @@
             min-width: 95cqi;
             max-width: 95cqi;
           }
+        }
+      }
+    }
+  }
+  .modal {
+    @layer daisyui.l1.l2.l3 {
+      pointer-events: none;
+      visibility: hidden;
+      position: fixed;
+      inset: calc(0.25rem * 0);
+      margin: calc(0.25rem * 0);
+      display: grid;
+      height: 100%;
+      max-height: none;
+      width: 100%;
+      max-width: none;
+      align-items: center;
+      justify-items: center;
+      background-color: transparent;
+      padding: calc(0.25rem * 0);
+      color: inherit;
+      transition: visibility 0.3s allow-discrete, background-color 0.3s ease-out, opacity 0.1s ease-out;
+      overflow: clip;
+      overscroll-behavior: contain;
+      z-index: 999;
+      scrollbar-gutter: auto;
+      &::backdrop {
+        display: none;
+      }
+    }
+    @layer daisyui.l1.l2 {
+      &.modal-open, &[open], &:target, .modal-toggle:checked + & {
+        pointer-events: auto;
+        visibility: visible;
+        opacity: 100%;
+        transition: visibility 0s allow-discrete, background-color 0.3s ease-out, opacity 0.1s ease-out;
+        background-color: oklch(0% 0 0/ 0.4);
+        .modal-box {
+          translate: 0 0;
+          scale: 1;
+          opacity: 1;
+        }
+        :root:has(&) {
+          --page-has-backdrop: 1;
+          --page-overflow: hidden;
+          --page-scroll-bg: var(--page-scroll-bg-on);
+          --page-scroll-gutter: stable;
+          --page-scroll-transition: var(--page-scroll-transition-on);
+          animation: set-page-has-scroll forwards;
+          animation-timeline: scroll();
+        }
+      }
+      @starting-style {
+        &.modal-open, &[open], &:target, .modal-toggle:checked + & {
+          opacity: 0%;
         }
       }
     }
@@ -1645,6 +1706,15 @@
   .sticky {
     position: sticky;
   }
+  .inset-0 {
+    inset: calc(var(--spacing) * 0);
+  }
+  .start {
+    inset-inline-start: var(--spacing);
+  }
+  .end {
+    inset-inline-end: var(--spacing);
+  }
   .-top-5 {
     top: calc(var(--spacing) * -5);
   }
@@ -1790,6 +1860,9 @@
   }
   .mx-auto {
     margin-inline: auto;
+  }
+  .mx-2 {
+    margin-inline: calc(var(--spacing) * 2);
   }
   .my-3 {
     margin-block: calc(var(--spacing) * 3);
@@ -2194,6 +2267,9 @@
   .max-w-\[420px\] {
     max-width: 420px;
   }
+  .max-w-lg {
+    max-width: var(--container-lg);
+  }
   .max-w-md {
     max-width: var(--container-md);
   }
@@ -2428,6 +2504,9 @@
   .bg-error-100 {
     background-color: var(--color-error-100);
   }
+  .bg-error-700 {
+    background-color: var(--color-error-700);
+  }
   .bg-neutral-0 {
     background-color: var(--color-neutral-0);
   }
@@ -2452,6 +2531,9 @@
   .bg-success-50 {
     background-color: var(--color-success-50);
   }
+  .bg-white {
+    background-color: var(--color-white);
+  }
   .object-contain {
     object-fit: contain;
   }
@@ -2472,6 +2554,9 @@
   }
   .p-5 {
     padding: calc(var(--spacing) * 5);
+  }
+  .p-8 {
+    padding: calc(var(--spacing) * 8);
   }
   .px-3 {
     padding-inline: calc(var(--spacing) * 3);
@@ -2530,6 +2615,10 @@
   .text-2xl {
     font-size: var(--text-2xl);
     line-height: var(--tw-leading, var(--text-2xl--line-height));
+  }
+  .text-3xl {
+    font-size: var(--text-3xl);
+    line-height: var(--tw-leading, var(--text-3xl--line-height));
   }
   .text-4xl {
     font-size: var(--text-4xl);
@@ -2636,6 +2725,9 @@
   .text-error-500 {
     color: var(--color-error-500);
   }
+  .text-error-700 {
+    color: var(--color-error-700);
+  }
   .text-neutral-0 {
     color: var(--color-neutral-0);
   }
@@ -2690,6 +2782,10 @@
   }
   .shadow-bottom-and-right {
     --tw-shadow: 4px 4px 0 0 var(--tw-shadow-color, var(--color-primary-700));
+    box-shadow: var(--tw-inset-shadow), var(--tw-inset-ring-shadow), var(--tw-ring-offset-shadow), var(--tw-ring-shadow), var(--tw-shadow);
+  }
+  .shadow-lg {
+    --tw-shadow: 0 10px 15px -3px var(--tw-shadow-color, rgb(0 0 0 / 0.1)), 0 4px 6px -4px var(--tw-shadow-color, rgb(0 0 0 / 0.1));
     box-shadow: var(--tw-inset-shadow), var(--tw-inset-ring-shadow), var(--tw-ring-offset-shadow), var(--tw-ring-shadow), var(--tw-shadow);
   }
   .shadow-right {
@@ -2791,6 +2887,17 @@
     &:hover {
       @media (hover: hover) {
         background-color: var(--color-neutral-100);
+  .hover\:bg-error-50 {
+    &:hover {
+      @media (hover: hover) {
+        background-color: var(--color-error-50);
+      }
+    }
+  }
+  .hover\:bg-error-500 {
+    &:hover {
+      @media (hover: hover) {
+        background-color: var(--color-error-500);
       }
     }
   }
@@ -2849,6 +2956,11 @@
       outline-offset: 3px;
     }
   }
+  .focus\:outline-error-500 {
+    &:focus {
+      outline-color: var(--color-error-500);
+    }
+  }
   .focus\:outline-primary-500 {
     &:focus {
       outline-color: var(--color-primary-500);
@@ -2902,6 +3014,16 @@
       border-color: var(--color-neutral-0);
     }
   }
+  .active\:bg-error-100 {
+    &:active {
+      background-color: var(--color-error-100);
+    }
+  }
+  .active\:bg-error-500 {
+    &:active {
+      background-color: var(--color-error-500);
+    }
+  }
   .active\:bg-neutral-200 {
     &:active {
       background-color: var(--color-neutral-200);
@@ -2920,6 +3042,11 @@
   .active\:bg-primary-700 {
     &:active {
       background-color: var(--color-primary-700);
+    }
+  }
+  .active\:text-error-900 {
+    &:active {
+      color: var(--color-error-900);
     }
   }
   .active\:text-neutral-0 {

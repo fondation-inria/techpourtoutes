@@ -501,3 +501,61 @@ def test_account_edit_post_invalid_returns_form_with_errors(client, pro):
 
     assert response.status_code == 200
     assert response.context["form"].errors
+
+
+@pytest.mark.django_db
+def test_delete_account_get_not_allowed(client, pro):
+    client.force_login(pro)
+
+    response = client.get(reverse("delete_account"))
+
+    assert response.status_code == 405
+
+
+@pytest.mark.django_db
+def test_delete_account_requires_login(client):
+    response = client.post(reverse("delete_account"))
+
+    assert response.status_code == 302
+    assert reverse("login_request") in response["Location"]
+
+
+@pytest.mark.django_db
+def test_delete_account_with_invalid_form_rerenders_modal(client, pro):
+    client.force_login(pro)
+
+    response = client.post(reverse("delete_account"), data={})
+
+    assert response.status_code == 200
+    assert "form" in response.context
+    assert response.context["form"].errors
+
+    pro.refresh_from_db()
+    assert pro.is_active
+
+
+@patch("techpourtoutes.views.auth_views.SoftDeleteAccount")
+@pytest.mark.django_db
+def test_delete_account_post_valid_logs_out_redirects_and_shows_success_message(
+    mock_service,
+    client,
+    pro,
+):
+    client.force_login(pro)
+
+    mock_service.return_value.failure = False
+
+    response = client.post(
+        reverse("delete_account"),
+        data={"confirm_delete": True},
+    )
+
+    mock_service.assert_called_once_with(user=pro)
+
+    assert response.status_code == 200
+    assert response["HX-Redirect"] == "/"
+
+    assert client.session.get("_auth_user_id") is None
+
+    stored = [str(m) for m in get_messages(response.wsgi_request)]
+    assert any("Votre compte a été supprimé." in m for m in stored)

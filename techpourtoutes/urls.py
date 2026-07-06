@@ -51,6 +51,12 @@ urlpatterns = [
     ),
     path("se-deconnecter/", views.logout_view, name="logout"),
     path("mon-compte-mentor/", views.login_to_jobirl, name="login_to_jobirl"),
+    path(
+        "mon-compte/supprimer/confirmation",
+        views.delete_account_modal,
+        name="delete_account_modal",
+    ),
+    path("mon-compte/supprimer", views.delete_account, name="delete_account"),
     # Static
     path("donnees-personnelles/", views.donnees_personnelles, name="donnees_personnelles"),
     path("conditions-generales/", views.conditions_generales, name="conditions_generales"),

@@ -1,0 +1,9 @@
+<div id="account-access-card" class="w-full">
+    <c-components.card title="Accès">
+        <br>
+        <c-components.title title="Compte" variant="intertitre"/>
+        <c-components.button label="Supprimer mon compte" variant="danger" hx-get="{% url 'delete_account_modal' %}" hx-target="#modal-container" hx-swap="innerHTML"/>
+    </c-components.card>
+</div>
+
+<div id="modal-container"></div>

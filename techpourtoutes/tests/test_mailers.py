@@ -149,3 +149,108 @@ def test_login_link_attaches_its_brevo_tags(pro):
     AuthMailer.login_link(user=pro, token="tok-abc")
 
     assert mail.outbox[0].tags == ["utilisateur", "mail de connexion"]
+
+
+@pytest.mark.django_db
+@override_settings(EMAIL_BACKEND="django.core.mail.backends.locmem.EmailBackend")
+def test_delete_account_sends_confirmation_email_to_user(pro):
+    CoalitionUserMailer.delete_account(
+        recipient_email=pro.email,
+        first_name=pro.first_name,
+        engagements=[],
+    )
+
+    assert len(mail.outbox) == 1
+    message = mail.outbox[0]
+    assert message.to == [pro.email]
+    assert message.subject == "Confirmation de suppression de votre compte"
+    assert pro.first_name in message.body
+
+
+@pytest.mark.django_db
+@override_settings(EMAIL_BACKEND="django.core.mail.backends.locmem.EmailBackend")
+def test_delete_account_email_includes_jobirl_information_for_mentor(pro):
+    CoalitionUserMailer.delete_account(
+        recipient_email=pro.email,
+        first_name=pro.first_name,
+        engagements=[Pro.Engagement.MENTOR],
+    )
+
+    body = mail.outbox[0].body
+
+    assert "JobIRL" in body
+    assert "e-mentorat@jobirl.com" in body
+
+
+@pytest.mark.django_db
+@override_settings(EMAIL_BACKEND="django.core.mail.backends.locmem.EmailBackend")
+def test_delete_account_email_omits_jobirl_information_for_non_mentor(pro):
+    CoalitionUserMailer.delete_account(
+        recipient_email=pro.email,
+        first_name=pro.first_name,
+        engagements=[],
+    )
+
+    body = mail.outbox[0].body
+
+    assert "JobIRL" not in body
+    assert "e-mentorat@jobirl.com" not in body
+
+
+@pytest.mark.django_db
+@override_settings(EMAIL_BACKEND="django.core.mail.backends.locmem.EmailBackend")
+def test_delete_account_confirmation_attaches_its_brevo_tags(pro):
+    CoalitionUserMailer.delete_account(
+        recipient_email=pro.email,
+        first_name=pro.first_name,
+        engagements=[],
+    )
+
+    assert mail.outbox[0].tags == [
+        "utilisateur",
+        "coalition",
+        "suppression du compte",
+    ]
+
+
+@pytest.mark.django_db
+@override_settings(
+    EMAIL_BACKEND="django.core.mail.backends.locmem.EmailBackend",
+    COALITION_ACCOUNT_DELETION_RECIPIENTS=["dpo@example.com"],
+)
+def test_delete_account_request_sends_email_to_configured_recipients(pro):
+    CoalitionInternalMailer.delete_account_request(
+        first_name=pro.first_name,
+        last_name=pro.last_name,
+        jobirl_id=pro.jobirl_user_id,
+    )
+
+    assert len(mail.outbox) == 1
+    message = mail.outbox[0]
+
+    assert message.to == ["dpo@example.com"]
+    assert message.subject == "Demande de suppression de données personnelles"
+
+    body = message.body
+    assert pro.first_name in body
+    assert pro.last_name in body
+    assert str(pro.jobirl_user_id) in body
+
+
+@pytest.mark.django_db
+@override_settings(
+    EMAIL_BACKEND="django.core.mail.backends.locmem.EmailBackend",
+    COALITION_ACCOUNT_DELETION_RECIPIENTS=["dpo@example.com"],
+)
+def test_delete_account_request_attaches_its_brevo_tags(pro):
+    CoalitionInternalMailer.delete_account_request(
+        first_name=pro.first_name,
+        last_name=pro.last_name,
+        jobirl_id=pro.jobirl_user_id,
+    )
+
+    assert mail.outbox[0].tags == [
+        "interne",
+        "coalition",
+        "suppression du compte",
+    ]
