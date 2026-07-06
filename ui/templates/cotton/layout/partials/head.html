@@ -1,0 +1,20 @@
+{% load tailwind_cli static matomo %}
+<c-vars title="TechPourToutes" description="" og_image="" />
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    {% if description %}<meta name="description" content="{{ description }}">{% endif %}
+    <meta property="og:title" content="{{ title }}">
+    {% if description %}<meta property="og:description" content="{{ description }}">{% endif %}
+    <meta property="og:url" content="{{ request.build_absolute_uri }}">
+    <meta property="og:type" content="website">
+    <meta property="og:image" content="{% if og_image %}{{ og_image }}{% else %}{{ SITE_URL }}{% static 'images/coalition-tpt-white.png' %}{% endif %}">
+    <link rel="canonical" href="{{ request.build_absolute_uri }}">
+    {% matomo_tracking %}
+    <title>{{ title }}</title>
+    <link rel="icon" type="image/png" href="{% static FAVICON_NAMEFILE|add:".png" %}">
+    {% tailwind_css %}
+    <script defer src="{% static 'js/alpine.min.js' %}"></script>
+    <script defer src="{% static 'js/htmx.min.js' %}"></script>
+</head>
