@@ -4,10 +4,39 @@ from unittest.mock import MagicMock, patch
 import pytest
 from django.test import override_settings
 from django.urls import reverse
+from waffle.testutils import override_switch
 
 
 def _email_input_is_disabled(html):
     return bool(re.search(r'id="id_email"[^>]*\bdisabled\b', html))
+
+
+@pytest.mark.django_db
+def test_coalition_home_renders_default_template(client):
+    response = client.get(reverse("coalition_home"))
+    template_names = [t.name for t in response.templates]
+    assert "coalition/coalition_home.html" in template_names
+
+
+@pytest.mark.django_db
+def test_coalition_home_renders_student_home_when_flag_active(client):
+    with override_switch("student_home", active=True):
+        response = client.get(reverse("coalition_home"))
+    template_names = [t.name for t in response.templates]
+    assert "coalition/student_home.html" in template_names
+
+
+@pytest.mark.django_db
+def test_login_request_shows_coalition_sidebar_by_default(client):
+    response = client.get(reverse("login_request"))
+    assert "Découvrir le programme" in response.content.decode()
+
+
+@pytest.mark.django_db
+def test_login_request_shows_student_sidebar_when_flag_active(client):
+    with override_switch("student_home", active=True):
+        response = client.get(reverse("login_request"))
+    assert "S'engager" in response.content.decode()
 
 
 @pytest.mark.django_db

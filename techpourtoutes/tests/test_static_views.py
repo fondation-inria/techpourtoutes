@@ -19,11 +19,13 @@ A_PROPOS_URL_NAMES = [
 ]
 
 
+@pytest.mark.django_db
 @pytest.mark.parametrize("url_name", LEGAL_URL_NAMES + A_PROPOS_URL_NAMES)
 def test_static_page_returns_200(client, url_name):
     assert client.get(reverse(url_name)).status_code == 200
 
 
+@pytest.mark.django_db
 @override_settings(SITE_URL="https://example.test")
 def test_signature_manifeste_linkedin_share_url(client):
     response = client.get(reverse("signature_manifeste"))
