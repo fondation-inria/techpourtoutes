@@ -26,7 +26,7 @@
         {% if request.user.is_authenticated %}
             <c-components.nav-link href="{% url "account" %}" label="Mon compte" icon-active="mon-compte-bold" icon="mon-compte-light" />
         {% else %}
-            <c-components.nav-link href="{% url "login_request" %}?exit={{ request.get_full_path|urlencode }}" label="Se connecter" icon-active="mon-compte-bold" icon="mon-compte-light" />
+            <c-components.nav-link href="{% url "login_request" %}?back={{ request.get_full_path|urlencode }}" label="Se connecter" icon-active="mon-compte-bold" icon="mon-compte-light" />
         {% endif %}
             <c-components.nav-link href="{% url "a_propos" %}" label="À propos" active="{% if request.resolver_match.url_name in 'a_propos notre_manifeste qui_sommes_nous pourquoi_nous_ecrivons_au_feminin contact' %}true{% endif %}" />
         <c-components.button href="https://www.techpourtoutes.io/" label="Découvrir le programme" variant="secondary" />

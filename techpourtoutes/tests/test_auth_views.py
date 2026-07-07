@@ -34,27 +34,36 @@ def test_login_request_get_strips_external_next(client):
 
 
 @pytest.mark.django_db
-def test_login_request_get_with_exit_param_propagates_to_template(client):
-    response = client.get(reverse("login_request") + "?exit=/mentorer/")
+def test_login_request_get_with_back_param_propagates_to_template(client):
+    response = client.get(reverse("login_request") + "?back=/mentorer/")
 
     assert response.status_code == 200
-    assert response.context["exit"] == "/mentorer/"
+    assert response.context["back"] == "/mentorer/"
 
 
 @pytest.mark.django_db
-def test_login_request_get_strips_external_exit(client):
-    response = client.get(reverse("login_request") + "?exit=https://evil.com/x")
+def test_login_request_get_strips_external_back(client):
+    response = client.get(reverse("login_request") + "?back=https://evil.com/x")
 
     assert response.status_code == 200
-    assert response.context["exit"] == ""
+    assert response.context["back"] == ""
 
 
 @pytest.mark.django_db
-def test_login_request_get_ignores_referer_for_exit(client):
+def test_login_request_get_ignores_referer_for_back(client):
     response = client.get(reverse("login_request"), HTTP_REFERER="/mentorer/")
 
     assert response.status_code == 200
-    assert response.context["exit"] == ""
+    assert response.context["back"] == ""
+
+
+@pytest.mark.django_db
+def test_login_request_close_button_points_to_back(client):
+    response = client.get(reverse("login_request") + "?back=/mentorer/")
+
+    html = response.content.decode()
+    close_link_index = html.find('aria-label="Fermer"')
+    assert 'href="/mentorer/"' in html[max(0, close_link_index - 300) : close_link_index]
 
 
 @pytest.mark.django_db
@@ -97,20 +106,20 @@ def test_login_request_post_with_unknown_email_sends_nothing(client):
 
 
 @pytest.mark.django_db
-def test_login_request_post_with_exit_carries_it_to_email_sent_page(client):
+def test_login_request_post_with_back_carries_it_to_email_sent_page(client):
     response = client.post(
-        reverse("login_request"), data={"email": "ghost@example.com", "exit": "/mentorer/"}
+        reverse("login_request"), data={"email": "ghost@example.com", "back": "/mentorer/"}
     )
 
     assert response.status_code == 302
-    assert response["Location"] == f"{reverse('login_email_sent')}?exit=%2Fmentorer%2F"
+    assert response["Location"] == f"{reverse('login_email_sent')}?back=%2Fmentorer%2F"
 
 
 @pytest.mark.django_db
-def test_login_request_post_strips_external_exit(client):
+def test_login_request_post_strips_external_back(client):
     response = client.post(
         reverse("login_request"),
-        data={"email": "ghost@example.com", "exit": "https://evil.com/x"},
+        data={"email": "ghost@example.com", "back": "https://evil.com/x"},
     )
 
     assert response.status_code == 302
@@ -134,10 +143,10 @@ def test_login_request_post_from_email_sent_page_shows_confirmation_message(clie
 
 
 @pytest.mark.django_db
-def test_login_request_post_from_email_sent_page_with_exit_shows_confirmation_message(client):
+def test_login_request_post_from_email_sent_page_with_back_shows_confirmation_message(client):
     from django.conf import settings
 
-    referer = f"{settings.SITE_URL}{reverse('login_email_sent')}?exit=%2Fmentorer%2F"
+    referer = f"{settings.SITE_URL}{reverse('login_email_sent')}?back=%2Fmentorer%2F"
     response = client.post(
         reverse("login_request"),
         data={"email": "ghost@example.com"},
@@ -184,13 +193,13 @@ def test_login_request_post_strips_external_next_from_link(client, pro):
 
 
 @pytest.mark.django_db
-def test_sidebar_login_link_carries_current_page_as_exit(client):
+def test_sidebar_login_link_carries_current_page_as_back(client):
     from urllib.parse import quote
 
     response = client.get(reverse("mentor_landing"))
 
     assert response.status_code == 200
-    expected_href = f"{reverse('login_request')}?exit={quote(reverse('mentor_landing'))}"
+    expected_href = f"{reverse('login_request')}?back={quote(reverse('mentor_landing'))}"
     assert expected_href in response.content.decode()
 
 
@@ -212,6 +221,19 @@ def test_login_email_sent_with_session_renders_email(client):
 
     assert response.status_code == 200
     assert "alice@example.com" in response.content.decode()
+
+
+@pytest.mark.django_db
+def test_login_email_sent_close_button_points_to_back(client):
+    session = client.session
+    session["login_email"] = "alice@example.com"
+    session.save()
+
+    response = client.get(reverse("login_email_sent") + "?back=/mentorer/")
+
+    html = response.content.decode()
+    close_link_index = html.find('aria-label="Fermer"')
+    assert 'href="/mentorer/"' in html[max(0, close_link_index - 300) : close_link_index]
 
 
 @pytest.mark.django_db

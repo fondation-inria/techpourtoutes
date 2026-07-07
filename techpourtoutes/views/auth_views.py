@@ -42,7 +42,7 @@ def login_request(request):
     if request.method == "POST":
         form = LoginRequestForm(data=request.POST)
         next_url = _safe_next(request, request.POST.get(REDIRECT_FIELD_NAME, ""))
-        exit_url = _safe_next(request, request.POST.get("exit", ""))
+        back_url = _safe_next(request, request.POST.get("back", ""))
         if form.is_valid():
             email = form.cleaned_data["email"]
             User = get_user_model()
@@ -53,8 +53,8 @@ def login_request(request):
             request.session["login_email"] = email
 
             url = reverse("login_email_sent")
-            if exit_url:
-                url = f"{url}?{urlencode({'exit': exit_url})}"
+            if back_url:
+                url = f"{url}?{urlencode({'back': back_url})}"
 
             referer = request.headers.get("referer", "")
             if referer.startswith(settings.SITE_URL) and urlparse(referer).path == reverse(
@@ -65,12 +65,12 @@ def login_request(request):
     else:
         form = LoginRequestForm()
         next_url = _safe_next(request, request.GET.get(REDIRECT_FIELD_NAME, ""))
-        exit_url = _safe_next(request, request.GET.get("exit", ""))
+        back_url = _safe_next(request, request.GET.get("back", ""))
 
     return render(
         request,
         "registration/login_request.html",
-        {"form": form, "next": next_url, "exit": exit_url},
+        {"form": form, "next": next_url, "back": back_url},
     )
 
 
@@ -78,13 +78,13 @@ def login_email_sent(request):
     email = request.session.get("login_email")
     if not email:
         return redirect("login_request")
-    exit_url = _safe_next(request, request.GET.get("exit", ""))
+    back_url = _safe_next(request, request.GET.get("back", ""))
     return render(
         request,
         "registration/login_email_sent.html",
         {
             "email": email,
-            "exit": exit_url,
+            "back": back_url,
         },
     )
 
