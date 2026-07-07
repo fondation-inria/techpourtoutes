@@ -4,9 +4,9 @@
 <html lang="fr" data-theme="techpourtoutes">
     <c-layout.partials.head title="{{ title }}" description="{{ description }}" og_image="{{ og_image }}" />
 
-    {% if variant == "auth" %}
-        <c-layout.variants.auth exit="{{ exit }}">{{ slot }}</c-layout.variants.auth>
+    {% if variant == "funnel" %}
+        <c-layout.partials.funnel_body exit="{{ exit }}">{{ slot }}</c-layout.partials.funnel_body>
     {% else %}
-        <c-layout.variants.app right="{{ right }}">{{ slot }}</c-layout.variants.app>
+        <c-layout.partials.base_body right="{{ right }}">{{ slot }}</c-layout.partials.base_body>
     {% endif %}
 </html>
