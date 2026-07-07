@@ -1,4 +1,4 @@
-/*! tailwindcss v4.2.2 | MIT License | https://tailwindcss.com */
+/*! tailwindcss v4.3.2 | MIT License | https://tailwindcss.com */
 @import url("https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap");
 @layer properties;
 @layer theme, base, components, utilities;
@@ -231,13 +231,14 @@
 }
 @layer utilities {
   .diff {
-    @layer daisyui.l1.l2.l3 {
+    @layer daisyui.l1.l2 {
       position: relative;
       display: grid;
       width: 100%;
       overflow: hidden;
       webkit-user-select: none;
       user-select: none;
+      align-items: normal;
       grid-template-rows: 1fr 1.8rem 1fr;
       direction: ltr;
       container-type: inline-size;
@@ -267,6 +268,13 @@
           max-width: 5cqi;
         }
       }
+      &:hover {
+        .diff-item-2 {
+          &::after {
+            height: 2.4rem;
+          }
+        }
+      }
       @supports (-webkit-overflow-scrolling: touch) and (overflow: -webkit-paged-x) {
         &:focus {
           .diff-resizer {
@@ -288,8 +296,8 @@
       pointer-events: none;
       visibility: hidden;
       position: fixed;
-      inset: calc(0.25rem * 0);
-      margin: calc(0.25rem * 0);
+      inset: 0;
+      margin: 0;
       display: grid;
       height: 100%;
       max-height: none;
@@ -298,9 +306,9 @@
       align-items: center;
       justify-items: center;
       background-color: transparent;
-      padding: calc(0.25rem * 0);
+      padding: 0;
       color: inherit;
-      transition: visibility 0.3s allow-discrete, background-color 0.3s ease-out, opacity 0.1s ease-out;
+      transition: overlay 0.3s allow-discrete, visibility 0.3s allow-discrete, background-color 0.3s ease-out, opacity 0.1s ease-out;
       overflow: clip;
       overscroll-behavior: contain;
       z-index: 999;
@@ -308,9 +316,23 @@
       &::backdrop {
         display: none;
       }
+      &[popover] {
+        inset: 0;
+        margin: 0;
+        border: 0;
+        padding: 0;
+        background: transparent;
+        color: inherit;
+        max-width: none;
+        max-height: none;
+        &::backdrop {
+          background-color: oklch(0% 0 0/ 0.4);
+          transition: background-color 0.3s ease-out;
+        }
+      }
     }
     @layer daisyui.l1.l2 {
-      &.modal-open, &[open], &:target, .modal-toggle:checked + & {
+      &.modal-open, &[open], &:popover-open, &:target, .modal-toggle:checked + & {
         pointer-events: auto;
         visibility: visible;
         opacity: 100%;
@@ -322,17 +344,11 @@
           opacity: 1;
         }
         :root:has(&) {
-          --page-has-backdrop: 1;
-          --page-overflow: hidden;
-          --page-scroll-bg: var(--page-scroll-bg-on);
-          --page-scroll-gutter: stable;
-          --page-scroll-transition: var(--page-scroll-transition-on);
-          animation: set-page-has-scroll forwards;
-          animation-timeline: scroll();
+          --page-scroll-lock:  ;
         }
       }
       @starting-style {
-        &.modal-open, &[open], &:target, .modal-toggle:checked + & {
+        &.modal-open, &[open], &:popover-open, &:target, .modal-toggle:checked + & {
           opacity: 0%;
         }
       }
@@ -350,7 +366,7 @@
       visibility: hidden;
       position: fixed;
       inset-inline-start: calc(0.25rem * 0);
-      top: calc(0.25rem * 0);
+      top: 0;
       z-index: 10;
       grid-column-start: 1;
       grid-row-start: 1;
@@ -366,18 +382,18 @@
       transition: opacity 0.2s ease-out 0.1s allow-discrete, visibility 0.3s ease-out 0.1s allow-discrete;
       height: 100vh;
       height: 100dvh;
-      > .drawer-overlay {
+       > .drawer-overlay {
         position: sticky;
-        top: calc(0.25rem * 0);
+        top: 0;
         cursor: pointer;
         place-self: stretch;
         background-color: oklch(0% 0 0 / 40%);
       }
-      > * {
+       > * {
         grid-column-start: 1;
         grid-row-start: 1;
       }
-      > :not(.drawer-overlay) {
+       > :not(.drawer-overlay) {
         will-change: transform;
         transition: translate 0.3s ease-out, width 0.2s ease-out;
         translate: -100%;
@@ -390,8 +406,8 @@
   .drawer-toggle {
     @layer daisyui.l1.l2.l3 {
       position: fixed;
-      height: calc(0.25rem * 0);
-      width: calc(0.25rem * 0);
+      height: 0;
+      width: 0;
       appearance: none;
       opacity: 0%;
       :where(&:checked ~ .drawer-side) {
@@ -399,15 +415,13 @@
         @supports (color: color-mix(in lab, red, red)) {
           scrollbar-color: color-mix(in oklch, currentColor 35%, #0000) oklch(0 0 0 / calc(var(--page-has-backdrop, 0) * 0.4));
         }
+         > :not(.drawer-overlay) {
+          transform: none;
+          will-change: auto;
+        }
       }
       :where(:root:has(&:checked)) {
-        --page-has-backdrop: 1;
-        --page-overflow: hidden;
-        --page-scroll-bg: var(--page-scroll-bg-on);
-        --page-scroll-gutter: stable;
-        --page-scroll-transition: var(--page-scroll-transition-on);
-        animation: set-page-has-scroll forwards;
-        animation-timeline: scroll();
+        --page-scroll-lock:  ;
       }
     }
     @layer daisyui.l1.l2 {
@@ -416,7 +430,7 @@
         visibility: visible;
         overflow-y: auto;
         opacity: 100%;
-        > :not(.drawer-overlay) {
+         > :not(.drawer-overlay) {
           translate: 0%;
         }
       }
@@ -428,87 +442,87 @@
   }
   .tab {
     @layer daisyui.l1.l2.l3 {
-      position: relative;
-      display: inline-flex;
-      cursor: pointer;
-      appearance: none;
-      flex-wrap: wrap;
-      align-items: center;
-      justify-content: center;
-      text-align: center;
-      webkit-user-select: none;
-      user-select: none;
-      &:hover {
-        @media (hover: hover) {
-          color: var(--color-base-content);
-        }
-      }
-      --tab-p: 0.75rem;
-      --tab-bg: var(--color-base-100);
-      --tab-border-color: var(--color-base-300);
-      --tab-radius-ss: 0;
-      --tab-radius-se: 0;
-      --tab-radius-es: 0;
-      --tab-radius-ee: 0;
-      --tab-order: 0;
-      --tab-radius-min: calc(0.75rem - var(--border));
-      --tab-radius-limit: min(var(--radius-field), var(--tab-radius-min));
-      --tab-radius-grad: #0000 calc(69% - var(--border)),
-      var(--tab-border-color) calc(69% - var(--border) + 0.25px),
-      var(--tab-border-color) 69%,
-      var(--tab-bg) calc(69% + 0.25px);
-      border-color: #0000;
-      order: var(--tab-order);
-      height: var(--tab-height);
-      font-size: 0.875rem;
-      padding-inline: var(--tab-p);
-      &:is(input[type="radio"]) {
-        min-width: fit-content;
-        &:after {
-          --tw-content: attr(aria-label);
-          content: var(--tw-content);
-        }
-      }
-      &:is(label) {
+      &:is(.tabs > .tab) {
         position: relative;
-        input {
-          position: absolute;
-          inset: calc(0.25rem * 0);
-          cursor: pointer;
-          appearance: none;
-          opacity: 0%;
+        display: inline-flex;
+        cursor: pointer;
+        appearance: none;
+        flex-wrap: wrap;
+        align-items: center;
+        justify-content: center;
+        text-align: center;
+        webkit-user-select: none;
+        user-select: none;
+        &:hover {
+          @media (hover: hover) {
+            color: var(--color-base-content);
+          }
         }
-      }
-      &:checked, &:is(label:has(:checked)), &:is(.tab-active, [aria-selected="true"], [aria-current="true"], [aria-current="page"]) {
-        & + .tab-content {
-          display: block;
+        --tab-p: 0.75rem;
+        --tab-bg: var(--color-base-100);
+        --tab-border-color: var(--color-base-300);
+        --tab-radius-ss: 0;
+        --tab-radius-se: 0;
+        --tab-radius-es: 0;
+        --tab-radius-ee: 0;
+        --tab-order: 0;
+        --tab-radius-min: calc(0.75rem - var(--border));
+        --tab-radius-limit: min(var(--radius-field), var(--tab-radius-min));
+        --tab-radius-grad: #0000 calc(69% - var(--border)), var(--tab-border-color) calc(69% - var(--border) + 0.25px),
+        var(--tab-border-color) 69%, var(--tab-bg) calc(69% + 0.25px);
+        border-color: #0000;
+        order: var(--tab-order);
+        height: var(--tab-height);
+        font-size: 0.875rem;
+        padding-inline: var(--tab-p);
+        &:is(input[type="radio"]) {
+          min-width: fit-content;
+          &:after {
+            --tw-content: attr(aria-label);
+            content: var(--tw-content);
+          }
         }
-      }
-      &:not( :checked, label:has(:checked), :hover, .tab-active, [aria-selected="true"], [aria-current="true"], [aria-current="page"] ) {
-        color: var(--color-base-content);
-        @supports (color: color-mix(in lab, red, red)) {
-          color: color-mix(in oklab, var(--color-base-content) 50%, transparent);
+        &:is(label) {
+          position: relative;
+          input {
+            position: absolute;
+            inset: 0;
+            cursor: pointer;
+            appearance: none;
+            opacity: 0%;
+          }
         }
-      }
-      &:not(input):empty {
-        flex-grow: 1;
-        cursor: default;
-      }
-      &:focus {
-        --tw-outline-style: none;
-        outline-style: none;
-        @media (forced-colors: active) {
-          outline: 2px solid transparent;
-          outline-offset: 2px;
+        &:checked, &:is(label:has(:checked)), &:is(.tab-active, [aria-selected="true"], [aria-current="true"], [aria-current="page"]) {
+          & + .tab-content {
+            display: block;
+          }
         }
-      }
-      &:focus-visible, &:is(label:has(:checked:focus-visible)) {
-        outline: 2px solid currentColor;
-        outline-offset: -5px;
-      }
-      &[disabled] {
-        pointer-events: none;
-        opacity: 40%;
+        &:not(:checked, label:has(:checked), :hover, .tab-active, [aria-selected="true"], [aria-current="true"], [aria-current="page"] ) {
+          color: var(--color-base-content);
+          @supports (color: color-mix(in lab, red, red)) {
+            color: color-mix(in oklab, var(--color-base-content) 50%, transparent);
+          }
+        }
+        &:not(input):empty {
+          flex-grow: 1;
+          cursor: default;
+        }
+        &:focus {
+          --tw-outline-style: none;
+          outline-style: none;
+          @media (forced-colors: active) {
+            outline: 2px solid transparent;
+            outline-offset: 2px;
+          }
+        }
+        &:focus-visible, &:is(label:has(:checked:focus-visible)) {
+          outline: 2px solid currentColor;
+          outline-offset: -5px;
+        }
+        &[disabled] {
+          pointer-events: none;
+          opacity: 40%;
+        }
       }
     }
   }
@@ -522,7 +536,6 @@
     @layer daisyui.l1.l2.l3 {
       display: grid;
       position: relative;
-      overflow: hidden;
       border-radius: var(--radius-box, 1rem);
       width: 100%;
       grid-template-rows: max-content 0fr;
@@ -531,7 +544,7 @@
       @media (prefers-reduced-motion: no-preference) {
         transition: grid-template-rows 0.2s;
       }
-      > input:is([type="checkbox"], [type="radio"]) {
+       > input:is([type="checkbox"], [type="radio"]) {
         grid-column-start: 1;
         grid-row-start: 1;
         appearance: none;
@@ -543,40 +556,71 @@
         min-height: 1lh;
         transition: background-color 0.2s ease-out;
       }
-      &:is( [open], [tabindex]:focus:not(.collapse-close), [tabindex]:focus-within:not(.collapse-close) ), &:not(.collapse-close):has(> input:is([type="checkbox"], [type="radio"]):checked) {
+      &:is([open], [tabindex]:focus:not(.collapse-close), [tabindex]:focus-within:not(.collapse-close) ), &:not(.collapse-close):has( > input:is([type="checkbox"], [type="radio"]):checked) {
         grid-template-rows: max-content 1fr;
       }
-      &:is( [open], [tabindex]:focus:not(.collapse-close), [tabindex]:focus-within:not(.collapse-close) ) > .collapse-content, &:not(.collapse-close) > :where(input:is([type="checkbox"], [type="radio"]):checked ~ .collapse-content) {
+      &:is([open], [tabindex]:focus:not(.collapse-close), [tabindex]:focus-within:not(.collapse-close) ) > .collapse-content, &:not(.collapse-close) > :where(input:is([type="checkbox"], [type="radio"]):checked ~ .collapse-content) {
+        --overflow-delay: 0.2s;
+        overflow: revert-layer;
         content-visibility: visible;
         min-height: fit-content;
         @supports not (content-visibility: visible) {
           visibility: visible;
         }
       }
-      &:focus-visible, &:has(> input:is([type="checkbox"], [type="radio"]):focus-visible), &:has(summary:focus-visible) {
+      &:focus-visible, &:has( > input:is([type="checkbox"], [type="radio"]):focus-visible), &:has(summary:focus-visible) {
         outline-color: var(--color-base-content);
         outline-style: solid;
         outline-width: 2px;
         outline-offset: 2px;
       }
       &:not(.collapse-close) {
-        > input[type="checkbox"], > input[type="radio"]:not(:checked), > .collapse-title {
+         > input[type="checkbox"],  > input[type="radio"]:not(:checked),  > .collapse-title {
           cursor: pointer;
         }
       }
       &[tabindex]:focus:not(.collapse-close, .collapse[open]), &[tabindex]:focus-within:not(.collapse-close, .collapse[open]) {
-        > .collapse-title {
+         > .collapse-title {
           cursor: unset;
         }
       }
-      &:is( [open], [tabindex]:focus:not(.collapse-close), [tabindex]:focus-within:not(.collapse-close) ) > :where(.collapse-content), &:not(.collapse-close) > :where(input:is([type="checkbox"], [type="radio"]):checked ~ .collapse-content) {
+      &:is([open], [tabindex]:focus:not(.collapse-close), [tabindex]:focus-within:not(.collapse-close) ) > :where(.collapse-content), &:not(.collapse-close) > :where(input:is([type="checkbox"], [type="radio"]):checked ~ .collapse-content) {
         padding-bottom: 1rem;
+      }
+      &:is(details) {
+        width: 100%;
+        &::details-content {
+          --overflow-delay: 0s;
+          overflow: clip;
+          height: 0;
+        }
+        &:where([open])::details-content {
+          overflow: revert-layer;
+          height: auto;
+        }
+        @media (prefers-reduced-motion: no-preference) {
+          &::details-content {
+            transition: overflow 0.2s allow-discrete var(--overflow-delay), content-visibility 0.2s allow-discrete, visibility 0.2s allow-discrete, min-height 0.2s ease-out allow-discrete, padding 0.1s ease-out 20ms, background-color 0.2s ease-out, height 0.2s;
+            interpolate-size: allow-keywords;
+          }
+          &:where([open])::details-content {
+            --overflow-delay: 0.2s;
+          }
+        }
+         > summary {
+          position: relative;
+          display: block;
+          outline: none;
+          &::-webkit-details-marker {
+            display: none;
+          }
+        }
       }
     }
     @layer daisyui.l1.l2 {
       &:is([open]) {
         &.collapse-arrow {
-          > .collapse-title:after {
+           > .collapse-title:after {
             @media (prefers-reduced-motion: no-preference) {
               transform: translateY(-50%) rotate(225deg);
             }
@@ -585,78 +629,86 @@
       }
       &.collapse-open {
         &.collapse-arrow {
-          > .collapse-title:after {
+           > .collapse-title:after {
             @media (prefers-reduced-motion: no-preference) {
               transform: translateY(-50%) rotate(225deg);
             }
           }
         }
         &.collapse-plus {
-          > .collapse-title:after {
+           > .collapse-title:after {
             --tw-content: "−";
             content: var(--tw-content);
           }
         }
       }
       &[tabindex].collapse-arrow:focus:not(.collapse-close), &.collapse-arrow[tabindex]:focus-within:not(.collapse-close) {
-        > .collapse-title:after {
+         > .collapse-title:after {
           transform: translateY(-50%) rotate(225deg);
         }
       }
       &.collapse-arrow:not(.collapse-close) {
-        > input:is([type="checkbox"], [type="radio"]):checked ~ .collapse-title:after {
+         > input:is([type="checkbox"], [type="radio"]):checked ~ .collapse-title:after {
           transform: translateY(-50%) rotate(225deg);
         }
       }
       &[open] {
         &.collapse-plus {
-          > .collapse-title:after {
+           > .collapse-title:after {
             --tw-content: "−";
             content: var(--tw-content);
           }
         }
       }
       &[tabindex].collapse-plus:focus:not(.collapse-close) {
-        > .collapse-title:after {
+         > .collapse-title:after {
           --tw-content: "−";
           content: var(--tw-content);
         }
       }
       &.collapse-plus:not(.collapse-close) {
-        > input:is([type="checkbox"], [type="radio"]):checked ~ .collapse-title:after {
+         > input:is([type="checkbox"], [type="radio"]):checked ~ .collapse-title:after {
           --tw-content: "−";
           content: var(--tw-content);
         }
       }
     }
-    &:is(details) {
-      @layer daisyui.l1.l2.l3 {
-        width: 100%;
-        @media (prefers-reduced-motion: no-preference) {
-          &::details-content {
-            transition: content-visibility 0.2s allow-discrete, visibility 0.2s allow-discrete, min-height 0.2s ease-out allow-discrete, padding 0.1s ease-out 20ms, background-color 0.2s ease-out, height 0.2s;
-            height: 0;
-            interpolate-size: allow-keywords;
+  }
+  .filter {
+    @layer daisyui.l1.l2.l3 {
+      display: flex;
+      flex-wrap: wrap;
+      [type="radio"] {
+        width: auto;
+      }
+      input {
+        overflow: hidden;
+        opacity: 100%;
+        scale: 1;
+        transition: visibility 0.1s allow-discrete, margin 0.1s, opacity 0.3s, padding 0.3s, border-width 0.1s;
+        &.filter-reset {
+          aspect-ratio: 1 / 1;
+          &::after {
+            --tw-content: "×";
+            content: var(--tw-content);
           }
-          &:where([open])::details-content {
-            height: auto;
-          }
-        }
-        & summary {
-          position: relative;
-          display: block;
-          &::-webkit-details-marker {
-            display: none;
-          }
-        }
-        & > .collapse-content {
-          content-visibility: visible;
         }
       }
+       > input:not(:last-child),  > :not(:last-child) input {
+        margin-inline-end: 0.25rem;
+      }
     }
-    &:is(details) summary {
-      @layer daisyui.l1.l2.l3 {
-        outline: none;
+    @layer daisyui.l1 {
+      &:not(:has(:checked:not(.filter-reset))) :is(.filter-reset, [type="reset"]):not(:focus-visible) {
+        visibility: hidden;
+      }
+      &:not(:has(:checked:not(.filter-reset))) :is(.filter-reset, [type="reset"]):not(:focus-visible), &:not(:has(:focus-visible)):has(:checked:not(.filter-reset, [type="checkbox"])) :is(input, button):not(:checked, .filter-reset, [type="reset"]) {
+        margin-inline: 0;
+        width: 0;
+        padding-inline: 0;
+        opacity: 0%;
+        scale: 0;
+        border-width: 0;
       }
     }
   }
@@ -673,7 +725,7 @@
     @layer daisyui.l1.l2 {
       --tabs-height: auto;
       --tabs-direction: row;
-      > .tab {
+       > .tab {
         --tab-border: 0 0 var(--border) 0;
         --tab-radius-ss: var(--tab-radius-limit);
         --tab-radius-se: var(--tab-radius-limit);
@@ -691,7 +743,7 @@
         border-end-end-radius: var(--tab-radius-ee);
         padding: var(--tab-paddings);
         border-color: var(--tab-border-colors);
-        &:is(.tab-active, [aria-selected="true"], [aria-current="true"], [aria-current="page"]):not( .tab-disabled, [disabled] ), &:is(input:checked, label:has(:checked)) {
+        &:is(.tab-active, [aria-selected="true"], [aria-current="true"], [aria-current="page"]):not(.tab-disabled, [disabled] ), &:is(input:checked, label:has(:checked)) {
           --tab-border: var(--border) var(--border) 0 var(--border);
           --tab-border-colors: var(--tab-border-color) var(--tab-border-color) #0000
           var(--tab-border-color);
@@ -728,15 +780,15 @@
           }
         }
       }
-      &:has(> .tab-content) {
-        > .tab:first-child {
+      &:has( > .tab-content) {
+         > .tab:first-child {
           &:not(.tab-active, [aria-selected="true"], [aria-current="true"], [aria-current="page"]) {
             --tab-border-colors: var(--tab-border-color) var(--tab-border-color) #0000
             var(--tab-border-color);
           }
         }
       }
-      > .tab-content {
+       > .tab-content {
         --tabcontent-margin: calc(-1 * var(--border)) 0 0 0;
         --tabcontent-radius-ss: 0;
         --tabcontent-radius-se: var(--radius-box);
@@ -775,7 +827,7 @@
             border-bottom: var(--border) solid;
             inset-inline: var(--radius-box);
             position: absolute;
-            bottom: calc(0.25rem * 0);
+            bottom: 0;
             border-color: var(--color-base-content);
             @supports (color: color-mix(in lab, red, red)) {
               border-color: color-mix(in oklab, var(--color-base-content) 5%, transparent);
@@ -805,7 +857,7 @@
           --list-grid-cols: minmax(0, auto) minmax(0, auto) minmax(0, auto) minmax(0, auto)
           minmax(0, auto) 1fr;
         }
-        > * {
+         > * {
           grid-row-start: 1;
         }
       }
@@ -813,8 +865,6 @@
   }
   .input {
     @layer daisyui.l1.l2.l3 {
-      cursor: text;
-      border: var(--border) solid #0000;
       position: relative;
       display: inline-flex;
       flex-shrink: 1;
@@ -825,34 +875,35 @@
       padding-inline: calc(0.25rem * 3);
       vertical-align: middle;
       white-space: nowrap;
+      --size: calc(var(--size-field, 0.25rem) * var(--in-size-mul));
+      --input-color: var(--color-base-content);
+      @supports (color: color-mix(in lab, red, red)) {
+        --input-color: color-mix(in oklab, var(--color-base-content) 20%, #0000);
+      }
+      cursor: text;
       width: clamp(3rem, 20rem, 100%);
       height: var(--size);
-      font-size: max(var(--font-size, 0.875rem), 0.875rem);
+      font-size: max(var(--font-size, 0rem), var(--font-size-min));
       touch-action: manipulation;
       border-start-start-radius: var(--join-ss, var(--radius-field));
       border-start-end-radius: var(--join-se, var(--radius-field));
       border-end-start-radius: var(--join-es, var(--radius-field));
       border-end-end-radius: var(--join-ee, var(--radius-field));
-      border-color: var(--input-color);
+      border: var(--border) solid var(--input-color, #0000);
       box-shadow: 0 1px var(--input-color) inset, 0 -1px oklch(100% 0 0 / calc(var(--depth) * 0.1)) inset;
       @supports (color: color-mix(in lab, red, red)) {
         box-shadow: 0 1px color-mix(in oklab, var(--input-color) calc(var(--depth) * 10%), #0000) inset, 0 -1px oklch(100% 0 0 / calc(var(--depth) * 0.1)) inset;
       }
-      --size: calc(var(--size-field, 0.25rem) * 10);
-      --input-color: var(--color-base-content);
-      @supports (color: color-mix(in lab, red, red)) {
-        --input-color: color-mix(in oklab, var(--color-base-content) 20%, #0000);
-      }
-      &:where(input) {
-        display: inline-flex;
-      }
-      :where(input) {
-        display: inline-flex;
+      input {
         height: 100%;
         width: 100%;
         appearance: none;
         background-color: transparent;
         border: none;
+        &::placeholder {
+          color: var(--color-base-content);
+          opacity: 50%;
+        }
         &:focus, &:focus-within {
           --tw-outline-style: none;
           outline-style: none;
@@ -861,12 +912,40 @@
             outline-offset: 2px;
           }
         }
+        &::-webkit-calendar-picker-indicator {
+          inset-inline-end: -0.15em;
+        }
       }
-      :where(input[type="url"]), :where(input[type="email"]) {
-        direction: ltr;
+      &::-webkit-inner-spin-button {
+        margin-inline-end: -10px;
       }
-      :where(input[type="date"]) {
+      &::-webkit-calendar-picker-indicator {
+        inset-inline-end: 0.75em;
+      }
+      input&, input {
+        position: relative;
         display: inline-flex;
+        &[type="url"], &[type="email"] {
+          text-align: left;
+        }
+        &::-webkit-datetime-edit, &::-webkit-date-and-time-value {
+          display: grid;
+          min-height: 100%;
+          align-items: center;
+          text-align: inherit;
+        }
+        &::-webkit-inner-spin-button {
+          margin-block: calc(0.25rem * var(--spin-my));
+        }
+        &::-webkit-calendar-picker-indicator {
+          position: absolute;
+          width: 1em;
+          height: 1em;
+          cursor: pointer;
+        }
+        &::-webkit-color-swatch-wrapper {
+          padding-block: 0.25rem;
+        }
       }
       &:focus, &:focus-within {
         --input-color: var(--color-base-content);
@@ -885,51 +964,33 @@
           }
         }
       }
-      &:has(> input[disabled]), &:is(:disabled, [disabled]), fieldset:disabled & {
+      &:has( > input[disabled]), &:is(:disabled, [disabled]), fieldset:disabled & {
         cursor: not-allowed;
         border-color: var(--color-base-200);
         background-color: var(--color-base-200);
-        color: var(--color-base-content);
-        @supports (color: color-mix(in lab, red, red)) {
-          color: color-mix(in oklab, var(--color-base-content) 40%, transparent);
-        }
-        &::placeholder {
+        &:is(input), :is(input) {
           color: var(--color-base-content);
           @supports (color: color-mix(in lab, red, red)) {
-            color: color-mix(in oklab, var(--color-base-content) 20%, transparent);
+            color: color-mix(in oklab, var(--color-base-content) 40%, transparent);
           }
         }
         box-shadow: none;
+        &::placeholder, ::placeholder {
+          color: var(--color-base-content);
+          opacity: 20%;
+        }
       }
-      &:has(> input[disabled]) > input[disabled] {
+      &:has( > input[disabled]) > input[disabled] {
         cursor: not-allowed;
       }
-      &::-webkit-date-and-time-value {
-        text-align: inherit;
-      }
-      &[type="number"] {
-        &::-webkit-inner-spin-button {
-          margin-block: calc(0.25rem * -3);
-          margin-inline-end: calc(0.25rem * -3);
-        }
-      }
-      &::-webkit-calendar-picker-indicator {
-        position: absolute;
-        inset-inline-end: 0.75em;
-      }
-      &:has(> input[type="date"]) {
-        :where(input[type="date"]) {
-          display: inline-flex;
-          webkit-appearance: none;
-          appearance: none;
-        }
-        input[type="date"]::-webkit-calendar-picker-indicator {
-          position: absolute;
-          inset-inline-end: 0.75em;
-          width: 1em;
-          height: 1em;
-          cursor: pointer;
-        }
+    }
+    @layer daisyui.l1.l2 {
+      --in-size-mul: 10;
+      --font-size-min: 0.875rem;
+      --spin-my: -3;
+      .floating-label:has(&) {
+        --top-mul: 5;
+        --font-size: 0.875rem;
       }
     }
   }
@@ -939,8 +1000,8 @@
       position: relative;
       width: 100%;
       border-collapse: separate;
-      --tw-border-spacing-x: calc(0.25rem * 0);
-      --tw-border-spacing-y: calc(0.25rem * 0);
+      --tw-border-spacing-x: 0;
+      --tw-border-spacing-y: 0;
       border-spacing: var(--tw-border-spacing-x) var(--tw-border-spacing-y);
       border-radius: var(--radius-box);
       text-align: left;
@@ -978,20 +1039,20 @@
       }
       :where(.table-pin-rows thead tr) {
         position: sticky;
-        top: calc(0.25rem * 0);
+        top: 0;
         z-index: 1;
         background-color: var(--color-base-100);
       }
       :where(.table-pin-rows tfoot tr) {
         position: sticky;
-        bottom: calc(0.25rem * 0);
+        bottom: 0;
         z-index: 1;
         background-color: var(--color-base-100);
       }
       :where(.table-pin-cols tr th) {
         position: sticky;
-        right: calc(0.25rem * 0);
-        left: calc(0.25rem * 0);
+        right: 0;
+        left: 0;
         background-color: var(--color-base-100);
       }
       :where(thead tr :is(td, th), tbody tr:not(:last-child) :is(td, th)) {
@@ -999,6 +1060,51 @@
         @supports (color: color-mix(in lab, red, red)) {
           border-bottom: var(--border) solid color-mix(in oklch, var(--color-base-content) 5%, #0000);
         }
+      }
+    }
+  }
+  .aura {
+    @layer daisyui.l1.l2.l3 {
+      position: relative;
+      display: inline-block;
+      --aura-padding: 0.125rem;
+      padding: var(--aura-padding);
+      border-radius: calc(var(--aura-padding) + var(--aura-radius, var(--radius-box)));
+      animation: aura var(--tw-duration, 6s) linear infinite;
+      background-image: conic-gradient(from var(--aura-angle), transparent 225deg, currentColor);
+      &:has( > .card,  > .alert) {
+        --aura-radius: var(--radius-box);
+      }
+      &:has( > .btn,  > .input,  > .select) {
+        --aura-radius: var(--radius-field);
+      }
+      &:has( > .checkbox,  > .toggle,  > .badge) {
+        --aura-radius: var(--radius-selector);
+      }
+      &:before, &:after {
+        animation: inherit;
+        background-color: inherit;
+        background-image: inherit;
+        border-radius: inherit;
+        position: absolute;
+        top: calc(1 / 2 * 100%);
+        left: calc(1 / 2 * 100%);
+        z-index: 0;
+        display: block;
+        opacity: 70%;
+        filter: blur(0.25rem);
+        translate: -50% -50%;
+        width: 100%;
+        height: 100%;
+        content: "";
+      }
+      &:after {
+        opacity: 30%;
+        filter: blur(1rem);
+      }
+      & > * {
+        position: relative;
+        z-index: 1;
       }
     }
   }
@@ -1022,7 +1128,7 @@
         --step-bg: var(--color-base-300);
         --step-fg: var(--color-base-content);
         &:before {
-          top: calc(0.25rem * 0);
+          top: 0;
           grid-column-start: 1;
           grid-row-start: 1;
           height: calc(0.25rem * 2);
@@ -1033,7 +1139,7 @@
           content: "";
           margin-inline-start: -100%;
         }
-        > .step-icon, &:not(:has(.step-icon)):after {
+         > .step-icon, &:not(:has(.step-icon)):after {
           --tw-content: counter(step);
           content: var(--tw-content);
           counter-increment: step;
@@ -1063,49 +1169,49 @@
     }
     @layer daisyui.l1.l2 {
       .step-neutral {
-        + .step-neutral:before, &:after, > .step-icon {
+         + .step-neutral:before, &:after,  > .step-icon {
           --step-bg: var(--color-neutral);
           --step-fg: var(--color-neutral-content);
         }
       }
       .step-primary {
-        + .step-primary:before, &:after, > .step-icon {
+         + .step-primary:before, &:after,  > .step-icon {
           --step-bg: var(--color-primary);
           --step-fg: var(--color-primary-content);
         }
       }
       .step-secondary {
-        + .step-secondary:before, &:after, > .step-icon {
+         + .step-secondary:before, &:after,  > .step-icon {
           --step-bg: var(--color-secondary);
           --step-fg: var(--color-secondary-content);
         }
       }
       .step-accent {
-        + .step-accent:before, &:after, > .step-icon {
+         + .step-accent:before, &:after,  > .step-icon {
           --step-bg: var(--color-accent);
           --step-fg: var(--color-accent-content);
         }
       }
       .step-info {
-        + .step-info:before, &:after, > .step-icon {
+         + .step-info:before, &:after,  > .step-icon {
           --step-bg: var(--color-info);
           --step-fg: var(--color-info-content);
         }
       }
       .step-success {
-        + .step-success:before, &:after, > .step-icon {
+         + .step-success:before, &:after,  > .step-icon {
           --step-bg: var(--color-success);
           --step-fg: var(--color-success-content);
         }
       }
       .step-warning {
-        + .step-warning:before, &:after, > .step-icon {
+         + .step-warning:before, &:after,  > .step-icon {
           --step-bg: var(--color-warning);
           --step-fg: var(--color-warning-content);
         }
       }
       .step-error {
-        + .step-error:before, &:after, > .step-icon {
+         + .step-error:before, &:after,  > .step-icon {
           --step-bg: var(--color-error);
           --step-fg: var(--color-error-content);
         }
@@ -1114,7 +1220,6 @@
   }
   .select {
     @layer daisyui.l1.l2.l3 {
-      border: var(--border) solid #0000;
       position: relative;
       display: inline-flex;
       flex-shrink: 1;
@@ -1125,9 +1230,14 @@
       padding-inline-start: calc(0.25rem * 3);
       padding-inline-end: calc(0.25rem * 7);
       vertical-align: middle;
+      --size: calc(var(--size-field, 0.25rem) * var(--sl-size-mul));
+      --input-color: var(--color-base-content);
+      @supports (color: color-mix(in lab, red, red)) {
+        --input-color: color-mix(in oklab, var(--color-base-content) 20%, #0000);
+      }
       width: clamp(3rem, 20rem, 100%);
       height: var(--size);
-      font-size: 0.875rem;
+      font-size: max(var(--font-size, 0rem), var(--font-size-min));
       touch-action: manipulation;
       border-start-start-radius: var(--join-ss, var(--radius-field));
       border-start-end-radius: var(--join-se, var(--radius-field));
@@ -1140,16 +1250,11 @@
       white-space: nowrap;
       overflow: hidden;
       text-overflow: ellipsis;
+      border: var(--border) solid var(--input-color, #0000);
       box-shadow: 0 1px var(--input-color) inset, 0 -1px oklch(100% 0 0 / calc(var(--depth) * 0.1)) inset;
       @supports (color: color-mix(in lab, red, red)) {
         box-shadow: 0 1px color-mix(in oklab, var(--input-color) calc(var(--depth) * 10%), #0000) inset, 0 -1px oklch(100% 0 0 / calc(var(--depth) * 0.1)) inset;
       }
-      border-color: var(--input-color);
-      --input-color: var(--color-base-content);
-      @supports (color: color-mix(in lab, red, red)) {
-        --input-color: color-mix(in oklab, var(--color-base-content) 20%, #0000);
-      }
-      --size: calc(var(--size-field, 0.25rem) * 10);
       [dir="rtl"] & {
         background-position: calc(0% + 12px) calc(1px + 50%), calc(0% + 16px) calc(1px + 50%);
         &::picker(select), select::picker(select) {
@@ -1175,6 +1280,10 @@
         background: inherit;
         border-radius: inherit;
         border-style: none;
+        &::placeholder {
+          color: var(--color-base-content);
+          opacity: 50%;
+        }
         &:focus, &:focus-within {
           --tw-outline-style: none;
           outline-style: none;
@@ -1188,7 +1297,7 @@
           background-image: none;
         }
       }
-      &:focus, &:focus-within {
+      &:focus, &:focus-within, &:open {
         --input-color: var(--color-base-content);
         box-shadow: 0 1px var(--input-color);
         @supports (color: color-mix(in lab, red, red)) {
@@ -1197,31 +1306,30 @@
         outline: 2px solid var(--input-color);
         outline-offset: 2px;
         isolation: isolate;
+        background-image: linear-gradient(135deg, #0000 50%, currentColor 50%), linear-gradient(45deg, currentColor 50%, #0000 50%);
       }
-      &:has(> select[disabled]), &:is(:disabled, [disabled]), fieldset:disabled & {
+      &:has( > select[disabled]), &:is(:disabled, [disabled]), fieldset:disabled & {
         cursor: not-allowed;
         border-color: var(--color-base-200);
         background-color: var(--color-base-200);
-        color: var(--color-base-content);
-        @supports (color: color-mix(in lab, red, red)) {
-          color: color-mix(in oklab, var(--color-base-content) 40%, transparent);
-        }
-        &::placeholder {
+        &:is(select), :is(select) {
           color: var(--color-base-content);
           @supports (color: color-mix(in lab, red, red)) {
-            color: color-mix(in oklab, var(--color-base-content) 20%, transparent);
+            color: color-mix(in oklab, var(--color-base-content) 40%, transparent);
           }
         }
+        box-shadow: none;
+        &::placeholder, ::placeholder {
+          color: var(--color-base-content);
+          opacity: 20%;
+        }
       }
-      &:has(> select[disabled]) > select[disabled] {
+      &:has( > select[disabled]) > select[disabled] {
         cursor: not-allowed;
       }
       &, & select {
         @supports (appearance: base-select) {
-          appearance: base-select;
-        }
-        @supports (appearance: base-select) {
-          &::picker(select) {
+          &, &::picker(select) {
             appearance: base-select;
           }
         }
@@ -1241,6 +1349,12 @@
         &::picker-icon {
           display: none;
         }
+        selectedcontent {
+          width: 100%;
+          overflow: hidden;
+          text-overflow: ellipsis;
+          white-space: nowrap;
+        }
         optgroup {
           padding-top: 0.5em;
           option {
@@ -1251,8 +1365,8 @@
         }
         option {
           border-radius: var(--radius-field);
-          padding-inline: calc(0.25rem * 3);
           padding-block: calc(0.25rem * 1.5);
+          padding-inline: calc(0.25rem * var(--option-px));
           transition-property: color, background-color;
           transition-duration: 0.2s;
           transition-timing-function: cubic-bezier(0, 0, 0.2, 1);
@@ -1280,9 +1394,18 @@
         }
       }
     }
+    @layer daisyui.l1.l2 {
+      --sl-size-mul: 10;
+      --font-size-min: 0.875rem;
+      --option-px: 3;
+      .floating-label:has(&) {
+        --top-mul: 5;
+        --font-size: 0.875rem;
+      }
+    }
   }
   .swap {
-    @layer daisyui.l1.l2.l3 {
+    @layer daisyui.l1.l2 {
       position: relative;
       display: inline-grid;
       cursor: pointer;
@@ -1294,7 +1417,7 @@
         appearance: none;
         border: none;
       }
-      > * {
+       > * {
         grid-column-start: 1;
         grid-row-start: 1;
         @media (prefers-reduced-motion: no-preference) {
@@ -1340,7 +1463,7 @@
       cursor: pointer;
       appearance: none;
       border-radius: var(--radius-selector);
-      padding: calc(0.25rem * 1);
+      padding: 0.25rem;
       vertical-align: middle;
       color: var(--color-base-content);
       box-shadow: 0 1px oklch(0% 0 0 / calc(var(--depth) * 0.1)) inset, 0 0 #0000 inset, 0 0 #0000;
@@ -1395,9 +1518,9 @@
         }
       }
       &:indeterminate {
-        background-color: var( --input-color, var(--color-base-content) );
+        background-color: var(--input-color, var(--color-base-content) );
         @supports (color: color-mix(in lab, red, red)) {
-          background-color: var( --input-color, color-mix(in oklab, var(--color-base-content) 20%, #0000) );
+          background-color: var(--input-color, color-mix(in oklab, var(--color-base-content) 20%, #0000) );
         }
         &:before {
           rotate: 0deg;
@@ -1422,7 +1545,7 @@
       cursor: pointer;
       appearance: none;
       border-radius: calc(infinity * 1px);
-      padding: calc(0.25rem * 1);
+      padding: 0.25rem;
       vertical-align: middle;
       border: var(--border) solid var(--input-color, currentColor);
       @supports (color: color-mix(in lab, red, red)) {
@@ -1492,29 +1615,32 @@
       display: flex;
       flex-direction: column;
       border-radius: var(--radius-box);
-      outline-width: 2px;
       transition: outline 0.2s ease-in-out;
-      outline: 0 solid #0000;
+      outline: 2px solid #0000;
       outline-offset: 2px;
-      &:focus {
-        --tw-outline-style: none;
-        outline-style: none;
-        @media (forced-colors: active) {
-          outline: 2px solid transparent;
-          outline-offset: 2px;
-        }
-      }
-      &:focus-visible {
+      &:focus-visible, &[aria-checked="true"], &:has( > :checked,  > :is([type="checkbox"], [type="radio"]):focus-visible) {
         outline-color: currentColor;
       }
-      :where(figure:first-child) {
+      &:has( > :checked:focus-visible), &[aria-checked="true"]:focus-visible, &[aria-checked="true"]:has( > :is([type="checkbox"], [type="radio"]):focus-visible) {
+        outline-width: 4px;
+      }
+      &:has( > :is([type="checkbox"], [type="radio"])) {
+        cursor: pointer;
+        user-select: none;
+      }
+       > :is([type="checkbox"], [type="radio"]) {
+        appearance: none;
+      }
+    }
+    @layer daisyui.l1.l2.l3.l4 {
+      figure:first-child {
         overflow: hidden;
         border-start-start-radius: inherit;
         border-start-end-radius: inherit;
         border-end-start-radius: unset;
         border-end-end-radius: unset;
       }
-      :where(figure:last-child) {
+      figure:last-child {
         overflow: hidden;
         border-start-start-radius: unset;
         border-start-end-radius: unset;
@@ -1525,13 +1651,6 @@
         display: flex;
         align-items: center;
         justify-content: center;
-      }
-      &:has(> input:is(input[type="checkbox"], input[type="radio"])) {
-        cursor: pointer;
-        user-select: none;
-      }
-      &:has(> :checked) {
-        outline: 2px solid currentColor;
       }
     }
   }
@@ -1601,19 +1720,16 @@
     position: sticky;
   }
   .inset-0 {
-    inset: calc(var(--spacing) * 0);
-  }
-  .start {
-    inset-inline-start: var(--spacing);
-  }
-  .end {
-    inset-inline-end: var(--spacing);
+    inset: 0;
   }
   .-top-5 {
     top: calc(var(--spacing) * -5);
   }
   .top-0 {
-    top: calc(var(--spacing) * 0);
+    top: 0;
+  }
+  .top-3 {
+    top: calc(var(--spacing) * 3);
   }
   .top-4 {
     top: calc(var(--spacing) * 4);
@@ -1621,37 +1737,42 @@
   .-right-5 {
     right: calc(var(--spacing) * -5);
   }
+  .right-3 {
+    right: calc(var(--spacing) * 3);
+  }
   .right-4 {
     right: calc(var(--spacing) * 4);
   }
   .textarea {
     @layer daisyui.l1.l2.l3 {
-      border: var(--border) solid #0000;
       min-height: calc(0.25rem * 20);
       flex-shrink: 1;
       appearance: none;
       border-radius: var(--radius-field);
       background-color: var(--color-base-100);
+      padding-inline: calc(0.25rem * 3);
       padding-block: calc(0.25rem * 2);
       vertical-align: middle;
-      width: clamp(3rem, 20rem, 100%);
-      padding-inline-start: 0.75rem;
-      padding-inline-end: 0.75rem;
-      font-size: max(var(--font-size, 0.875rem), 0.875rem);
-      touch-action: manipulation;
-      border-color: var(--input-color);
-      box-shadow: 0 1px var(--input-color) inset, 0 -1px oklch(100% 0 0 / calc(var(--depth) * 0.1)) inset;
-      @supports (color: color-mix(in lab, red, red)) {
-        box-shadow: 0 1px color-mix(in oklab, var(--input-color) calc(var(--depth) * 10%), #0000) inset, 0 -1px oklch(100% 0 0 / calc(var(--depth) * 0.1)) inset;
-      }
       --input-color: var(--color-base-content);
       @supports (color: color-mix(in lab, red, red)) {
         --input-color: color-mix(in oklab, var(--color-base-content) 20%, #0000);
+      }
+      width: clamp(3rem, 20rem, 100%);
+      font-size: max(var(--font-size, 0rem), var(--font-size-min));
+      touch-action: manipulation;
+      border: var(--border) solid var(--input-color, #0000);
+      box-shadow: 0 1px var(--input-color) inset, 0 -1px oklch(100% 0 0 / calc(var(--depth) * 0.1)) inset;
+      @supports (color: color-mix(in lab, red, red)) {
+        box-shadow: 0 1px color-mix(in oklab, var(--input-color) calc(var(--depth) * 10%), #0000) inset, 0 -1px oklch(100% 0 0 / calc(var(--depth) * 0.1)) inset;
       }
       textarea {
         appearance: none;
         background-color: transparent;
         border: none;
+        &::placeholder {
+          color: var(--color-base-content);
+          opacity: 50%;
+        }
         &:focus, &:focus-within {
           --tw-outline-style: none;
           outline-style: none;
@@ -1678,7 +1799,7 @@
           }
         }
       }
-      &:has(> textarea[disabled]), &:is(:disabled, [disabled]) {
+      &:has( > textarea[disabled]), &:is(:disabled, [disabled]) {
         cursor: not-allowed;
         border-color: var(--color-base-200);
         background-color: var(--color-base-200);
@@ -1686,16 +1807,21 @@
         @supports (color: color-mix(in lab, red, red)) {
           color: color-mix(in oklab, var(--color-base-content) 40%, transparent);
         }
-        &::placeholder {
-          color: var(--color-base-content);
-          @supports (color: color-mix(in lab, red, red)) {
-            color: color-mix(in oklab, var(--color-base-content) 20%, transparent);
-          }
-        }
         box-shadow: none;
+        &::placeholder, ::placeholder {
+          color: var(--color-base-content);
+          opacity: 20%;
+        }
       }
-      &:has(> textarea[disabled]) > textarea[disabled] {
+      &:has( > textarea[disabled]) > textarea[disabled] {
         cursor: not-allowed;
+      }
+    }
+    @layer daisyui.l1.l2 {
+      --font-size-min: 0.875rem;
+      .floating-label:has(&) {
+        --top-mul: 5;
+        --font-size: 0.875rem;
       }
     }
   }
@@ -1718,7 +1844,7 @@
     @layer daisyui.l1.l2.l3 {
       grid-column-start: 2;
       grid-row-start: 1;
-      min-width: calc(0.25rem * 0);
+      min-width: 0;
     }
   }
   .container {
@@ -1739,53 +1865,11 @@
       max-width: 96rem;
     }
   }
-  .filter {
-    @layer daisyui.l1.l2.l3 {
-      display: flex;
-      flex-wrap: wrap;
-      input[type="radio"] {
-        width: auto;
-      }
-      input {
-        overflow: hidden;
-        opacity: 100%;
-        scale: 1;
-        transition: margin 0.1s, opacity 0.3s, padding 0.3s, border-width 0.1s;
-        &:not(:last-child) {
-          margin-inline-end: calc(0.25rem * 1);
-        }
-        &.filter-reset {
-          aspect-ratio: 1 / 1;
-          &::after {
-            --tw-content: "×";
-            content: var(--tw-content);
-          }
-        }
-      }
-      &:not(:has(input:checked:not(.filter-reset))) {
-        .filter-reset, input[type="reset"] {
-          scale: 0;
-          border-width: 0;
-          margin-inline: calc(0.25rem * 0);
-          width: calc(0.25rem * 0);
-          padding-inline: calc(0.25rem * 0);
-          opacity: 0%;
-        }
-      }
-      &:has(input:checked:not(.filter-reset)) {
-        input:not(:checked, .filter-reset, input[type="reset"]) {
-          scale: 0;
-          border-width: 0;
-          margin-inline: calc(0.25rem * 0);
-          width: calc(0.25rem * 0);
-          padding-inline: calc(0.25rem * 0);
-          opacity: 0%;
-        }
-      }
-    }
-  }
   .mx-2 {
     margin-inline: calc(var(--spacing) * 2);
+  }
+  .mx-auto {
+    margin-inline: auto;
   }
   .my-3 {
     margin-block: calc(var(--spacing) * 3);
@@ -1864,7 +1948,7 @@
     margin-top: -1px;
   }
   .mt-1 {
-    margin-top: calc(var(--spacing) * 1);
+    margin-top: var(--spacing);
   }
   .mt-2 {
     margin-top: calc(var(--spacing) * 2);
@@ -1901,12 +1985,6 @@
   }
   .mb-6 {
     margin-bottom: calc(var(--spacing) * 6);
-  }
-  .mb-8 {
-    margin-bottom: calc(var(--spacing) * 8);
-  }
-  .ml-3 {
-    margin-left: calc(var(--spacing) * 3);
   }
   .ml-4 {
     margin-left: calc(var(--spacing) * 4);
@@ -1979,7 +2057,7 @@
       row-gap: calc(0.25rem * 10);
       font-size: 0.875rem;
       line-height: 1.25rem;
-      & > * {
+      & > *:not(script, style, template) {
         display: grid;
         place-items: start;
         gap: calc(0.25rem * 2);
@@ -1988,7 +2066,7 @@
         grid-auto-flow: column dense;
         place-items: center;
         text-align: center;
-        & > * {
+        & > *:not(script, style, template) {
           place-items: center;
         }
       }
@@ -2015,7 +2093,7 @@
       text-align: start;
       font-size: 0.875rem;
       line-height: 1.25rem;
-      background-size: auto, calc(var(--noise) * 100%);
+      background-size: auto, calc(var(--noise) * 33%);
       background-image: none, var(--fx-noise);
       box-shadow: 0 3px 0 -2px oklch(100% 0 0 / calc(var(--depth) * 0.08)) inset, 0 1px #000, 0 4px 3px -2px oklch(0% 0 0 / calc(var(--depth) * 0.08));
       @supports (color: color-mix(in lab, red, red)) {
@@ -2125,7 +2203,7 @@
     max-height: calc(var(--spacing) * 60);
   }
   .min-h-0 {
-    min-height: calc(var(--spacing) * 0);
+    min-height: 0;
   }
   .min-h-\[80dvh\] {
     min-height: 80dvh;
@@ -2286,7 +2364,7 @@
     justify-content: flex-start;
   }
   .gap-1 {
-    gap: calc(var(--spacing) * 1);
+    gap: var(--spacing);
   }
   .gap-2 {
     gap: calc(var(--spacing) * 2);
@@ -2318,13 +2396,16 @@
     }
   }
   .gap-x-1 {
-    column-gap: calc(var(--spacing) * 1);
+    column-gap: var(--spacing);
   }
   .gap-x-2 {
     column-gap: calc(var(--spacing) * 2);
   }
   .gap-x-3 {
     column-gap: calc(var(--spacing) * 3);
+  }
+  .gap-y-1 {
+    row-gap: var(--spacing);
   }
   .gap-y-2 {
     row-gap: calc(var(--spacing) * 2);
@@ -2464,10 +2545,13 @@
     object-fit: contain;
   }
   .p-0 {
-    padding: calc(var(--spacing) * 0);
+    padding: 0;
   }
   .p-1 {
-    padding: calc(var(--spacing) * 1);
+    padding: var(--spacing);
+  }
+  .p-2 {
+    padding: calc(var(--spacing) * 2);
   }
   .p-3 {
     padding: calc(var(--spacing) * 3);
@@ -2498,6 +2582,9 @@
   }
   .py-3 {
     padding-block: calc(var(--spacing) * 3);
+  }
+  .py-4 {
+    padding-block: calc(var(--spacing) * 4);
   }
   .py-8 {
     padding-block: calc(var(--spacing) * 8);
@@ -2817,6 +2904,13 @@
       }
     }
   }
+  .hover\:bg-neutral-100 {
+    &:hover {
+      @media (hover: hover) {
+        background-color: var(--color-neutral-100);
+      }
+    }
+  }
   .hover\:bg-primary-50 {
     &:hover {
       @media (hover: hover) {
@@ -2991,9 +3085,29 @@
       position: sticky;
     }
   }
+  .md\:top-6 {
+    @media (width >= 48rem) {
+      top: calc(var(--spacing) * 6);
+    }
+  }
   .md\:top-14 {
     @media (width >= 48rem) {
       top: calc(var(--spacing) * 14);
+    }
+  }
+  .md\:right-6 {
+    @media (width >= 48rem) {
+      right: calc(var(--spacing) * 6);
+    }
+  }
+  .md\:mt-3 {
+    @media (width >= 48rem) {
+      margin-top: calc(var(--spacing) * 3);
+    }
+  }
+  .md\:mt-5 {
+    @media (width >= 48rem) {
+      margin-top: calc(var(--spacing) * 5);
     }
   }
   .md\:mt-\[65px\] {
@@ -3004,6 +3118,16 @@
   .md\:mb-3 {
     @media (width >= 48rem) {
       margin-bottom: calc(var(--spacing) * 3);
+    }
+  }
+  .md\:mb-4 {
+    @media (width >= 48rem) {
+      margin-bottom: calc(var(--spacing) * 4);
+    }
+  }
+  .md\:mb-8 {
+    @media (width >= 48rem) {
+      margin-bottom: calc(var(--spacing) * 8);
     }
   }
   .md\:hidden {
@@ -3046,6 +3170,11 @@
       gap: calc(var(--spacing) * 4);
     }
   }
+  .md\:gap-y-8 {
+    @media (width >= 48rem) {
+      row-gap: calc(var(--spacing) * 8);
+    }
+  }
   .md\:self-start {
     @media (width >= 48rem) {
       align-self: flex-start;
@@ -3078,6 +3207,11 @@
       padding-inline: calc(var(--spacing) * 32);
     }
   }
+  .md\:py-8 {
+    @media (width >= 48rem) {
+      padding-block: calc(var(--spacing) * 8);
+    }
+  }
   .lg\:gap-10 {
     @media (width >= 64rem) {
       gap: calc(var(--spacing) * 10);
@@ -3091,28 +3225,22 @@
   .xl\:drawer-open {
     @media (width >= 80rem) {
       @layer daisyui.l1.l2.l3 {
-        > .drawer-toggle:checked {
-          ~ .drawer-side {
+         > .drawer-toggle:checked {
+           ~ .drawer-side {
             scrollbar-color: revert-layer;
           }
           :root:has(&) {
-            --page-overflow: revert-layer;
-            --page-scroll-gutter: revert-layer;
-            --page-scroll-bg: revert-layer;
-            --page-scroll-transition: revert-layer;
-            --page-has-backdrop: revert-layer;
-            animation: revert-layer;
-            animation-timeline: revert-layer;
+            --page-scroll-lock: revert-layer;
           }
         }
       }
       @layer daisyui.l1.l2 {
-        > .drawer-side {
+         > .drawer-side {
           overflow-y: auto;
         }
-        > .drawer-toggle {
+         > .drawer-toggle {
           display: none;
-          ~ .drawer-side {
+           ~ .drawer-side {
             pointer-events: auto;
             visibility: visible;
             position: sticky;
@@ -3120,7 +3248,7 @@
             width: auto;
             overscroll-behavior: auto;
             opacity: 100%;
-            > .drawer-overlay {
+             > .drawer-overlay {
               cursor: default;
               background-color: transparent;
             }
@@ -3132,7 +3260,7 @@
         }
       }
       @layer daisyui.l1 {
-        > .drawer-toggle ~ .drawer-side > :not(.drawer-overlay) {
+         > .drawer-toggle ~ .drawer-side > :not(.drawer-overlay) {
           translate: 0%;
           [dir="rtl"] & {
             translate: 0%;
@@ -3454,8 +3582,15 @@
   }
 }
 @layer base {
-  :root {
-    --fx-noise: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 200 200'%3E%3Cfilter id='a'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='1.34' numOctaves='4' stitchTiles='stitch'%3E%3C/feTurbulence%3E%3C/filter%3E%3Crect width='200' height='200' filter='url(%23a)' opacity='0.2'%3E%3C/rect%3E%3C/svg%3E");
+  @property --radialprogress {
+    syntax: "<percentage>";
+    inherits: true;
+    initial-value: 0%;
+  }
+  @property --aura-angle {
+    syntax: "<angle>";
+    inherits: false;
+    initial-value: 0deg;
   }
 }
 @layer base {
@@ -3467,55 +3602,67 @@
   }
 }
 @layer base {
-  @property --radialprogress {
-    syntax: "<percentage>";
-    inherits: true;
-    initial-value: 0%;
+  :root {
+    --fx-noise: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 200 200'%3E%3Cfilter id='a'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='1.34' numOctaves='4' stitchTiles='stitch'%3E%3C/feTurbulence%3E%3C/filter%3E%3Crect width='200' height='200' filter='url(%23a)' opacity='0.2'%3E%3C/rect%3E%3C/svg%3E");
   }
 }
 @layer base {
+  :root {
+    --page-scroll-lock: initial;
+    --page-overflow: var(--page-scroll-lock) hidden;
+  }
   :root:not(span) {
     overflow: var(--page-overflow);
   }
 }
 @layer base {
   :root {
-    background: var(--page-scroll-bg, var(--root-bg));
-    --page-scroll-bg-on: linear-gradient(var(--root-bg, #0000), var(--root-bg, #0000))
+    --page-has-backdrop: var(--page-scroll-lock) 1;
+    --page-scroll-bg: var(--page-scroll-lock)
     var(--root-bg, #0000);
     @supports (color: color-mix(in lab, red, red)) {
-      --page-scroll-bg-on: linear-gradient(var(--root-bg, #0000), var(--root-bg, #0000))
+      --page-scroll-bg: var(--page-scroll-lock)
     color-mix(in srgb, var(--root-bg, #0000), oklch(0% 0 0) calc(var(--page-has-backdrop, 0) * 40%));
     }
-    --page-scroll-transition-on: background-color 0.3s ease-out;
-    transition: var(--page-scroll-transition);
-    scrollbar-gutter: var(--page-scroll-gutter, unset);
-    scrollbar-gutter: if(style(--page-has-scroll: 1): var(--page-scroll-gutter, unset) ; else: unset);
+    background-image: var(--page-scroll-lock) linear-gradient(var(--root-bg, #0000), var(--root-bg, #0000));
+    transition: var(--page-scroll-lock) background-color 0.3s ease-out;
+    animation: var(--page-scroll-lock) set-page-has-scroll forwards;
+    animation-timeline: var(--page-scroll-lock) scroll();
+    --page-has-scroll: initial;
+    scrollbar-gutter: var(--page-has-scroll) var(--page-scroll-lock) stable;
   }
   @keyframes set-page-has-scroll {
     0%, to {
-      --page-has-scroll: 1;
+      --page-has-scroll:  ;
     }
   }
 }
 @layer base {
   :root, [data-theme] {
-    background: var(--page-scroll-bg, var(--root-bg));
+    background-color: var(--root-bg);
     color: var(--color-base-content);
+  }
+  :root {
+    background-color: var(--page-scroll-bg, var(--root-bg));
   }
   :where(:root, [data-theme]) {
     --root-bg: var(--color-base-100);
   }
 }
-@keyframes rating {
-  0%, 40% {
-    scale: 1.1;
-    filter: brightness(1.05) contrast(1.05);
-  }
-}
 @keyframes dropdown {
   0% {
     opacity: 0;
+  }
+}
+@keyframes rotator {
+  89.9999%, 100% {
+    --first-item-position: 0 0%;
+  }
+  90%, 99.9999% {
+    --first-item-position: 0 calc(var(--items) * 100%);
+  }
+  100% {
+    translate: 0 -100%;
   }
 }
 @keyframes radio {
@@ -3536,17 +3683,6 @@
     opacity: 1;
   }
 }
-@keyframes rotator {
-  89.9999%, 100% {
-    --first-item-position: 0 0%;
-  }
-  90%, 99.9999% {
-    --first-item-position: 0 calc(var(--items) * 100%);
-  }
-  100% {
-    translate: 0 -100%;
-  }
-}
 @keyframes skeleton {
   0% {
     background-position: 150%;
@@ -3555,14 +3691,46 @@
     background-position: -50%;
   }
 }
-@keyframes menu {
-  0% {
-    opacity: 0;
-  }
-}
 @keyframes progress {
   50% {
     background-position-x: -115%;
+  }
+}
+@keyframes rating {
+  0%, 40% {
+    scale: 1.1;
+    filter: brightness(1.05) contrast(1.05);
+  }
+}
+@keyframes aura {
+  to {
+    --aura-angle: 360deg;
+    transform: translateZ(1px);
+  }
+}
+@keyframes aura-glow {
+  20%, 80% {
+    opacity: 0.7;
+    filter: blur(0.25rem);
+  }
+  50% {
+    opacity: 1;
+    filter: blur(0.75rem);
+  }
+}
+@keyframes aura-glow-after {
+  20%, 80% {
+    opacity: 0.3;
+    filter: blur(1rem);
+  }
+  50% {
+    opacity: 0.6;
+    filter: blur(1.5rem);
+  }
+}
+@keyframes menu {
+  0% {
+    opacity: 0;
   }
 }
 @layer base {
