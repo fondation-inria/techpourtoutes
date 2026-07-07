@@ -296,8 +296,8 @@
       pointer-events: none;
       visibility: hidden;
       position: fixed;
-      inset: calc(0.25rem * 0);
-      margin: calc(0.25rem * 0);
+      inset: 0;
+      margin: 0;
       display: grid;
       height: 100%;
       max-height: none;
@@ -306,9 +306,9 @@
       align-items: center;
       justify-items: center;
       background-color: transparent;
-      padding: calc(0.25rem * 0);
+      padding: 0;
       color: inherit;
-      transition: visibility 0.3s allow-discrete, background-color 0.3s ease-out, opacity 0.1s ease-out;
+      transition: overlay 0.3s allow-discrete, visibility 0.3s allow-discrete, background-color 0.3s ease-out, opacity 0.1s ease-out;
       overflow: clip;
       overscroll-behavior: contain;
       z-index: 999;
@@ -316,9 +316,23 @@
       &::backdrop {
         display: none;
       }
+      &[popover] {
+        inset: 0;
+        margin: 0;
+        border: 0;
+        padding: 0;
+        background: transparent;
+        color: inherit;
+        max-width: none;
+        max-height: none;
+        &::backdrop {
+          background-color: oklch(0% 0 0/ 0.4);
+          transition: background-color 0.3s ease-out;
+        }
+      }
     }
     @layer daisyui.l1.l2 {
-      &.modal-open, &[open], &:target, .modal-toggle:checked + & {
+      &.modal-open, &[open], &:popover-open, &:target, .modal-toggle:checked + & {
         pointer-events: auto;
         visibility: visible;
         opacity: 100%;
@@ -330,17 +344,11 @@
           opacity: 1;
         }
         :root:has(&) {
-          --page-has-backdrop: 1;
-          --page-overflow: hidden;
-          --page-scroll-bg: var(--page-scroll-bg-on);
-          --page-scroll-gutter: stable;
-          --page-scroll-transition: var(--page-scroll-transition-on);
-          animation: set-page-has-scroll forwards;
-          animation-timeline: scroll();
+          --page-scroll-lock:  ;
         }
       }
       @starting-style {
-        &.modal-open, &[open], &:target, .modal-toggle:checked + & {
+        &.modal-open, &[open], &:popover-open, &:target, .modal-toggle:checked + & {
           opacity: 0%;
         }
       }
@@ -586,6 +594,10 @@
           overflow: clip;
           height: 0;
         }
+        &:where([open])::details-content {
+          overflow: revert-layer;
+          height: auto;
+        }
         @media (prefers-reduced-motion: no-preference) {
           &::details-content {
             transition: overflow 0.2s allow-discrete var(--overflow-delay), content-visibility 0.2s allow-discrete, visibility 0.2s allow-discrete, min-height 0.2s ease-out allow-discrete, padding 0.1s ease-out 20ms, background-color 0.2s ease-out, height 0.2s;
@@ -593,8 +605,6 @@
           }
           &:where([open])::details-content {
             --overflow-delay: 0.2s;
-            height: auto;
-            overflow: revert-layer;
           }
         }
          > summary {
@@ -1302,10 +1312,13 @@
         cursor: not-allowed;
         border-color: var(--color-base-200);
         background-color: var(--color-base-200);
-        color: var(--color-base-content);
-        @supports (color: color-mix(in lab, red, red)) {
-          color: color-mix(in oklab, var(--color-base-content) 40%, transparent);
+        &:is(select), :is(select) {
+          color: var(--color-base-content);
+          @supports (color: color-mix(in lab, red, red)) {
+            color: color-mix(in oklab, var(--color-base-content) 40%, transparent);
+          }
         }
+        box-shadow: none;
         &::placeholder, ::placeholder {
           color: var(--color-base-content);
           opacity: 20%;
@@ -1707,13 +1720,7 @@
     position: sticky;
   }
   .inset-0 {
-    inset: calc(var(--spacing) * 0);
-  }
-  .start {
-    inset-inline-start: var(--spacing);
-  }
-  .end {
-    inset-inline-end: var(--spacing);
+    inset: 0;
   }
   .-top-5 {
     top: calc(var(--spacing) * -5);
@@ -1858,11 +1865,11 @@
       max-width: 96rem;
     }
   }
-  .mx-auto {
-    margin-inline: auto;
-  }
   .mx-2 {
     margin-inline: calc(var(--spacing) * 2);
+  }
+  .mx-auto {
+    margin-inline: auto;
   }
   .my-3 {
     margin-block: calc(var(--spacing) * 3);
@@ -2883,10 +2890,6 @@
       }
     }
   }
-  .hover\:bg-neutral-100 {
-    &:hover {
-      @media (hover: hover) {
-        background-color: var(--color-neutral-100);
   .hover\:bg-error-50 {
     &:hover {
       @media (hover: hover) {
@@ -2898,6 +2901,13 @@
     &:hover {
       @media (hover: hover) {
         background-color: var(--color-error-500);
+      }
+    }
+  }
+  .hover\:bg-neutral-100 {
+    &:hover {
+      @media (hover: hover) {
+        background-color: var(--color-neutral-100);
       }
     }
   }
