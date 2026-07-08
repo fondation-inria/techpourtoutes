@@ -1,64 +1,12 @@
 <!DOCTYPE html>
-{% load tailwind_cli static matomo %}
-<c-vars title="TechPourToutes" description="" og_image="" site_mode="{{ request.site_mode }}" />
+<c-vars title="TechPourToutes" description="" og_image="" variant="app" right="" back="" site_mode="{{ request.site_mode }}" />
 
 <html lang="fr" data-theme="techpourtoutes">
-    <head>
-        <meta charset="UTF-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        {% if description %}<meta name="description" content="{{ description }}">{% endif %}
-        <meta property="og:title" content="{{ title }}">
-        {% if description %}<meta property="og:description" content="{{ description }}">{% endif %}
-        <meta property="og:url" content="{{ request.build_absolute_uri }}">
-        <meta property="og:type" content="website">
-        <meta property="og:image" content="{% if og_image %}{{ og_image }}{% else %}{{ SITE_URL }}{% static 'images/coalition-tpt-white.png' %}{% endif %}">
-        <link rel="canonical" href="{{ request.build_absolute_uri }}">
-        {% matomo_tracking %}
-        <title>{{ title }}</title>
-        <link rel="icon" type="image/png" href="{% static FAVICON_NAMEFILE|add:".png" %}">
-        {% tailwind_css %}
-        <script defer src="{% static 'js/alpine.min.js' %}"></script>
-        <script defer src="{% static 'js/htmx.min.js' %}"></script>
-    </head>
-    <body class="min-h-screen font-sans bg-blue-background text-neutral-900 drawer xl:drawer-open">
-        <input id="sidebar-drawer" type="checkbox" class="drawer-toggle" />
-        <div class="drawer-content flex flex-col min-h-screen">
-            <header class="xl:hidden flex items-center justify-between px-4 py-3 bg-neutral-0 z-100">
-                <label for="sidebar-drawer" class="cursor-pointer p-1">
-                    <c-components.icon name="menu-burger-light" class="w-6 h-6" />
-                </label>
-                <c-components.brand-mark />
-                <div />
-                <label for="sidebar-drawer" class="hidden [body:has(#sidebar-drawer:checked)_&]:block absolute right-4 top-4 cursor-pointer p-1 text-neutral-900 text-xl leading-none">&times;</label>
-            </header>
-            <div class="flex flex-col justify-between items-center w-full flex-1">
-                {% if messages %}
-                    <div class="w-full max-w-6xl px-8 pt-4 flex flex-col gap-y-2">
-                        {% for message in messages %}
-                            <div x-data="{ show: true }"
-                                 x-show="show"
-                                 x-transition.opacity.duration.300ms
-                                 {% if message.tags == 'success' %}x-init="setTimeout(() => show = false, 5000)"{% endif %}
-                                 role="alert"
-                                 class="alert {% if message.tags == 'error' %}alert-error{% elif message.tags == 'success' %}alert-success{% else %}alert-info{% endif %} flex items-center justify-between">
-                                <span>{{ message }}</span>
-                                <button type="button" @click="show = false" aria-label="Fermer" class="ml-4 text-xl leading-none cursor-pointer focus-visible:outline-none focus-visible:border focus-visible:border-current">&times;</button>
-                            </div>
-                        {% endfor %}
-                    </div>
-                {% endif %}
-                <main class="flex max-w-6xl w-full flex-col md:flex-row md:justify-around">
-                    <div class="flex flex-col flex-1 py-8 px-4 md:px-8 gap-y-4 items-start justify-start h-max {% if right %}max-w-2xl{% else %}max-w-3xl{% endif %}">
-                        {{ slot }}
-                    </div>
-                    {{ right }}
-                </main>
-                <c-layout.partials.footer />
-            </div>
-        </div>
-        <div class="drawer-side z-40">
-            <label for="sidebar-drawer" class="drawer-overlay xl:hidden"></label>
-            <c-layout.partials.sidebars.sidebar-base site_mode=site_mode />
-        </div>
-    </body>
+    <c-layout.partials.head title="{{ title }}" description="{{ description }}" og_image="{{ og_image }}" />
+
+    {% if variant == "funnel" %}
+        <c-layout.partials.funnel_body back="{{ back }}" >{{ slot }}</c-layout.partials.funnel_body>
+    {% else %}
+        <c-layout.partials.base_body site_mode=site_mode right="{{ right }}">{{ slot }}</c-layout.partials.base_body>
+    {% endif %}
 </html>

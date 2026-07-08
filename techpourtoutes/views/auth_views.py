@@ -1,4 +1,4 @@
-from urllib.parse import urlencode
+from urllib.parse import urlencode, urlparse
 
 from django.conf import settings
 from django.contrib import messages
@@ -42,6 +42,7 @@ def login_request(request):
     if request.method == "POST":
         form = LoginRequestForm(data=request.POST)
         next_url = _safe_next(request, request.POST.get(REDIRECT_FIELD_NAME, ""))
+        back_url = _safe_next(request, request.POST.get("back", ""))
         if form.is_valid():
             email = form.cleaned_data["email"]
             User = get_user_model()
@@ -50,18 +51,26 @@ def login_request(request):
                 token = user.issue_login_token()
                 AuthMailer.login_link(user=user, token=token, next_url=next_url)
             request.session["login_email"] = email
-            email_sent_url = f"{settings.SITE_URL}{reverse('login_email_sent')}"
-            if request.headers.get("referer") == email_sent_url:
+
+            url = reverse("login_email_sent")
+            if back_url:
+                url = f"{url}?{urlencode({'back': back_url})}"
+
+            referer = request.headers.get("referer", "")
+            if referer.startswith(settings.SITE_URL) and urlparse(referer).path == reverse(
+                "login_email_sent"
+            ):
                 messages.success(request, "Votre demande a bien été prise en compte.")
-            return redirect("login_email_sent")
+            return redirect(url)
     else:
         form = LoginRequestForm()
         next_url = _safe_next(request, request.GET.get(REDIRECT_FIELD_NAME, ""))
+        back_url = _safe_next(request, request.GET.get("back", ""))
 
     return render(
         request,
         "registration/login_request.html",
-        {"form": form, "next": next_url},
+        {"form": form, "next": next_url, "back": back_url},
     )
 
 
@@ -69,7 +78,15 @@ def login_email_sent(request):
     email = request.session.get("login_email")
     if not email:
         return redirect("login_request")
-    return render(request, "registration/login_email_sent.html", {"email": email})
+    back_url = _safe_next(request, request.GET.get("back", ""))
+    return render(
+        request,
+        "registration/login_email_sent.html",
+        {
+            "email": email,
+            "back": back_url,
+        },
+    )
 
 
 def login_verify(request, token):

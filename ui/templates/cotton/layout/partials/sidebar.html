@@ -1,0 +1,43 @@
+{% load static %}
+<aside class="sticky top-0 h-dvh w-[264px] bg-neutral-0 md:border-r-2 md:border-primary-500 md:rounded-r-lg flex flex-col">
+    <div class="flex-1 min-h-0 overflow-y-auto px-3 pt-12 xl:pt-3">
+        <div class="pb-2 mb-6">
+            <c-components.brand-mark class="hidden xl:inline" />
+        </div>
+
+        <c-components.nav-section label="Accompagner individuellement">
+            <c-components.nav-link href="{% url "mentor_landing" %}" icon="mentorer-light" icon-active="mentorer-bold" label="Mentorer" />
+            <c-components.nav-link href="{% url "internships_landing" %}" icon="accueillir-une-stagiaire-light" icon-active="accueillir-une-stagiaire-bold" label="Accueillir une stagiaire" />
+            <c-components.nav-link href="{% url "work_ambassador_landing" %}" icon="pitcher-mon-metier-light" icon-active="pitcher-mon-metier-bold" label="Pitcher mon métier" />
+        </c-components.nav-section>
+
+        <c-components.nav-section label="Soutenir la coalition">
+            <c-components.nav-link href="{% url "training_ambassador_landing" %}" icon="devenir-ambassadrice-etudiante-light" icon-active="devenir-ambassadrice-etudiante-bold" label="Devenir ambassadrice étudiante" />
+            <c-components.nav-link href="{% url "sponsor_landing" %}" icon="devenir-mecene-light" icon-active="devenir-mecene-bold" label="Devenir mécène" />
+        </c-components.nav-section>
+
+        <c-components.nav-section label="Motiver mes élèves">
+            <c-components.nav-link href="{% url "workshops_landing" %}" icon="organiser-un-atelier-light" icon-active="organiser-un-atelier-bold" label="Organiser un atelier" />
+        </c-components.nav-section>
+    </div>
+
+    <div class="border-t border-blue-background p-3">
+        <ul class="flex flex-col gap-1 mb-5">
+        {% if request.user.is_authenticated %}
+            <c-components.nav-link href="{% url "account" %}" label="Mon compte" icon-active="mon-compte-bold" icon="mon-compte-light" />
+        {% else %}
+            <c-components.nav-link href="{% url "login_request" %}?back={{ request.get_full_path|urlencode }}" label="Se connecter" icon-active="mon-compte-bold" icon="mon-compte-light" />
+        {% endif %}
+            <c-components.nav-link href="{% url "a_propos" %}" label="À propos" active="{% if request.resolver_match.url_name in 'a_propos notre_manifeste qui_sommes_nous pourquoi_nous_ecrivons_au_feminin contact' %}true{% endif %}" />
+        <c-components.button href="https://www.techpourtoutes.io/" label="Découvrir le programme" variant="secondary" />
+        </ul>
+        <div class="flex items-center justify-between">
+            <img src="{% static 'svg/rf.svg' %}"
+                 alt="République Française"
+                 class="h-14 w-auto" />
+            <img src="{% static 'svg/france-2030.svg' %}"
+                 alt="France 2030 — Lauréat"
+                 class="h-14 w-auto" />
+        </div>
+    </div>
+</aside>
