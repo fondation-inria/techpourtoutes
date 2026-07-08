@@ -5,12 +5,10 @@
         <div class="pb-2 mb-6">
             <c-components.brand-mark class="hidden xl:inline" />
         </div>
-
         {% if site_mode == "coalition" %}
             {% include "cotton/layout/partials/sidebars/sidebar_coalition.html" %}
         {% endif %}
     </div>
-
     <div class="border-t border-blue-background p-3">
         <ul class="flex flex-col gap-1 mb-5">
         {% if request.user.is_authenticated %}
