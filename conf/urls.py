@@ -20,6 +20,7 @@ from django.contrib import admin
 from django.contrib.sitemaps.views import sitemap
 from django.urls import include, path
 
+from techpourtoutes import views
 from techpourtoutes.sitemaps import StaticViewSitemap
 from techpourtoutes.views.robots_views import robots_txt
 
@@ -35,5 +36,7 @@ urlpatterns = [
         {"sitemaps": sitemaps},
         name="django.contrib.sitemaps.views.sitemap",
     ),
-    path("", include("techpourtoutes.urls")),
+    path("", views.coalition_home, name="home"),
+    path("", include("techpourtoutes.urls_coalition")),
+    path("", include("techpourtoutes.urls_common")),
 ]

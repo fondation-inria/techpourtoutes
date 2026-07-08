@@ -1,5 +1,5 @@
 {% load static %}
-<c-vars site_mode="{{ DEFAULT_SITE_MODE }}" />
+<c-vars site_mode="{{ request.site_mode }}" />
 <aside class="sticky top-0 h-dvh w-[264px] bg-neutral-0 md:border-r-2 md:border-primary-500 md:rounded-r-lg flex flex-col">
     <div class="flex-1 min-h-0 overflow-y-auto px-3 pt-12 xl:pt-3">
         <div class="pb-2 mb-6">
@@ -7,7 +7,7 @@
         </div>
 
         {% if site_mode == "coalition" %}
-            {% include "cotton/layout/partials/sidebar_coalition.html" %}
+            {% include "cotton/layout/partials/sidebars/sidebar_coalition.html" %}
         {% endif %}
     </div>
 
@@ -19,7 +19,7 @@
             <c-components.nav-link href="{% url "login_request" %}" label="Se connecter" icon-active="mon-compte-bold" icon="mon-compte-light" />
         {% endif %}
             <c-components.nav-link href="{% url "a_propos" %}" label="À propos" active="{% if request.resolver_match.url_name in 'a_propos notre_manifeste qui_sommes_nous pourquoi_nous_ecrivons_au_feminin contact' %}true{% endif %}" />
-        <c-components.button href="https://www.techpourtoutes.io/" label="{% if site_mode == "coalition" %}Découvrir le programme{% else %}S'engager{% endif %}" variant="secondary" />
+        <c-components.button href="{{ SITE_URL }}{% if site_mode == "beneficiary" %}/coalition{% endif %}" label="{% if site_mode == "coalition" %}Découvrir le programme{% else %}S'engager{% endif %}" variant="secondary" />
         </ul>
         <div class="flex items-center justify-between">
             <img src="{% static 'svg/rf.svg' %}"

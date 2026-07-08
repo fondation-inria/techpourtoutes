@@ -1,7 +1,6 @@
 from django.conf import settings
 from django.contrib import messages
 from django.shortcuts import redirect, render
-from waffle import switch_is_active
 
 from ..forms import EngagementForm, ManifesteSignatureForm, TrainingAmbassadorForm, WorkshopForm
 from ..mailers import CoalitionInternalMailer, CoalitionUserMailer
@@ -11,8 +10,6 @@ from ..tasks import notify_workshop_request_task, upsert_manifeste_signatory_tas
 
 
 def coalition_home(request):
-    if switch_is_active("student_home"):
-        return render(request, "coalition/student_home.html", {})
     return render(request, "coalition/coalition_home.html", {})
 
 

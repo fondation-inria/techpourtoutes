@@ -34,6 +34,7 @@ def test_signature_manifeste_linkedin_share_url(client):
     )
 
 
+@pytest.mark.django_db
 def test_a_propos_redirects_to_notre_manifeste(client):
     response = client.get(reverse("a_propos"))
     assert response.status_code == 302
