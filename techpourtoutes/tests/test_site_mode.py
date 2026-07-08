@@ -33,15 +33,15 @@ def test_coalition_home_renders_beneficiary_home_when_switch_active(client):
 
 
 @pytest.mark.django_db
-def test_login_request_shows_coalition_sidebar_by_default(client):
-    response = client.get(reverse("login_request"))
+def test_mentions_legales_shows_coalition_sidebar_by_default(client):
+    response = client.get(reverse("mentions_legales"))
     assert "Découvrir le programme" in response.content.decode()
 
 
 @pytest.mark.django_db
-def test_login_request_shows_beneficiary_sidebar_when_switch_active(client):
+def test_mentions_legales_shows_beneficiary_sidebar_when_switch_active(client):
     with override_switch("beneficiary_mode", active=True):
-        response = client.get(reverse("login_request"))
+        response = client.get(reverse("mentions_legales"))
     assert "S'engager" in response.content.decode()
 
 
