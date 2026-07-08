@@ -64,6 +64,7 @@
     --color-primary-100: #d1d1ff;
     --color-primary-500: #4a4aff;
     --color-primary-700: #1616dd;
+    --color-primary-900: #1010b8;
     --color-accent-50: #ffe6ff;
     --color-accent-100: #ffb3ff;
     --color-accent-500: #ff00ff;
@@ -3062,6 +3063,11 @@
   .active\:text-neutral-0 {
     &:active {
       color: var(--color-neutral-0);
+    }
+  }
+  .active\:text-primary-900 {
+    &:active {
+      color: var(--color-primary-900);
     }
   }
   .active\:decoration-2 {

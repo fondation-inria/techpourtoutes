@@ -1,0 +1,24 @@
+<c-layout.base variant="funnel">
+    <div class="flex flex-col min-h-[80dvh] md:min-w-[560px] w-full justify-center gap-y-2">
+        <div class="flex w-full justify-start">
+            <c-components.title title="Validation en 2 étapes" variant="h2" />
+        </div>
+        <c-components.card class="p-8">
+            <c-components.title title="Saisissez le code reçu par e-mail" variant="h2-black" class="mt-5" />
+            <p class="mt-2 md:mt-3">
+                Un code à 6 chiffres vous a été envoyé par e-mail à {% if stage == "new" %}votre nouvelle adresse {% endif %}<strong>{{ masked_recipient }}</strong>
+            </p>
+            <c-patterns.form url="{% url 'email_change_verify' %}" class="mt-4">
+                <input type="hidden" name="token" value="{{ token }}">
+                <c-components.form_fields.input field=form.code autocomplete="one-time-code" />
+                <div class="flex justify-center">
+                    <c-components.button type="submit" label="Continuer" class="justify-center" />
+                </div>
+            </c-patterns.form>
+            <c-patterns.form url="{% url 'email_change_resend' %}" class="mt-2 items-center">
+                <input type="hidden" name="token" value="{{ token }}">
+                <c-components.button type="submit" label="Je n'ai pas reçu de code" variant="quaternary" />
+            </c-patterns.form>
+        </c-components.card>
+    </div>
+</c-layout.base>

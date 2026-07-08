@@ -129,6 +129,131 @@ def test_consume_login_token_returns_none_on_second_use(pro):
 
 
 @pytest.mark.django_db
+def test_set_email_change_code_stores_hash_and_resets_attempts(pro):
+    pro.email_change_attempts = 3
+    pro.save()
+
+    code = pro.set_email_change_code()
+
+    assert code
+    assert len(code) == 6 and code.isdigit()
+    pro.refresh_from_db()
+    assert pro.email_change_code_hash == hashlib.sha256(code.encode()).hexdigest()
+    assert pro.email_change_code_hash != code
+    assert pro.email_change_attempts == 0
+
+
+@pytest.mark.django_db
+def test_verify_email_change_code_returns_true_on_match(pro):
+    code = pro.set_email_change_code()
+
+    assert pro.verify_email_change_code(code) is True
+
+
+@pytest.mark.django_db
+def test_verify_email_change_code_wrong_increments_attempts(pro):
+    pro.set_email_change_code()
+
+    assert pro.verify_email_change_code("000000") is False
+    pro.refresh_from_db()
+    assert pro.email_change_attempts == 1
+
+
+@pytest.mark.django_db
+def test_verify_email_change_code_false_when_no_code(pro):
+    assert pro.verify_email_change_code("123456") is False
+
+
+@pytest.mark.django_db
+def test_verify_email_change_code_false_when_locked(pro):
+    from techpourtoutes.models.user import EMAIL_CHANGE_MAX_ATTEMPTS
+
+    code = pro.set_email_change_code()
+    pro.email_change_attempts = EMAIL_CHANGE_MAX_ATTEMPTS
+    pro.save()
+
+    assert pro.verify_email_change_code(code) is False
+
+
+@pytest.mark.django_db
+def test_apply_email_change_updates_email_and_username_and_clears(pro):
+    pro.set_email_change_code()
+
+    pro.apply_email_change("nouvelle@example.com")
+
+    pro.refresh_from_db()
+    assert pro.email == "nouvelle@example.com"
+    assert pro.username == "nouvelle@example.com"
+    assert pro.email_change_code_hash == ""
+    assert pro.email_change_attempts == 0
+
+
+@pytest.mark.django_db
+def test_clear_email_change_resets_state(pro):
+    pro.set_email_change_code()
+    pro.email_change_attempts = 4
+    pro.save()
+
+    pro.clear_email_change()
+
+    pro.refresh_from_db()
+    assert pro.email_change_code_hash == ""
+    assert pro.email_change_attempts == 0
+
+
+@pytest.mark.django_db
+def test_email_change_token_round_trip(pro):
+    token = pro.issue_email_change_token("nouvelle@example.com", "current")
+
+    assert pro.read_email_change_token(token) == {
+        "user_pk": str(pro.pk),
+        "new_email": "nouvelle@example.com",
+        "stage": "current",
+    }
+
+
+@pytest.mark.django_db
+def test_read_email_change_token_rejects_tampered_token(pro):
+    token = pro.issue_email_change_token("nouvelle@example.com", "current")
+
+    assert pro.read_email_change_token(token + "x") is None
+
+
+@pytest.mark.django_db
+def test_read_email_change_token_rejects_expired_token(pro):
+    import time
+    from unittest.mock import patch
+
+    from techpourtoutes.models.user import EMAIL_CHANGE_CODE_TTL
+
+    past = time.time() - EMAIL_CHANGE_CODE_TTL.total_seconds() - 10
+    with patch("django.core.signing.time.time", return_value=past):
+        token = pro.issue_email_change_token("nouvelle@example.com", "current")
+
+    assert pro.read_email_change_token(token) is None
+
+
+@pytest.mark.django_db
+def test_read_email_change_token_rejects_other_user(pro, inactive_user):
+    token = pro.issue_email_change_token("nouvelle@example.com", "current")
+
+    assert inactive_user.read_email_change_token(token) is None
+
+
+@pytest.mark.django_db
+def test_email_change_verify_url_carries_token(pro):
+    from urllib.parse import urlencode
+
+    from django.urls import reverse
+
+    token = pro.issue_email_change_token("nouvelle@example.com", "current")
+    url = pro.email_change_verify_url(token)
+
+    assert url.startswith(reverse("email_change_verify"))
+    assert urlencode({"token": token}) in url
+
+
+@pytest.mark.django_db
 def test_pro_engagements_defaults_to_empty_list(valid_pro_model_data):
     from techpourtoutes.models import Pro
 
