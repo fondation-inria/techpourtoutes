@@ -1,10 +1,3 @@
-"""
-URL configuration used while the "beneficiary_mode" waffle switch is active.
-
-Coalition engagement pages move under /coalition/ so the coalition site and
-the new beneficiary-facing homepage can coexist during the experiment.
-"""
-
 from django.conf import settings
 from django.contrib import admin
 from django.contrib.sitemaps.views import sitemap

@@ -25,7 +25,7 @@ def test_falls_back_to_coalition_mode_when_switch_check_fails(client):
 
 
 @pytest.mark.django_db
-def test_coalition_home_renders_beneficiary_home_when_flag_active(client):
+def test_coalition_home_renders_beneficiary_home_when_switch_active(client):
     with override_switch("beneficiary_mode", active=True):
         response = client.get(reverse("home"))
     template_names = [t.name for t in response.templates]
@@ -39,7 +39,7 @@ def test_login_request_shows_coalition_sidebar_by_default(client):
 
 
 @pytest.mark.django_db
-def test_login_request_shows_beneficiary_sidebar_when_flag_active(client):
+def test_login_request_shows_beneficiary_sidebar_when_switch_active(client):
     with override_switch("beneficiary_mode", active=True):
         response = client.get(reverse("login_request"))
     assert "S'engager" in response.content.decode()
