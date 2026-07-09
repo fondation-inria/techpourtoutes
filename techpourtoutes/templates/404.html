@@ -1,3 +1,4 @@
+{% load home_url %}
 <c-layout.base>
     <div class="flex flex-col min-h-[80dvh] w-full items-center justify-center gap-y-6 text-center">
         <p class="text-6xl font-bold text-primary">404</p>
@@ -5,6 +6,6 @@
         <p class="text-neutral-600 max-w-md">
             La page que vous cherchez n'existe pas ou a été déplacée.
         </p>
-        <c-components.button label="Retour à l'accueil" href="{% url 'home' %}" />
+        <c-components.button label="Retour à l'accueil" href="{% home_url %}" />
     </div>
 </c-layout.base>

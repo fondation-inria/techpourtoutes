@@ -1,4 +1,4 @@
-{% load static %}
-<a href="{% url 'home' %}" class="block">
+{% load static home_url %}
+<a href="{% home_url %}" class="block">
     <img src="{% static 'images/techpourtoutes-logo.png' %}" alt="logo TechPourToutes" class="h-10 w-auto {{ class }}" />
 </a>
