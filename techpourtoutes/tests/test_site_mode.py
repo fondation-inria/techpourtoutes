@@ -29,7 +29,7 @@ def test_coalition_home_renders_beneficiary_home_when_switch_active(client):
     with override_switch("beneficiary_mode", active=True):
         response = client.get(reverse("coalition_home"))
     template_names = [t.name for t in response.templates]
-    assert "coalition/beneficiary_home.html" in template_names
+    assert "beneficiary/beneficiary_home.html" in template_names
 
 
 @pytest.mark.django_db

@@ -1,4 +1,5 @@
 from django.http import HttpResponse
+from django.urls import reverse
 
 
 def robots_txt(request):
@@ -6,7 +7,7 @@ def robots_txt(request):
         "User-agent: *",
         "Disallow: /mon-compte/",
         "Disallow: /mon-compte-mentor/",
-        "Disallow: /bienvenue-dans-la-coalition/",
+        f"Disallow: {reverse('coalition_welcome')}",
         f"Sitemap: {request.build_absolute_uri('/sitemap.xml')}",
     ]
     return HttpResponse("\n".join(lines), content_type="text/plain")

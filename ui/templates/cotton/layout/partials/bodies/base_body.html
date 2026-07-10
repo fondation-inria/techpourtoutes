@@ -1,4 +1,4 @@
-<c-vars right="" site-mode="{{ request.site_mode }}" />
+<c-vars right="" />
 
 <body class="min-h-screen font-sans bg-blue-background text-neutral-900 drawer xl:drawer-open">
     <input id="sidebar-drawer" type="checkbox" class="drawer-toggle" />
@@ -24,6 +24,6 @@
     </div>
     <div class="drawer-side z-40">
         <label for="sidebar-drawer" class="drawer-overlay xl:hidden"></label>
-        <c-layout.partials.sidebars.sidebar-base site_mode=site_mode />
+        <c-layout.partials.sidebars.sidebar-base />
     </div>
 </body>

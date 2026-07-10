@@ -10,7 +10,6 @@ class SiteModeUrlconfMiddleware:
             is_beneficiary = switch_is_active("beneficiary_mode")
         except Exception:
             is_beneficiary = False
-        request.site_mode = "beneficiary" if is_beneficiary else "coalition"
-        if request.site_mode == "beneficiary":
+        if is_beneficiary:
             request.urlconf = "conf.urls_beneficiary"
         return self.get_response(request)

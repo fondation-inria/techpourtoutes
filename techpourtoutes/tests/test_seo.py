@@ -98,6 +98,13 @@ def test_robots_txt_disallows_private_pages(client):
 
 
 @pytest.mark.django_db
+def test_robots_txt_disallows_coalition_welcome_under_coalition_prefix_when_switch_active(client):
+    with override_switch("beneficiary_mode", active=True):
+        content = client.get("/robots.txt").content.decode()
+    assert "Disallow: /coalition/bienvenue-dans-la-coalition/" in content
+
+
+@pytest.mark.django_db
 def test_sitemap_returns_200(client):
     response = client.get("/sitemap.xml")
     assert response.status_code == 200
