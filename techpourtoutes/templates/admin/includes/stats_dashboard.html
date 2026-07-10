@@ -1,0 +1,44 @@
+{% if stats %}
+  <style>
+    .stats-dashboard { display: flex; flex-wrap: wrap; align-items: flex-start; gap: 16px; margin-bottom: 24px; }
+    .stats-dashboard__primary,
+    .stats-dashboard__card {
+      border: 1px solid var(--hairline-color);
+      border-radius: 4px;
+      padding: 24px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+    }
+    .stats-dashboard__primary { flex: 0 0 260px; }
+    .stats-dashboard__grid {
+      flex: 1 1 180px;
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+      gap: 16px;
+    }
+    .stats-dashboard__value { font-size: 2.5rem; font-weight: bold; line-height: 1; }
+    .stats-dashboard__primary .stats-dashboard__value { font-size: 3rem; }
+    .stats-dashboard__label { margin-top: 8px; }
+    .stats-dashboard__delta { margin-top: 16px; color: var(--success, #28a745); font-size: 0.85rem; }
+  </style>
+
+  <div class="stats-dashboard">
+    <div class="stats-dashboard__primary">
+      <div class="stats-dashboard__value">{{ stats.total.total }}</div>
+      <div class="stats-dashboard__label">{{ stats.total.label }}</div>
+      <div class="stats-dashboard__delta">+{{ stats.total.recent }} sur 30 derniers jours</div>
+    </div>
+    <div class="stats-dashboard__grid">
+      {% for stat in stats.breakdown %}
+      <div class="stats-dashboard__card">
+        <div class="stats-dashboard__value">{{ stat.total }}</div>
+        <div class="stats-dashboard__label">{{ stat.label }}</div>
+        <div class="stats-dashboard__delta">+{{ stat.recent }} sur 30 derniers jours</div>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+{% endif %}
