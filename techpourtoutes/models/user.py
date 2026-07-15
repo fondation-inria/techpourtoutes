@@ -28,7 +28,7 @@ class User(BaseModel, AbstractUser):
     objects = ActiveUserManager()
     all_objects = models.Manager()
     email = models.EmailField(
-        _("adresse email"),
+        _("adresse mail"),
         validators=[EmailValidator(message=_("Saisissez une adresse mail valide."))],
     )
     login_token_hash = models.CharField(
@@ -46,11 +46,11 @@ class User(BaseModel, AbstractUser):
         max_length=64,
         blank=True,
         default="",
-        verbose_name=_("hash du code de changement d'adresse email"),
+        verbose_name=_("hash du code de changement d'adresse mail"),
     )
     email_change_attempts = models.PositiveSmallIntegerField(
         default=0,
-        verbose_name=_("nombre de tentatives de saisie du code de changement d'adresse email"),
+        verbose_name=_("nombre de tentatives de saisie du code de changement d'adresse mail"),
     )
     brevo_sync_enabled = models.BooleanField(
         default=False,

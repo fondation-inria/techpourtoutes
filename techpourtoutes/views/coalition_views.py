@@ -163,7 +163,7 @@ def _render_errors(request, form):
     if form.has_error("email", "email_exists"):
         messages.error(
             request,
-            "Un compte existe déjà pour cet email, merci de vous connecter "
+            "Un compte existe déjà pour cette adresse mail, merci de vous connecter "
             "avant de soumettre votre engagement.",
         )
     else:

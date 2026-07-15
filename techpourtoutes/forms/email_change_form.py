@@ -5,7 +5,7 @@ from django.utils.translation import gettext_lazy as _
 
 
 class EmailChangeForm(forms.Form):
-    email = forms.EmailField(label=_("Nouvelle adresse e-mail"))
+    email = forms.EmailField(label=_("Nouvelle adresse mail"))
 
     def __init__(self, *args, user=None, **kwargs):
         self.user = user

@@ -4,7 +4,7 @@ from django.conf import settings
 from django.contrib import messages
 from django.contrib.auth import REDIRECT_FIELD_NAME, get_user_model, login, logout
 from django.contrib.auth.decorators import login_required
-from django.http import Http404, HttpResponse
+from django.http import HttpResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
 from django.utils.http import url_has_allowed_host_and_scheme
@@ -132,8 +132,6 @@ def account(request):
 @require_POST
 @login_required
 def account_communication(request):
-    if not hasattr(request.user, "pro"):
-        return redirect("account")
     pro = request.user.pro
     form = CommunicationForm(data=request.POST, pro=pro)
     if form.is_valid():
@@ -153,8 +151,6 @@ def account_info(request):
 
 @login_required
 def account_edit(request):
-    if not hasattr(request.user, "pro"):
-        return redirect("account")
     pro = request.user.pro
     if request.method == "POST":
         form = AccountEditForm(data=request.POST, pro=pro)
@@ -208,7 +204,7 @@ def email_change_verify(request):
         result = VerifyEmailChangeCode(user=user, payload=payload, code=form.cleaned_data["code"])
         if result.success:
             if payload["stage"] == "new":
-                messages.success(request, "Votre adresse email a été modifiée.")
+                messages.success(request, "Votre adresse mail a été modifiée.")
             return redirect(result.redirect_url)
         form.add_error("code", result.errors[0])
 
@@ -317,8 +313,6 @@ def delete_account(request):
 
 
 def _get_training_experience(request, pk):
-    if not hasattr(request.user, "pro"):
-        raise Http404
     return get_object_or_404(request.user.pro.training_experiences, pk=pk)
 
 

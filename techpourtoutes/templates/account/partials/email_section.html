@@ -1,6 +1,6 @@
 <div id="account-email-section">
     <c-components.title title="Adresse mail" variant="intertitre"/>
-    <p class="mt-3">Votre adresse mail &nbsp;: <strong>{{ user.email }}</strong></p>
+    <p class="mt-3 font-light">Votre adresse mail &nbsp;: <span class="font-medium">{{ user.email }}</span></p>
     {% if editing %}
         <c-patterns.form
             class="mt-3"
@@ -13,7 +13,7 @@
                     hx-get="{% url 'account_email' %}"
                     hx-target="#account-email-section"
                     hx-swap="outerHTML"/>
-                <c-components.button type="submit" label="Changer d'adresse e-mail"/>
+                <c-components.button type="submit" label="Changer d'adresse mail"/>
             </div>
         </c-patterns.form>
     {% else %}

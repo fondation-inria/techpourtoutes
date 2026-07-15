@@ -1,6 +1,6 @@
 Bonjour {{ user.first_name|default:user.username }},
 
-Vous avez demandé à changer l'adresse email de votre compte TechPourToutes.
+Vous avez demandé à changer l'adresse mail de votre compte TechPourToutes.
 
 Voici votre code de vérification : {{ code }}
 

@@ -22,8 +22,8 @@ class AuthMailer(BaseMailer):
     @classmethod
     def change_email(cls, *, user, code, new_email=None):
         cls.send_mail(
-            subject="Confirmez le changement de votre adresse email",
+            subject="Confirmez le changement de votre adresse mail",
             recipient_list=[new_email or user.email],
             context={"user": user, "code": code},
-            tags=["utilisateur", "changement d'adresse email"],
+            tags=["utilisateur", "changement d'adresse mail"],
         )
