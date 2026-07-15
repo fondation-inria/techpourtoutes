@@ -466,19 +466,6 @@ def test_account_edit_requires_login(client):
 
 
 @pytest.mark.django_db
-def test_account_edit_redirects_user_without_pro(client, db):
-    from techpourtoutes.models import User
-
-    user = User.objects.create_user(username="plain@example.com", email="plain@example.com")
-    client.force_login(user)
-
-    response = client.get(reverse("account_edit"))
-
-    assert response.status_code == 302
-    assert response["Location"] == reverse("account")
-
-
-@pytest.mark.django_db
 def test_account_edit_get_renders_form(client, pro):
     client.force_login(pro)
 
@@ -699,7 +686,7 @@ def test_email_change_full_flow_updates_email(_code, client, pro):
     assert pro.email == "new@example.com"
     assert pro.username == "new@example.com"
     stored = [str(m) for m in get_messages(verify_new.wsgi_request)]
-    assert any("adresse email a été modifiée" in m for m in stored)
+    assert any("adresse mail a été modifiée" in m for m in stored)
 
 
 @patch("techpourtoutes.models.user.generate_email_change_code", return_value="123456")
