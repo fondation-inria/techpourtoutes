@@ -56,6 +56,7 @@
     --radius-lg: 12px;
     --radius-2xl: 1rem;
     --ease-out: cubic-bezier(0, 0, 0.2, 1);
+    --ease-in-out: cubic-bezier(0.4, 0, 0.2, 1);
     --default-transition-duration: 150ms;
     --default-transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
     --default-font-family: var(--font-sans);
@@ -2520,6 +2521,9 @@
   .bg-neutral-50 {
     background-color: var(--color-neutral-50);
   }
+  .bg-neutral-200 {
+    background-color: var(--color-neutral-200);
+  }
   .bg-neutral-300 {
     background-color: var(--color-neutral-300);
   }
@@ -2549,9 +2553,6 @@
   }
   .p-1 {
     padding: var(--spacing);
-  }
-  .p-2 {
-    padding: calc(var(--spacing) * 2);
   }
   .p-3 {
     padding: calc(var(--spacing) * 3);
@@ -2904,13 +2905,6 @@
       }
     }
   }
-  .hover\:bg-neutral-100 {
-    &:hover {
-      @media (hover: hover) {
-        background-color: var(--color-neutral-100);
-      }
-    }
-  }
   .hover\:bg-primary-50 {
     &:hover {
       @media (hover: hover) {
@@ -3085,9 +3079,9 @@
       position: sticky;
     }
   }
-  .md\:top-6 {
+  .md\:top-10 {
     @media (width >= 48rem) {
-      top: calc(var(--spacing) * 6);
+      top: calc(var(--spacing) * 10);
     }
   }
   .md\:top-14 {
@@ -3095,9 +3089,9 @@
       top: calc(var(--spacing) * 14);
     }
   }
-  .md\:right-6 {
+  .md\:right-20 {
     @media (width >= 48rem) {
-      right: calc(var(--spacing) * 6);
+      right: calc(var(--spacing) * 20);
     }
   }
   .md\:mt-3 {

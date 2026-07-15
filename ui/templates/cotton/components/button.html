@@ -12,11 +12,14 @@
     tertiary_lg_class="text-sm font-medium p-3 rounded-sm"
     quaternary_class="text-primary-700 font-medium focus:outline-primary-500 focus:outline-offset-2"
     danger_class="text-error-700 hover:bg-error-50 active:bg-error-100 active:text-error-900 focus:outline-error-500 focus:outline-offset-2 cursor-pointer"
+    icon_only_class="hover:bg-primary-50 active:bg-primary-100 focus:outline-primary-500 focus:outline-offset-2 cursor-pointer"
     disabled_primary_class="bg-neutral-300 text-black cursor-not-allowed select-none shadow-black"
     disabled_secondary_class="bg-neutral-500 text-neutral-0 cursor-not-allowed select-none shadow-black"
     disabled_tertiary_class="text-neutral-500 cursor-not-allowed"
     disabled_quaternary_class="text-primary-700 cursor-not-allowed"
+    disabled_icon_only_class="text-neutral-500 bg-neutral-200 cursor-not-allowed"
     icon_class="gap-x-2"
+    icon_size_class="w-5 h-5"
     size=""
     class=""
     variant=""
@@ -37,6 +40,8 @@
                 {% endif %}
             {% elif variant == "quaternary" %}
                 {{ quaternary_class }}
+            {% elif variant == "icon" %}
+                {{ icon_only_class }}
             {% elif variant == "danger" %}
                 {{ base_class }} {{ danger_class }}
             {% elif variant == "primary_danger" %}
@@ -54,7 +59,7 @@
                 {% endif %}
             ">
                 {% if slot %}{{ slot|safe }}{% else %}{{ label|safe }}{% endif %}
-                {% if icon %}<c-components.icon name="{{ icon }}" class="w-5 h-5" />{% endif %}
+                {% if icon %}<c-components.icon name="{{ icon }}" class="{{ icon_size_class }}" />{% endif %}
             </div>
         </a>
     {% else %}
@@ -73,6 +78,8 @@
                         {% endif %}
                     {% elif variant == "quaternary" %}
                         {{ disabled_quaternary_class }}
+                    {% elif variant == "icon" %}
+                        {{ disabled_icon_only_class }}
                     {% else %}
                         {{ base_class }} {{ disabled_primary_class }}
                     {% endif %}
@@ -88,6 +95,8 @@
                         {% endif %}
                     {% elif variant == "quaternary" %}
                         {{ quaternary_class }}
+                    {% elif variant == "icon" %}
+                        {{ icon_only_class }}
                     {% elif variant == "danger" %}
                         {{ base_class }} {{ danger_class }}
                     {% elif variant == "primary_danger" %}
@@ -106,7 +115,7 @@
                 {% endif %}
             ">
                 {% if slot %}{{ slot|safe }}{% else %}{{ label|safe }}{% endif %}
-                {% if icon %}<c-components.icon name="{{ icon }}" class="w-5 h-5" />{% endif %}
+                {% if icon %}<c-components.icon name="{{ icon }}" class="{{ icon_size_class }}" />{% endif %}
             </div>
         </button>
     {% endif %}
