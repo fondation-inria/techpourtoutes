@@ -56,7 +56,6 @@
     --radius-lg: 12px;
     --radius-2xl: 1rem;
     --ease-out: cubic-bezier(0, 0, 0.2, 1);
-    --ease-in-out: cubic-bezier(0.4, 0, 0.2, 1);
     --default-transition-duration: 150ms;
     --default-transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
     --default-font-family: var(--font-sans);
@@ -1700,6 +1699,9 @@
         &::-moz-progress-bar {
           border-radius: var(--radius-box);
           background-color: currentcolor;
+          @media (prefers-reduced-motion: no-preference) {
+            transition: inline-size 0.3s ease;
+          }
         }
       }
       @supports (-webkit-appearance: none) {
@@ -1710,6 +1712,9 @@
         &::-webkit-progress-value {
           border-radius: var(--radius-box);
           background-color: currentColor;
+          @media (prefers-reduced-motion: no-preference) {
+            transition: inline-size 0.3s ease;
+          }
         }
       }
     }
@@ -2998,13 +3003,6 @@
     &:hover {
       @media (hover: hover) {
         background-color: var(--color-primary-500);
-      }
-    }
-  }
-  .hover\:text-neutral-950 {
-    &:hover {
-      @media (hover: hover) {
-        color: var(--color-neutral-950);
       }
     }
   }
