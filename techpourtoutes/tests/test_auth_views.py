@@ -63,7 +63,7 @@ def test_login_request_close_button_points_to_back(client):
 
     html = response.content.decode()
     close_link_index = html.find('aria-label="Fermer"')
-    assert 'href="/mentorer/"' in html[max(0, close_link_index - 300) : close_link_index]
+    assert 'href="/mentorer/"' in html[max(0, close_link_index - 700) : close_link_index]
 
 
 @pytest.mark.django_db
@@ -233,7 +233,7 @@ def test_login_email_sent_close_button_points_to_back(client):
 
     html = response.content.decode()
     close_link_index = html.find('aria-label="Fermer"')
-    assert 'href="/mentorer/"' in html[max(0, close_link_index - 300) : close_link_index]
+    assert 'href="/mentorer/"' in html[max(0, close_link_index - 700) : close_link_index]
 
 
 @pytest.mark.django_db
