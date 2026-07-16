@@ -3,7 +3,7 @@ from django.contrib import admin
 from django.contrib.admin import AdminSite
 from django_otp.admin import OTPAdminSite
 
-from .stats import membres_stats
+from .stats import users_stats
 
 HIDDEN_APP_LABELS = {"auth", "axes", "otp_totp"}
 HIDDEN_MODEL_NAMES = {"User"}
@@ -40,7 +40,7 @@ class AdminSiteWith2FA(OTPAdminSite):
 
     def app_index(self, request, app_label, extra_context=None):
         if app_label == "techpourtoutes":
-            extra_context = {**(extra_context or {}), "stats": membres_stats()}
+            extra_context = {**(extra_context or {}), "stats": users_stats()}
         return super().app_index(request, app_label, extra_context)
 
 

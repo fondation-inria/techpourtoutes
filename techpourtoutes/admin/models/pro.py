@@ -5,11 +5,11 @@ from techpourtoutes.models import Pro
 
 from ..filters import EngagementFilter
 from ..stats import pro_stats
-from .user import UserAdmin
+from .workshop_request import WorkshopRequestInline
 
 
 @admin.register(Pro)
-class ProAdmin(UserAdmin):
+class ProAdmin(admin.ModelAdmin):
     readonly_fields = (
         "email",
         "last_login",
@@ -56,6 +56,7 @@ class ProAdmin(UserAdmin):
 
     list_display = ("first_name", "last_name", "email", "display_engagements", "created_at")
     list_display_links = list_display
+    search_fields = ("first_name", "last_name", "email")
     list_filter = (EngagementFilter, ("created_at", admin.DateFieldListFilter))
 
     @admin.display(description=_("engagements"))
@@ -66,3 +67,8 @@ class ProAdmin(UserAdmin):
     def changelist_view(self, request, extra_context=None):
         extra_context = {**(extra_context or {}), "stats": pro_stats()}
         return super().changelist_view(request, extra_context=extra_context)
+
+    def get_inlines(self, _request, obj):
+        if obj and obj.workshop_requests.exists():
+            return [WorkshopRequestInline]
+        return []

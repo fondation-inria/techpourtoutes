@@ -2,15 +2,15 @@ from datetime import timedelta
 
 from django.utils import timezone
 
-from techpourtoutes.models import Pro, User, WorkshopRequest
+from techpourtoutes.models import Pro, User
 
 STATS_PERIOD_DAYS = 30
 
 
-def membres_stats():
+def users_stats():
     since = timezone.now() - timedelta(days=STATS_PERIOD_DAYS)
     return {
-        "total": _stat("Membres", User.objects.all(), since),
+        "total": _stat("Utilisateurs enregistrés", User.objects.all(), since),
         "breakdown": [_stat("Pros", Pro.objects.all(), since)],
     }
 
@@ -38,7 +38,11 @@ def pro_stats():
                 Pro.objects.filter(engagements__contains=[Pro.Engagement.WORK_AMBASSADOR]),
                 since,
             ),
-            _stat("Demandes d'atelier", WorkshopRequest.objects.all(), since),
+            _stat(
+                "Demandes d'atelier",
+                Pro.objects.filter(engagements__contains=[Pro.Engagement.WORKSHOPS]),
+                since,
+            ),
         ],
     }
 
