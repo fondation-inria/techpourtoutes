@@ -15,7 +15,6 @@ URL_COALITION_NAMES = {pattern.name for pattern in coalition_urlpatterns}
 def is_coalition_page(context, path=None):
     if not beneficiary_mode_active():
         return True
-
     if path:
         try:
             resolver_match = resolve(urlparse(path).path)
