@@ -1,7 +1,7 @@
 <c-layout.email>
   <p style="font-size:15px;color:#374151;">Bonjour {{ user.first_name|default:user.username }},</p>
   <p style="font-size:15px;color:#374151;">
-    Pour accéder à TechPourToutes, cliquez sur ce bouton :
+    Pour accéder à TechPourToutes, {% if is_pro %}cliquez{% else %}clique{% endif %} sur ce bouton :
   </p>
   <p style="text-align:center;margin:24px 0;">
     <a href="{{ login_url }}" style="display:inline-block;padding:12px 24px;background:#4338ca;color:#ffffff;text-decoration:none;border-radius:4px;font-weight:600;">Accéder à mon compte</a>
@@ -14,6 +14,11 @@
     Bonne journée
   </p>
   <hr style="border:none;border-top:1px solid #e5e7eb;margin:24px 0;">
-  <p style="font-size:13px;color:#6b7280;">Si vous n'avez pas demandé à vous connecter à votre compte TechPourToutes, il est possible que quelqu'un d'autre cherche à le faire. Nous vous recommandons de changer le mot de passe de votre boîte mail rapidement.</p>
-  <p style="font-size:13px;color:#6b7280;">Si vous avez des difficultés pour vous connecter avec le bouton, vous pouvez cliquer sur ce lien ou le copier-coller dans un navigateur&nbsp;: <u><a href="{{ login_url }}">{{ login_url }}</a></u></p>
+  {% if is_pro %}
+    <p style="font-size:13px;color:#6b7280;">Si vous n'avez pas demandé à vous connecter à votre compte TechPourToutes, il est possible que quelqu'un d'autre cherche à le faire. Nous vous recommandons de changer le mot de passe de votre boîte mail rapidement.</p>
+    <p style="font-size:13px;color:#6b7280;">Si vous avez des difficultés pour vous connecter avec le bouton, vous pouvez cliquer sur ce lien ou le copier-coller dans un navigateur&nbsp;: <u><a href="{{ login_url }}">{{ login_url }}</a></u></p>
+  {% else %}
+    <p style="font-size:13px;color:#6b7280;">Si tu n'as pas demandé à te connecter à ton compte TechPourToutes, il est possible que quelqu'un d'autre cherche à le faire. Nous te recommandons de changer le mot de passe de ta boîte mail rapidement.</p>
+    <p style="font-size:13px;color:#6b7280;">Si tu as des difficultés pour te connecter avec le bouton, tu peux cliquer sur ce lien ou le copier-coller dans un navigateur&nbsp;: <u><a href="{{ login_url }}">{{ login_url }}</a></u></p>
+  {% endif %}
 </c-layout.email>

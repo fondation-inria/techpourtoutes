@@ -10,7 +10,7 @@
     tertiary_class="text-neutral-950 hover:bg-primary-50 active:bg-primary-100 focus:outline-primary-500 focus:outline-offset-2 cursor-pointer"
     tertiary_sm_class="text-[11px]"
     tertiary_lg_class="text-sm font-medium p-3 rounded-sm"
-    quaternary_class="text-primary-700 font-medium focus:outline-primary-500 focus:outline-offset-2"
+    quaternary_class="inline-block text-primary-700 font-medium rounded-sm -mx-2 -my-1 px-2 py-1 hover:bg-primary-50 active:bg-primary-100 focus:outline-primary-500 focus:outline-offset-2 cursor-pointer"
     danger_class="text-error-700 hover:bg-error-50 active:bg-error-100 active:text-error-900 focus:outline-error-500 focus:outline-offset-2 cursor-pointer"
     icon_only_class="hover:bg-primary-50 active:bg-primary-100 focus:outline-primary-500 focus:outline-offset-2 cursor-pointer"
     disabled_primary_class="bg-neutral-300 text-black cursor-not-allowed select-none shadow-black"
@@ -54,7 +54,7 @@
         >
             <div class="flex
                 {% if icon %}{{ icon_class }}{% endif %}
-                {% if "primary" in variant or variant == "secondary" %}
+                {% if "primary" in variant or variant == "secondary" or variant == "quaternary" %}
                     justify-center
                 {% endif %}
             ">
@@ -110,7 +110,7 @@
         >
             <div class="flex
                 {% if icon %}{{ icon_class }}{% endif %}
-                {% if "primary" in variant or variant == "secondary" %}
+                {% if "primary" in variant or variant == "secondary" or variant == "quaternary" %}
                     justify-center
                 {% endif %}
             ">

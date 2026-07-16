@@ -3,4 +3,4 @@ from django.utils.translation import gettext_lazy as _
 
 
 class LoginRequestForm(forms.Form):
-    email = forms.EmailField(label=_("Votre adresse mail"))
+    email = forms.EmailField(label=_("Adresse mail"))

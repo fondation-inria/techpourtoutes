@@ -67,6 +67,22 @@ def test_login_request_close_button_points_to_back(client):
 
 
 @pytest.mark.django_db
+def test_login_request_terms_paragraph_uses_vous_for_coalition_referrer(client):
+    from urllib.parse import quote
+
+    response = client.get(reverse("login_request") + "?back=" + quote(reverse("mentor_landing")))
+
+    assert "vous reconnaissez avoir compris et accepté" in response.content.decode()
+
+
+@pytest.mark.django_db
+def test_login_request_terms_paragraph_uses_tu_for_beneficiary_referrer(client):
+    response = client.get(reverse("login_request"))
+
+    assert "tu reconnais avoir compris et accepté" in response.content.decode()
+
+
+@pytest.mark.django_db
 def test_login_request_get_renders_next_hidden_input(client):
     response = client.get(reverse("login_request") + "?next=/mentorer/")
 
@@ -93,6 +109,14 @@ def test_login_request_post_with_known_email_sends_link(client, pro):
     assert len(mail.outbox) == 1
     assert mail.outbox[0].to == [pro.email]
     assert "/se-connecter/token/" in mail.outbox[0].alternatives[0][0]
+
+
+@pytest.mark.django_db
+@override_settings(EMAIL_BACKEND="django.core.mail.backends.locmem.EmailBackend")
+def test_login_request_post_for_pro_sends_vouvoiement_email(client, pro):
+    client.post(reverse("login_request"), data={"email": pro.email})
+
+    assert mail.outbox[0].subject == "Votre lien de connexion à TechPourToutes"
 
 
 @pytest.mark.django_db
@@ -234,6 +258,32 @@ def test_login_email_sent_close_button_points_to_back(client):
     html = response.content.decode()
     close_link_index = html.find('aria-label="Fermer"')
     assert 'href="/mentorer/"' in html[max(0, close_link_index - 700) : close_link_index]
+
+
+@pytest.mark.django_db
+def test_login_email_sent_terms_paragraph_uses_vous_for_coalition_referrer(client):
+    from urllib.parse import quote
+
+    session = client.session
+    session["login_email"] = "alice@example.com"
+    session.save()
+
+    response = client.get(
+        reverse("login_email_sent") + "?back=" + quote(reverse("mentor_landing"))
+    )
+
+    assert "vous reconnaissez avoir compris et accepté" in response.content.decode()
+
+
+@pytest.mark.django_db
+def test_login_email_sent_terms_paragraph_uses_tu_for_beneficiary_referrer(client):
+    session = client.session
+    session["login_email"] = "alice@example.com"
+    session.save()
+
+    response = client.get(reverse("login_email_sent"))
+
+    assert "tu reconnais avoir compris et accepté" in response.content.decode()
 
 
 @pytest.mark.django_db

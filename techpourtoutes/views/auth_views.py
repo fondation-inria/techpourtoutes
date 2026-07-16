@@ -49,7 +49,8 @@ def login_request(request):
             user = User.objects.filter(email=email, is_active=True).first()
             if user is not None:
                 token = user.issue_login_token()
-                AuthMailer.login_link(user=user, token=token, next_url=next_url)
+                is_pro = hasattr(user, "pro")
+                AuthMailer.login_link(user=user, token=token, next_url=next_url, is_pro=is_pro)
             request.session["login_email"] = email
 
             url = reverse("login_email_sent")
