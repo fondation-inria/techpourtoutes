@@ -21,8 +21,12 @@
             <p class="text-sm text-center w-full">
                 Pas encore de compte ?
             </p>
-                <c-components.button href="{% home_url %}" label="Je veux bénéficier du programme" variant="quaternary" class="w-full text-center md:w-auto" />
-                <c-components.button href="{% url "coalition_home" %}" label="Je veux soutenir le programme" variant="quaternary" class="w-full text-center md:w-auto" />
+            {% url "coalition_home" as coalition_home %}
+            {% home_url as home_url %}
+            {% if home_url != coalition_home %}
+                <c-components.button href="{{ home_url }}" label="Je veux bénéficier du programme" variant="quaternary" class="w-full text-center md:w-auto" />
+            {% endif %}
+            <c-components.button href="{{ coalition_home }}" label="Je veux soutenir le programme" variant="quaternary" class="w-full text-center md:w-auto" />
         </div>
         <p class="text-xs text-center">
             En continuant, {% if is_coalition_page %}vous reconnaissez{% else %}tu reconnais{% endif %} avoir compris et accepté les

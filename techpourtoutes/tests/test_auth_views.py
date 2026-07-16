@@ -7,6 +7,7 @@ from django.core import mail
 from django.test import override_settings
 from django.urls import reverse
 from django.utils import timezone
+from waffle.testutils import override_switch
 
 
 @pytest.mark.django_db
@@ -80,6 +81,21 @@ def test_login_request_terms_paragraph_uses_tu_for_beneficiary_referrer(client):
     response = client.get(reverse("login_request"))
 
     assert "tu reconnais avoir compris et accepté" in response.content.decode()
+
+
+@pytest.mark.django_db
+def test_login_request_hides_beneficiary_button_when_switch_off(client):
+    response = client.get(reverse("login_request"))
+
+    assert "Je veux bénéficier du programme" not in response.content.decode()
+
+
+@pytest.mark.django_db
+def test_login_request_shows_beneficiary_button_when_switch_active(client):
+    with override_switch("beneficiary_mode", active=True):
+        response = client.get(reverse("login_request"))
+
+    assert "Je veux bénéficier du programme" in response.content.decode()
 
 
 @pytest.mark.django_db
