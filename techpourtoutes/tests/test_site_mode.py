@@ -100,3 +100,10 @@ def test_coalition_home_reachable_under_coalition_prefix_when_switch_active(clie
     assert response.status_code == 200
     template_names = [t.name for t in response.templates]
     assert "coalition/coalition_home.html" in template_names
+
+
+@pytest.mark.django_db
+def test_coalition_welcome_shows_coalition_sidebar_when_switch_active(client):
+    with override_switch("beneficiary_mode", active=True):
+        response = client.get("/coalition/bienvenue-dans-la-coalition/")
+    assert "Découvrir le programme" in response.content.decode()
