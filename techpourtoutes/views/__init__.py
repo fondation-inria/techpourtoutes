@@ -13,6 +13,7 @@ from .auth_views import (
     training_experience_edit,
     training_experience_info,
 )
+from .beneficiary_views import beneficiary_home
 from .coalition_views import (
     coalition_home,
     coalition_welcome,
@@ -46,6 +47,7 @@ __all__ = [
     "account_communication",
     "account_edit",
     "account_info",
+    "beneficiary_home",
     "coalition_home",
     "coalition_welcome",
     "conditions_generales",

@@ -1,9 +1,9 @@
 <c-vars back="" />
-
+{% load home_url %}
 <body class="min-h-screen font-sans bg-blue-background text-neutral-900">
     <c-components.button
         variant="icon"
-        href="{% if back %}{{ back }}{% else %}{% url 'coalition_home' %}{% endif %}"
+        href="{% if back %}{{ back }}{% else %}{% home_url %}{% endif %}"
         icon="close"
         icon_size_class="w-5 h-5"
         class="absolute top-3 right-3 md:top-10 md:right-20 z-50 p-1 rounded-sm text-primary-700"
