@@ -3,6 +3,7 @@ from urllib.parse import urlparse
 from django import template
 from django.urls import Resolver404, resolve
 
+from techpourtoutes.templatetags.home_url import beneficiary_mode_active
 from techpourtoutes.urls_coalition import urlpatterns as coalition_urlpatterns
 
 register = template.Library()
@@ -12,6 +13,9 @@ URL_COALITION_NAMES = {pattern.name for pattern in coalition_urlpatterns}
 
 @register.simple_tag(takes_context=True)
 def is_coalition_page(context, path=None):
+    if not beneficiary_mode_active():
+        return True
+
     if path:
         try:
             resolver_match = resolve(urlparse(path).path)
