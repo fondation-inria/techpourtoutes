@@ -6,14 +6,15 @@ from techpourtoutes.models import User
 @admin.register(User)
 class UserAdmin(admin.ModelAdmin):
     readonly_fields = (
-        "email",
         "last_login",
         "created_at",
         "updated_at",
-        "brevo_sync_enabled",
     )
     fieldsets = (
-        ("Infos personnelles", {"fields": ("first_name", "last_name", "email")}),
+        (
+            "Infos personnelles",
+            {"fields": ("first_name", "last_name", "username", "email")},
+        ),
         (
             "Autres infos",
             {
