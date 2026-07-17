@@ -1,3 +1,4 @@
+import pytest
 from django.core.exceptions import PermissionDenied
 from django.test import override_settings
 from django.urls import include, path
@@ -13,6 +14,7 @@ urlpatterns = [
 ]
 
 
+@pytest.mark.django_db
 @override_settings(DEBUG=False)
 def test_404_page_renders(client):
     response = client.get("/url-that-does-not-exist-xyz/")
@@ -20,6 +22,7 @@ def test_404_page_renders(client):
     assert b"introuvable" in response.content
 
 
+@pytest.mark.django_db
 @override_settings(DEBUG=False, ROOT_URLCONF=__name__)
 def test_403_page_renders(client):
     response = client.get("/test-403/")

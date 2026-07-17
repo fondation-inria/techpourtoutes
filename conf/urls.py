@@ -35,5 +35,6 @@ urlpatterns = [
         {"sitemaps": sitemaps},
         name="django.contrib.sitemaps.views.sitemap",
     ),
-    path("", include("techpourtoutes.urls")),
+    path("", include("techpourtoutes.urls_coalition")),
+    path("", include("techpourtoutes.urls_common")),
 ]
