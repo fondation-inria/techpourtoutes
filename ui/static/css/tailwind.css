@@ -56,7 +56,6 @@
     --radius-lg: 12px;
     --radius-2xl: 1rem;
     --ease-out: cubic-bezier(0, 0, 0.2, 1);
-    --ease-in-out: cubic-bezier(0.4, 0, 0.2, 1);
     --default-transition-duration: 150ms;
     --default-transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
     --default-font-family: var(--font-sans);
@@ -3008,9 +3007,6 @@
     .md\:gap-x-5 {
       column-gap: calc(var(--spacing) * 5);
     }
-    .md\:gap-y-3 {
-      row-gap: calc(var(--spacing) * 3);
-    }
     .md\:gap-y-8 {
       row-gap: calc(var(--spacing) * 8);
     }
@@ -3037,8 +3033,8 @@
     .md\:py-8 {
       padding-block: calc(var(--spacing) * 8);
     }
-    .md\:pt-0 {
-      padding-top: 0px;
+    .md\:pt-4 {
+      padding-top: calc(var(--spacing) * 4);
     }
   }
   @media (width >= 64rem) {

@@ -14,11 +14,19 @@
     Bonne journée
   </p>
   <hr style="border:none;border-top:1px solid #e5e7eb;margin:24px 0;">
-  {% if is_pro %}
-    <p style="font-size:13px;color:#6b7280;">Si vous n'avez pas demandé à vous connecter à votre compte TechPourToutes, il est possible que quelqu'un d'autre cherche à le faire. Nous vous recommandons de changer le mot de passe de votre boîte mail rapidement.</p>
-    <p style="font-size:13px;color:#6b7280;">Si vous avez des difficultés pour vous connecter avec le bouton, vous pouvez cliquer sur ce lien ou le copier-coller dans un navigateur&nbsp;: <u><a href="{{ login_url }}">{{ login_url }}</a></u></p>
-  {% else %}
-    <p style="font-size:13px;color:#6b7280;">Si tu n'as pas demandé à te connecter à ton compte TechPourToutes, il est possible que quelqu'un d'autre cherche à le faire. Nous te recommandons de changer le mot de passe de ta boîte mail rapidement.</p>
-    <p style="font-size:13px;color:#6b7280;">Si tu as des difficultés pour te connecter avec le bouton, tu peux cliquer sur ce lien ou le copier-coller dans un navigateur&nbsp;: <u><a href="{{ login_url }}">{{ login_url }}</a></u></p>
-  {% endif %}
+  <p style="font-size:13px;color:#6b7280;">
+    {% if is_pro %}
+      Si vous n'avez pas demandé à vous connecter à votre compte TechPourToutes, il est possible que quelqu'un d'autre cherche à le faire. Nous vous recommandons de changer le mot de passe de votre boîte mail rapidement.
+    {% else %}
+      Si tu n'as pas demandé à te connecter à ton compte TechPourToutes, il est possible que quelqu'un d'autre cherche à le faire. Nous te recommandons de changer le mot de passe de ta boîte mail rapidement.
+    {% endif %}
+  </p>
+  <p style="font-size:13px;color:#6b7280;">
+    {% if is_pro %}
+      Si vous avez des difficultés pour vous connecter avec le bouton, vous pouvez cliquer sur ce lien ou le copier-coller dans un navigateur&nbsp;:
+    {% else %}
+      Si tu as des difficultés pour te connecter avec le bouton, tu peux cliquer sur ce lien ou le copier-coller dans un navigateur&nbsp;: 
+    {% endif %}
+    <u><a href="{{ login_url }}">{{ login_url }}</a></u>
+  </p>
 </c-layout.email>
