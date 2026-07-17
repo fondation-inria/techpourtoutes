@@ -20,13 +20,13 @@ class BaseModel(models.Model):
         editable=False,
     )
     created_at = models.DateTimeField(
-        verbose_name=_("created on"),
+        verbose_name=_("créé le"),
         help_text=_("date and time at which a record was created"),
         auto_now_add=True,
         editable=False,
     )
     updated_at = models.DateTimeField(
-        verbose_name=_("updated on"),
+        verbose_name=_("mis à jour le"),
         help_text=_("date and time at which a record was last updated"),
         auto_now=True,
         editable=False,
