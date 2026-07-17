@@ -26,4 +26,4 @@ class WorkshopRequest(BaseModel):
         verbose_name_plural = _("demandes d'atelier")
 
     def __str__(self):
-        return f"{self.pro.email} – {self.get_type_display()}"
+        return f"{self.get_type_display()}"

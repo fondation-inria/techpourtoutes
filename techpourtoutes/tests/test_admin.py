@@ -24,21 +24,9 @@ def test_admin_mounts_at_configured_url(client):
 
 
 @pytest.fixture
-def admin_pro(db):
-    pro = Pro(
-        username="admin@example.com",
-        civility=Pro.Civility.MADAME,
-        first_name="Admin",
-        last_name="Martin",
-        email="admin@example.com",
-        phone="+33612345678",
-        postal_code="75001",
-        professional_situation=Pro.ProfessionalSituation.WORKING,
-        job_title="Admin",
-        structure_name="Inria",
-        is_staff=True,
-        is_superuser=True,
-    )
+def admin_pro(pro):
+    pro.is_staff = True
+    pro.is_superuser = True
     pro.save()
     pro.set_password("initial-pass")
     pro.save(update_fields=["password"])
@@ -56,6 +44,38 @@ def verified_admin_client(client, admin_pro):
     session[DEVICE_ID_SESSION_KEY] = device.persistent_id
     session.save()
     return client
+
+
+CHANGELIST = "admin:techpourtoutes_pro_changelist"
+
+
+def _make_pro_with_engagements(email, first_name, last_name, engagements):
+    pro = Pro(
+        username=email,
+        civility=Pro.Civility.MADAME,
+        first_name=first_name,
+        last_name=last_name,
+        email=email,
+        professional_situation=Pro.ProfessionalSituation.WORKING,
+        engagements=engagements,
+    )
+    pro.save()
+    return pro
+
+
+@pytest.fixture
+def pros(db):
+    return {
+        "mentor": _make_pro_with_engagements(
+            "emma@example.com", "Emma", "Martin", [Pro.Engagement.MENTOR]
+        ),
+        "sponsor": _make_pro_with_engagements(
+            "bob@example.com", "Bob", "Lefevre", [Pro.Engagement.SPONSOR]
+        ),
+        "ambassador": _make_pro_with_engagements(
+            "carol@example.com", "Carol", "Moreau", [Pro.Engagement.WORK_AMBASSADOR]
+        ),
+    }
 
 
 @pytest.mark.django_db
@@ -104,3 +124,57 @@ def test_admin_pro_hides_jobirl_token_and_locks_id(verified_admin_client, admin_
     # The Jobirl id is set by the API, not by hand — shown read-only (visible, not editable).
     assert 'name="jobirl_user_id"' not in content
     assert "8675309" in content
+
+
+@pytest.mark.django_db
+def test_changelist_engagement_filter_single(verified_admin_client, pros):
+    content = verified_admin_client.get(
+        reverse(CHANGELIST), {"engagement": "mentor"}
+    ).content.decode()
+    assert "emma@example.com" in content
+    assert "bob@example.com" not in content
+    assert "carol@example.com" not in content
+
+
+@pytest.mark.django_db
+def test_changelist_engagement_filter_multiple(verified_admin_client, pros):
+    content = verified_admin_client.get(
+        reverse(CHANGELIST), {"engagement": "mentor,sponsor"}
+    ).content.decode()
+    # Union of both engagements; the unrelated ambassador is excluded.
+    assert "emma@example.com" in content
+    assert "bob@example.com" in content
+    assert "carol@example.com" not in content
+
+
+@pytest.mark.django_db
+def test_changelist_date_filter_renders(verified_admin_client, pros):
+    response = verified_admin_client.get(
+        reverse(CHANGELIST), {"created_at__gte": "2000-01-01 00:00:00+00:00"}
+    )
+    assert response.status_code == 200
+
+
+USER_CHANGELIST = "admin:techpourtoutes_user_changelist"
+
+
+@pytest.mark.django_db
+def test_user_changelist_lists_details_without_engagements(verified_admin_client, pros):
+    content = verified_admin_client.get(reverse(USER_CHANGELIST)).content.decode()
+    # Same columns as the Pro list (names + email), minus the Pro-only engagements column.
+    assert "Emma" in content
+    assert "Martin" in content
+    assert "emma@example.com" in content
+    assert "mentorer" not in content
+
+
+@pytest.mark.django_db
+def test_user_changelist_search_and_date_filter(verified_admin_client, pros):
+    by_name = verified_admin_client.get(reverse(USER_CHANGELIST), {"q": "Martin"}).content.decode()
+    assert "emma@example.com" in by_name
+    assert "bob@example.com" not in by_name
+
+    dated = verified_admin_client.get(
+        reverse(USER_CHANGELIST), {"created_at__gte": "2000-01-01 00:00:00+00:00"}
+    )
+    assert dated.status_code == 200
