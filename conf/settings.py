@@ -239,6 +239,7 @@ if env("CACHE_URL", default=""):
 
 # Rate limiting of public POST endpoints, as "<max_requests>/<window_seconds>" per client.
 RATELIMIT_LOGIN = env("RATELIMIT_LOGIN", default="5/300")
+RATELIMIT_EMAIL_CHANGE_RESEND = env("RATELIMIT_EMAIL_CHANGE_RESEND", default="3/300")
 
 # django-axes — locks out repeated failed password logins (admin brute-force protection).
 # Disabled in local dev (DEBUG); the test suite enables it explicitly where needed.

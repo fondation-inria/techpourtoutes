@@ -701,3 +701,5 @@ def test_email_change_resend_remails(_code, client, pro):
     assert response.status_code == 302
     assert len(mail.outbox) == 1
     assert mail.outbox[0].to == [pro.email]
+    stored = [str(m) for m in get_messages(response.wsgi_request)]
+    assert "Un nouveau code vous a été envoyé par mail." in stored

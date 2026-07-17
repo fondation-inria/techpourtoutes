@@ -223,6 +223,7 @@ def email_change_verify(request):
 
 @require_POST
 @login_required
+@rate_limit("RATELIMIT_EMAIL_CHANGE_RESEND")
 def email_change_resend(request):
     user = request.user.pro if hasattr(request.user, "pro") else request.user
     payload = user.read_email_change_token(request.POST.get("token", ""))
@@ -236,6 +237,7 @@ def email_change_resend(request):
     stage, new_email = payload["stage"], payload["new_email"]
     recipient = new_email if stage == "new" else user.email
     AuthMailer.change_email(user=user, code=user.set_email_change_code(), new_email=recipient)
+    messages.success(request, "Un nouveau code vous a été envoyé par mail.")
     return redirect(user.email_change_verify_url(user.issue_email_change_token(new_email, stage)))
 
 
