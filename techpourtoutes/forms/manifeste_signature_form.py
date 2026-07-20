@@ -12,7 +12,7 @@ class ManifesteSignatureForm(forms.Form):
     first_name = forms.CharField(label=_("Votre prénom*"))
     last_name = forms.CharField(label=_("Votre nom*"))
     email = forms.EmailField(
-        label=_("Votre email*"),
+        label=_("Votre adresse mail*"),
         error_messages={"invalid": _("Saisissez une adresse mail valide.")},
     )
     structure_name = forms.CharField(label=_("Votre organisation*"))

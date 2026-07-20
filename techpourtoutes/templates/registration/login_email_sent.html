@@ -8,16 +8,16 @@
             </p>
             <p class="mt-2 mb-4 md:mt-3 md:mb-8 text-center font-medium break-all underline">{{ email }}</p>
 
-            <c-components.title title="Aucun email reçu ?" variant="intertitre" class="mt-3 md:mt-5" />
+            <c-components.title title="Aucun mail reçu ?" variant="intertitre" class="mt-3 md:mt-5" />
             <c-components.list>
                 Vérifiez votre dossier "courrier indésirable" (spam)
-                Sinon, demandez l'envoi d'un nouvel email
+                Sinon, demandez l'envoi d'un nouveau mail
             </c-components.list>
 
             <c-patterns.form url="{% url 'login_request' %}" class="mt-2">
                 <input type="hidden" name="email" value="{{ email }}">
                 <input type="hidden" name="back" value="{{ back }}">
-                <c-components.button type="submit" label="Demander l'envoi d'un nouvel email" variant="quaternary" class="text-left w-fit" />
+                <c-components.button type="submit" label="Demander l'envoi d'un nouveau mail" variant="quaternary" class="text-left w-fit" />
             </c-patterns.form>
 
             <c-components.title title="L'adresse mail saisie est erronée ?" variant="intertitre" class="mt-3 mb-2 md:mt-5 md:mb-3" />

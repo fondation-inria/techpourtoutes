@@ -4,7 +4,7 @@ from django.conf import settings
 from django.contrib import messages
 from django.contrib.auth import REDIRECT_FIELD_NAME, get_user_model, login, logout
 from django.contrib.auth.decorators import login_required
-from django.http import Http404, HttpResponse
+from django.http import HttpResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
 from django.utils.http import url_has_allowed_host_and_scheme
@@ -16,22 +16,16 @@ from ..forms import (
     AccountEditForm,
     CommunicationForm,
     DeleteAccountForm,
+    EmailChangeCodeForm,
+    EmailChangeForm,
     LoginRequestForm,
     TrainingExperienceForm,
 )
 from ..mailers import AuthMailer
 from ..ratelimit import rate_limit
 from ..services.jobirl_api.refresh_access_token import RefreshAccessToken
-
-
-def _safe_next(request, candidate):
-    if candidate and url_has_allowed_host_and_scheme(
-        candidate,
-        allowed_hosts={request.get_host()},
-        require_https=request.is_secure(),
-    ):
-        return candidate
-    return ""
+from ..services.verify_email_change_code import VerifyEmailChangeCode
+from ..text import mask_email
 
 
 @rate_limit("RATELIMIT_LOGIN", keys=("email",))
@@ -138,8 +132,6 @@ def account(request):
 @require_POST
 @login_required
 def account_communication(request):
-    if not hasattr(request.user, "pro"):
-        return redirect("account")
     pro = request.user.pro
     form = CommunicationForm(data=request.POST, pro=pro)
     if form.is_valid():
@@ -159,8 +151,6 @@ def account_info(request):
 
 @login_required
 def account_edit(request):
-    if not hasattr(request.user, "pro"):
-        return redirect("account")
     pro = request.user.pro
     if request.method == "POST":
         form = AccountEditForm(data=request.POST, pro=pro)
@@ -171,6 +161,84 @@ def account_edit(request):
     else:
         form = AccountEditForm(pro=pro)
         return render(request, "account/partials/edit_form.html", {"form": form, "user": pro})
+
+
+@login_required
+def account_email(request):
+    user = request.user.pro if hasattr(request.user, "pro") else request.user
+    return render(request, "account/partials/email_section.html", {"user": user})
+
+
+@login_required
+def email_change(request):
+    user = request.user.pro if hasattr(request.user, "pro") else request.user
+    if request.method == "POST":
+        form = EmailChangeForm(request.POST, user=user)
+        if form.is_valid():
+            AuthMailer.change_email(user=user, code=user.set_email_change_code())
+            token = user.issue_email_change_token(form.cleaned_data["email"], "current")
+            return HttpResponse(headers={"HX-Redirect": user.email_change_verify_url(token)})
+    else:
+        form = EmailChangeForm(user=user)
+    return render(
+        request,
+        "account/partials/email_section.html",
+        {"form": form, "user": user, "editing": True},
+    )
+
+
+@login_required
+def email_change_verify(request):
+    user = request.user.pro if hasattr(request.user, "pro") else request.user
+    token = request.POST.get("token") or request.GET.get("token", "")
+    payload = user.read_email_change_token(token)
+    if payload is None:
+        messages.error(
+            request,
+            "Votre demande de changement d'adresse a expiré. Veuillez recommencer.",
+        )
+        return redirect("account")
+
+    form = EmailChangeCodeForm(request.POST or None)
+    if request.method == "POST" and form.is_valid():
+        result = VerifyEmailChangeCode(user=user, payload=payload, code=form.cleaned_data["code"])
+        if result.success:
+            if payload["stage"] == "new":
+                messages.success(request, "Votre adresse mail a été modifiée.")
+            return redirect(result.redirect_url)
+        form.add_error("code", result.errors[0])
+
+    recipient = user.email if payload["stage"] == "current" else payload["new_email"]
+    return render(
+        request,
+        "account/email_change_verify.html",
+        {
+            "form": form,
+            "token": token,
+            "stage": payload["stage"],
+            "masked_recipient": mask_email(recipient),
+        },
+    )
+
+
+@require_POST
+@login_required
+@rate_limit("RATELIMIT_EMAIL_CHANGE_RESEND")
+def email_change_resend(request):
+    user = request.user.pro if hasattr(request.user, "pro") else request.user
+    payload = user.read_email_change_token(request.POST.get("token", ""))
+    if payload is None:
+        messages.error(
+            request,
+            "Votre demande de changement d'adresse a expiré. Veuillez recommencer.",
+        )
+        return redirect("account")
+
+    stage, new_email = payload["stage"], payload["new_email"]
+    recipient = new_email if stage == "new" else user.email
+    AuthMailer.change_email(user=user, code=user.set_email_change_code(), new_email=recipient)
+    messages.success(request, "Un nouveau code vous a été envoyé par mail.")
+    return redirect(user.email_change_verify_url(user.issue_email_change_token(new_email, stage)))
 
 
 @login_required
@@ -204,12 +272,6 @@ def training_experience_edit(request, pk):
     )
 
 
-def _get_training_experience(request, pk):
-    if not hasattr(request.user, "pro"):
-        raise Http404
-    return get_object_or_404(request.user.pro.training_experiences, pk=pk)
-
-
 @require_POST
 @login_required
 def logout_view(request):
@@ -241,11 +303,26 @@ def delete_account(request):
             )
         logout(request)
         messages.success(request, "Votre compte a été supprimé.")
-        response = HttpResponse()
-        response["HX-Redirect"] = "/"
-        return response
+        return HttpResponse(headers={"HX-Redirect": "/"})
     return render(
         request,
         "account/partials/delete_account_modal.html",
         {"form": form},
     )
+
+
+# --------------------- private ----------------
+
+
+def _get_training_experience(request, pk):
+    return get_object_or_404(request.user.pro.training_experiences, pk=pk)
+
+
+def _safe_next(request, candidate):
+    if candidate and url_has_allowed_host_and_scheme(
+        candidate,
+        allowed_hosts={request.get_host()},
+        require_https=request.is_secure(),
+    ):
+        return candidate
+    return ""

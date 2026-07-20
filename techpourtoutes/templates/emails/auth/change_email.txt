@@ -1,0 +1,12 @@
+Bonjour {{ user.first_name|default:user.username }},
+
+Vous avez demandé à changer l'adresse mail de votre compte TechPourToutes.
+
+Voici votre code de vérification : {{ code }}
+
+Ce code est valable pendant 15 minutes.
+
+Si vous n'avez pas demandé à vous connecter à votre compte TechPourToutes, il est possible que quelqu'un d'autre cherche à le faire. Nous vous recommandons de changer le mot de passe de votre boîte mail rapidement.
+
+Bonne journée,
+L'équipe TechPourToutes
