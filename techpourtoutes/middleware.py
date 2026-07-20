@@ -6,10 +6,6 @@ class SiteModeUrlconfMiddleware:
         self.get_response = get_response
 
     def __call__(self, request):
-        try:
-            is_beneficiary = switch_is_active("beneficiary_mode")
-        except Exception:
-            is_beneficiary = False
-        if is_beneficiary:
+        if switch_is_active("beneficiary_mode"):
             request.urlconf = "conf.urls_beneficiary"
         return self.get_response(request)

@@ -89,7 +89,7 @@ def test_new_pro_includes_pro_details_in_body(pro):
 @pytest.mark.django_db
 @override_settings(EMAIL_BACKEND="django.core.mail.backends.locmem.EmailBackend")
 def test_login_send_link_sends_email_to_user(pro):
-    AuthMailer.login_link(user=pro, token="tok-abc", is_pro=True)
+    AuthMailer.login_link(user=pro, token="tok-abc")
 
     assert len(mail.outbox) == 1
     message = mail.outbox[0]
@@ -100,7 +100,7 @@ def test_login_send_link_sends_email_to_user(pro):
 @pytest.mark.django_db
 @override_settings(EMAIL_BACKEND="django.core.mail.backends.locmem.EmailBackend")
 def test_login_send_link_body_contains_absolute_login_url(pro):
-    AuthMailer.login_link(user=pro, token="tok-abc", is_pro=True)
+    AuthMailer.login_link(user=pro, token="tok-abc")
 
     expected_url = f"{settings.SITE_URL}{reverse('login_verify', args=['tok-abc'])}"
     assert expected_url in mail.outbox[0].body
@@ -109,7 +109,7 @@ def test_login_send_link_body_contains_absolute_login_url(pro):
 @pytest.mark.django_db
 @override_settings(EMAIL_BACKEND="django.core.mail.backends.locmem.EmailBackend")
 def test_login_send_link_appends_next_url_when_provided(pro):
-    AuthMailer.login_link(user=pro, token="tok-abc", next_url="/mon-compte/", is_pro=True)
+    AuthMailer.login_link(user=pro, token="tok-abc", next_url="/mon-compte/")
 
     body = mail.outbox[0].body
     assert "next=%2Fmon-compte%2F" in body
@@ -118,7 +118,7 @@ def test_login_send_link_appends_next_url_when_provided(pro):
 @pytest.mark.django_db
 @override_settings(EMAIL_BACKEND="django.core.mail.backends.locmem.EmailBackend")
 def test_login_send_link_omits_next_query_when_empty(pro):
-    AuthMailer.login_link(user=pro, token="tok-abc", is_pro=True)
+    AuthMailer.login_link(user=pro, token="tok-abc")
 
     assert "next=" not in mail.outbox[0].body
 
@@ -146,7 +146,7 @@ def test_welcome_attaches_its_brevo_tags(pro):
 @pytest.mark.django_db
 @override_settings(EMAIL_BACKEND="django.core.mail.backends.locmem.EmailBackend")
 def test_login_link_attaches_its_brevo_tags(pro):
-    AuthMailer.login_link(user=pro, token="tok-abc", is_pro=True)
+    AuthMailer.login_link(user=pro, token="tok-abc")
 
     assert mail.outbox[0].tags == ["utilisateur", "mail de connexion"]
 
