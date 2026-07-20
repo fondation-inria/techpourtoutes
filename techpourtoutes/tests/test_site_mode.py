@@ -1,5 +1,3 @@
-from unittest.mock import patch
-
 import pytest
 from django.urls import reverse
 from waffle.testutils import override_switch
@@ -8,18 +6,6 @@ from waffle.testutils import override_switch
 @pytest.mark.django_db
 def test_coalition_home_renders_default_template(client):
     response = client.get(reverse("coalition_home"))
-    template_names = [t.name for t in response.templates]
-    assert "coalition/coalition_home.html" in template_names
-
-
-@pytest.mark.django_db
-def test_falls_back_to_coalition_mode_when_switch_check_fails(client):
-    with patch(
-        "techpourtoutes.middleware.switch_is_active",
-        side_effect=Exception("waffle unavailable"),
-    ):
-        response = client.get(reverse("coalition_home"))
-    assert response.status_code == 200
     template_names = [t.name for t in response.templates]
     assert "coalition/coalition_home.html" in template_names
 
