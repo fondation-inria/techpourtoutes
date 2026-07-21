@@ -7,6 +7,7 @@ from django.core import mail
 from django.test import override_settings
 from django.urls import reverse
 from django.utils import timezone
+from waffle.testutils import override_switch
 
 
 @pytest.mark.django_db
@@ -67,6 +68,30 @@ def test_login_request_close_button_points_to_back(client):
 
 
 @pytest.mark.django_db
+def test_login_request_terms_paragraph_uses_vous_for_coalition_referrer(client):
+    from urllib.parse import quote
+
+    response = client.get(reverse("login_request") + "?back=" + quote(reverse("mentor_landing")))
+
+    assert "vous reconnaissez avoir compris et accepté" in response.content.decode()
+
+
+@pytest.mark.django_db
+def test_login_request_hides_beneficiary_button_when_switch_off(client):
+    response = client.get(reverse("login_request"))
+
+    assert "Je veux bénéficier du programme" not in response.content.decode()
+
+
+@pytest.mark.django_db
+def test_login_request_shows_beneficiary_button_when_switch_active(client):
+    with override_switch("beneficiary_mode", active=True):
+        response = client.get(reverse("login_request"))
+
+    assert "Je veux bénéficier du programme" in response.content.decode()
+
+
+@pytest.mark.django_db
 def test_login_request_get_renders_next_hidden_input(client):
     response = client.get(reverse("login_request") + "?next=/mentorer/")
 
@@ -93,6 +118,14 @@ def test_login_request_post_with_known_email_sends_link(client, pro):
     assert len(mail.outbox) == 1
     assert mail.outbox[0].to == [pro.email]
     assert "/se-connecter/token/" in mail.outbox[0].alternatives[0][0]
+
+
+@pytest.mark.django_db
+@override_settings(EMAIL_BACKEND="django.core.mail.backends.locmem.EmailBackend")
+def test_login_request_post_for_pro_sends_vouvoiement_email(client, pro):
+    client.post(reverse("login_request"), data={"email": pro.email})
+
+    assert mail.outbox[0].subject == "Votre lien de connexion à TechPourToutes"
 
 
 @pytest.mark.django_db

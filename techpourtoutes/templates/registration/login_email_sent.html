@@ -1,17 +1,19 @@
+{% load home_url coalition_page politeness %}
+{% is_coalition_page back as is_coalition_page %}
 <c-layout.base variant="funnel" back="{{ back }}">
-    <div class="flex flex-col min-h-[80dvh] md:min-w-[560px] w-full items-center justify-center gap-y-4 md:gap-y-8">
+    <div class="flex flex-col min-h-[80dvh] w-full items-center justify-center gap-y-4 pt-12 md:min-w-[560px] md:gap-y-8 md:pt-4">
         <c-components.card class="py-4 md:py-8">
             <c-components.title title="Se connecter" variant="h1" class="text-center justify-center mb-2 md:mb-4" />
-            <c-components.title title="Consultez votre boîte mail" variant="h2-black" />
+            <c-components.title title="{% politeness "Consultez votre" "Consulte ta" %} boîte mail" variant="h2-black" />
             <p class="mt-2 md:mt-3">
-                Un lien pour vous connecter automatiquement à votre compte vient de vous être envoyé à l'adresse :
+                Un lien pour {% politeness "vous" "te" %} connecter automatiquement à {% politeness "votre" "ton" %} compte vient de {% politeness "vous être" "t'être" %} envoyé à l'adresse :
             </p>
             <p class="mt-2 mb-4 md:mt-3 md:mb-8 text-center font-medium break-all underline">{{ email }}</p>
 
             <c-components.title title="Aucun mail reçu ?" variant="intertitre" class="mt-3 md:mt-5" />
             <c-components.list>
-                Vérifiez votre dossier "courrier indésirable" (spam)
-                Sinon, demandez l'envoi d'un nouveau mail
+                {% politeness "Vérifiez votre" "Vérifie ton" %} dossier "courrier indésirable" (spam)
+                Sinon, {% politeness "demandez" "demande" %} l'envoi d'un nouveau mail
             </c-components.list>
 
             <c-patterns.form url="{% url 'login_request' %}" class="mt-2">
@@ -23,14 +25,19 @@
             <c-components.title title="L'adresse mail saisie est erronée ?" variant="intertitre" class="mt-3 mb-2 md:mt-5 md:mb-3" />
             <c-components.button href="{% url 'login_request' %}?back={{ back|urlencode }}" label="Modifier mon adresse mail" variant="quaternary" class="block w-fit" />
         </c-components.card>
-        <div class="flex flex-wrap items-center justify-center gap-x-3 gap-y-1">
-            <p class="text-sm text-center">
+        <div class="flex w-full flex-col items-center justify-center gap-y-2 md:flex-row md:flex-wrap md:gap-x-5">
+            <p class="text-sm text-center w-full">
                 Pas encore de compte ?
             </p>
-            <c-components.button href="{% url "coalition_home" %}" label="S'engager avec TechPourToutes" variant="quaternary" />
+            {% url "coalition_home" as coalition_home %}
+            {% home_url as home_url %}
+            {% if home_url != coalition_home %}
+                <c-components.button href="{{ home_url }}" label="Je veux bénéficier du programme" variant="quaternary" class="w-full text-center md:w-auto" />
+            {% endif %}
+            <c-components.button href="{{ coalition_home }}" label="Je veux soutenir le programme" variant="quaternary" class="w-full text-center md:w-auto" />
         </div>
         <p class="text-xs text-center">
-            En continuant, vous reconnaissez avoir compris et accepté les
+            En continuant, {% politeness "vous reconnaissez" "tu reconnais" %} avoir compris et accepté les
             <c-components.inline-link label="Conditions d'utilisation" href="{% url 'conditions_generales' %}" />
             et la
             <c-components.inline-link label="politique de gestion des données personnelles" href="{% url 'donnees_personnelles' %}" />

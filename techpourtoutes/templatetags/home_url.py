@@ -7,13 +7,6 @@ register = template.Library()
 
 @register.simple_tag
 def home_url():
-    if _beneficiary_mode_active():
+    if switch_is_active("beneficiary_mode"):
         return reverse("home")
     return reverse("coalition_home")
-
-
-def _beneficiary_mode_active():
-    try:
-        return switch_is_active("beneficiary_mode")
-    except Exception:
-        return False

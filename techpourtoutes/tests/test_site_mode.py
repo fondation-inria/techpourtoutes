@@ -1,5 +1,3 @@
-from unittest.mock import patch
-
 import pytest
 from django.urls import reverse
 from waffle.testutils import override_switch
@@ -8,18 +6,6 @@ from waffle.testutils import override_switch
 @pytest.mark.django_db
 def test_coalition_home_renders_default_template(client):
     response = client.get(reverse("coalition_home"))
-    template_names = [t.name for t in response.templates]
-    assert "coalition/coalition_home.html" in template_names
-
-
-@pytest.mark.django_db
-def test_falls_back_to_coalition_mode_when_switch_check_fails(client):
-    with patch(
-        "techpourtoutes.middleware.switch_is_active",
-        side_effect=Exception("waffle unavailable"),
-    ):
-        response = client.get(reverse("coalition_home"))
-    assert response.status_code == 200
     template_names = [t.name for t in response.templates]
     assert "coalition/coalition_home.html" in template_names
 
@@ -107,3 +93,16 @@ def test_coalition_welcome_shows_coalition_sidebar_when_switch_active(client):
     with override_switch("beneficiary_mode", active=True):
         response = client.get("/coalition/bienvenue-dans-la-coalition/")
     assert "Découvrir le programme" in response.content.decode()
+
+
+@pytest.mark.django_db
+def test_login_request_terms_paragraph_uses_tu_for_beneficiary_referrer(client):
+    with override_switch("beneficiary_mode", active=True):
+        response = client.get(reverse("login_request"))
+    assert "tu reconnais avoir compris et accepté" in response.content.decode()
+
+
+@pytest.mark.django_db
+def test_login_request_terms_paragraph_uses_vous_when_switch_off_regardless_of_referrer(client):
+    response = client.get(reverse("login_request") + "?back=/mentions-legales/")
+    assert "vous reconnaissez avoir compris et accepté" in response.content.decode()

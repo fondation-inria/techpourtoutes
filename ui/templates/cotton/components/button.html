@@ -54,7 +54,7 @@
         >
             <div class="flex
                 {% if icon %}{{ icon_class }}{% endif %}
-                {% if "primary" in variant or variant == "secondary" %}
+                {% if "primary" in variant or variant == "secondary" or variant == "quaternary" %}
                     justify-center
                 {% endif %}
             ">
@@ -110,7 +110,7 @@
         >
             <div class="flex
                 {% if icon %}{{ icon_class }}{% endif %}
-                {% if "primary" in variant or variant == "secondary" %}
+                {% if "primary" in variant or variant == "secondary" or variant == "quaternary" %}
                     justify-center
                 {% endif %}
             ">

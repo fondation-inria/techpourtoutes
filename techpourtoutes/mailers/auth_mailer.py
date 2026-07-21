@@ -12,10 +12,13 @@ class AuthMailer(BaseMailer):
         path = reverse("login_verify", args=[token])
         if next_url:
             path = f"{path}?{urlencode({'next': next_url})}"
+        is_pro = hasattr(user, "pro")
+        pronoun = "Votre" if is_pro else "Ton"
+        subject = f"{pronoun} lien de connexion à TechPourToutes"
         cls.send_mail(
-            subject="Votre lien de connexion à TechPourToutes",
+            subject=subject,
             recipient_list=[user.email],
-            context={"user": user, "login_url": f"{settings.SITE_URL}{path}"},
+            context={"user": user, "login_url": f"{settings.SITE_URL}{path}", "is_pro": is_pro},
             tags=["utilisateur", "mail de connexion"],
         )
 

@@ -1,3 +1,5 @@
+{% load home_url coalition_page politeness %}
+{% is_coalition_page back as is_coalition_page %}
 <c-layout.base variant="funnel" back="{{ back }}">
     <div class="flex flex-col min-h-[80dvh] md:min-w-[560px] w-full items-center justify-center gap-y-8">
         <c-components.card class="md:px-32 py-8">
@@ -15,14 +17,19 @@
                 </div>
             </c-patterns.form>
         </c-components.card>
-        <div class="flex flex-wrap items-center justify-center gap-x-3 gap-y-1">
-            <p class="text-sm text-center">
+        <div class="flex w-full flex-col items-center justify-center gap-y-2 md:flex-row md:flex-wrap md:gap-x-5">
+            <p class="text-sm text-center w-full">
                 Pas encore de compte ?
             </p>
-            <c-components.button href="{% url "coalition_home" %}" label="S'engager avec TechPourToutes" variant="quaternary" />
+            {% url "coalition_home" as coalition_home %}
+            {% home_url as home_url %}
+            {% if home_url != coalition_home %}
+                <c-components.button href="{{ home_url }}" label="Je veux bénéficier du programme" variant="quaternary" class="w-full text-center md:w-auto" />
+            {% endif %}
+            <c-components.button href="{{ coalition_home }}" label="Je veux soutenir le programme" variant="quaternary" class="w-full text-center md:w-auto" />
         </div>
         <p class="text-xs text-center">
-            En continuant, vous reconnaissez avoir compris et accepté les
+            En continuant, {% politeness "vous reconnaissez" "tu reconnais" %} avoir compris et accepté les
             <c-components.inline-link label="Conditions d'utilisation" href="{% url 'conditions_generales' %}" />
             et la
             <c-components.inline-link label="politique de gestion des données personnelles" href="{% url 'donnees_personnelles' %}" />
