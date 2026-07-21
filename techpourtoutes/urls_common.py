@@ -5,7 +5,7 @@ from . import views
 urlpatterns = [
     # Account
     path("se-connecter/", views.login_request, name="login_request"),
-    path("se-connecter/mail-envoye/", views.login_email_sent, name="login_email_sent"),
+    path("se-connecter/code/", views.login_code, name="login_code"),
     path("se-connecter/token/<str:token>/", views.login_verify, name="login_verify"),
     path("mon-compte/", views.account, name="account"),
     path("mon-compte/infos/", views.account_info, name="account_info"),

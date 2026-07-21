@@ -1,0 +1,10 @@
+{% load politeness %}Bonjour {{ user.first_name|default:user.username }},
+
+Pour {% politeness "vous" "te" %} connecter à TechPourToutes, {% politeness "voici votre" "voici ton" %} code de vérification : {{ code }}
+
+Ce code est valable pendant 15 minutes.
+
+Si {% politeness "vous n'avez" "tu n'as" %} pas demandé à {% politeness "vous" "te" %} connecter à {% politeness "votre" "ton" %} compte TechPourToutes, il est possible que quelqu'un d'autre cherche à le faire. Nous {% politeness "vous" "te" %} recommandons de changer le mot de passe de {% politeness "votre" "ta" %} boîte mail rapidement.
+
+Bonne journée,
+L'équipe TechPourToutes

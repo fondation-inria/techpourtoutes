@@ -129,6 +129,76 @@ def test_consume_login_token_returns_none_on_second_use(pro):
 
 
 @pytest.mark.django_db
+def test_issue_login_code_stores_hash_and_resets_attempts(pro):
+    pro.login_code_attempts = 3
+    pro.save()
+
+    code = pro.issue_login_code()
+
+    assert len(code) == 6 and code.isdigit()
+    pro.refresh_from_db()
+    assert pro.login_code_hash == hashlib.sha256(code.encode()).hexdigest()
+    assert pro.login_code_hash != code
+    assert pro.login_code_attempts == 0
+    assert pro.login_code_expires_at > timezone.now()
+
+
+@pytest.mark.django_db
+def test_verify_login_code_returns_true_on_match(pro):
+    code = pro.issue_login_code()
+
+    assert pro.verify_login_code(code) is True
+
+
+@pytest.mark.django_db
+def test_verify_login_code_wrong_increments_attempts(pro):
+    pro.issue_login_code()
+
+    assert pro.verify_login_code("000000") is False
+    pro.refresh_from_db()
+    assert pro.login_code_attempts == 1
+
+
+@pytest.mark.django_db
+def test_verify_login_code_false_when_no_code(pro):
+    assert pro.verify_login_code("123456") is False
+
+
+@pytest.mark.django_db
+def test_verify_login_code_false_when_expired(pro):
+    code = pro.issue_login_code()
+    pro.login_code_expires_at = timezone.now() - timedelta(minutes=1)
+    pro.save()
+
+    assert pro.verify_login_code(code) is False
+
+
+@pytest.mark.django_db
+def test_verify_login_code_false_when_locked(pro):
+    from techpourtoutes.models.user import LOGIN_CODE_MAX_ATTEMPTS
+
+    code = pro.issue_login_code()
+    pro.login_code_attempts = LOGIN_CODE_MAX_ATTEMPTS
+    pro.save()
+
+    assert pro.verify_login_code(code) is False
+
+
+@pytest.mark.django_db
+def test_clear_login_code_resets_state(pro):
+    pro.issue_login_code()
+    pro.login_code_attempts = 4
+    pro.save()
+
+    pro.clear_login_code()
+
+    pro.refresh_from_db()
+    assert pro.login_code_hash == ""
+    assert pro.login_code_expires_at is None
+    assert pro.login_code_attempts == 0
+
+
+@pytest.mark.django_db
 def test_set_email_change_code_stores_hash_and_resets_attempts(pro):
     pro.email_change_attempts = 3
     pro.save()
@@ -220,17 +290,12 @@ def test_read_email_change_token_rejects_tampered_token(pro):
 
 
 @pytest.mark.django_db
-def test_read_email_change_token_rejects_expired_token(pro):
-    import time
-    from unittest.mock import patch
+def test_verify_email_change_code_false_when_expired(pro):
+    code = pro.set_email_change_code()
+    pro.email_change_code_expires_at = timezone.now() - timedelta(minutes=1)
+    pro.save()
 
-    from techpourtoutes.models.user import EMAIL_CHANGE_CODE_TTL
-
-    past = time.time() - EMAIL_CHANGE_CODE_TTL.total_seconds() - 10
-    with patch("django.core.signing.time.time", return_value=past):
-        token = pro.issue_email_change_token("nouvelle@example.com", "current")
-
-    assert pro.read_email_change_token(token) is None
+    assert pro.verify_email_change_code(code) is False
 
 
 @pytest.mark.django_db

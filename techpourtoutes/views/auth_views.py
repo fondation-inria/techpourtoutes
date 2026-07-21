@@ -16,12 +16,13 @@ from ..forms import (
     AccountEditForm,
     CommunicationForm,
     DeleteAccountForm,
-    EmailChangeCodeForm,
     EmailChangeForm,
     LoginRequestForm,
     TrainingExperienceForm,
+    VerificationCodeForm,
 )
 from ..mailers import AuthMailer
+from ..models.user import LOGIN_CODE_MAX_ATTEMPTS
 from ..ratelimit import rate_limit
 from ..services.jobirl_api.refresh_access_token import RefreshAccessToken
 from ..services.verify_email_change_code import VerifyEmailChangeCode
@@ -42,19 +43,19 @@ def login_request(request):
             User = get_user_model()
             user = User.objects.filter(email=email, is_active=True).first()
             if user is not None:
-                token = user.issue_login_token()
-                AuthMailer.login_link(user=user, token=token, next_url=next_url)
+                AuthMailer.login_code(user=user, code=user.issue_login_code())
             request.session["login_email"] = email
+            request.session["login_next"] = next_url
 
-            url = reverse("login_email_sent")
+            url = reverse("login_code")
             if back_url:
                 url = f"{url}?{urlencode({'back': back_url})}"
 
             referer = request.headers.get("referer", "")
             if referer.startswith(settings.SITE_URL) and urlparse(referer).path == reverse(
-                "login_email_sent"
+                "login_code"
             ):
-                messages.success(request, "Votre demande a bien été prise en compte.")
+                messages.success(request, "Un nouveau code vous a été envoyé par mail.")
             return redirect(url)
     else:
         form = LoginRequestForm()
@@ -68,16 +69,39 @@ def login_request(request):
     )
 
 
-def login_email_sent(request):
+def login_code(request):
+    if request.user.is_authenticated:
+        return redirect(reverse("account"))
     email = request.session.get("login_email")
     if not email:
         return redirect("login_request")
     back_url = _safe_next(request, request.GET.get("back", ""))
+    next_url = _safe_next(request, request.session.get("login_next", ""))
+    User = get_user_model()
+    user = User.objects.filter(email=email, is_active=True).first()
+
+    form = VerificationCodeForm(request.POST or None)
+    if request.method == "POST" and form.is_valid():
+        if user is not None and user.verify_login_code(form.cleaned_data["code"]):
+            user.clear_login_code()
+            request.session.pop("login_email", None)
+            request.session.pop("login_next", None)
+            # the following line required because django-axes is configured
+            user.backend = "django.contrib.auth.backends.ModelBackend"
+            login(request, user)
+            messages.success(request, f"Vous accédez au compte {user.email}. Bienvenue !")
+            return redirect(next_url or reverse("account"))
+        if user is not None and user.login_code_attempts >= LOGIN_CODE_MAX_ATTEMPTS:
+            user.clear_login_code()
+        form.add_error("code", "Code invalide ou expiré.")
+
     return render(
         request,
-        "registration/login_email_sent.html",
+        "registration/login_code.html",
         {
+            "form": form,
             "email": email,
+            "masked_recipient": mask_email(email),
             "back": back_url,
         },
     )
@@ -199,7 +223,7 @@ def email_change_verify(request):
         )
         return redirect("account")
 
-    form = EmailChangeCodeForm(request.POST or None)
+    form = VerificationCodeForm(request.POST or None)
     if request.method == "POST" and form.is_valid():
         result = VerifyEmailChangeCode(user=user, payload=payload, code=form.cleaned_data["code"])
         if result.success:

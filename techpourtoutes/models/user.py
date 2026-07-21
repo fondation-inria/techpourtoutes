@@ -14,6 +14,8 @@ from django.utils.translation import gettext_lazy as _
 from .base import BaseModel
 
 LOGIN_TOKEN_TTL = timedelta(hours=1)
+LOGIN_CODE_TTL = timedelta(minutes=15)
+LOGIN_CODE_MAX_ATTEMPTS = 5
 EMAIL_CHANGE_CODE_TTL = timedelta(minutes=15)
 EMAIL_CHANGE_MAX_ATTEMPTS = 5
 EMAIL_CHANGE_TOKEN_SALT = "email-change"
@@ -42,11 +44,31 @@ class User(BaseModel, AbstractUser):
         blank=True,
         verbose_name=_("datetime d'expiration du token de connexion envoyé par mail au user"),
     )
+    login_code_hash = models.CharField(
+        max_length=64,
+        blank=True,
+        default="",
+        verbose_name=_("hash du code de connexion envoyé par mail à l'utilisateur"),
+    )
+    login_code_expires_at = models.DateTimeField(
+        null=True,
+        blank=True,
+        verbose_name=_("datetime d'expiration du code de connexion envoyé par mail au user"),
+    )
+    login_code_attempts = models.PositiveSmallIntegerField(
+        default=0,
+        verbose_name=_("nombre de tentatives de saisie du code de connexion"),
+    )
     email_change_code_hash = models.CharField(
         max_length=64,
         blank=True,
         default="",
         verbose_name=_("hash du code de changement d'adresse mail"),
+    )
+    email_change_code_expires_at = models.DateTimeField(
+        null=True,
+        blank=True,
+        verbose_name=_("datetime d'expiration du code de changement d'adresse mail"),
     )
     email_change_attempts = models.PositiveSmallIntegerField(
         default=0,
@@ -98,15 +120,48 @@ class User(BaseModel, AbstractUser):
             return None
         return user
 
+    def issue_login_code(self) -> str:
+        code = generate_numeric_code()
+        self.login_code_hash = _hash_token(code)
+        self.login_code_expires_at = timezone.now() + LOGIN_CODE_TTL
+        self.login_code_attempts = 0
+        self.save()
+        return code
+
+    def verify_login_code(self, plaintext: str) -> bool:
+        if not self.login_code_hash:
+            return False
+        if self.login_code_expires_at is None or self.login_code_expires_at < timezone.now():
+            return False
+        if self.login_code_attempts >= LOGIN_CODE_MAX_ATTEMPTS:
+            return False
+        if _hash_token(plaintext) != self.login_code_hash:
+            self.login_code_attempts += 1
+            self.save()
+            return False
+        return True
+
+    def clear_login_code(self) -> None:
+        self.login_code_hash = ""
+        self.login_code_expires_at = None
+        self.login_code_attempts = 0
+        self.save()
+
     def set_email_change_code(self) -> str:
-        code = generate_email_change_code()
+        code = generate_numeric_code()
         self.email_change_code_hash = _hash_token(code)
+        self.email_change_code_expires_at = timezone.now() + EMAIL_CHANGE_CODE_TTL
         self.email_change_attempts = 0
         self.save()
         return code
 
     def verify_email_change_code(self, plaintext: str) -> bool:
         if not self.email_change_code_hash:
+            return False
+        if (
+            self.email_change_code_expires_at is None
+            or self.email_change_code_expires_at < timezone.now()
+        ):
             return False
         if self.email_change_attempts >= EMAIL_CHANGE_MAX_ATTEMPTS:
             return False
@@ -120,11 +175,13 @@ class User(BaseModel, AbstractUser):
         self.email = new_email
         self.username = new_email
         self.email_change_code_hash = ""
+        self.email_change_code_expires_at = None
         self.email_change_attempts = 0
         self.save()
 
     def clear_email_change(self) -> None:
         self.email_change_code_hash = ""
+        self.email_change_code_expires_at = None
         self.email_change_attempts = 0
         self.save()
 
@@ -136,9 +193,7 @@ class User(BaseModel, AbstractUser):
 
     def read_email_change_token(self, token: str) -> dict | None:
         try:
-            payload = signing.loads(
-                token, salt=EMAIL_CHANGE_TOKEN_SALT, max_age=EMAIL_CHANGE_CODE_TTL.total_seconds()
-            )
+            payload = signing.loads(token, salt=EMAIL_CHANGE_TOKEN_SALT)
         except signing.BadSignature:
             return None
         if payload.get("user_pk") != str(self.pk):
@@ -157,6 +212,9 @@ class User(BaseModel, AbstractUser):
         self.email = f"deleted_{self.pk}@deleted.local"
         self.login_token_hash = ""
         self.login_token_expires_at = None
+        self.login_code_hash = ""
+        self.login_code_expires_at = None
+        self.login_code_attempts = 0
         self.brevo_sync_enabled = False
         self.save()
 
@@ -165,5 +223,5 @@ def _hash_token(plaintext: str) -> str:
     return hashlib.sha256(plaintext.encode()).hexdigest()
 
 
-def generate_email_change_code() -> str:
+def generate_numeric_code() -> str:
     return f"{secrets.randbelow(1_000_000):06d}"

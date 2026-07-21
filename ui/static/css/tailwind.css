@@ -518,9 +518,7 @@
   }
   .collapse:not(td, tr, colgroup) {
     visibility: revert-layer;
-  }
-  @layer daisyui.l1.l2.l3 {
-    .collapse {
+    @layer daisyui.l1.l2.l3 {
       display: grid;
       position: relative;
       border-radius: var(--radius-box, 1rem);
@@ -528,111 +526,137 @@
       grid-template-rows: max-content 0fr;
       grid-template-columns: minmax(0, 1fr);
       isolation: isolate;
-    }
-    @media (prefers-reduced-motion: no-preference) {
-      .collapse {
+      @media (prefers-reduced-motion: no-preference) {
         transition: grid-template-rows 0.2s;
       }
-    }
-    .collapse  > input:is([type="checkbox"], [type="radio"]) {
-      grid-column-start: 1;
-      grid-row-start: 1;
-      appearance: none;
-      opacity: 0;
-      z-index: 1;
-      width: 100%;
-      padding: 1rem;
-      padding-inline-end: 3rem;
-      min-height: 1lh;
-      transition: background-color 0.2s ease-out;
-    }
-    .collapse:is([open], [tabindex]:focus:not(.collapse-close), [tabindex]:focus-within:not(.collapse-close) ), .collapse:not(.collapse-close):has( > input:is([type="checkbox"], [type="radio"]):checked) {
-      grid-template-rows: max-content 1fr;
-    }
-    .collapse:is([open], [tabindex]:focus:not(.collapse-close), [tabindex]:focus-within:not(.collapse-close) ) > .collapse-content, .collapse:not(.collapse-close) > :where(input:is([type="checkbox"], [type="radio"]):checked ~ .collapse-content) {
-      --overflow-delay: 0.2s;
-      overflow: revert-layer;
-      content-visibility: visible;
-      min-height: fit-content;
-      @supports not (content-visibility: visible) {
-        visibility: visible;
+       > input:is([type="checkbox"], [type="radio"]) {
+        grid-column-start: 1;
+        grid-row-start: 1;
+        appearance: none;
+        opacity: 0;
+        z-index: 1;
+        width: 100%;
+        padding: 1rem;
+        padding-inline-end: 3rem;
+        min-height: 1lh;
+        transition: background-color 0.2s ease-out;
       }
-    }
-    .collapse:focus-visible, .collapse:has( > input:is([type="checkbox"], [type="radio"]):focus-visible), .collapse:has(summary:focus-visible) {
-      outline-color: var(--color-base-content);
-      outline-style: solid;
-      outline-width: 2px;
-      outline-offset: 2px;
-    }
-    .collapse:not(.collapse-close)  > input[type="checkbox"], .collapse:not(.collapse-close)   > input[type="radio"]:not(:checked), .collapse:not(.collapse-close)   > .collapse-title {
-      cursor: pointer;
-    }
-    :is(.collapse[tabindex]:focus:not(.collapse-close, .collapse[open]), .collapse[tabindex]:focus-within:not(.collapse-close, .collapse[open]))  > .collapse-title {
-      cursor: unset;
-    }
-    .collapse:is([open], [tabindex]:focus:not(.collapse-close), [tabindex]:focus-within:not(.collapse-close) ) > :where(.collapse-content), .collapse:not(.collapse-close) > :where(input:is([type="checkbox"], [type="radio"]):checked ~ .collapse-content) {
-      padding-bottom: 1rem;
-    }
-    .collapse:is(details) {
-      width: 100%;
-      &::details-content {
-        --overflow-delay: 0s;
-        overflow: clip;
-        height: 0;
+      &:is([open], [tabindex]:focus:not(.collapse-close), [tabindex]:focus-within:not(.collapse-close) ), &:not(.collapse-close):has( > input:is([type="checkbox"], [type="radio"]):checked) {
+        grid-template-rows: max-content 1fr;
       }
-      &:where([open])::details-content {
+      &:is([open], [tabindex]:focus:not(.collapse-close), [tabindex]:focus-within:not(.collapse-close) ) > .collapse-content, &:not(.collapse-close) > :where(input:is([type="checkbox"], [type="radio"]):checked ~ .collapse-content) {
+        --overflow-delay: 0.2s;
         overflow: revert-layer;
-        height: auto;
+        content-visibility: visible;
+        min-height: fit-content;
+        @supports not (content-visibility: visible) {
+          visibility: visible;
+        }
       }
-      @media (prefers-reduced-motion: no-preference) {
+      &:focus-visible, &:has( > input:is([type="checkbox"], [type="radio"]):focus-visible), &:has(summary:focus-visible) {
+        outline-color: var(--color-base-content);
+        outline-style: solid;
+        outline-width: 2px;
+        outline-offset: 2px;
+      }
+      &:not(.collapse-close) {
+         > input[type="checkbox"],  > input[type="radio"]:not(:checked),  > .collapse-title {
+          cursor: pointer;
+        }
+      }
+      &[tabindex]:focus:not(.collapse-close, .collapse[open]), &[tabindex]:focus-within:not(.collapse-close, .collapse[open]) {
+         > .collapse-title {
+          cursor: unset;
+        }
+      }
+      &:is([open], [tabindex]:focus:not(.collapse-close), [tabindex]:focus-within:not(.collapse-close) ) > :where(.collapse-content), &:not(.collapse-close) > :where(input:is([type="checkbox"], [type="radio"]):checked ~ .collapse-content) {
+        padding-bottom: 1rem;
+      }
+      &:is(details) {
+        width: 100%;
         &::details-content {
-          transition: overflow 0.2s allow-discrete var(--overflow-delay), content-visibility 0.2s allow-discrete, visibility 0.2s allow-discrete, min-height 0.2s ease-out allow-discrete, padding 0.1s ease-out 20ms, background-color 0.2s ease-out, height 0.2s;
-          interpolate-size: allow-keywords;
+          --overflow-delay: 0s;
+          overflow: clip;
+          height: 0;
         }
         &:where([open])::details-content {
-          --overflow-delay: 0.2s;
+          overflow: revert-layer;
+          height: auto;
+        }
+        @media (prefers-reduced-motion: no-preference) {
+          &::details-content {
+            transition: overflow 0.2s allow-discrete var(--overflow-delay), content-visibility 0.2s allow-discrete, visibility 0.2s allow-discrete, min-height 0.2s ease-out allow-discrete, padding 0.1s ease-out 20ms, background-color 0.2s ease-out, height 0.2s;
+            interpolate-size: allow-keywords;
+          }
+          &:where([open])::details-content {
+            --overflow-delay: 0.2s;
+          }
+        }
+         > summary {
+          position: relative;
+          display: block;
+          outline: none;
+          &::-webkit-details-marker {
+            display: none;
+          }
         }
       }
-       > summary {
-        position: relative;
-        display: block;
-        outline: none;
-        &::-webkit-details-marker {
-          display: none;
+    }
+    @layer daisyui.l1.l2 {
+      &:is([open]) {
+        &.collapse-arrow {
+           > .collapse-title:after {
+            @media (prefers-reduced-motion: no-preference) {
+              transform: translateY(-50%) rotate(225deg);
+            }
+          }
         }
       }
-    }
-  }
-  @layer daisyui.l1.l2 {
-    @media (prefers-reduced-motion: no-preference) {
-      .collapse:is([open]).collapse-arrow  > .collapse-title:after {
-        transform: translateY(-50%) rotate(225deg);
+      &.collapse-open {
+        &.collapse-arrow {
+           > .collapse-title:after {
+            @media (prefers-reduced-motion: no-preference) {
+              transform: translateY(-50%) rotate(225deg);
+            }
+          }
+        }
+        &.collapse-plus {
+           > .collapse-title:after {
+            --tw-content: "−";
+            content: var(--tw-content);
+          }
+        }
       }
-      .collapse.collapse-open.collapse-arrow  > .collapse-title:after {
-        transform: translateY(-50%) rotate(225deg);
+      &[tabindex].collapse-arrow:focus:not(.collapse-close), &.collapse-arrow[tabindex]:focus-within:not(.collapse-close) {
+         > .collapse-title:after {
+          transform: translateY(-50%) rotate(225deg);
+        }
       }
-    }
-    .collapse.collapse-open.collapse-plus  > .collapse-title:after {
-      --tw-content: "−";
-      content: var(--tw-content);
-    }
-    :is(.collapse[tabindex].collapse-arrow:focus:not(.collapse-close), .collapse.collapse-arrow[tabindex]:focus-within:not(.collapse-close))  > .collapse-title:after {
-      transform: translateY(-50%) rotate(225deg);
-    }
-    .collapse.collapse-arrow:not(.collapse-close)  > input:is([type="checkbox"], [type="radio"]):checked ~ .collapse-title:after {
-      transform: translateY(-50%) rotate(225deg);
-    }
-    .collapse[open].collapse-plus  > .collapse-title:after {
-      --tw-content: "−";
-      content: var(--tw-content);
-    }
-    .collapse[tabindex].collapse-plus:focus:not(.collapse-close)  > .collapse-title:after {
-      --tw-content: "−";
-      content: var(--tw-content);
-    }
-    .collapse.collapse-plus:not(.collapse-close)  > input:is([type="checkbox"], [type="radio"]):checked ~ .collapse-title:after {
-      --tw-content: "−";
-      content: var(--tw-content);
+      &.collapse-arrow:not(.collapse-close) {
+         > input:is([type="checkbox"], [type="radio"]):checked ~ .collapse-title:after {
+          transform: translateY(-50%) rotate(225deg);
+        }
+      }
+      &[open] {
+        &.collapse-plus {
+           > .collapse-title:after {
+            --tw-content: "−";
+            content: var(--tw-content);
+          }
+        }
+      }
+      &[tabindex].collapse-plus:focus:not(.collapse-close) {
+         > .collapse-title:after {
+          --tw-content: "−";
+          content: var(--tw-content);
+        }
+      }
+      &.collapse-plus:not(.collapse-close) {
+         > input:is([type="checkbox"], [type="radio"]):checked ~ .collapse-title:after {
+          --tw-content: "−";
+          content: var(--tw-content);
+        }
+      }
     }
   }
   @layer daisyui.l1.l2.l3 {
@@ -1829,17 +1853,11 @@
       max-width: 96rem;
     }
   }
-  .-mx-2 {
-    margin-inline: calc(var(--spacing) * -2);
-  }
   .mx-2 {
     margin-inline: calc(var(--spacing) * 2);
   }
   .mx-auto {
     margin-inline: auto;
-  }
-  .-my-1 {
-    margin-block: calc(var(--spacing) * -1);
   }
   .my-3 {
     margin-block: calc(var(--spacing) * 3);
@@ -1994,6 +2012,9 @@
   .mt-8 {
     margin-top: calc(var(--spacing) * 8);
   }
+  .mt-12 {
+    margin-top: calc(var(--spacing) * 12);
+  }
   .-mb-4 {
     margin-bottom: calc(var(--spacing) * -4);
   }
@@ -2002,9 +2023,6 @@
   }
   .mb-3 {
     margin-bottom: calc(var(--spacing) * 3);
-  }
-  .mb-4 {
-    margin-bottom: calc(var(--spacing) * 4);
   }
   .mb-5 {
     margin-bottom: calc(var(--spacing) * 5);
@@ -2092,14 +2110,6 @@
       display: grid;
       place-items: start;
       gap: calc(0.25rem * 2);
-    }
-    .footer.footer-center {
-      grid-auto-flow: column dense;
-      place-items: center;
-      text-align: center;
-      & > *:not(script, style, template) {
-        place-items: center;
-      }
     }
     .stat {
       display: inline-grid;
@@ -2603,9 +2613,6 @@
   .p-8 {
     padding: calc(var(--spacing) * 8);
   }
-  .px-2 {
-    padding-inline: calc(var(--spacing) * 2);
-  }
   .px-3 {
     padding-inline: calc(var(--spacing) * 3);
   }
@@ -2618,17 +2625,14 @@
   .px-8 {
     padding-inline: calc(var(--spacing) * 8);
   }
-  .py-1 {
-    padding-block: var(--spacing);
+  .px-24 {
+    padding-inline: calc(var(--spacing) * 24);
   }
   .py-2 {
     padding-block: calc(var(--spacing) * 2);
   }
   .py-3 {
     padding-block: calc(var(--spacing) * 3);
-  }
-  .py-4 {
-    padding-block: calc(var(--spacing) * 4);
   }
   .py-8 {
     padding-block: calc(var(--spacing) * 8);
@@ -2742,9 +2746,6 @@
   }
   .wrap-break-word {
     overflow-wrap: break-word;
-  }
-  .break-all {
-    word-break: break-all;
   }
   @layer daisyui.l1.l2 {
     .alert-error {
@@ -3015,6 +3016,9 @@
     text-decoration-thickness: 2px;
   }
   @media (width >= 40rem) {
+    .sm\:mt-0 {
+      margin-top: 0px;
+    }
     .sm\:hidden {
       display: none;
     }
@@ -3039,20 +3043,11 @@
     .md\:mt-3 {
       margin-top: calc(var(--spacing) * 3);
     }
-    .md\:mt-5 {
-      margin-top: calc(var(--spacing) * 5);
-    }
     .md\:mt-\[65px\] {
       margin-top: 65px;
     }
     .md\:mb-3 {
       margin-bottom: calc(var(--spacing) * 3);
-    }
-    .md\:mb-4 {
-      margin-bottom: calc(var(--spacing) * 4);
-    }
-    .md\:mb-8 {
-      margin-bottom: calc(var(--spacing) * 8);
     }
     .md\:hidden {
       display: none;
@@ -3087,9 +3082,6 @@
     .md\:gap-x-5 {
       column-gap: calc(var(--spacing) * 5);
     }
-    .md\:gap-y-8 {
-      row-gap: calc(var(--spacing) * 8);
-    }
     .md\:self-start {
       align-self: flex-start;
     }
@@ -3109,12 +3101,6 @@
     }
     .md\:px-32 {
       padding-inline: calc(var(--spacing) * 32);
-    }
-    .md\:py-8 {
-      padding-block: calc(var(--spacing) * 8);
-    }
-    .md\:pt-4 {
-      padding-top: calc(var(--spacing) * 4);
     }
   }
   @media (width >= 64rem) {
@@ -3178,6 +3164,51 @@
     }
     .xl\:pt-3 {
       padding-top: calc(var(--spacing) * 3);
+    }
+  }
+  @media (max-height:1000px) {
+    .\[\@media\(max-height\:1000px\)\]\:mt-12 {
+      margin-top: calc(var(--spacing) * 12);
+    }
+  }
+  @media (max-height:700px) {
+    .\[\@media\(max-height\:700px\)\]\:mt-12 {
+      margin-top: calc(var(--spacing) * 12);
+    }
+  }
+  @media (max-height:720px) {
+    .\[\@media\(max-height\:720px\)\]\:mt-12 {
+      margin-top: calc(var(--spacing) * 12);
+    }
+  }
+  @media (max-height:730px) {
+    .\[\@media\(max-height\:730px\)\]\:mt-12 {
+      margin-top: calc(var(--spacing) * 12);
+    }
+  }
+  @media (max-height:740px) {
+    .\[\@media\(max-height\:740px\)\]\:mt-12 {
+      margin-top: calc(var(--spacing) * 12);
+    }
+  }
+  @media (max-height:750px) {
+    .\[\@media\(max-height\:750px\)\]\:mt-12 {
+      margin-top: calc(var(--spacing) * 12);
+    }
+  }
+  @media (max-height:800px) {
+    .\[\@media\(max-height\:800px\)\]\:mt-12 {
+      margin-top: calc(var(--spacing) * 12);
+    }
+  }
+  @media (max-height:850px) {
+    .\[\@media\(max-height\:850px\)\]\:mt-12 {
+      margin-top: calc(var(--spacing) * 12);
+    }
+  }
+  @media (max-height:860px) {
+    .\[\@media\(max-height\:860px\)\]\:mt-12 {
+      margin-top: calc(var(--spacing) * 12);
     }
   }
   body:has(#sidebar-drawer:checked) .\[body\:has\(\#sidebar-drawer\:checked\)_\&\]\:block {
@@ -3463,6 +3494,19 @@
     --depth: 1;
     --noise: 0;
   }
+  :root, [data-theme] {
+    background-color: var(--root-bg);
+    color: var(--color-base-content);
+  }
+  :root {
+    background-color: var(--page-scroll-bg, var(--root-bg));
+  }
+  :where(:root, [data-theme]) {
+    --root-bg: var(--color-base-100);
+  }
+  :root {
+    --fx-noise: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 200 200'%3E%3Cfilter id='a'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='1.34' numOctaves='4' stitchTiles='stitch'%3E%3C/feTurbulence%3E%3C/filter%3E%3Crect width='200' height='200' filter='url(%23a)' opacity='0.2'%3E%3C/rect%3E%3C/svg%3E");
+  }
   @property --radialprogress {
     syntax: "<percentage>";
     inherits: true;
@@ -3472,18 +3516,6 @@
     syntax: "<angle>";
     inherits: false;
     initial-value: 0deg;
-  }
-  :root {
-    scrollbar-color: currentColor #0000;
-    @supports (color: color-mix(in lab, red, red)) {
-      scrollbar-color: color-mix(in oklch, currentColor 35%, #0000) #0000;
-    }
-    --fx-noise: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 200 200'%3E%3Cfilter id='a'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='1.34' numOctaves='4' stitchTiles='stitch'%3E%3C/feTurbulence%3E%3C/filter%3E%3Crect width='200' height='200' filter='url(%23a)' opacity='0.2'%3E%3C/rect%3E%3C/svg%3E");
-    --page-scroll-lock: initial;
-    --page-overflow: var(--page-scroll-lock) hidden;
-  }
-  :root:not(span) {
-    overflow: var(--page-overflow);
   }
   :root {
     --page-has-backdrop: var(--page-scroll-lock) 1;
@@ -3505,15 +3537,45 @@
       --page-has-scroll:  ;
     }
   }
-  :root, [data-theme] {
-    background-color: var(--root-bg);
-    color: var(--color-base-content);
-  }
   :root {
-    background-color: var(--page-scroll-bg, var(--root-bg));
+    scrollbar-color: currentColor #0000;
+    @supports (color: color-mix(in lab, red, red)) {
+      scrollbar-color: color-mix(in oklch, currentColor 35%, #0000) #0000;
+    }
+    --page-scroll-lock: initial;
+    --page-overflow: var(--page-scroll-lock) hidden;
   }
-  :where(:root, [data-theme]) {
-    --root-bg: var(--color-base-100);
+  :root:not(span) {
+    overflow: var(--page-overflow);
+  }
+}
+@keyframes progress {
+  50% {
+    background-position-x: -115%;
+  }
+}
+@keyframes rating {
+  0%, 40% {
+    scale: 1.1;
+    filter: brightness(1.05) contrast(1.05);
+  }
+}
+@keyframes toast {
+  0% {
+    scale: 0.9;
+    opacity: 0;
+  }
+  100% {
+    scale: 1;
+    opacity: 1;
+  }
+}
+@keyframes radio {
+  0% {
+    padding: 5px;
+  }
+  50% {
+    padding: 3px;
   }
 }
 @keyframes dropdown {
@@ -3532,22 +3594,9 @@
     translate: 0 -100%;
   }
 }
-@keyframes radio {
+@keyframes menu {
   0% {
-    padding: 5px;
-  }
-  50% {
-    padding: 3px;
-  }
-}
-@keyframes toast {
-  0% {
-    scale: 0.9;
     opacity: 0;
-  }
-  100% {
-    scale: 1;
-    opacity: 1;
   }
 }
 @keyframes skeleton {
@@ -3556,17 +3605,6 @@
   }
   100% {
     background-position: -50%;
-  }
-}
-@keyframes progress {
-  50% {
-    background-position-x: -115%;
-  }
-}
-@keyframes rating {
-  0%, 40% {
-    scale: 1.1;
-    filter: brightness(1.05) contrast(1.05);
   }
 }
 @keyframes aura {
@@ -3593,11 +3631,6 @@
   50% {
     opacity: 0.6;
     filter: blur(1.5rem);
-  }
-}
-@keyframes menu {
-  0% {
-    opacity: 0;
   }
 }
 @layer base {

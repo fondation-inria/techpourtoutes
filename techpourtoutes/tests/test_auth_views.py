@@ -110,14 +110,24 @@ def test_login_request_get_while_authenticated_redirects_to_account(client, pro)
 
 @pytest.mark.django_db
 @override_settings(EMAIL_BACKEND="django.core.mail.backends.locmem.EmailBackend")
-def test_login_request_post_with_known_email_sends_link(client, pro):
+def test_login_request_post_with_known_email_sends_code(client, pro):
     response = client.post(reverse("login_request"), data={"email": pro.email})
 
     assert response.status_code == 302
-    assert response["Location"] == reverse("login_email_sent")
+    assert response["Location"] == reverse("login_code")
     assert len(mail.outbox) == 1
     assert mail.outbox[0].to == [pro.email]
-    assert "/se-connecter/token/" in mail.outbox[0].alternatives[0][0]
+    pro.refresh_from_db()
+    assert pro.login_code_hash != ""
+
+
+@pytest.mark.django_db
+@override_settings(EMAIL_BACKEND="django.core.mail.backends.locmem.EmailBackend")
+@patch("techpourtoutes.models.user.generate_numeric_code", return_value="123456")
+def test_login_request_post_email_contains_the_code(_code, client, pro):
+    client.post(reverse("login_request"), data={"email": pro.email})
+
+    assert "123456" in mail.outbox[0].alternatives[0][0]
 
 
 @pytest.mark.django_db
@@ -125,7 +135,7 @@ def test_login_request_post_with_known_email_sends_link(client, pro):
 def test_login_request_post_for_pro_sends_vouvoiement_email(client, pro):
     client.post(reverse("login_request"), data={"email": pro.email})
 
-    assert mail.outbox[0].subject == "Votre lien de connexion à TechPourToutes"
+    assert mail.outbox[0].subject == "Votre code de connexion à TechPourToutes"
 
 
 @pytest.mark.django_db
@@ -134,18 +144,32 @@ def test_login_request_post_with_unknown_email_sends_nothing(client):
     response = client.post(reverse("login_request"), data={"email": "ghost@example.com"})
 
     assert response.status_code == 302
-    assert response["Location"] == reverse("login_email_sent")
+    assert response["Location"] == reverse("login_code")
     assert mail.outbox == []
 
 
 @pytest.mark.django_db
-def test_login_request_post_with_back_carries_it_to_email_sent_page(client):
+def test_login_request_post_stores_safe_next_in_session(client, pro):
+    client.post(reverse("login_request"), data={"email": pro.email, "next": "/mentorer/"})
+
+    assert client.session["login_next"] == "/mentorer/"
+
+
+@pytest.mark.django_db
+def test_login_request_post_strips_external_next_from_session(client, pro):
+    client.post(reverse("login_request"), data={"email": pro.email, "next": "https://evil.com/x"})
+
+    assert client.session["login_next"] == ""
+
+
+@pytest.mark.django_db
+def test_login_request_post_with_back_carries_it_to_code_page(client):
     response = client.post(
         reverse("login_request"), data={"email": "ghost@example.com", "back": "/mentorer/"}
     )
 
     assert response.status_code == 302
-    assert response["Location"] == f"{reverse('login_email_sent')}?back=%2Fmentorer%2F"
+    assert response["Location"] == f"{reverse('login_code')}?back=%2Fmentorer%2F"
 
 
 @pytest.mark.django_db
@@ -156,14 +180,14 @@ def test_login_request_post_strips_external_back(client):
     )
 
     assert response.status_code == 302
-    assert response["Location"] == reverse("login_email_sent")
+    assert response["Location"] == reverse("login_code")
 
 
 @pytest.mark.django_db
-def test_login_request_post_from_email_sent_page_shows_confirmation_message(client):
+def test_login_request_post_from_code_page_shows_resend_message(client):
     from django.conf import settings
 
-    referer = f"{settings.SITE_URL}{reverse('login_email_sent')}"
+    referer = f"{settings.SITE_URL}{reverse('login_code')}"
     response = client.post(
         reverse("login_request"),
         data={"email": "ghost@example.com"},
@@ -172,23 +196,7 @@ def test_login_request_post_from_email_sent_page_shows_confirmation_message(clie
 
     assert response.status_code == 302
     stored = [str(m) for m in get_messages(response.wsgi_request)]
-    assert any("Votre demande a bien été prise en compte." in m for m in stored)
-
-
-@pytest.mark.django_db
-def test_login_request_post_from_email_sent_page_with_back_shows_confirmation_message(client):
-    from django.conf import settings
-
-    referer = f"{settings.SITE_URL}{reverse('login_email_sent')}?back=%2Fmentorer%2F"
-    response = client.post(
-        reverse("login_request"),
-        data={"email": "ghost@example.com"},
-        HTTP_REFERER=referer,
-    )
-
-    assert response.status_code == 302
-    stored = [str(m) for m in get_messages(response.wsgi_request)]
-    assert any("Votre demande a bien été prise en compte." in m for m in stored)
+    assert any("Un nouveau code vous a été envoyé par mail." in m for m in stored)
 
 
 @pytest.mark.django_db
@@ -197,32 +205,8 @@ def test_login_request_post_with_inactive_user_sends_nothing(client, inactive_us
     response = client.post(reverse("login_request"), data={"email": inactive_user.email})
 
     assert response.status_code == 302
-    assert response["Location"] == reverse("login_email_sent")
+    assert response["Location"] == reverse("login_code")
     assert mail.outbox == []
-
-
-@pytest.mark.django_db
-@override_settings(EMAIL_BACKEND="django.core.mail.backends.locmem.EmailBackend")
-def test_login_request_post_embeds_safe_next_in_link(client, pro):
-    client.post(
-        reverse("login_request"),
-        data={"email": pro.email, "next": "/mentorer/"},
-    )
-
-    html_body = mail.outbox[0].alternatives[0][0]
-    assert "next=%2Fmentorer%2F" in html_body
-
-
-@pytest.mark.django_db
-@override_settings(EMAIL_BACKEND="django.core.mail.backends.locmem.EmailBackend")
-def test_login_request_post_strips_external_next_from_link(client, pro):
-    client.post(
-        reverse("login_request"),
-        data={"email": pro.email, "next": "https://evil.com/x"},
-    )
-
-    html_body = mail.outbox[0].alternatives[0][0]
-    assert "next=" not in html_body
 
 
 @pytest.mark.django_db
@@ -236,33 +220,114 @@ def test_sidebar_login_link_carries_current_page_as_back(client):
     assert expected_href in response.content.decode()
 
 
+def _start_login(client, email, next_url=""):
+    session = client.session
+    session["login_email"] = email
+    if next_url:
+        session["login_next"] = next_url
+    session.save()
+
+
 @pytest.mark.django_db
-def test_login_email_sent_without_session_redirects(client):
-    response = client.get(reverse("login_email_sent"))
+def test_login_code_without_session_redirects(client):
+    response = client.get(reverse("login_code"))
 
     assert response.status_code == 302
     assert response["Location"] == reverse("login_request")
 
 
 @pytest.mark.django_db
-def test_login_email_sent_with_session_renders_email(client):
-    session = client.session
-    session["login_email"] = "alice@example.com"
-    session.save()
+def test_login_code_with_session_renders_masked_email(client):
+    _start_login(client, "alice@example.com")
 
-    response = client.get(reverse("login_email_sent"))
+    response = client.get(reverse("login_code"))
 
     assert response.status_code == 200
-    assert "alice@example.com" in response.content.decode()
+    assert "form" in response.context
+    assert response.context["masked_recipient"] in response.content.decode()
 
 
 @pytest.mark.django_db
-def test_login_email_sent_close_button_points_to_back(client):
-    session = client.session
-    session["login_email"] = "alice@example.com"
-    session.save()
+def test_login_code_while_authenticated_redirects_to_account(client, pro):
+    client.force_login(pro)
 
-    response = client.get(reverse("login_email_sent") + "?back=/mentorer/")
+    response = client.get(reverse("login_code"))
+
+    assert response.status_code == 302
+    assert response["Location"] == reverse("account")
+
+
+@pytest.mark.django_db
+def test_login_code_post_valid_logs_user_in(client, pro):
+    code = pro.issue_login_code()
+    _start_login(client, pro.email)
+
+    response = client.post(reverse("login_code"), data={"code": code})
+
+    assert response.status_code == 302
+    assert response["Location"] == reverse("account")
+    assert client.session.get("_auth_user_id") == str(pro.pk)
+    assert "login_email" not in client.session
+    pro.refresh_from_db()
+    assert pro.login_code_hash == ""
+
+
+@pytest.mark.django_db
+def test_login_code_post_valid_redirects_to_session_next(client, pro):
+    code = pro.issue_login_code()
+    _start_login(client, pro.email, next_url="/mentorer/")
+
+    response = client.post(reverse("login_code"), data={"code": code})
+
+    assert response.status_code == 302
+    assert response["Location"] == "/mentorer/"
+
+
+@pytest.mark.django_db
+def test_login_code_post_wrong_code_shows_error(client, pro):
+    pro.issue_login_code()
+    _start_login(client, pro.email)
+
+    response = client.post(reverse("login_code"), data={"code": "000000"})
+
+    assert response.status_code == 200
+    assert response.context["form"].errors["code"]
+    assert client.session.get("_auth_user_id") is None
+
+
+@pytest.mark.django_db
+def test_login_code_post_expired_code_does_not_log_in(client, pro):
+    code = pro.issue_login_code()
+    pro.login_code_expires_at = timezone.now() - timedelta(minutes=1)
+    pro.save()
+    _start_login(client, pro.email)
+
+    response = client.post(reverse("login_code"), data={"code": code})
+
+    assert response.status_code == 200
+    assert client.session.get("_auth_user_id") is None
+
+
+@pytest.mark.django_db
+def test_login_code_post_clears_code_after_max_attempts(client, pro):
+    from techpourtoutes.models.user import LOGIN_CODE_MAX_ATTEMPTS
+
+    pro.issue_login_code()
+    pro.login_code_attempts = LOGIN_CODE_MAX_ATTEMPTS - 1
+    pro.save()
+    _start_login(client, pro.email)
+
+    client.post(reverse("login_code"), data={"code": "000000"})
+
+    pro.refresh_from_db()
+    assert pro.login_code_hash == ""
+
+
+@pytest.mark.django_db
+def test_login_code_close_button_points_to_back(client):
+    _start_login(client, "alice@example.com")
+
+    response = client.get(reverse("login_code") + "?back=/mentorer/")
 
     html = response.content.decode()
     close_link_index = html.find('aria-label="Fermer"')
@@ -635,7 +700,7 @@ def test_account_email_get_renders_display_section(client, pro):
     assert "Changer mon adresse mail" in response.content.decode()
 
 
-@patch("techpourtoutes.models.user.generate_email_change_code", return_value="123456")
+@patch("techpourtoutes.models.user.generate_numeric_code", return_value="123456")
 @pytest.mark.django_db
 def test_email_change_post_valid_mails_current_and_hx_redirects(_code, client, pro):
     client.force_login(pro)
@@ -680,7 +745,7 @@ def test_email_change_verify_bad_token_redirects_to_account(client, pro):
     assert response.url == reverse("account")
 
 
-@patch("techpourtoutes.models.user.generate_email_change_code", return_value="123456")
+@patch("techpourtoutes.models.user.generate_numeric_code", return_value="123456")
 @pytest.mark.django_db
 def test_email_change_verify_wrong_code_rerenders(_code, client, pro):
     client.force_login(pro)
@@ -694,7 +759,7 @@ def test_email_change_verify_wrong_code_rerenders(_code, client, pro):
     assert pro.email_change_attempts == 1
 
 
-@patch("techpourtoutes.models.user.generate_email_change_code", return_value="123456")
+@patch("techpourtoutes.models.user.generate_numeric_code", return_value="123456")
 @pytest.mark.django_db
 def test_email_change_full_flow_updates_email(_code, client, pro):
     client.force_login(pro)
@@ -722,7 +787,7 @@ def test_email_change_full_flow_updates_email(_code, client, pro):
     assert any("adresse mail a été modifiée" in m for m in stored)
 
 
-@patch("techpourtoutes.models.user.generate_email_change_code", return_value="123456")
+@patch("techpourtoutes.models.user.generate_numeric_code", return_value="123456")
 @pytest.mark.django_db
 def test_email_change_resend_remails(_code, client, pro):
     client.force_login(pro)
