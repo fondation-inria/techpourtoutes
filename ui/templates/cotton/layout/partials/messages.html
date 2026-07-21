@@ -1,16 +1,18 @@
 <c-vars wrapper_class="w-full max-w-6xl px-8 pt-4 flex flex-col gap-y-2" />
 
 {% if messages %}
-    <div class="{{ wrapper_class }}">
+    <div x-data="{ visible: {{ messages|length }} }"
+         x-show="visible > 0"
+         class="{{ wrapper_class }}">
         {% for message in messages %}
             <div x-data="{ show: true }"
                  x-show="show"
                  x-transition.opacity.duration.300ms
-                 {% if message.tags == 'success' %}x-init="setTimeout(() => show = false, 5000)"{% endif %}
+                 {% if message.tags == 'success' %}x-init="setTimeout(() => { show = false; setTimeout(() => visible--, 300) }, 5000)"{% endif %}
                  role="alert"
                  class="alert {% if message.tags == 'error' %}alert-error{% elif message.tags == 'success' %}alert-success{% else %}alert-info{% endif %} flex items-center justify-between">
                 <span>{{ message }}</span>
-                <button type="button" @click="show = false" aria-label="Fermer" class="ml-4 text-xl leading-none cursor-pointer focus-visible:outline-none focus-visible:border focus-visible:border-current">&times;</button>
+                <button type="button" @click="show = false; setTimeout(() => visible--, 300)" aria-label="Fermer" class="ml-4 text-xl leading-none cursor-pointer focus-visible:outline-none focus-visible:border focus-visible:border-current">&times;</button>
             </div>
         {% endfor %}
     </div>

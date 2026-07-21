@@ -14,6 +14,6 @@ class Migration(migrations.Migration):
         migrations.AlterField(
             model_name='user',
             name='email',
-            field=models.EmailField(max_length=254, validators=[django.core.validators.EmailValidator(message='Saisissez une adresse mail valide.')], verbose_name='adresse email'),
+            field=models.EmailField(max_length=254, validators=[django.core.validators.EmailValidator(message='Saisissez une adresse mail valide.')], verbose_name='adresse mail'),
         ),
     ]

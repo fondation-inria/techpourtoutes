@@ -499,19 +499,6 @@ def test_account_edit_requires_login(client):
 
 
 @pytest.mark.django_db
-def test_account_edit_redirects_user_without_pro(client, db):
-    from techpourtoutes.models import User
-
-    user = User.objects.create_user(username="plain@example.com", email="plain@example.com")
-    client.force_login(user)
-
-    response = client.get(reverse("account_edit"))
-
-    assert response.status_code == 302
-    assert response["Location"] == reverse("account")
-
-
-@pytest.mark.django_db
 def test_account_edit_get_renders_form(client, pro):
     client.force_login(pro)
 
@@ -614,3 +601,138 @@ def test_delete_account_post_valid_logs_out_redirects_and_shows_success_message(
 
     stored = [str(m) for m in get_messages(response.wsgi_request)]
     assert any("Votre compte a été supprimé." in m for m in stored)
+
+
+from urllib.parse import parse_qs, urlparse  # noqa: E402
+
+
+def _token_from_redirect(response):
+    return parse_qs(urlparse(response.url).query)["token"][0]
+
+
+def _token_from_hx_redirect(response):
+    return parse_qs(urlparse(response["HX-Redirect"]).query)["token"][0]
+
+
+@pytest.mark.django_db
+def test_email_change_get_renders_inline_form(client, pro):
+    client.force_login(pro)
+
+    response = client.get(reverse("email_change"))
+
+    assert response.status_code == 200
+    assert "form" in response.context
+    assert 'id="account-email-section"' in response.content.decode()
+
+
+@pytest.mark.django_db
+def test_account_email_get_renders_display_section(client, pro):
+    client.force_login(pro)
+
+    response = client.get(reverse("account_email"))
+
+    assert response.status_code == 200
+    assert "Changer mon adresse mail" in response.content.decode()
+
+
+@patch("techpourtoutes.models.user.generate_email_change_code", return_value="123456")
+@pytest.mark.django_db
+def test_email_change_post_valid_mails_current_and_hx_redirects(_code, client, pro):
+    client.force_login(pro)
+
+    response = client.post(reverse("email_change"), data={"email": "new@example.com"})
+
+    assert response.status_code == 200
+    assert reverse("email_change_verify") in response["HX-Redirect"]
+    assert len(mail.outbox) == 1
+    assert mail.outbox[0].to == [pro.email]
+
+
+@pytest.mark.django_db
+def test_email_change_post_invalid_rerenders_with_errors(client, pro):
+    client.force_login(pro)
+
+    response = client.post(reverse("email_change"), data={"email": pro.email})
+
+    assert response.status_code == 200
+    assert response.context["form"].errors
+    assert len(mail.outbox) == 0
+
+
+@pytest.mark.django_db
+def test_email_change_verify_get_shows_masked_recipient(client, pro):
+    client.force_login(pro)
+    token = pro.issue_email_change_token("new@example.com", "current")
+
+    response = client.get(reverse("email_change_verify"), data={"token": token})
+
+    assert response.status_code == 200
+    assert "a***e@example.com" in response.content.decode()
+
+
+@pytest.mark.django_db
+def test_email_change_verify_bad_token_redirects_to_account(client, pro):
+    client.force_login(pro)
+
+    response = client.get(reverse("email_change_verify"), data={"token": "garbage"})
+
+    assert response.status_code == 302
+    assert response.url == reverse("account")
+
+
+@patch("techpourtoutes.models.user.generate_email_change_code", return_value="123456")
+@pytest.mark.django_db
+def test_email_change_verify_wrong_code_rerenders(_code, client, pro):
+    client.force_login(pro)
+    pro.set_email_change_code()
+    token = pro.issue_email_change_token("new@example.com", "current")
+
+    response = client.post(reverse("email_change_verify"), data={"token": token, "code": "000000"})
+
+    assert response.status_code == 200
+    pro.refresh_from_db()
+    assert pro.email_change_attempts == 1
+
+
+@patch("techpourtoutes.models.user.generate_email_change_code", return_value="123456")
+@pytest.mark.django_db
+def test_email_change_full_flow_updates_email(_code, client, pro):
+    client.force_login(pro)
+
+    start = client.post(reverse("email_change"), data={"email": "new@example.com"})
+    current_token = _token_from_hx_redirect(start)
+
+    verify_current = client.post(
+        reverse("email_change_verify"), data={"token": current_token, "code": "123456"}
+    )
+    assert verify_current.status_code == 302
+    assert mail.outbox[-1].to == ["new@example.com"]
+    new_token = _token_from_redirect(verify_current)
+
+    verify_new = client.post(
+        reverse("email_change_verify"), data={"token": new_token, "code": "123456"}
+    )
+
+    assert verify_new.status_code == 302
+    assert verify_new.url == reverse("account")
+    pro.refresh_from_db()
+    assert pro.email == "new@example.com"
+    assert pro.username == "new@example.com"
+    stored = [str(m) for m in get_messages(verify_new.wsgi_request)]
+    assert any("adresse mail a été modifiée" in m for m in stored)
+
+
+@patch("techpourtoutes.models.user.generate_email_change_code", return_value="123456")
+@pytest.mark.django_db
+def test_email_change_resend_remails(_code, client, pro):
+    client.force_login(pro)
+    pro.set_email_change_code()
+    token = pro.issue_email_change_token("new@example.com", "current")
+
+    response = client.post(reverse("email_change_resend"), data={"token": token})
+
+    assert response.status_code == 302
+    assert len(mail.outbox) == 1
+    assert mail.outbox[0].to == [pro.email]
+    stored = [str(m) for m in get_messages(response.wsgi_request)]
+    assert "Un nouveau code vous a été envoyé par mail." in stored

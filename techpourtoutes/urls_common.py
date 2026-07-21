@@ -3,9 +3,9 @@ from django.urls import path
 from . import views
 
 urlpatterns = [
-    # Auth
+    # Account
     path("se-connecter/", views.login_request, name="login_request"),
-    path("se-connecter/email-envoye/", views.login_email_sent, name="login_email_sent"),
+    path("se-connecter/mail-envoye/", views.login_email_sent, name="login_email_sent"),
     path("se-connecter/token/<str:token>/", views.login_verify, name="login_verify"),
     path("mon-compte/", views.account, name="account"),
     path("mon-compte/infos/", views.account_info, name="account_info"),
@@ -15,6 +15,10 @@ urlpatterns = [
         views.account_communication,
         name="account_communication",
     ),
+    path("mon-compte/mail/", views.account_email, name="account_email"),
+    path("mon-compte/mail/changer/", views.email_change, name="email_change"),
+    path("mon-compte/mail/verifier/", views.email_change_verify, name="email_change_verify"),
+    path("mon-compte/mail/renvoyer/", views.email_change_resend, name="email_change_resend"),
     path(
         "mon-compte/formations/<uuid:pk>/",
         views.training_experience_info,

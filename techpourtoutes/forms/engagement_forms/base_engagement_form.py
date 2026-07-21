@@ -37,7 +37,7 @@ class BaseEngagementForm(forms.Form):
     first_name = forms.CharField(label=_("Votre prénom*"))
     last_name = forms.CharField(label=_("Votre nom*"))
     email = forms.EmailField(
-        label=_("Votre email*"),
+        label=_("Votre adresse mail*"),
         error_messages={"invalid": _("Saisissez une adresse mail valide.")},
     )
     terms_accepted = forms.BooleanField(
@@ -91,7 +91,7 @@ class BaseEngagementForm(forms.Form):
         email = self.cleaned_data["email"]
         if self._email_taken_by_another_account(email):
             raise forms.ValidationError(
-                _("Un compte avec cet email existe déjà."), code="email_exists"
+                _("Un compte avec cette adresse mail existe déjà."), code="email_exists"
             )
         return email
 

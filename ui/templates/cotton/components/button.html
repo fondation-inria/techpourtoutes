@@ -10,8 +10,8 @@
     tertiary_class="text-neutral-950 hover:bg-primary-50 active:bg-primary-100 focus:outline-primary-500 focus:outline-offset-2 cursor-pointer"
     tertiary_sm_class="text-[11px]"
     tertiary_lg_class="text-sm font-medium p-3 rounded-sm"
-    quaternary_class="inline-block text-primary-700 font-medium rounded-sm -mx-2 -my-1 px-2 py-1 hover:bg-primary-50 active:bg-primary-100 focus:outline-primary-500 focus:outline-offset-2 cursor-pointer"
-    danger_class="text-error-700 hover:bg-error-50 active:bg-error-100 active:text-error-900 focus:outline-error-500 focus:outline-offset-2 cursor-pointer"
+    quaternary_class="text-primary-700 font-medium hover:bg-primary-50 active:bg-primary-100 active:text-primary-900 focus:outline-primary-500 focus:outline-offset-2 cursor-pointer"
+    quaternary_danger_class="text-error-700 hover:bg-error-50 active:bg-error-100 active:text-error-900 focus:outline-error-500 focus:outline-offset-2 cursor-pointer"
     icon_only_class="hover:bg-primary-50 active:bg-primary-100 focus:outline-primary-500 focus:outline-offset-2 cursor-pointer"
     disabled_primary_class="bg-neutral-300 text-black cursor-not-allowed select-none shadow-black"
     disabled_secondary_class="bg-neutral-500 text-neutral-0 cursor-not-allowed select-none shadow-black"
@@ -39,11 +39,11 @@
                     {{ tertiary_lg_class }}
                 {% endif %}
             {% elif variant == "quaternary" %}
-                {{ quaternary_class }}
+                {{ base_class }} {{ quaternary_class }}
+            {% elif variant == "quaternary_danger" %}
+                {{ base_class }} {{ quaternary_danger_class }}
             {% elif variant == "icon" %}
                 {{ icon_only_class }}
-            {% elif variant == "danger" %}
-                {{ base_class }} {{ danger_class }}
             {% elif variant == "primary_danger" %}
                 {{ base_class }} {{ primary_danger_class }}
             {% else %}
@@ -69,7 +69,7 @@
                 {% if disabled %}
                     {% if variant == "secondary" %}
                         {{ base_class }} {{ disabled_secondary_class }}
-                    {% elif variant == "tertiary" or variant == "danger" %}
+                    {% elif variant == "tertiary" or variant == "quaternary_danger" %}
                         {{ disabled_tertiary_class }}
                         {% if size == "sm" %}
                             {{ tertiary_sm_class }}
@@ -94,11 +94,11 @@
                             {{ tertiary_lg_class }}
                         {% endif %}
                     {% elif variant == "quaternary" %}
-                        {{ quaternary_class }}
+                        {{ base_class }} {{ quaternary_class }}
+                    {% elif variant == "quaternary_danger" %}
+                        {{ base_class }} {{ quaternary_danger_class }}
                     {% elif variant == "icon" %}
                         {{ icon_only_class }}
-                    {% elif variant == "danger" %}
-                        {{ base_class }} {{ danger_class }}
                     {% elif variant == "primary_danger" %}
                         {{ base_class }} {{ primary_danger_class }}
                     {% else %}

@@ -21,6 +21,10 @@ SITEMAP_EXCLUDED_URL_NAMES = {
     "account_info",
     "account_edit",
     "account_communication",
+    "account_email",
+    "email_change",
+    "email_change_resend",
+    "email_change_verify",
     "delete_account_modal",
     "delete_account",
     # Funnel steps (not landing pages)
