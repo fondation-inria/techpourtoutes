@@ -144,58 +144,83 @@ def test_issue_login_code_stores_hash_and_resets_attempts(pro):
 
 
 @pytest.mark.django_db
-def test_verify_login_code_returns_true_on_match(pro):
+def test_consume_login_code_returns_true_on_match(pro):
     code = pro.issue_login_code()
 
-    assert pro.verify_login_code(code) is True
+    assert pro.consume_login_code(code) is True
 
 
 @pytest.mark.django_db
-def test_verify_login_code_wrong_increments_attempts(pro):
+def test_consume_login_code_consumes_code_on_success(pro):
+    from techpourtoutes.models import User
+
+    code = pro.issue_login_code()
+
+    assert pro.consume_login_code(code) is True
+
+    fresh = User.objects.get(pk=pro.pk)
+    assert fresh.login_code_hash == ""
+    assert fresh.consume_login_code(code) is False
+
+
+@pytest.mark.django_db
+def test_consume_login_code_is_single_use_under_concurrent_verify(pro):
+    from techpourtoutes.models import User
+
+    code = pro.issue_login_code()
+    first = User.objects.get(pk=pro.pk)
+    second = User.objects.get(pk=pro.pk)
+
+    results = [first.consume_login_code(code), second.consume_login_code(code)]
+
+    assert results.count(True) == 1
+
+
+@pytest.mark.django_db
+def test_consume_login_code_wrong_increments_attempts(pro):
     pro.issue_login_code()
 
-    assert pro.verify_login_code("000000") is False
+    assert pro.consume_login_code("000000") is False
     pro.refresh_from_db()
     assert pro.login_code_attempts == 1
 
 
 @pytest.mark.django_db
-def test_verify_login_code_false_when_no_code(pro):
-    assert pro.verify_login_code("123456") is False
+def test_consume_login_code_false_when_no_code(pro):
+    assert pro.consume_login_code("123456") is False
 
 
 @pytest.mark.django_db
-def test_verify_login_code_false_when_expired(pro):
+def test_consume_login_code_false_when_expired(pro):
     code = pro.issue_login_code()
     pro.login_code_expires_at = timezone.now() - timedelta(minutes=1)
     pro.save()
 
-    assert pro.verify_login_code(code) is False
+    assert pro.consume_login_code(code) is False
 
 
 @pytest.mark.django_db
-def test_verify_login_code_false_when_locked(pro):
-    from techpourtoutes.models.user import LOGIN_CODE_MAX_ATTEMPTS
+def test_consume_login_code_false_when_locked(pro):
+    from techpourtoutes.models.user import VERIFICATION_CODE_MAX_ATTEMPTS
 
     code = pro.issue_login_code()
-    pro.login_code_attempts = LOGIN_CODE_MAX_ATTEMPTS
+    pro.login_code_attempts = VERIFICATION_CODE_MAX_ATTEMPTS
     pro.save()
 
-    assert pro.verify_login_code(code) is False
+    assert pro.consume_login_code(code) is False
 
 
 @pytest.mark.django_db
-def test_clear_login_code_resets_state(pro):
+def test_consume_login_code_clears_code_on_final_wrong_attempt(pro):
+    from techpourtoutes.models.user import VERIFICATION_CODE_MAX_ATTEMPTS
+
     pro.issue_login_code()
-    pro.login_code_attempts = 4
+    pro.login_code_attempts = VERIFICATION_CODE_MAX_ATTEMPTS - 1
     pro.save()
 
-    pro.clear_login_code()
-
+    assert pro.consume_login_code("000000") is False
     pro.refresh_from_db()
     assert pro.login_code_hash == ""
-    assert pro.login_code_expires_at is None
-    assert pro.login_code_attempts == 0
 
 
 @pytest.mark.django_db
@@ -214,35 +239,61 @@ def test_set_email_change_code_stores_hash_and_resets_attempts(pro):
 
 
 @pytest.mark.django_db
-def test_verify_email_change_code_returns_true_on_match(pro):
+def test_consume_email_change_code_returns_true_on_match(pro):
     code = pro.set_email_change_code()
 
-    assert pro.verify_email_change_code(code) is True
+    assert pro.consume_email_change_code(code) is True
 
 
 @pytest.mark.django_db
-def test_verify_email_change_code_wrong_increments_attempts(pro):
+def test_consume_email_change_code_consumes_code_on_success(pro):
+    from techpourtoutes.models import User
+
+    code = pro.set_email_change_code()
+
+    assert pro.consume_email_change_code(code) is True
+
+    fresh = User.objects.get(pk=pro.pk)
+    assert fresh.email_change_code_hash == ""
+    assert fresh.consume_email_change_code(code) is False
+
+
+@pytest.mark.django_db
+def test_consume_email_change_code_is_single_use_under_concurrent_verify(pro):
+    from techpourtoutes.models import User
+
+    code = pro.set_email_change_code()
+    first = User.objects.get(pk=pro.pk)
+    second = User.objects.get(pk=pro.pk)
+
+    results = [first.consume_email_change_code(code), second.consume_email_change_code(code)]
+
+    assert results.count(True) == 1
+
+
+@pytest.mark.django_db
+def test_consume_email_change_code_wrong_increments_attempts(pro):
     pro.set_email_change_code()
 
-    assert pro.verify_email_change_code("000000") is False
+    assert pro.consume_email_change_code("000000") is False
     pro.refresh_from_db()
     assert pro.email_change_attempts == 1
 
 
 @pytest.mark.django_db
-def test_verify_email_change_code_false_when_no_code(pro):
-    assert pro.verify_email_change_code("123456") is False
+def test_consume_email_change_code_false_when_no_code(pro):
+    assert pro.consume_email_change_code("123456") is False
 
 
 @pytest.mark.django_db
-def test_verify_email_change_code_false_when_locked(pro):
-    from techpourtoutes.models.user import EMAIL_CHANGE_MAX_ATTEMPTS
+def test_consume_email_change_code_false_when_locked(pro):
+    from techpourtoutes.models.user import VERIFICATION_CODE_MAX_ATTEMPTS
 
     code = pro.set_email_change_code()
-    pro.email_change_attempts = EMAIL_CHANGE_MAX_ATTEMPTS
+    pro.email_change_attempts = VERIFICATION_CODE_MAX_ATTEMPTS
     pro.save()
 
-    assert pro.verify_email_change_code(code) is False
+    assert pro.consume_email_change_code(code) is False
 
 
 @pytest.mark.django_db
@@ -254,19 +305,6 @@ def test_apply_email_change_updates_email_and_username_and_clears(pro):
     pro.refresh_from_db()
     assert pro.email == "nouvelle@example.com"
     assert pro.username == "nouvelle@example.com"
-    assert pro.email_change_code_hash == ""
-    assert pro.email_change_attempts == 0
-
-
-@pytest.mark.django_db
-def test_clear_email_change_resets_state(pro):
-    pro.set_email_change_code()
-    pro.email_change_attempts = 4
-    pro.save()
-
-    pro.clear_email_change()
-
-    pro.refresh_from_db()
     assert pro.email_change_code_hash == ""
     assert pro.email_change_attempts == 0
 
@@ -290,12 +328,12 @@ def test_read_email_change_token_rejects_tampered_token(pro):
 
 
 @pytest.mark.django_db
-def test_verify_email_change_code_false_when_expired(pro):
+def test_consume_email_change_code_false_when_expired(pro):
     code = pro.set_email_change_code()
     pro.email_change_code_expires_at = timezone.now() - timedelta(minutes=1)
     pro.save()
 
-    assert pro.verify_email_change_code(code) is False
+    assert pro.consume_email_change_code(code) is False
 
 
 @pytest.mark.django_db

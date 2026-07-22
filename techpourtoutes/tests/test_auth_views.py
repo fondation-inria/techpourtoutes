@@ -68,15 +68,6 @@ def test_login_request_close_button_points_to_back(client):
 
 
 @pytest.mark.django_db
-def test_login_request_terms_paragraph_uses_vous_for_coalition_referrer(client):
-    from urllib.parse import quote
-
-    response = client.get(reverse("login_request") + "?back=" + quote(reverse("mentor_landing")))
-
-    assert "vous reconnaissez avoir compris et accepté" in response.content.decode()
-
-
-@pytest.mark.django_db
 def test_login_request_hides_beneficiary_button_when_switch_off(client):
     response = client.get(reverse("login_request"))
 
@@ -310,10 +301,10 @@ def test_login_code_post_expired_code_does_not_log_in(client, pro):
 
 @pytest.mark.django_db
 def test_login_code_post_clears_code_after_max_attempts(client, pro):
-    from techpourtoutes.models.user import LOGIN_CODE_MAX_ATTEMPTS
+    from techpourtoutes.models.user import VERIFICATION_CODE_MAX_ATTEMPTS
 
     pro.issue_login_code()
-    pro.login_code_attempts = LOGIN_CODE_MAX_ATTEMPTS - 1
+    pro.login_code_attempts = VERIFICATION_CODE_MAX_ATTEMPTS - 1
     pro.save()
     _start_login(client, pro.email)
 

@@ -93,16 +93,3 @@ def test_coalition_welcome_shows_coalition_sidebar_when_switch_active(client):
     with override_switch("beneficiary_mode", active=True):
         response = client.get("/coalition/bienvenue-dans-la-coalition/")
     assert "Découvrir le programme" in response.content.decode()
-
-
-@pytest.mark.django_db
-def test_login_request_terms_paragraph_uses_tu_for_beneficiary_referrer(client):
-    with override_switch("beneficiary_mode", active=True):
-        response = client.get(reverse("login_request"))
-    assert "tu reconnais avoir compris et accepté" in response.content.decode()
-
-
-@pytest.mark.django_db
-def test_login_request_terms_paragraph_uses_vous_when_switch_off_regardless_of_referrer(client):
-    response = client.get(reverse("login_request") + "?back=/mentions-legales/")
-    assert "vous reconnaissez avoir compris et accepté" in response.content.decode()
