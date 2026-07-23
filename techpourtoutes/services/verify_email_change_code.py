@@ -1,16 +1,13 @@
 from django.urls import reverse
 
 from techpourtoutes.mailers import AuthMailer
-from techpourtoutes.models.user import EMAIL_CHANGE_MAX_ATTEMPTS
 
 from .base import BaseService
 
 
 class VerifyEmailChangeCode(BaseService):
     def perform(self, *, user, payload, code):
-        if not user.verify_email_change_code(code):
-            if user.email_change_attempts >= EMAIL_CHANGE_MAX_ATTEMPTS:
-                user.clear_email_change()
+        if not user.consume_email_change_code(code):
             self.fail("Code invalide ou expiré.")
 
         stage, new_email = payload["stage"], payload["new_email"]

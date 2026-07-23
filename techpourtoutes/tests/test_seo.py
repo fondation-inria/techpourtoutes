@@ -14,7 +14,7 @@ SITEMAP_EXCLUDED_URL_NAMES = {
     "search_higher_ed_schools",
     # Auth / account (private)
     "login_request",
-    "login_email_sent",
+    "login_code",
     "login_to_jobirl",
     "logout",
     "account",

@@ -1,7 +1,7 @@
-{% load home_url coalition_page politeness %}
+{% load home_url coalition_page %}
 {% is_coalition_page back as is_coalition_page %}
 <c-layout.base variant="funnel" back="{{ back }}">
-    <div class="flex flex-col min-h-[80dvh] md:min-w-[560px] w-full items-center justify-center gap-y-8">
+    <div class="flex flex-col min-h-[80dvh] md:min-w-[560px] w-full items-center justify-center gap-y-8 [@media(max-height:730px)]:mt-12">
         <c-components.card class="md:px-32 py-8">
             <c-patterns.form url="{% url "login_request" %}">
                 <c-components.title title="Se connecter" variant="h1" class="text-center justify-center" />
@@ -28,12 +28,5 @@
             {% endif %}
             <c-components.button href="{{ coalition_home }}" label="Je veux soutenir le programme" variant="quaternary" class="w-full text-center md:w-auto" />
         </div>
-        <p class="text-xs text-center">
-            En continuant, {% politeness "vous reconnaissez" "tu reconnais" %} avoir compris et accepté les
-            <c-components.inline-link label="Conditions d'utilisation" href="{% url 'conditions_generales' %}" />
-            et la
-            <c-components.inline-link label="politique de gestion des données personnelles" href="{% url 'donnees_personnelles' %}" />
-            de TechPourToutes.
-        </p>
     </div>
 </c-layout.base>
