@@ -47,7 +47,7 @@ MOVE_FIELDS_REVERSE = [
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('techpourtoutes', '0024_user_email_change_attempts_and_more'),
+        ('techpourtoutes', '0025_user_email_change_code_expires_at_and_more'),
     ]
 
     operations = [
