@@ -19,7 +19,7 @@ def copy_phone_to_pro(apps, schema_editor):
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('techpourtoutes', '0029_move_postal_code_to_user'),
+        ('techpourtoutes', '0028_move_postal_code_to_user'),
     ]
 
     operations = [

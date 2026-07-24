@@ -59,7 +59,7 @@ class TrainingExperience(BaseModel):
     )
     start_date = models.DateField(null=True, blank=True, verbose_name=_("date de début"))
     end_date = models.DateField(null=True, blank=True, verbose_name=_("date de fin"))
-    course = models.CharField(max_length=255, blank=True, verbose_name=_("cursus"))
+    course = models.CharField(max_length=255, verbose_name=_("cursus"))
 
     objects = TrainingExperienceQuerySet.as_manager()
 

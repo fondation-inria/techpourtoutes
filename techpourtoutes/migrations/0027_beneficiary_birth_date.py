@@ -8,9 +8,9 @@ class Migration(migrations.Migration):
     ]
 
     operations = [
-        migrations.AlterField(
-            model_name='trainingexperience',
-            name='course',
-            field=models.CharField(blank=True, max_length=255, verbose_name='cursus'),
+        migrations.AddField(
+            model_name='beneficiary',
+            name='birth_date',
+            field=models.DateField(blank=True, null=True, verbose_name='date de naissance'),
         ),
     ]
