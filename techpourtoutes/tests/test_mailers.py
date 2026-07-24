@@ -1,8 +1,6 @@
 import pytest
-from django.conf import settings
 from django.core import mail
 from django.test import override_settings
-from django.urls import reverse
 
 from techpourtoutes.mailers import AuthMailer, CoalitionInternalMailer, CoalitionUserMailer
 from techpourtoutes.models import Pro
@@ -88,39 +86,21 @@ def test_new_pro_includes_pro_details_in_body(pro):
 
 @pytest.mark.django_db
 @override_settings(EMAIL_BACKEND="django.core.mail.backends.locmem.EmailBackend")
-def test_login_send_link_sends_email_to_user(pro):
-    AuthMailer.login_link(user=pro, token="tok-abc")
+def test_login_send_code_sends_email_to_user(pro):
+    AuthMailer.login_code(user=pro, code="123456")
 
     assert len(mail.outbox) == 1
     message = mail.outbox[0]
     assert message.to == [pro.email]
-    assert message.subject == "Votre lien de connexion à TechPourToutes"
+    assert message.subject == "Votre code de connexion à TechPourToutes"
 
 
 @pytest.mark.django_db
 @override_settings(EMAIL_BACKEND="django.core.mail.backends.locmem.EmailBackend")
-def test_login_send_link_body_contains_absolute_login_url(pro):
-    AuthMailer.login_link(user=pro, token="tok-abc")
+def test_login_send_code_body_contains_the_code(pro):
+    AuthMailer.login_code(user=pro, code="123456")
 
-    expected_url = f"{settings.SITE_URL}{reverse('login_verify', args=['tok-abc'])}"
-    assert expected_url in mail.outbox[0].body
-
-
-@pytest.mark.django_db
-@override_settings(EMAIL_BACKEND="django.core.mail.backends.locmem.EmailBackend")
-def test_login_send_link_appends_next_url_when_provided(pro):
-    AuthMailer.login_link(user=pro, token="tok-abc", next_url="/mon-compte/")
-
-    body = mail.outbox[0].body
-    assert "next=%2Fmon-compte%2F" in body
-
-
-@pytest.mark.django_db
-@override_settings(EMAIL_BACKEND="django.core.mail.backends.locmem.EmailBackend")
-def test_login_send_link_omits_next_query_when_empty(pro):
-    AuthMailer.login_link(user=pro, token="tok-abc")
-
-    assert "next=" not in mail.outbox[0].body
+    assert "123456" in mail.outbox[0].body
 
 
 @pytest.mark.django_db
@@ -145,8 +125,8 @@ def test_welcome_attaches_its_brevo_tags(pro):
 
 @pytest.mark.django_db
 @override_settings(EMAIL_BACKEND="django.core.mail.backends.locmem.EmailBackend")
-def test_login_link_attaches_its_brevo_tags(pro):
-    AuthMailer.login_link(user=pro, token="tok-abc")
+def test_login_code_attaches_its_brevo_tags(pro):
+    AuthMailer.login_code(user=pro, code="123456")
 
     assert mail.outbox[0].tags == ["utilisateur", "mail de connexion"]
 

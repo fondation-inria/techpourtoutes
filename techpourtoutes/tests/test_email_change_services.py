@@ -17,10 +17,10 @@ def test_verify_wrong_code_fails(pro, mailoutbox):
 
 @pytest.mark.django_db
 def test_verify_locks_after_max_attempts(pro, mailoutbox):
-    from techpourtoutes.models.user import EMAIL_CHANGE_MAX_ATTEMPTS
+    from techpourtoutes.models.user import VERIFICATION_CODE_MAX_ATTEMPTS
 
     code = pro.set_email_change_code()
-    pro.email_change_attempts = EMAIL_CHANGE_MAX_ATTEMPTS - 1
+    pro.email_change_attempts = VERIFICATION_CODE_MAX_ATTEMPTS - 1
     pro.save()
     payload = {"stage": "current", "new_email": "new@example.com"}
 
@@ -29,7 +29,7 @@ def test_verify_locks_after_max_attempts(pro, mailoutbox):
     assert result.failure
     pro.refresh_from_db()
     assert pro.email_change_code_hash == ""
-    assert pro.verify_email_change_code(code) is False
+    assert pro.consume_email_change_code(code) is False
 
 
 @pytest.mark.django_db
