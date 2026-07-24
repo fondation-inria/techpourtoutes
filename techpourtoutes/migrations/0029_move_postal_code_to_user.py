@@ -19,7 +19,7 @@ def copy_postal_code_to_pro(apps, schema_editor):
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('techpourtoutes', '0027_beneficiary_birth_date'),
+        ('techpourtoutes', '0028_beneficiary_birth_date'),
     ]
 
     operations = [
