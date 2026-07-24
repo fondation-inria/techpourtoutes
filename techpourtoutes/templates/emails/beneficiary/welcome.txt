@@ -1,0 +1,13 @@
+Bonjour {{ beneficiary.first_name }},
+
+
+Bienvenue chez TechPourToutes, merci de ton inscription !
+
+Que tu sois en pleine réflexion sur ton orientation, en recherche d'un stage ou d'une alternance, ou simplement curieuse d'explorer l'univers de la tech, tu es au bon endroit. Notre mission est simple : te donner les ressources et un cadre bienveillant pour concrétiser tes ambitions.
+
+Pour démarrer dans les meilleures conditions et adapter notre accompagnement à tes objectifs, je te propose de planifier dès maintenant notre premier échange : {{ booking_url }}
+
+Si tu préfères attendre un peu, pas de souci : nous reviendrons vers toi d'ici quelques jours. En attendant, n'hésite pas à te connecter à ton espace personnel pour faire un premier tour sur la plateforme : {{ account_url }}
+
+Au plaisir d'échanger très vite avec toi,
+Océane de l'équipe TechPourToutes

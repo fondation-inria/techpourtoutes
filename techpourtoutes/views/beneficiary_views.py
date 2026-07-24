@@ -1,8 +1,9 @@
 from datetime import date
 
 from django.contrib import messages
+from django.contrib.auth import login
 from django.http import HttpResponse
-from django.shortcuts import render
+from django.shortcuts import redirect, render
 from django.urls import reverse
 from django.utils.http import urlencode
 
@@ -11,7 +12,9 @@ from ..forms import (
     BeneficiaryIdentityForm,
     BeneficiaryStudyStatusForm,
     StudyStatus,
+    VerificationCodeForm,
 )
+from ..mailers import AuthMailer, BeneficiaryMailer
 from ..models import Beneficiary, User
 
 # The funnel steps in order — the single source of truth navigation is derived from.
@@ -50,6 +53,9 @@ def beneficiary_home(request):
 
 
 def inscription_funnel(request):
+    if request.user.is_authenticated:
+        return redirect(reverse("account"))
+
     # The funnel is stateless server-side: the accumulated answers live in the browser's
     # sessionStorage (Alpine) and travel with every POST. GET only renders the shell, which
     # asks the server for the right step through a "resume" POST once Alpine has hydrated.
@@ -62,6 +68,7 @@ def inscription_funnel(request):
         "identity": _advance,
         "study_status": _advance,
         "details": _handle_details,
+        "code": _handle_code,
         "back": _handle_back,
     }
     handler = handlers.get(request.POST.get("step"), _advance)
@@ -106,9 +113,25 @@ def _handle_details(request):
         brevo_sync_enabled=identity["newsletter_consent"],
     )
     beneficiary.save()
+    AuthMailer.login_code(user=beneficiary, code=beneficiary.issue_login_code())
+    BeneficiaryMailer.welcome(beneficiary=beneficiary)
     response = _render_step(request, "code", email=beneficiary.email)
     response["HX-Trigger"] = "funnelReset"
     return response
+
+
+def _handle_code(request):
+    # Terminal step: the code was mailed when the beneficiary was created. A valid code logs her
+    # in and sends her to her account; an invalid one re-renders the screen with an error banner.
+    email = request.POST.get("email", "")
+    user = User.objects.filter(email=email, is_active=True).first()
+    form = VerificationCodeForm(request.POST)
+    if form.is_valid() and user is not None and user.consume_login_code(form.cleaned_data["code"]):
+        # required because django-axes is configured
+        user.backend = "django.contrib.auth.backends.ModelBackend"
+        login(request, user)
+        return HttpResponse(headers={"HX-Redirect": reverse("account")})
+    return _render_step(request, "code", email=email, error=_CODE_ERROR)
 
 
 def _handle_back(request):
@@ -166,6 +189,7 @@ _IDENTITY_ERROR = (
     "Certaines informations sont incomplètes ou invalides, corrige-les pour continuer."
 )
 _STUDY_ERROR = "Indique où tu en es dans tes études pour continuer."
+_CODE_ERROR = "Code invalide ou expiré."
 
 
 def _login_redirect_for_existing_email(request, email):

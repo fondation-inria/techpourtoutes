@@ -1,6 +1,13 @@
 <div id="funnel-step" class="w-full flex flex-col gap-y-6 my-auto">
+    {% include "beneficiary/partials/inscription/_error.html" %}
     <c-components.card nobg=True>
-        <div class="flex flex-col gap-4">
+        <c-patterns.form
+            hx-post="{% url 'inscription_funnel' %}"
+            hx-target="#funnel-step"
+            hx-swap="outerHTML"
+            class="flex flex-col gap-4">
+            <input type="hidden" name="step" value="code">
+            <input type="hidden" name="email" value="{{ email }}">
             <c-components.title title="Saisis le code reçu par mail" variant="h2-black" />
             <p>
                 Un code à 6 chiffres t'a été envoyé par mail à
@@ -8,16 +15,16 @@
             </p>
             <div class="flex flex-col gap-2">
                 <label class="label-text-sm" for="code">Code de vérification</label>
-                <input type="text" id="code" name="code" inputmode="numeric" maxlength="6" class="field-base field-default" />
+                <input type="text" id="code" name="code" inputmode="numeric" maxlength="6" autocomplete="one-time-code" class="field-base field-default" />
             </div>
             <div class="flex justify-center">
-                <c-components.button type="button" label="Continuer" />
+                <c-components.button type="submit" label="Continuer" />
             </div>
-            <c-components.button
-                type="button"
-                variant="quaternary"
-                label="Je n'ai pas reçu de code"
-                class="w-fit mx-auto" />
-        </div>
+        </c-patterns.form>
+        <c-components.button
+            type="button"
+            variant="quaternary"
+            label="Je n'ai pas reçu de code"
+            class="w-fit mx-auto" />
     </c-components.card>
 </div>

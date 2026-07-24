@@ -2,6 +2,7 @@ from datetime import date
 from urllib.parse import quote
 
 import pytest
+from django.core import mail
 from django.test import override_settings
 from waffle.testutils import override_switch
 
@@ -241,6 +242,65 @@ def test_details_step_creates_beneficiary_and_shows_code_screen(client, benefici
     assert beneficiary.civility == User.Civility.MADAME
     # detail inputs are wireframe-only and must not be persisted anywhere
     assert not hasattr(beneficiary, "detail_1")
+
+
+@pytest.mark.django_db
+@override_settings(EMAIL_BACKEND="django.core.mail.backends.locmem.EmailBackend")
+def test_details_step_sends_login_code_and_welcome_emails(client, beneficiary_mode):
+    client.post(FUNNEL_URL, _details_post())
+
+    beneficiary = Beneficiary.objects.get(email="oceane@example.com")
+    assert beneficiary.login_code_hash != ""
+
+    assert len(mail.outbox) == 2
+    subjects = {message.subject for message in mail.outbox}
+    assert "Ton code de connexion à TechPourToutes" in subjects
+    assert "Bienvenue au club" in subjects
+    for message in mail.outbox:
+        assert message.to == [beneficiary.email]
+
+
+@pytest.mark.django_db
+def test_funnel_redirects_authenticated_user_to_account(client, beneficiary_mode):
+    beneficiary = Beneficiary.objects.create(
+        username="oceane@example.com", email="oceane@example.com", first_name="Océane"
+    )
+    client.force_login(beneficiary)
+
+    response = client.get(FUNNEL_URL)
+
+    assert response.status_code == 302
+    assert response["Location"] == "/mon-compte/"
+
+
+@pytest.mark.django_db
+def test_code_step_with_valid_code_logs_in_and_redirects(client, beneficiary_mode):
+    beneficiary = Beneficiary.objects.create(
+        username="oceane@example.com", email="oceane@example.com", first_name="Océane"
+    )
+    code = beneficiary.issue_login_code()
+
+    response = client.post(FUNNEL_URL, {"step": "code", "email": beneficiary.email, "code": code})
+
+    assert response["HX-Redirect"] == "/mon-compte/"
+    assert client.session.get("_auth_user_id") == str(beneficiary.pk)
+
+
+@pytest.mark.django_db
+def test_code_step_with_invalid_code_shows_error(client, beneficiary_mode):
+    beneficiary = Beneficiary.objects.create(
+        username="oceane@example.com", email="oceane@example.com", first_name="Océane"
+    )
+    beneficiary.issue_login_code()
+
+    response = client.post(
+        FUNNEL_URL, {"step": "code", "email": beneficiary.email, "code": "000000"}
+    )
+
+    assert response.status_code == 200
+    assert b"Saisis le code" in response.content
+    assert "Code invalide ou expiré".encode() in response.content
+    assert client.session.get("_auth_user_id") is None
 
 
 @pytest.mark.django_db
