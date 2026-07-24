@@ -54,7 +54,7 @@ def login_request(request):
             if referer.startswith(settings.SITE_URL) and urlparse(referer).path == reverse(
                 "login_code"
             ):
-                messages.success(request, "Un nouveau code vous a été envoyé par mail.")
+                messages.success(request, "Un nouveau code a été envoyé par mail.")
             return redirect(url)
     else:
         form = LoginRequestForm()
@@ -86,7 +86,7 @@ def login_code(request):
             # the following line required because django-axes is configured
             user.backend = "django.contrib.auth.backends.ModelBackend"
             login(request, user)
-            messages.success(request, f"Vous accédez au compte {user.email}. Bienvenue !")
+            messages.success(request, f"Bienvenue sur le compte {user.email} !")
             return redirect(next_url or reverse("account"))
         form.add_error("code", "Code invalide ou expiré.")
 
