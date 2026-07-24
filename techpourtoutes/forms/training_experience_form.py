@@ -1,6 +1,7 @@
 from django import forms
 from django.utils.translation import gettext_lazy as _
 
+from ..models import TrainingExperience
 from .validators import resolve_higher_ed_school
 
 
@@ -9,6 +10,13 @@ class TrainingExperienceForm(forms.Form):
         widget=forms.HiddenInput, label=_("Votre établissement*")
     )
     higher_ed_school_label = forms.CharField(widget=forms.HiddenInput, required=False)
+    level = forms.ChoiceField(
+        label=_("Niveau*"),
+        choices=[
+            ("", _("Sélectionner une option")),
+            *[(level.value, level.label) for level in TrainingExperience.HIGHER_ED_LEVELS],
+        ],
+    )
     course = forms.CharField(label=_("Votre cursus*"))
 
     def __init__(self, *args, experience=None, **kwargs):
@@ -18,6 +26,7 @@ class TrainingExperienceForm(forms.Form):
                 {
                     "higher_ed_school_id": str(experience.higher_ed_school_id),
                     "higher_ed_school_label": experience.higher_ed_school.display_label,
+                    "level": experience.level,
                     "course": experience.course,
                 },
             )
@@ -30,6 +39,7 @@ class TrainingExperienceForm(forms.Form):
 
     def save(self, experience):
         experience.higher_ed_school = self._higher_ed_school
+        experience.level = self.cleaned_data["level"]
         experience.course = self.cleaned_data["course"]
         experience.save()
         return experience

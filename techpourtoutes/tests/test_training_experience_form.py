@@ -25,13 +25,18 @@ def test_form_save_updates_experience(experience, higher_ed_school):
     from techpourtoutes.forms import TrainingExperienceForm
 
     form = TrainingExperienceForm(
-        data={"higher_ed_school_id": str(higher_ed_school.id), "course": "Doctorat"}
+        data={
+            "higher_ed_school_id": str(higher_ed_school.id),
+            "level": "bac_5",
+            "course": "Doctorat",
+        }
     )
     assert form.is_valid(), form.errors
     form.save(experience)
 
     experience.refresh_from_db()
     assert experience.course == "Doctorat"
+    assert experience.level == "bac_5"
 
 
 @pytest.mark.django_db

@@ -3,6 +3,10 @@ from django.utils.translation import gettext_lazy as _
 from phonenumber_field.formfields import PhoneNumberField
 
 from ...models import Pro, TrainingExperience
+from ...models.training_experience import (
+    current_school_year_end_date,
+    current_school_year_start_date,
+)
 from ..validators import resolve_higher_ed_school
 from .base_engagement_form import BaseEngagementForm
 
@@ -30,6 +34,10 @@ class TrainingAmbassadorForm(BaseEngagementForm):
         training_experience, _created = TrainingExperience.objects.update_or_create(
             user=pro,
             higher_ed_school=self._higher_ed_school,
-            defaults={"course": self.cleaned_data["course"]},
+            defaults={
+                "course": self.cleaned_data["course"],
+                "start_date": current_school_year_start_date(),
+                "end_date": current_school_year_end_date(),
+            },
         )
         return training_experience

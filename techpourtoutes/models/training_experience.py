@@ -26,6 +26,14 @@ class TrainingExperience(BaseModel):
         BAC_5_PLUS = "bac_5_plus", _("Au-delà de bac +5")
 
     SECONDARY_LEVELS = [Level.TROISIEME, Level.SECONDE, Level.PREMIERE, Level.TERMINALE]
+    HIGHER_ED_LEVELS = [
+        Level.BAC_1,
+        Level.BAC_2,
+        Level.BAC_3,
+        Level.BAC_4,
+        Level.BAC_5,
+        Level.BAC_5_PLUS,
+    ]
 
     user = models.ForeignKey(
         User,
@@ -99,6 +107,10 @@ def current_school_year_start_date():
 
 def next_school_year_start_date():
     return date(current_school_year_start_date().year + 1, 9, 1)
+
+
+def current_school_year_end_date():
+    return date(current_school_year_start_date().year + 1, 8, 31)
 
 
 def current_school_year_label():

@@ -28,6 +28,10 @@ def test_training_ambassador_form_valid(higher_ed_school):
 def test_training_ambassador_form_save_creates_student_pro_and_experience(higher_ed_school):
     from techpourtoutes.forms import TrainingAmbassadorForm
     from techpourtoutes.models import Pro
+    from techpourtoutes.models.training_experience import (
+        current_school_year_end_date,
+        current_school_year_start_date,
+    )
 
     form = TrainingAmbassadorForm(data=valid_data(higher_ed_school.id))
     assert form.is_valid(), form.errors
@@ -41,6 +45,8 @@ def test_training_ambassador_form_save_creates_student_pro_and_experience(higher
     experience = saved.training_experiences.get()
     assert experience.higher_ed_school == higher_ed_school
     assert experience.course == "Master Informatique"
+    assert experience.start_date == current_school_year_start_date()
+    assert experience.end_date == current_school_year_end_date()
 
 
 @pytest.mark.django_db

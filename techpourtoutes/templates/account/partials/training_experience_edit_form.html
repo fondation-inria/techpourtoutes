@@ -6,6 +6,8 @@
             hx-target="#training-experience-{{ experience.pk }}"
             hx-swap="outerHTML">
             <p class="description-text-xxs">Les champs suivis d'un astérisque (*) sont obligatoires.</p>
+            <c-components.text class="font-light"><span class="font-medium">Année scolaire en cours</span></c-components.text>
+            <c-components.form_fields.select field=form.level />
             <c-components.form_fields.higher_ed_school_search
                 id_field=form.higher_ed_school_id
                 label_field=form.higher_ed_school_label
