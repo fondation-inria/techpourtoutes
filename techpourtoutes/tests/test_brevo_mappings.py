@@ -54,6 +54,36 @@ def test_brevo_list_id_for_bare_user_returns_none(db):
 
 
 @pytest.mark.django_db
+def test_brevo_attributes_for_beneficiary_includes_phone_numbers():
+    from techpourtoutes.models import Beneficiary
+
+    beneficiary = Beneficiary(
+        username="lea@example.com",
+        email="lea@example.com",
+        phone="0612345678",
+    )
+    beneficiary.save()
+
+    attrs = brevo_attributes_for(beneficiary)
+
+    assert attrs["SMS"] == "+33612345678"
+    assert attrs["TELEPHONE_RAW_NUMBER"] == "0033612345678"
+
+
+@pytest.mark.django_db
+def test_brevo_attributes_omits_phone_numbers_when_phone_is_blank():
+    from techpourtoutes.models import Beneficiary
+
+    beneficiary = Beneficiary(username="lea@example.com", email="lea@example.com")
+    beneficiary.save()
+
+    attrs = brevo_attributes_for(beneficiary)
+
+    assert "SMS" not in attrs
+    assert "TELEPHONE_RAW_NUMBER" not in attrs
+
+
+@pytest.mark.django_db
 def test_brevo_attributes_engagements_are_translated_to_labels(pro):
     from techpourtoutes.models import Pro
 

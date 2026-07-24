@@ -1,12 +1,12 @@
 from django.contrib import admin
 
-from techpourtoutes.models import User
+from techpourtoutes.models import Beneficiary
 
-PERSONAL_FIELDS = ("civility", "first_name", "last_name", "email", "phone", "postal_code")
+from .user import PERSONAL_FIELDS
 
 
-@admin.register(User)
-class UserAdmin(admin.ModelAdmin):
+@admin.register(Beneficiary)
+class BeneficiaryAdmin(admin.ModelAdmin):
     readonly_fields = (
         "last_login",
         "created_at",
@@ -15,7 +15,7 @@ class UserAdmin(admin.ModelAdmin):
     fieldsets = (
         (
             "Infos personnelles",
-            {"fields": (*PERSONAL_FIELDS, "username")},
+            {"fields": (*PERSONAL_FIELDS, "birth_date")},
         ),
         (
             "Autres infos",
@@ -31,7 +31,7 @@ class UserAdmin(admin.ModelAdmin):
         ),
     )
 
-    list_display = ("first_name", "last_name", "email", "created_at")
+    list_display = ("first_name", "last_name", "email", "birth_date", "created_at")
     list_display_links = list_display
     search_fields = ("first_name", "last_name", "email")
     list_filter = (("created_at", admin.DateFieldListFilter),)

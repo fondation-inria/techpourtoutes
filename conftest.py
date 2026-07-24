@@ -1,4 +1,11 @@
+import os
+
 import pytest
+
+# Playwright's sync API keeps an event loop running on the test thread, which trips Django's
+# async-safety guard on ordinary (synchronous) DB access. Allow it: the guard only fires under
+# a running loop, so this is a no-op for the non-browser tests.
+os.environ.setdefault("DJANGO_ALLOW_ASYNC_UNSAFE", "1")
 
 
 @pytest.fixture(autouse=True)

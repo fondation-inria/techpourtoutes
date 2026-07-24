@@ -1,0 +1,23 @@
+<div id="funnel-step" class="w-full flex flex-col gap-y-6 my-auto">
+    <c-components.card nobg=True>
+        <div class="flex flex-col gap-4">
+            <c-components.title title="Saisis le code reçu par mail" variant="h2-black" />
+            <p>
+                Un code à 6 chiffres t'a été envoyé par mail à
+                <span class="font-medium break-all">{{ email }}</span>
+            </p>
+            <div class="flex flex-col gap-2">
+                <label class="label-text-sm" for="code">Code de vérification</label>
+                <input type="text" id="code" name="code" inputmode="numeric" maxlength="6" class="field-base field-default" />
+            </div>
+            <div class="flex justify-center">
+                <c-components.button type="button" label="Continuer" />
+            </div>
+            <c-components.button
+                type="button"
+                variant="quaternary"
+                label="Je n'ai pas reçu de code"
+                class="w-fit mx-auto" />
+        </div>
+    </c-components.card>
+</div>

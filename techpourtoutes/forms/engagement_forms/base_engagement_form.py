@@ -33,7 +33,7 @@ class BaseEngagementForm(forms.Form):
     pro_constants: ClassVar[dict[str, Any]] = {}
     prefill_fields: ClassVar[tuple[str, ...]] = ()
 
-    civility = forms.ChoiceField(label=_("Votre civilité*"), choices=Pro.Civility.choices)
+    civility = forms.ChoiceField(label=_("Votre civilité*"), choices=User.Civility.choices)
     first_name = forms.CharField(label=_("Votre prénom*"))
     last_name = forms.CharField(label=_("Votre nom*"))
     email = forms.EmailField(

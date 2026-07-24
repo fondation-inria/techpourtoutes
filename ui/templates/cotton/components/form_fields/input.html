@@ -11,11 +11,12 @@
     variant="default"
     class=""
     autocomplete=""
+    type="text"
 />
 
 <c-components.form-fields.base label=label description=description message=message class=class>
     <input
-        type="text"
+        type="{{ type }}"
         id="{{ id|default:field.id_for_label }}"
         value="{{ value|default:field.value|default:"" }}"
         name="{{ name|default:field.html_name }}"

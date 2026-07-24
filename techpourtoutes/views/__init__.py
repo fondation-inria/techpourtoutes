@@ -17,7 +17,10 @@ from .auth_views import (
     training_experience_edit,
     training_experience_info,
 )
-from .beneficiary_views import beneficiary_home
+from .beneficiary_views import (
+    beneficiary_home,
+    inscription_funnel,
+)
 from .coalition_views import (
     coalition_home,
     coalition_welcome,
@@ -63,6 +66,7 @@ __all__ = [
     "email_change",
     "email_change_resend",
     "email_change_verify",
+    "inscription_funnel",
     "internships_landing",
     "login_email_sent",
     "login_request",

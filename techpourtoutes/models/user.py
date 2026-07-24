@@ -5,11 +5,12 @@ from urllib.parse import urlencode
 
 from django.contrib.auth.models import AbstractUser, UserManager
 from django.core import signing
-from django.core.validators import EmailValidator
+from django.core.validators import EmailValidator, RegexValidator
 from django.db import models
 from django.urls import reverse
 from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
+from phonenumber_field.modelfields import PhoneNumberField
 
 from .base import BaseModel
 
@@ -18,6 +19,8 @@ EMAIL_CHANGE_CODE_TTL = timedelta(minutes=15)
 EMAIL_CHANGE_MAX_ATTEMPTS = 5
 EMAIL_CHANGE_TOKEN_SALT = "email-change"
 
+POSTAL_CODE_VALIDATOR = RegexValidator(r"^\d{5}$", _("Entrez un code postal valide à 5 chiffres."))
+
 
 class ActiveUserManager(UserManager):
     def get_queryset(self):
@@ -25,11 +28,25 @@ class ActiveUserManager(UserManager):
 
 
 class User(BaseModel, AbstractUser):
+    class Civility(models.TextChoices):
+        MADAME = "Madame", _("Madame")
+        MONSIEUR = "Monsieur", _("Monsieur")
+
     objects = ActiveUserManager()
     all_objects = models.Manager()
     email = models.EmailField(
         _("adresse mail"),
         validators=[EmailValidator(message=_("Saisissez une adresse mail valide."))],
+    )
+    civility = models.CharField(
+        max_length=10, choices=Civility.choices, blank=True, verbose_name=_("civilité")
+    )
+    phone = PhoneNumberField(region="FR", blank=True, verbose_name=_("téléphone"))
+    postal_code = models.CharField(
+        max_length=5,
+        blank=True,
+        validators=[POSTAL_CODE_VALIDATOR],
+        verbose_name=_("code postal"),
     )
     login_token_hash = models.CharField(
         max_length=64,

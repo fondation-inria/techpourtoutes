@@ -30,6 +30,7 @@ SITEMAP_EXCLUDED_URL_NAMES = {
     # Funnel steps (not landing pages)
     "signature_manifeste",
     "coalition_welcome",
+    "inscription_funnel",
     # Legal / info (intentionally not indexed)
     "donnees_personnelles",
     "conditions_generales",
