@@ -12,11 +12,6 @@ from .user import User
 SCHOOL_YEAR_ROLLOVER_MONTH = 8
 
 
-class TrainingExperienceQuerySet(models.QuerySet):
-    def current_school_year(self):
-        return self.filter(start_date=current_school_year_start_date())
-
-
 class TrainingExperience(BaseModel):
     class Level(models.TextChoices):
         TROISIEME = "troisieme", _("Troisième")
@@ -60,8 +55,6 @@ class TrainingExperience(BaseModel):
     start_date = models.DateField(null=True, blank=True, verbose_name=_("date de début"))
     end_date = models.DateField(null=True, blank=True, verbose_name=_("date de fin"))
     course = models.CharField(max_length=255, verbose_name=_("cursus"))
-
-    objects = TrainingExperienceQuerySet.as_manager()
 
     class Meta:
         verbose_name = _("formation")
