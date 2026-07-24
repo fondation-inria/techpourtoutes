@@ -130,6 +130,16 @@ def test_beneficiary_training_experience_cannot_be_edited_by_a_pro(client, exper
 def test_beneficiary_training_experience_delete_removes_experience(
     client, beneficiary, experience
 ):
+    from techpourtoutes.models import TrainingExperience
+    from techpourtoutes.models.training_experience import current_school_year_start_date
+
+    TrainingExperience.objects.create(
+        user=beneficiary,
+        level=TrainingExperience.Level.TERMINALE,
+        start_date=current_school_year_start_date(),
+        end_date=date(current_school_year_start_date().year + 1, 8, 31),
+        course="Terminale",
+    )
     client.force_login(beneficiary)
 
     response = client.post(reverse("beneficiary_training_experience_delete", args=[experience.pk]))
@@ -156,6 +166,23 @@ def test_beneficiary_training_experience_delete_rejects_current_school_year(clie
 
     assert response.status_code == 403
     assert beneficiary.training_experiences.filter(pk=current.pk).exists()
+
+
+@pytest.mark.django_db
+def test_beneficiary_training_experience_delete_rejects_last_remaining_experience(
+    client, beneficiary, experience
+):
+    from django.contrib.messages import get_messages
+
+    client.force_login(beneficiary)
+
+    response = client.post(reverse("beneficiary_training_experience_delete", args=[experience.pk]))
+
+    assert response.status_code == 200
+    assert response["HX-Redirect"] == reverse("account")
+    assert beneficiary.training_experiences.filter(pk=experience.pk).exists()
+    stored = [str(m) for m in get_messages(response.wsgi_request)]
+    assert any("Au moins une formation doit être renseignée." in m for m in stored)
 
 
 @pytest.mark.django_db
@@ -312,7 +339,7 @@ def test_beneficiary_training_experience_add_post_current_year_creates_experienc
 
 @pytest.mark.django_db
 def test_beneficiary_training_experience_edit_post_not_enrolled_deletes_current_year_experience(
-    client, beneficiary
+    client, beneficiary, experience
 ):
     from techpourtoutes.models import TrainingExperience
     from techpourtoutes.models.training_experience import current_school_year_start_date

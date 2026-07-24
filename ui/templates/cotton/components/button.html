@@ -24,6 +24,7 @@
     class=""
     variant=""
     icon=""
+    icon_position="end"
 />
 
     {% if href and not disabled %}
@@ -58,8 +59,9 @@
                     justify-center
                 {% endif %}
             ">
+                {% if icon and icon_position == "start" %}<c-components.icon name="{{ icon }}" class="{{ icon_size_class }}" />{% endif %}
                 {% if slot %}{{ slot|safe }}{% else %}{{ label|safe }}{% endif %}
-                {% if icon %}<c-components.icon name="{{ icon }}" class="{{ icon_size_class }}" />{% endif %}
+                {% if icon and icon_position == "end" %}<c-components.icon name="{{ icon }}" class="{{ icon_size_class }}" />{% endif %}
             </div>
         </a>
     {% else %}
@@ -114,8 +116,9 @@
                     justify-center
                 {% endif %}
             ">
+                {% if icon and icon_position == "start" %}<c-components.icon name="{{ icon }}" class="{{ icon_size_class }}" />{% endif %}
                 {% if slot %}{{ slot|safe }}{% else %}{{ label|safe }}{% endif %}
-                {% if icon %}<c-components.icon name="{{ icon }}" class="{{ icon_size_class }}" />{% endif %}
+                {% if icon and icon_position == "end" %}<c-components.icon name="{{ icon }}" class="{{ icon_size_class }}" />{% endif %}
             </div>
         </button>
     {% endif %}

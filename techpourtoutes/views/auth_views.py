@@ -352,7 +352,8 @@ def beneficiary_training_experience_add(request):
 
 @login_required
 def beneficiary_training_experience_info(request, pk):
-    experience = _get_beneficiary_training_experience(request, pk)
+    beneficiary = _get_beneficiary(request)
+    experience = _get_beneficiary_training_experience(beneficiary, pk)
     return render(
         request,
         "account/partials/beneficiary_training_experience_card.html",
@@ -362,11 +363,18 @@ def beneficiary_training_experience_info(request, pk):
 
 @login_required
 def beneficiary_training_experience_edit(request, pk):
-    experience = _get_beneficiary_training_experience(request, pk)
+    beneficiary = _get_beneficiary(request)
+    experience = _get_beneficiary_training_experience(beneficiary, pk)
     if request.method == "POST":
         form = BeneficiaryTrainingExperienceForm(data=request.POST, experience=experience)
         if form.is_valid():
             if form.cleaned_data.get("not_enrolled"):
+                if not _has_other_training_experience(beneficiary, pk):
+                    messages.error(
+                        request,
+                        "Au moins une formation doit être renseignée.",
+                    )
+                    return HttpResponse(headers={"HX-Redirect": reverse("account")})
                 experience.delete()
                 return _render_beneficiary_training_experience_card(request, experience=None)
             form.save(experience)
@@ -395,9 +403,16 @@ def _render_beneficiary_training_experience_card(request, experience):
 @require_POST
 @login_required
 def beneficiary_training_experience_delete(request, pk):
-    experience = _get_beneficiary_training_experience(request, pk)
+    beneficiary = _get_beneficiary(request)
+    experience = _get_beneficiary_training_experience(beneficiary, pk)
     if experience.is_current_school_year:
         return HttpResponseForbidden()
+    if not _has_other_training_experience(beneficiary, pk):
+        messages.error(
+            request,
+            "Au moins une formation doit être renseignée.",
+        )
+        return HttpResponse(headers={"HX-Redirect": reverse("account")})
     experience.delete()
     return HttpResponse()
 
@@ -408,8 +423,12 @@ def _get_beneficiary(request):
     return request.user.beneficiary
 
 
-def _get_beneficiary_training_experience(request, pk):
-    return get_object_or_404(_get_beneficiary(request).training_experiences, pk=pk)
+def _get_beneficiary_training_experience(beneficiary, pk):
+    return get_object_or_404(beneficiary.training_experiences, pk=pk)
+
+
+def _has_other_training_experience(beneficiary, pk):
+    return beneficiary.training_experiences.exclude(pk=pk).exists()
 
 
 @require_POST

@@ -24,7 +24,7 @@
                     {% endfor %}
                 </div>
                 <div class="flex mt-3 justify-start">
-                    <c-components.button label="Ajouter une année" variant="secondary"
+                    <c-components.button label="Ajouter une année" variant="quaternary" icon-position="start" icon="plus-light"
                         hx-get="{% url 'beneficiary_training_experience_add' %}"
                         hx-target="#beneficiary-training-experiences"
                         hx-swap="beforeend" />
