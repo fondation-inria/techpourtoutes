@@ -9,7 +9,7 @@ class TrainingExperienceForm(forms.Form):
         widget=forms.HiddenInput, label=_("Votre établissement*")
     )
     higher_ed_school_label = forms.CharField(widget=forms.HiddenInput, required=False)
-    course = forms.CharField(label=_("Votre cursus/spécialité*"))
+    course = forms.CharField(label=_("Votre cursus*"))
 
     def __init__(self, *args, experience=None, **kwargs):
         if experience is not None:

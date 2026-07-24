@@ -4,7 +4,7 @@ from django.conf import settings
 from django.contrib import messages
 from django.contrib.auth import REDIRECT_FIELD_NAME, get_user_model, login, logout
 from django.contrib.auth.decorators import login_required
-from django.http import HttpResponse
+from django.http import Http404, HttpResponse, HttpResponseForbidden
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
 from django.utils.http import url_has_allowed_host_and_scheme
@@ -14,6 +14,8 @@ from techpourtoutes.services.soft_delete_account import SoftDeleteAccount
 
 from ..forms import (
     AccountEditForm,
+    BeneficiaryAccountEditForm,
+    BeneficiaryTrainingExperienceForm,
     CommunicationForm,
     DeleteAccountForm,
     EmailChangeCodeForm,
@@ -22,6 +24,7 @@ from ..forms import (
     TrainingExperienceForm,
 )
 from ..mailers import AuthMailer
+from ..models import TrainingExperience
 from ..ratelimit import rate_limit
 from ..services.jobirl_api.refresh_access_token import RefreshAccessToken
 from ..services.verify_email_change_code import VerifyEmailChangeCode
@@ -124,43 +127,83 @@ def login_to_jobirl(request):
 
 @login_required
 def account(request):
-    user = request.user.pro if hasattr(request.user, "pro") else request.user
+    is_pro, is_beneficiary, user = _resolve_account(request)
     form = CommunicationForm(pro=user)
-    return render(request, "account/account.html", {"user": user, "form": form})
+    return render(
+        request,
+        "account/account.html",
+        {"user": user, "is_pro": is_pro, "is_beneficiary": is_beneficiary, "form": form},
+    )
 
 
 @require_POST
 @login_required
 def account_communication(request):
-    pro = request.user.pro
-    form = CommunicationForm(data=request.POST, pro=pro)
+    is_pro, is_beneficiary, user = _resolve_account(request)
+    if not is_pro and not is_beneficiary:
+        return redirect("account")
+    form = CommunicationForm(data=request.POST, pro=user)
     if form.is_valid():
-        form.save(pro)
+        form.save(user)
     return render(
         request,
         "account/partials/communication_card.html",
-        {"user": pro, "form": form},
+        {"user": user, "form": form},
     )
 
 
 @login_required
 def account_info(request):
-    user = request.user.pro if hasattr(request.user, "pro") else request.user
-    return render(request, "account/partials/info_card.html", {"user": user})
+    is_pro, is_beneficiary, user = _resolve_account(request)
+    return render(
+        request,
+        "account/partials/info_card.html",
+        {"user": user, "is_pro": is_pro, "is_beneficiary": is_beneficiary},
+    )
 
 
 @login_required
 def account_edit(request):
-    pro = request.user.pro
+    is_pro, is_beneficiary, user = _resolve_account(request)
+    if not is_pro and not is_beneficiary:
+        return redirect("account")
+
+    form_class = AccountEditForm if is_pro else BeneficiaryAccountEditForm
+    form_kwarg = "pro" if is_pro else "beneficiary"
+
     if request.method == "POST":
-        form = AccountEditForm(data=request.POST, pro=pro)
+        form = form_class(data=request.POST, **{form_kwarg: user})
         if form.is_valid():
-            form.save(pro)
-            return render(request, "account/partials/info_card.html", {"user": pro})
-        return render(request, "account/partials/edit_form.html", {"form": form, "user": pro})
+            form.save(user)
+            return render(
+                request,
+                "account/partials/info_card.html",
+                {"user": user, "is_pro": is_pro, "is_beneficiary": is_beneficiary},
+            )
+        return render(
+            request,
+            "account/partials/edit_form.html",
+            {"form": form, "user": user, "is_pro": is_pro, "is_beneficiary": is_beneficiary},
+        )
     else:
-        form = AccountEditForm(pro=pro)
-        return render(request, "account/partials/edit_form.html", {"form": form, "user": pro})
+        form = form_class(**{form_kwarg: user})
+        return render(
+            request,
+            "account/partials/edit_form.html",
+            {"form": form, "user": user, "is_pro": is_pro, "is_beneficiary": is_beneficiary},
+        )
+
+
+def _resolve_account(request):
+    is_pro = hasattr(request.user, "pro")
+    is_beneficiary = hasattr(request.user, "beneficiary")
+    if is_pro:
+        user = request.user.pro
+    elif is_beneficiary:
+        user = request.user.beneficiary
+    else:
+        user = request.user
+    return is_pro, is_beneficiary, user
 
 
 @login_required
@@ -242,8 +285,8 @@ def email_change_resend(request):
 
 
 @login_required
-def training_experience_info(request, pk):
-    experience = _get_training_experience(request, pk)
+def pro_training_experience_info(request, pk):
+    experience = _get_pro_training_experience(request, pk)
     return render(
         request,
         "account/partials/training_experience_card.html",
@@ -252,8 +295,8 @@ def training_experience_info(request, pk):
 
 
 @login_required
-def training_experience_edit(request, pk):
-    experience = _get_training_experience(request, pk)
+def pro_training_experience_edit(request, pk):
+    experience = _get_pro_training_experience(request, pk)
     if request.method == "POST":
         form = TrainingExperienceForm(data=request.POST)
         if form.is_valid():
@@ -270,6 +313,103 @@ def training_experience_edit(request, pk):
         "account/partials/training_experience_edit_form.html",
         {"form": form, "experience": experience},
     )
+
+
+def _get_pro_training_experience(request, pk):
+    if not hasattr(request.user, "pro"):
+        raise Http404
+    return get_object_or_404(request.user.pro.training_experiences, pk=pk)
+
+
+@login_required
+def beneficiary_training_experience_add(request):
+    beneficiary = _get_beneficiary(request)
+    if request.method == "POST":
+        current_year = request.POST.get("current_year") == "true"
+        form = BeneficiaryTrainingExperienceForm(
+            data=request.POST, beneficiary=beneficiary, current_year=current_year
+        )
+        if form.is_valid():
+            if form.cleaned_data.get("not_enrolled"):
+                return _render_beneficiary_training_experience_card(request, experience=None)
+            experience = form.save(TrainingExperience(user=beneficiary))
+            return render(
+                request,
+                "account/partials/beneficiary_training_experience_card.html",
+                {"experience": experience},
+            )
+    else:
+        current_year = request.GET.get("current_year") == "true"
+        form = BeneficiaryTrainingExperienceForm(
+            beneficiary=beneficiary, current_year=current_year
+        )
+    return render(
+        request,
+        "account/partials/beneficiary_training_experience_edit_form.html",
+        {"form": form, "experience": None, "current_year": current_year},
+    )
+
+
+@login_required
+def beneficiary_training_experience_info(request, pk):
+    experience = _get_beneficiary_training_experience(request, pk)
+    return render(
+        request,
+        "account/partials/beneficiary_training_experience_card.html",
+        {"experience": experience},
+    )
+
+
+@login_required
+def beneficiary_training_experience_edit(request, pk):
+    experience = _get_beneficiary_training_experience(request, pk)
+    if request.method == "POST":
+        form = BeneficiaryTrainingExperienceForm(data=request.POST, experience=experience)
+        if form.is_valid():
+            if form.cleaned_data.get("not_enrolled"):
+                experience.delete()
+                return _render_beneficiary_training_experience_card(request, experience=None)
+            form.save(experience)
+            return render(
+                request,
+                "account/partials/beneficiary_training_experience_card.html",
+                {"experience": experience},
+            )
+    else:
+        form = BeneficiaryTrainingExperienceForm(experience=experience)
+    return render(
+        request,
+        "account/partials/beneficiary_training_experience_edit_form.html",
+        {"form": form, "experience": experience},
+    )
+
+
+def _render_beneficiary_training_experience_card(request, experience):
+    return render(
+        request,
+        "account/partials/beneficiary_training_experience_card.html",
+        {"experience": experience},
+    )
+
+
+@require_POST
+@login_required
+def beneficiary_training_experience_delete(request, pk):
+    experience = _get_beneficiary_training_experience(request, pk)
+    if experience.is_current_school_year:
+        return HttpResponseForbidden()
+    experience.delete()
+    return HttpResponse()
+
+
+def _get_beneficiary(request):
+    if not hasattr(request.user, "beneficiary"):
+        raise Http404
+    return request.user.beneficiary
+
+
+def _get_beneficiary_training_experience(request, pk):
+    return get_object_or_404(_get_beneficiary(request).training_experiences, pk=pk)
 
 
 @require_POST
@@ -312,10 +452,6 @@ def delete_account(request):
 
 
 # --------------------- private ----------------
-
-
-def _get_training_experience(request, pk):
-    return get_object_or_404(request.user.pro.training_experiences, pk=pk)
 
 
 def _safe_next(request, candidate):

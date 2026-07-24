@@ -3,11 +3,11 @@
         <c-components.text class="font-light">
             Établissement : <span class="font-medium">{{ experience.higher_ed_school.display_label }}</span>
 
-            Cursus / spécialité : <span class="font-medium">{{ experience.course }}</span>
+            Cursus : <span class="font-medium">{{ experience.course }}</span>
         </c-components.text>
         <div class="flex mt-3 justify-end">
             <c-components.button label="Modifier" variant="secondary"
-                hx-get="{% url 'training_experience_edit' experience.pk %}"
+                hx-get="{% url 'pro_training_experience_edit' experience.pk %}"
                 hx-target="#training-experience-{{ experience.pk }}"
                 hx-swap="outerHTML" />
         </div>

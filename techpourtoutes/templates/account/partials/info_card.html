@@ -7,14 +7,17 @@
             Nom : <span class="font-medium">{{ user.last_name }}</span>
 
             Numéro de téléphone : <span class="font-medium">{{ user.phone|phone_national }}</span>
-
+            {% if is_beneficiary %}
+                Date de naissance : <span class="font-medium">{{ user.birth_date|date:"d/m/Y" }}</span>
+            {% endif %}
             Code postal : <span class="font-medium">{{ user.postal_code }}</span>
+            {% if is_pro %}
+                Situation professionnelle : <span class="font-medium">{{ user.get_professional_situation_display }}</span>
 
-            Situation professionnelle : <span class="font-medium">{{ user.get_professional_situation_display }}</span>
+                Métier : <span class="font-medium">{{ user.job_title }}</span>
 
-            Métier : <span class="font-medium">{{ user.job_title }}</span>
-
-            Structure : <span class="font-medium">{{ user.structure_name }}</span>
+                Structure : <span class="font-medium">{{ user.structure_name }}</span>
+            {% endif %}
         </c-components.text>
         <div class="flex mt-3 justify-end">
             <c-components.button label="Modifier" variant="secondary"

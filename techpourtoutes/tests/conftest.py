@@ -39,6 +39,33 @@ def higher_ed_school(db):
 
 
 @pytest.fixture
+def school(db):
+    from techpourtoutes.models import School
+
+    school = School(identifier="0750001A", name="Lycée Voltaire", postal_code="75011")
+    school.save()
+    return school
+
+
+@pytest.fixture
+def beneficiary(db):
+    from datetime import date
+
+    from techpourtoutes.models import Beneficiary
+
+    beneficiary = Beneficiary(
+        username="jade@example.com",
+        first_name="Jade",
+        last_name="Petit",
+        email="jade@example.com",
+        phone="+33612345678",
+        birth_date=date(2008, 3, 15),
+    )
+    beneficiary.save()
+    return beneficiary
+
+
+@pytest.fixture
 def mock_create_mentor():
     instance = MagicMock(success=True, failure=False, errors=[])
     with patch(

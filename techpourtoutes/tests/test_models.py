@@ -389,12 +389,212 @@ def test_training_experience_links_pro_and_higher_ed_school(pro, higher_ed_schoo
     from techpourtoutes.models import TrainingExperience
 
     experience = TrainingExperience(
-        pro=pro, higher_ed_school=higher_ed_school, course="Master Informatique"
+        user=pro, higher_ed_school=higher_ed_school, course="Master Informatique"
     )
     experience.save()
 
     assert experience in pro.training_experiences.all()
     assert experience in higher_ed_school.training_experiences.all()
+
+
+@pytest.mark.django_db
+def test_beneficiary_creation_saves_all_fields():
+    from datetime import date
+
+    from techpourtoutes.models import Beneficiary
+
+    beneficiary = Beneficiary(
+        username="jade@example.com",
+        first_name="Jade",
+        last_name="Petit",
+        email="jade@example.com",
+        birth_date=date(2008, 3, 15),
+        postal_code="75011",
+    )
+    beneficiary.save()
+
+    saved = Beneficiary.objects.get(email="jade@example.com")
+    assert saved.first_name == "Jade"
+    assert saved.birth_date == date(2008, 3, 15)
+    assert saved.postal_code == "75011"
+
+
+@pytest.mark.django_db
+def test_beneficiary_rejects_invalid_postal_code():
+    from datetime import date
+
+    from techpourtoutes.models import Beneficiary
+
+    beneficiary = Beneficiary(
+        username="jade@example.com",
+        first_name="Jade",
+        last_name="Petit",
+        email="jade@example.com",
+        birth_date=date(2008, 3, 15),
+        postal_code="123",
+    )
+    with pytest.raises(ValidationError):
+        beneficiary.save()
+
+
+@pytest.mark.django_db
+def test_training_experience_links_beneficiary_and_school(beneficiary, school):
+    from datetime import date
+
+    from techpourtoutes.models import TrainingExperience
+
+    experience = TrainingExperience(
+        user=beneficiary,
+        school=school,
+        level=TrainingExperience.Level.TERMINALE,
+        start_date=date(2024, 9, 1),
+        end_date=date(2025, 8, 31),
+        course="Spécialité mathématiques",
+    )
+    experience.save()
+
+    assert experience in beneficiary.training_experiences.all()
+    assert experience in school.training_experiences.all()
+
+
+@pytest.mark.django_db
+def test_training_experience_links_beneficiary_and_higher_ed_school(beneficiary, higher_ed_school):
+    from datetime import date
+
+    from techpourtoutes.models import TrainingExperience
+
+    experience = TrainingExperience(
+        user=beneficiary,
+        higher_ed_school=higher_ed_school,
+        level=TrainingExperience.Level.BAC_1,
+        start_date=date(2024, 9, 1),
+        end_date=date(2025, 8, 31),
+        course="Licence informatique",
+    )
+    experience.save()
+
+    assert experience in beneficiary.training_experiences.all()
+    assert experience in higher_ed_school.training_experiences.all()
+
+
+@pytest.mark.django_db
+def test_training_experiences_are_ordered_reverse_chronologically(beneficiary, school):
+    from datetime import date
+
+    from techpourtoutes.models import TrainingExperience
+
+    TrainingExperience.objects.create(
+        user=beneficiary,
+        school=school,
+        level=TrainingExperience.Level.TERMINALE,
+        start_date=date(2024, 9, 1),
+        end_date=date(2025, 8, 31),
+        course="Terminale",
+    )
+    TrainingExperience.objects.create(
+        user=beneficiary,
+        school=school,
+        level=TrainingExperience.Level.SECONDE,
+        start_date=date(2022, 9, 1),
+        end_date=date(2023, 8, 31),
+        course="Seconde",
+    )
+    TrainingExperience.objects.create(
+        user=beneficiary,
+        school=school,
+        level=TrainingExperience.Level.PREMIERE,
+        start_date=date(2023, 9, 1),
+        end_date=date(2024, 8, 31),
+        course="Première",
+    )
+
+    labels = [experience.period_label for experience in beneficiary.training_experiences.all()]
+    assert labels == ["2024-2025", "2023-2024", "2022-2023"]
+
+
+@pytest.mark.django_db
+def test_training_experience_rejects_duplicate_period_label_for_same_beneficiary(
+    beneficiary, school
+):
+    from datetime import date
+
+    from techpourtoutes.models import TrainingExperience
+
+    TrainingExperience.objects.create(
+        user=beneficiary,
+        school=school,
+        level=TrainingExperience.Level.TERMINALE,
+        start_date=date(2024, 9, 1),
+        end_date=date(2025, 8, 31),
+        course="Terminale",
+    )
+    duplicate = TrainingExperience(
+        user=beneficiary,
+        school=school,
+        level=TrainingExperience.Level.PREMIERE,
+        start_date=date(2024, 9, 1),
+        end_date=date(2025, 8, 31),
+        course="Première",
+    )
+
+    with pytest.raises(ValidationError):
+        duplicate.save()
+
+
+def test_current_school_year_start_date_before_rollover_month(monkeypatch):
+    from datetime import date
+
+    from techpourtoutes.models.training_experience import current_school_year_start_date
+
+    monkeypatch.setattr(
+        "techpourtoutes.models.training_experience.timezone.localdate",
+        lambda: date(2026, 3, 15),
+    )
+
+    assert current_school_year_start_date() == date(2025, 9, 1)
+
+
+def test_current_school_year_start_date_after_rollover_month(monkeypatch):
+    from datetime import date
+
+    from techpourtoutes.models.training_experience import current_school_year_start_date
+
+    monkeypatch.setattr(
+        "techpourtoutes.models.training_experience.timezone.localdate",
+        lambda: date(2026, 9, 1),
+    )
+
+    assert current_school_year_start_date() == date(2026, 9, 1)
+
+
+def test_school_year_choices_ranges_from_ten_years_back_to_next_year(monkeypatch):
+    from datetime import date
+
+    from techpourtoutes.models.training_experience import school_year_choices
+
+    monkeypatch.setattr(
+        "techpourtoutes.models.training_experience.timezone.localdate",
+        lambda: date(2026, 3, 15),
+    )
+
+    choices = school_year_choices()
+
+    assert choices[0] == ("2026-2027", "2026-2027")
+    assert choices[-1] == ("2015-2016", "2015-2016")
+    assert len(choices) == 12
+
+
+def test_training_experience_is_current_school_year():
+    from datetime import date
+
+    from techpourtoutes.models import TrainingExperience
+    from techpourtoutes.models.training_experience import current_school_year_start_date
+
+    current = TrainingExperience(start_date=current_school_year_start_date())
+    past = TrainingExperience(start_date=date(2000, 9, 1))
+
+    assert current.is_current_school_year
+    assert not past.is_current_school_year
 
 
 @pytest.mark.django_db

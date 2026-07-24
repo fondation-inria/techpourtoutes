@@ -7,7 +7,7 @@ def experience(pro, higher_ed_school):
     from techpourtoutes.models import TrainingExperience
 
     return TrainingExperience.objects.create(
-        pro=pro, higher_ed_school=higher_ed_school, course="Master Informatique"
+        user=pro, higher_ed_school=higher_ed_school, course="Master Informatique"
     )
 
 
@@ -22,7 +22,7 @@ def test_account_page_lists_a_card_per_training_experience(client, pro, experien
 @pytest.mark.django_db
 def test_training_experience_edit_get_prefills_form(client, pro, experience):
     client.force_login(pro)
-    response = client.get(reverse("training_experience_edit", args=[experience.pk]))
+    response = client.get(reverse("pro_training_experience_edit", args=[experience.pk]))
     assert response.status_code == 200
     assert response.context["form"].initial["course"] == "Master Informatique"
 
@@ -33,7 +33,7 @@ def test_training_experience_edit_post_updates_experience(client, pro, experienc
     client.force_login(pro)
 
     response = client.post(
-        reverse("training_experience_edit", args=[experience.pk]),
+        reverse("pro_training_experience_edit", args=[experience.pk]),
         data={"higher_ed_school_id": str(other.id), "course": "Doctorat"},
     )
 
@@ -57,7 +57,7 @@ def test_training_experience_cannot_be_edited_by_another_pro(client, experience)
     intruder.save()
     client.force_login(intruder)
 
-    response = client.get(reverse("training_experience_edit", args=[experience.pk]))
+    response = client.get(reverse("pro_training_experience_edit", args=[experience.pk]))
     assert response.status_code == 404
 
 

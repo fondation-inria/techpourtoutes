@@ -546,6 +546,40 @@ def test_account_edit_post_invalid_returns_form_with_errors(client, pro):
 
 
 @pytest.mark.django_db
+def test_account_info_displays_beneficiary_birth_date(client, beneficiary):
+    client.force_login(beneficiary)
+
+    response = client.get(reverse("account_info"))
+
+    assert response.status_code == 200
+    assert "15/03/2008" in response.content.decode()
+
+
+@pytest.mark.django_db
+def test_account_edit_get_renders_form_for_beneficiary(client, beneficiary):
+    client.force_login(beneficiary)
+
+    response = client.get(reverse("account_edit"))
+
+    assert response.status_code == 200
+    assert response.context["form"].initial["first_name"] == "Jade"
+
+
+@pytest.mark.django_db
+def test_account_edit_post_valid_saves_beneficiary_and_returns_info_card(client, beneficiary):
+    client.force_login(beneficiary)
+
+    response = client.post(
+        reverse("account_edit"),
+        data={"first_name": "Léa", "last_name": "Petit", "birth_date": "2008-03-15"},
+    )
+
+    assert response.status_code == 200
+    beneficiary.refresh_from_db()
+    assert beneficiary.first_name == "Léa"
+
+
+@pytest.mark.django_db
 def test_delete_account_get_not_allowed(client, pro):
     client.force_login(pro)
 

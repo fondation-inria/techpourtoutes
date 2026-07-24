@@ -62,7 +62,7 @@ def test_new_training_ambassador_includes_experience_in_body(pro, higher_ed_scho
     from techpourtoutes.models import TrainingExperience
 
     experience = TrainingExperience.objects.create(
-        pro=pro, higher_ed_school=higher_ed_school, course="Master IA"
+        user=pro, higher_ed_school=higher_ed_school, course="Master IA"
     )
     CoalitionInternalMailer.new_training_ambassador(pro=pro, training_experience=experience)
 

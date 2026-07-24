@@ -9,10 +9,15 @@
             <c-components.form_fields.input field=form.first_name />
             <c-components.form_fields.input field=form.last_name />
             <c-components.form_fields.input field=form.phone />
+            {% if is_beneficiary %}
+                <c-components.form_fields.input field=form.birth_date type="date" />
+            {% endif %}
             <c-components.form_fields.input field=form.postal_code />
-            <c-components.form_fields.select field=form.professional_situation />
-            <c-components.form_fields.input field=form.structure_name />
-            <c-components.form_fields.input field=form.job_title />
+            {% if is_pro %}
+                <c-components.form_fields.select field=form.professional_situation />
+                <c-components.form_fields.input field=form.job_title />
+                <c-components.form_fields.input field=form.structure_name />
+            {% endif %}
             <div class="flex justify-end gap-2">
                 <c-components.button label="Annuler" variant="secondary" type="button"
                     hx-get="{% url 'account_info' %}"

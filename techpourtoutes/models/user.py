@@ -5,11 +5,12 @@ from urllib.parse import urlencode
 
 from django.contrib.auth.models import AbstractUser, UserManager
 from django.core import signing
-from django.core.validators import EmailValidator
+from django.core.validators import EmailValidator, RegexValidator
 from django.db import models
 from django.urls import reverse
 from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
+from phonenumber_field.modelfields import PhoneNumberField
 
 from .base import BaseModel
 
@@ -17,6 +18,7 @@ LOGIN_TOKEN_TTL = timedelta(hours=1)
 EMAIL_CHANGE_CODE_TTL = timedelta(minutes=15)
 EMAIL_CHANGE_MAX_ATTEMPTS = 5
 EMAIL_CHANGE_TOKEN_SALT = "email-change"
+POSTAL_CODE_VALIDATOR = RegexValidator(r"^\d{5}$", _("Entrez un code postal valide à 5 chiffres."))
 
 
 class ActiveUserManager(UserManager):
@@ -62,6 +64,13 @@ class User(BaseModel, AbstractUser):
         verbose_name=_("est un compte activé"),
         help_text=_("Si décoché, ce compte est désactivé"),
     )
+    postal_code = models.CharField(
+        max_length=5,
+        blank=True,
+        validators=[POSTAL_CODE_VALIDATOR],
+        verbose_name=_("code postal"),
+    )
+    phone = PhoneNumberField(region="FR", blank=True, verbose_name=_("téléphone"))
 
     class Meta(AbstractUser.Meta):
         abstract = False
