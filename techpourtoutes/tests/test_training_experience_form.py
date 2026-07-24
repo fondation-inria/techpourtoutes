@@ -6,7 +6,7 @@ def experience(pro, higher_ed_school):
     from techpourtoutes.models import TrainingExperience
 
     return TrainingExperience.objects.create(
-        pro=pro, higher_ed_school=higher_ed_school, course="Master Informatique"
+        user=pro, higher_ed_school=higher_ed_school, course="Master Informatique"
     )
 
 

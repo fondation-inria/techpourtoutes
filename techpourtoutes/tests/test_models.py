@@ -492,7 +492,7 @@ def test_training_experience_links_pro_and_higher_ed_school(pro, higher_ed_schoo
     from techpourtoutes.models import TrainingExperience
 
     experience = TrainingExperience(
-        pro=pro, higher_ed_school=higher_ed_school, course="Master Informatique"
+        user=pro, higher_ed_school=higher_ed_school, course="Master Informatique"
     )
     experience.save()
 
