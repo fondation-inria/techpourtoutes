@@ -187,7 +187,7 @@ def test_login_request_post_from_code_page_shows_resend_message(client):
 
     assert response.status_code == 302
     stored = [str(m) for m in get_messages(response.wsgi_request)]
-    assert any("Un nouveau code vous a été envoyé par mail." in m for m in stored)
+    assert any("Un nouveau code a été envoyé par mail." in m for m in stored)
 
 
 @pytest.mark.django_db
