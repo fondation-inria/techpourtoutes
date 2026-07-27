@@ -1,8 +1,9 @@
-<div id="beneficiary-training-experience-{{ experience.pk|default:"new" }}" class="w-full mt-4 relative">
-    <c-patterns.form
-        hx-post="{% if experience %}{% url 'beneficiary_training_experience_edit' experience.pk %}{% else %}{% url 'beneficiary_training_experience_add' %}{% endif %}"
-        hx-target="#beneficiary-training-experience-{{ experience.pk|default:"new" }}"
-        hx-swap="outerHTML">
+<c-patterns.form
+    id="beneficiary-training-experience-{{ experience.pk|default:form.prefix|default:"current-year" }}"
+    class="w-full mt-4 relative"
+    hx-post="{% if experience %}{% url 'beneficiary_training_experience_edit' experience.pk %}{% else %}{% url 'beneficiary_training_experience_add' %}{% endif %}"
+    hx-target="this"
+    hx-swap="outerHTML">
         {% if experience and not experience.is_current_school_year %}
             <c-components.button type="button" variant="icon"
                 icon="trash"
@@ -17,6 +18,9 @@
         {% endif %}
         {% if current_year %}
             <input type="hidden" name="current_year" value="true">
+        {% endif %}
+        {% if not experience and not current_year %}
+            <input type="hidden" name="form_prefix" value="{{ form.prefix }}">
         {% endif %}
         <p class="description-text-xxs pr-8">Les champs suivis d'un astérisque (*) sont obligatoires.</p>
         <c-components.form_fields.select field=form.period_label
@@ -39,7 +43,7 @@
                             postal_field=form.school_postal_code
                             label="Votre établissement*"
                             description="Recherchez par nom et/ou code postal"
-                            unique_id="{{ experience.pk|default:'new' }}"
+                            unique_id="{{ experience.pk|default:form.prefix|default:'current-year' }}"
                         />
                     </template>
                     <template x-if="level.startsWith('bac_')">
@@ -48,7 +52,7 @@
                             label_field=form.higher_ed_school_label
                             label="Votre établissement*"
                             description="Recherchez par nom"
-                            unique_id="{{ experience.pk|default:'new' }}"
+                            unique_id="{{ experience.pk|default:form.prefix|default:'current-year' }}"
                         />
                     </template>
                     <br>
@@ -69,4 +73,3 @@
             <c-components.button type="submit" label="Sauvegarder" />
         </div>
     </c-patterns.form>
-</div>

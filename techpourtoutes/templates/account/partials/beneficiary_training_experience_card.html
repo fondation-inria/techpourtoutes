@@ -17,7 +17,7 @@
     <div class="flex mt-3 justify-end">
         <c-components.button label="Modifier" variant="secondary"
             hx-get="{% if experience %}{% url 'beneficiary_training_experience_edit' experience.pk %}{% else %}{% url 'beneficiary_training_experience_add' %}?current_year=true{% endif %}"
-            hx-target="#beneficiary-training-experience-{{ experience.pk|default:"current-year" }}"
+            hx-target="closest [id^='beneficiary-training-experience-']"
             hx-swap="outerHTML" />
     </div>
 </div>

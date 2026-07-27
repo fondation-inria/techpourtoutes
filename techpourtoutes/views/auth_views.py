@@ -1,3 +1,4 @@
+import uuid
 from urllib.parse import urlencode, urlparse
 
 from django.conf import settings
@@ -325,8 +326,9 @@ def beneficiary_training_experience_add(request):
     beneficiary = _get_beneficiary(request)
     if request.method == "POST":
         current_year = request.POST.get("current_year") == "true"
+        prefix = None if current_year else request.POST.get("form_prefix")
         form = BeneficiaryTrainingExperienceForm(
-            data=request.POST, beneficiary=beneficiary, current_year=current_year
+            data=request.POST, beneficiary=beneficiary, current_year=current_year, prefix=prefix
         )
         if form.is_valid():
             if form.cleaned_data.get("not_enrolled"):
@@ -339,8 +341,9 @@ def beneficiary_training_experience_add(request):
             )
     else:
         current_year = request.GET.get("current_year") == "true"
+        prefix = None if current_year else uuid.uuid4().hex
         form = BeneficiaryTrainingExperienceForm(
-            beneficiary=beneficiary, current_year=current_year
+            beneficiary=beneficiary, current_year=current_year, prefix=prefix
         )
     return render(
         request,
@@ -365,7 +368,9 @@ def beneficiary_training_experience_edit(request, pk):
     beneficiary = _get_beneficiary(request)
     experience = _get_beneficiary_training_experience(beneficiary, pk)
     if request.method == "POST":
-        form = BeneficiaryTrainingExperienceForm(data=request.POST, experience=experience)
+        form = BeneficiaryTrainingExperienceForm(
+            data=request.POST, experience=experience, prefix=str(experience.pk)
+        )
         if form.is_valid():
             if form.cleaned_data.get("not_enrolled"):
                 if not _has_other_training_experience(beneficiary, pk):
@@ -383,7 +388,7 @@ def beneficiary_training_experience_edit(request, pk):
                 {"experience": experience},
             )
     else:
-        form = BeneficiaryTrainingExperienceForm(experience=experience)
+        form = BeneficiaryTrainingExperienceForm(experience=experience, prefix=str(experience.pk))
     return render(
         request,
         "account/partials/beneficiary_training_experience_edit_form.html",

@@ -47,7 +47,7 @@ class BeneficiaryTrainingExperienceForm(forms.Form):
             self.fields["period_label"].choices = [
                 choice for choice in _period_label_choices() if choice[0] != current_label
             ]
-        if self._current_year and self.data.get("not_enrolled"):
+        if self._current_year and self.data.get(self.add_prefix("not_enrolled")):
             self.fields["level"].required = False
             self.fields["course"].required = False
 
