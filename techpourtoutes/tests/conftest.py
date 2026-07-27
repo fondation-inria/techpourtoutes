@@ -66,6 +66,38 @@ def beneficiary(db):
 
 
 @pytest.fixture
+def experience(pro, higher_ed_school):
+    from datetime import date
+
+    from techpourtoutes.models import TrainingExperience
+
+    return TrainingExperience.objects.create(
+        user=pro,
+        higher_ed_school=higher_ed_school,
+        level=TrainingExperience.Level.BAC_3,
+        start_date=date(2019, 9, 1),
+        end_date=date(2020, 8, 31),
+        course="Master Informatique",
+    )
+
+
+@pytest.fixture
+def beneficiary_experience(beneficiary, school):
+    from datetime import date
+
+    from techpourtoutes.models import TrainingExperience
+
+    return TrainingExperience.objects.create(
+        user=beneficiary,
+        school=school,
+        level=TrainingExperience.Level.TERMINALE,
+        start_date=date(2023, 9, 1),
+        end_date=date(2024, 8, 31),
+        course="Spécialité mathématiques",
+    )
+
+
+@pytest.fixture
 def mock_create_mentor():
     instance = MagicMock(success=True, failure=False, errors=[])
     with patch(

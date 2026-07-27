@@ -5,27 +5,13 @@ import pytest
 from django.urls import reverse
 
 
-@pytest.fixture
-def experience(beneficiary, school):
-    from techpourtoutes.models import TrainingExperience
-
-    return TrainingExperience.objects.create(
-        user=beneficiary,
-        school=school,
-        level=TrainingExperience.Level.TERMINALE,
-        start_date=date(2023, 9, 1),
-        end_date=date(2024, 8, 31),
-        course="Spécialité mathématiques",
-    )
-
-
 @pytest.mark.django_db
 def test_account_page_lists_a_card_per_beneficiary_training_experience(
-    client, beneficiary, experience
+    client, beneficiary, beneficiary_experience
 ):
     client.force_login(beneficiary)
     content = client.get(reverse("account")).content.decode()
-    assert f"beneficiary-training-experience-{experience.pk}" in content
+    assert f"beneficiary-training-experience-{beneficiary_experience.pk}" in content
     assert "Spécialité mathématiques" in content
 
 
@@ -67,21 +53,25 @@ def test_beneficiary_training_experience_add_requires_beneficiary_account(client
 
 
 @pytest.mark.django_db
-def test_beneficiary_training_experience_edit_get_prefills_form(client, beneficiary, experience):
+def test_beneficiary_training_experience_edit_get_prefills_form(
+    client, beneficiary, beneficiary_experience
+):
     client.force_login(beneficiary)
-    response = client.get(reverse("beneficiary_training_experience_edit", args=[experience.pk]))
+    response = client.get(
+        reverse("beneficiary_training_experience_edit", args=[beneficiary_experience.pk])
+    )
     assert response.status_code == 200
     assert response.context["form"].initial["course"] == "Spécialité mathématiques"
 
 
 @pytest.mark.django_db
 def test_beneficiary_training_experience_edit_post_updates_experience(
-    client, beneficiary, experience, higher_ed_school
+    client, beneficiary, beneficiary_experience, higher_ed_school
 ):
     client.force_login(beneficiary)
 
     response = client.post(
-        reverse("beneficiary_training_experience_edit", args=[experience.pk]),
+        reverse("beneficiary_training_experience_edit", args=[beneficiary_experience.pk]),
         data={
             "period_label": "2024-2025",
             "level": "bac_1",
@@ -91,15 +81,15 @@ def test_beneficiary_training_experience_edit_post_updates_experience(
     )
 
     assert response.status_code == 200
-    experience.refresh_from_db()
-    assert experience.course == "Licence"
-    assert experience.higher_ed_school == higher_ed_school
-    assert experience.school is None
+    beneficiary_experience.refresh_from_db()
+    assert beneficiary_experience.course == "Licence"
+    assert beneficiary_experience.higher_ed_school == higher_ed_school
+    assert beneficiary_experience.school is None
 
 
 @pytest.mark.django_db
 def test_beneficiary_training_experience_cannot_be_edited_by_another_beneficiary(
-    client, experience
+    client, beneficiary_experience
 ):
     from datetime import date
 
@@ -115,20 +105,26 @@ def test_beneficiary_training_experience_cannot_be_edited_by_another_beneficiary
     intruder.save()
     client.force_login(intruder)
 
-    response = client.get(reverse("beneficiary_training_experience_edit", args=[experience.pk]))
+    response = client.get(
+        reverse("beneficiary_training_experience_edit", args=[beneficiary_experience.pk])
+    )
     assert response.status_code == 404
 
 
 @pytest.mark.django_db
-def test_beneficiary_training_experience_cannot_be_edited_by_a_pro(client, experience, pro):
+def test_beneficiary_training_experience_cannot_be_edited_by_a_pro(
+    client, beneficiary_experience, pro
+):
     client.force_login(pro)
-    response = client.get(reverse("beneficiary_training_experience_edit", args=[experience.pk]))
+    response = client.get(
+        reverse("beneficiary_training_experience_edit", args=[beneficiary_experience.pk])
+    )
     assert response.status_code == 404
 
 
 @pytest.mark.django_db
 def test_beneficiary_training_experience_delete_removes_experience(
-    client, beneficiary, experience
+    client, beneficiary, beneficiary_experience
 ):
     from techpourtoutes.models import TrainingExperience
     from techpourtoutes.models.training_experience import current_school_year_start_date
@@ -142,10 +138,12 @@ def test_beneficiary_training_experience_delete_removes_experience(
     )
     client.force_login(beneficiary)
 
-    response = client.post(reverse("beneficiary_training_experience_delete", args=[experience.pk]))
+    response = client.post(
+        reverse("beneficiary_training_experience_delete", args=[beneficiary_experience.pk])
+    )
 
     assert response.status_code == 200
-    assert not beneficiary.training_experiences.filter(pk=experience.pk).exists()
+    assert not beneficiary.training_experiences.filter(pk=beneficiary_experience.pk).exists()
 
 
 @pytest.mark.django_db
@@ -170,24 +168,26 @@ def test_beneficiary_training_experience_delete_rejects_current_school_year(clie
 
 @pytest.mark.django_db
 def test_beneficiary_training_experience_delete_rejects_last_remaining_experience(
-    client, beneficiary, experience
+    client, beneficiary, beneficiary_experience
 ):
     from django.contrib.messages import get_messages
 
     client.force_login(beneficiary)
 
-    response = client.post(reverse("beneficiary_training_experience_delete", args=[experience.pk]))
+    response = client.post(
+        reverse("beneficiary_training_experience_delete", args=[beneficiary_experience.pk])
+    )
 
     assert response.status_code == 200
     assert response["HX-Redirect"] == reverse("account")
-    assert beneficiary.training_experiences.filter(pk=experience.pk).exists()
+    assert beneficiary.training_experiences.filter(pk=beneficiary_experience.pk).exists()
     stored = [str(m) for m in get_messages(response.wsgi_request)]
     assert any("Au moins une formation doit être renseignée." in m for m in stored)
 
 
 @pytest.mark.django_db
 def test_beneficiary_training_experience_cannot_be_deleted_by_another_beneficiary(
-    client, experience
+    client, beneficiary_experience
 ):
     from datetime import date
 
@@ -203,25 +203,35 @@ def test_beneficiary_training_experience_cannot_be_deleted_by_another_beneficiar
     intruder.save()
     client.force_login(intruder)
 
-    response = client.post(reverse("beneficiary_training_experience_delete", args=[experience.pk]))
+    response = client.post(
+        reverse("beneficiary_training_experience_delete", args=[beneficiary_experience.pk])
+    )
 
     assert response.status_code == 404
-    assert experience.user.training_experiences.filter(pk=experience.pk).exists()
+    assert beneficiary_experience.user.training_experiences.filter(
+        pk=beneficiary_experience.pk
+    ).exists()
 
 
 @pytest.mark.django_db
-def test_beneficiary_training_experience_cannot_be_deleted_by_a_pro(client, experience, pro):
+def test_beneficiary_training_experience_cannot_be_deleted_by_a_pro(
+    client, beneficiary_experience, pro
+):
     client.force_login(pro)
 
-    response = client.post(reverse("beneficiary_training_experience_delete", args=[experience.pk]))
+    response = client.post(
+        reverse("beneficiary_training_experience_delete", args=[beneficiary_experience.pk])
+    )
 
     assert response.status_code == 404
-    assert experience.user.training_experiences.filter(pk=experience.pk).exists()
+    assert beneficiary_experience.user.training_experiences.filter(
+        pk=beneficiary_experience.pk
+    ).exists()
 
 
 @pytest.mark.django_db
 def test_beneficiary_training_experience_edit_forms_have_unique_search_result_ids(
-    client, beneficiary, experience, school
+    client, beneficiary, beneficiary_experience, school
 ):
     from techpourtoutes.models import TrainingExperience
 
@@ -236,13 +246,13 @@ def test_beneficiary_training_experience_edit_forms_have_unique_search_result_id
     client.force_login(beneficiary)
 
     first = client.get(
-        reverse("beneficiary_training_experience_edit", args=[experience.pk])
+        reverse("beneficiary_training_experience_edit", args=[beneficiary_experience.pk])
     ).content.decode()
     second = client.get(
         reverse("beneficiary_training_experience_edit", args=[other.pk])
     ).content.decode()
 
-    assert f'id="school-results-{experience.pk}"' in first
+    assert f'id="school-results-{beneficiary_experience.pk}"' in first
     assert f'id="school-results-{other.pk}"' in second
 
 
@@ -339,7 +349,7 @@ def test_beneficiary_training_experience_add_post_current_year_creates_experienc
 
 @pytest.mark.django_db
 def test_beneficiary_training_experience_edit_post_not_enrolled_deletes_current_year_experience(
-    client, beneficiary, experience
+    client, beneficiary, beneficiary_experience
 ):
     from techpourtoutes.models import TrainingExperience
     from techpourtoutes.models.training_experience import current_school_year_start_date

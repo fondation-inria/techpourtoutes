@@ -1,21 +1,5 @@
-from datetime import date
-
 import pytest
 from django.urls import reverse
-
-
-@pytest.fixture
-def experience(pro, higher_ed_school):
-    from techpourtoutes.models import TrainingExperience
-
-    return TrainingExperience.objects.create(
-        user=pro,
-        higher_ed_school=higher_ed_school,
-        level=TrainingExperience.Level.BAC_3,
-        start_date=date(2019, 9, 1),
-        end_date=date(2020, 8, 31),
-        course="Master Informatique",
-    )
 
 
 @pytest.mark.django_db

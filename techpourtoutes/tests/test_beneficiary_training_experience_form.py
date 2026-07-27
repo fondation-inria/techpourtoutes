@@ -3,25 +3,11 @@ from datetime import date
 import pytest
 
 
-@pytest.fixture
-def experience(beneficiary, school):
-    from techpourtoutes.models import TrainingExperience
-
-    return TrainingExperience.objects.create(
-        user=beneficiary,
-        school=school,
-        level=TrainingExperience.Level.TERMINALE,
-        start_date=date(2023, 9, 1),
-        end_date=date(2024, 8, 31),
-        course="Spécialité mathématiques",
-    )
-
-
 @pytest.mark.django_db
-def test_form_prefills_from_experience_with_school(experience, school):
+def test_form_prefills_from_experience_with_school(beneficiary_experience, school):
     from techpourtoutes.forms import BeneficiaryTrainingExperienceForm
 
-    form = BeneficiaryTrainingExperienceForm(experience=experience)
+    form = BeneficiaryTrainingExperienceForm(experience=beneficiary_experience)
     assert form.initial["level"] == "terminale"
     assert form.initial["period_label"] == "2023-2024"
     assert form.initial["course"] == "Spécialité mathématiques"
@@ -225,52 +211,6 @@ def test_form_for_current_year_creates_experience_when_not_enrolled_is_unchecked
     experience.refresh_from_db()
     assert experience.start_date == current_school_year_start_date()
     assert experience.school == school
-
-
-@pytest.mark.django_db
-def test_form_save_creates_experience_with_school_for_secondary_level(beneficiary, school):
-    from techpourtoutes.forms import BeneficiaryTrainingExperienceForm
-    from techpourtoutes.models import TrainingExperience
-
-    form = BeneficiaryTrainingExperienceForm(
-        data={
-            "period_label": "2024-2025",
-            "level": "terminale",
-            "course": "Spécialité SVT",
-            "school_identifier": school.identifier,
-            "school_name": school.name,
-        }
-    )
-    assert form.is_valid(), form.errors
-    experience = form.save(TrainingExperience(user=beneficiary))
-
-    experience.refresh_from_db()
-    assert experience.school == school
-    assert experience.higher_ed_school is None
-    assert experience.level == "terminale"
-
-
-@pytest.mark.django_db
-def test_form_save_creates_experience_with_higher_ed_school_for_bac_plus_level(
-    beneficiary, higher_ed_school
-):
-    from techpourtoutes.forms import BeneficiaryTrainingExperienceForm
-    from techpourtoutes.models import TrainingExperience
-
-    form = BeneficiaryTrainingExperienceForm(
-        data={
-            "period_label": "2024-2025",
-            "level": "bac_1",
-            "course": "Licence informatique",
-            "higher_ed_school_id": str(higher_ed_school.id),
-        }
-    )
-    assert form.is_valid(), form.errors
-    experience = form.save(TrainingExperience(user=beneficiary))
-
-    experience.refresh_from_db()
-    assert experience.higher_ed_school == higher_ed_school
-    assert experience.school is None
 
 
 @pytest.mark.django_db

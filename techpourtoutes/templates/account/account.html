@@ -10,7 +10,7 @@
 
     {% if request.user.pro %}
         {% for experience in user.training_experiences.all %}
-            {% include "account/partials/training_experience_card.html" %}
+            {% include "account/partials/pro_training_experience_card.html" %}
         {% endfor %}
     {% endif %}
 

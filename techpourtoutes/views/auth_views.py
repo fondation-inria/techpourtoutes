@@ -211,18 +211,6 @@ def account_edit(request):
         )
 
 
-def _resolve_account(request):
-    is_pro = hasattr(request.user, "pro")
-    is_beneficiary = hasattr(request.user, "beneficiary")
-    if is_pro:
-        user = request.user.pro
-    elif is_beneficiary:
-        user = request.user.beneficiary
-    else:
-        user = request.user
-    return is_pro, is_beneficiary, user
-
-
 @login_required
 def account_email(request):
     user = request.user.pro if hasattr(request.user, "pro") else request.user
@@ -306,7 +294,7 @@ def pro_training_experience_info(request, pk):
     experience = _get_pro_training_experience(request, pk)
     return render(
         request,
-        "account/partials/training_experience_card.html",
+        "account/partials/pro_training_experience_card.html",
         {"experience": experience},
     )
 
@@ -320,22 +308,16 @@ def pro_training_experience_edit(request, pk):
             form.save(experience)
             return render(
                 request,
-                "account/partials/training_experience_card.html",
+                "account/partials/pro_training_experience_card.html",
                 {"experience": experience},
             )
     else:
         form = TrainingExperienceForm(experience=experience)
     return render(
         request,
-        "account/partials/training_experience_edit_form.html",
+        "account/partials/pro_training_experience_edit_form.html",
         {"form": form, "experience": experience},
     )
-
-
-def _get_pro_training_experience(request, pk):
-    if not hasattr(request.user, "pro"):
-        raise Http404
-    return get_object_or_404(request.user.pro.training_experiences, pk=pk)
 
 
 @login_required
@@ -409,14 +391,6 @@ def beneficiary_training_experience_edit(request, pk):
     )
 
 
-def _render_beneficiary_training_experience_card(request, experience):
-    return render(
-        request,
-        "account/partials/beneficiary_training_experience_card.html",
-        {"experience": experience},
-    )
-
-
 @require_POST
 @login_required
 def beneficiary_training_experience_delete(request, pk):
@@ -432,20 +406,6 @@ def beneficiary_training_experience_delete(request, pk):
         return HttpResponse(headers={"HX-Redirect": reverse("account")})
     experience.delete()
     return HttpResponse()
-
-
-def _get_beneficiary(request):
-    if not hasattr(request.user, "beneficiary"):
-        raise Http404
-    return request.user.beneficiary
-
-
-def _get_beneficiary_training_experience(beneficiary, pk):
-    return get_object_or_404(beneficiary.training_experiences, pk=pk)
-
-
-def _has_other_training_experience(beneficiary, pk):
-    return beneficiary.training_experiences.exclude(pk=pk).exists()
 
 
 @require_POST
@@ -498,3 +458,43 @@ def _safe_next(request, candidate):
     ):
         return candidate
     return ""
+
+
+def _resolve_account(request):
+    is_pro = hasattr(request.user, "pro")
+    is_beneficiary = hasattr(request.user, "beneficiary")
+    if is_pro:
+        user = request.user.pro
+    elif is_beneficiary:
+        user = request.user.beneficiary
+    else:
+        user = request.user
+    return is_pro, is_beneficiary, user
+
+
+def _get_pro_training_experience(request, pk):
+    if not hasattr(request.user, "pro"):
+        raise Http404
+    return get_object_or_404(request.user.pro.training_experiences, pk=pk)
+
+
+def _render_beneficiary_training_experience_card(request, experience):
+    return render(
+        request,
+        "account/partials/beneficiary_training_experience_card.html",
+        {"experience": experience},
+    )
+
+
+def _get_beneficiary(request):
+    if not hasattr(request.user, "beneficiary"):
+        raise Http404
+    return request.user.beneficiary
+
+
+def _get_beneficiary_training_experience(beneficiary, pk):
+    return get_object_or_404(beneficiary.training_experiences, pk=pk)
+
+
+def _has_other_training_experience(beneficiary, pk):
+    return beneficiary.training_experiences.exclude(pk=pk).exists()

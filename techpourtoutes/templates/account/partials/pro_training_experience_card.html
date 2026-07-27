@@ -1,9 +1,11 @@
 <div id="training-experience-{{ experience.pk }}" class="w-full">
     <c-components.card title="Formation">
+        <br>
+        {% if experience.start_date %}
+            <span class="font-medium">{{ experience.period_label_display }}</span>
+        {% endif %}
         <c-components.text class="font-light">
-            {% if experience.start_date %}<span class="font-medium">{{ experience.period_label_display }}</span>
-
-            {% endif %}Établissement : <span class="font-medium">{{ experience.higher_ed_school.display_label }}</span>
+            Établissement : <span class="font-medium">{{ experience.higher_ed_school.display_label }}</span>
 
             Niveau : <span class="font-medium">{{ experience.get_level_display }}</span>
 

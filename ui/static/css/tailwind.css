@@ -332,7 +332,7 @@
       opacity: 100%;
       transition: visibility 0s allow-discrete, background-color 0.3s ease-out, opacity 0.1s ease-out;
       background-color: oklch(0% 0 0/ 0.4);
-      .modal-box {
+       > .modal-box {
         translate: 0 0;
         scale: 1;
         opacity: 1;
@@ -846,7 +846,7 @@
       padding-inline: calc(0.25rem * 3);
       vertical-align: middle;
       white-space: nowrap;
-      --size: calc(var(--size-field, 0.25rem) * var(--in-size-mul));
+      --size: calc(var(--size-field, 0.25rem) * var(--in-size-mul, 10));
       --input-color: var(--color-base-content);
     }
     @supports (color: color-mix(in lab, red, red)) {
@@ -858,7 +858,7 @@
       cursor: text;
       width: clamp(3rem, 20rem, 100%);
       height: var(--size);
-      font-size: max(var(--font-size, 0rem), var(--font-size-min));
+      font-size: max(var(--font-size, 0rem), var(--font-size-min, 0.875rem));
       touch-action: manipulation;
       border-start-start-radius: var(--join-ss, var(--radius-field));
       border-start-end-radius: var(--join-se, var(--radius-field));
@@ -913,7 +913,7 @@
         text-align: inherit;
       }
       &::-webkit-inner-spin-button {
-        margin-block: calc(0.25rem * var(--spin-my));
+        margin-block: calc(0.25rem * var(--spin-my, -3));
       }
       &::-webkit-calendar-picker-indicator {
         position: absolute;
@@ -961,19 +961,6 @@
     .input:has( > input[disabled]) > input[disabled] {
       cursor: not-allowed;
     }
-  }
-  @layer daisyui.l1.l2 {
-    .input {
-      --in-size-mul: 10;
-      --font-size-min: 0.875rem;
-      --spin-my: -3;
-    }
-    .floating-label:has(.input) {
-      --top-mul: 5;
-      --font-size: 0.875rem;
-    }
-  }
-  @layer daisyui.l1.l2.l3 {
     .table {
       font-size: 0.875rem;
       position: relative;
@@ -1185,7 +1172,7 @@
       padding-inline-start: calc(0.25rem * 3);
       padding-inline-end: calc(0.25rem * 7);
       vertical-align: middle;
-      --size: calc(var(--size-field, 0.25rem) * var(--sl-size-mul));
+      --size: calc(var(--size-field, 0.25rem) * var(--sl-size-mul, 10));
       --input-color: var(--color-base-content);
     }
     @supports (color: color-mix(in lab, red, red)) {
@@ -1196,7 +1183,7 @@
     .select {
       width: clamp(3rem, 20rem, 100%);
       height: var(--size);
-      font-size: max(var(--font-size, 0rem), var(--font-size-min));
+      font-size: max(var(--font-size, 0rem), var(--font-size-min, 0.875rem));
       touch-action: manipulation;
       border-start-start-radius: var(--join-ss, var(--radius-field));
       border-start-end-radius: var(--join-se, var(--radius-field));
@@ -1327,7 +1314,7 @@
     :is(:is(.select), .select select) option {
       border-radius: var(--radius-field);
       padding-block: calc(0.25rem * 1.5);
-      padding-inline: calc(0.25rem * var(--option-px));
+      padding-inline: calc(0.25rem * var(--option-px, 3));
       transition-property: color, background-color;
       transition-duration: 0.2s;
       transition-timing-function: cubic-bezier(0, 0, 0.2, 1);
@@ -1355,15 +1342,6 @@
     }
   }
   @layer daisyui.l1.l2 {
-    .select {
-      --sl-size-mul: 10;
-      --font-size-min: 0.875rem;
-      --option-px: 3;
-    }
-    .floating-label:has(.select) {
-      --top-mul: 5;
-      --font-size: 0.875rem;
-    }
     .swap {
       position: relative;
       display: inline-grid;
@@ -1745,7 +1723,7 @@
     }
     .textarea {
       width: clamp(3rem, 20rem, 100%);
-      font-size: max(var(--font-size, 0rem), var(--font-size-min));
+      font-size: max(var(--font-size, 0rem), var(--font-size-min, 0.875rem));
       touch-action: manipulation;
       border: var(--border) solid var(--input-color, #0000);
       box-shadow: 0 1px var(--input-color) inset, 0 -1px oklch(100% 0 0 / calc(var(--depth) * 0.1)) inset;
@@ -1805,15 +1783,6 @@
     }
     .textarea:has( > textarea[disabled]) > textarea[disabled] {
       cursor: not-allowed;
-    }
-  }
-  @layer daisyui.l1.l2 {
-    .textarea {
-      --font-size-min: 0.875rem;
-    }
-    .floating-label:has(.textarea) {
-      --top-mul: 5;
-      --font-size: 0.875rem;
     }
   }
   .isolate {
@@ -3466,6 +3435,16 @@
     --depth: 1;
     --noise: 0;
   }
+  :root {
+    --page-scroll-lock: initial;
+    --page-overflow: var(--page-scroll-lock) hidden;
+  }
+  :root:not(span) {
+    overflow: var(--page-overflow);
+  }
+  :root {
+    --fx-noise: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 200 200'%3E%3Cfilter id='a'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='1.34' numOctaves='4' stitchTiles='stitch'%3E%3C/feTurbulence%3E%3C/filter%3E%3Crect width='200' height='200' filter='url(%23a)' opacity='0.2'%3E%3C/rect%3E%3C/svg%3E");
+  }
   :root, [data-theme] {
     background-color: var(--root-bg);
     color: var(--color-base-content);
@@ -3475,9 +3454,6 @@
   }
   :where(:root, [data-theme]) {
     --root-bg: var(--color-base-100);
-  }
-  :root {
-    --fx-noise: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 200 200'%3E%3Cfilter id='a'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='1.34' numOctaves='4' stitchTiles='stitch'%3E%3C/feTurbulence%3E%3C/filter%3E%3Crect width='200' height='200' filter='url(%23a)' opacity='0.2'%3E%3C/rect%3E%3C/svg%3E");
   }
   @property --radialprogress {
     syntax: "<percentage>";
@@ -3490,6 +3466,10 @@
     initial-value: 0deg;
   }
   :root {
+    scrollbar-color: currentColor #0000;
+    @supports (color: color-mix(in lab, red, red)) {
+      scrollbar-color: color-mix(in oklch, currentColor 35%, #0000) #0000;
+    }
     --page-has-backdrop: var(--page-scroll-lock) 1;
     --page-scroll-bg: var(--page-scroll-lock)
     var(--root-bg, #0000);
@@ -3509,74 +3489,10 @@
       --page-has-scroll:  ;
     }
   }
-  :root {
-    scrollbar-color: currentColor #0000;
-    @supports (color: color-mix(in lab, red, red)) {
-      scrollbar-color: color-mix(in oklch, currentColor 35%, #0000) #0000;
-    }
-    --page-scroll-lock: initial;
-    --page-overflow: var(--page-scroll-lock) hidden;
-  }
-  :root:not(span) {
-    overflow: var(--page-overflow);
-  }
-}
-@keyframes progress {
-  50% {
-    background-position-x: -115%;
-  }
-}
-@keyframes rating {
-  0%, 40% {
-    scale: 1.1;
-    filter: brightness(1.05) contrast(1.05);
-  }
-}
-@keyframes toast {
-  0% {
-    scale: 0.9;
-    opacity: 0;
-  }
-  100% {
-    scale: 1;
-    opacity: 1;
-  }
-}
-@keyframes radio {
-  0% {
-    padding: 5px;
-  }
-  50% {
-    padding: 3px;
-  }
 }
 @keyframes dropdown {
   0% {
     opacity: 0;
-  }
-}
-@keyframes rotator {
-  89.9999%, 100% {
-    --first-item-position: 0 0%;
-  }
-  90%, 99.9999% {
-    --first-item-position: 0 calc(var(--items) * 100%);
-  }
-  100% {
-    translate: 0 -100%;
-  }
-}
-@keyframes menu {
-  0% {
-    opacity: 0;
-  }
-}
-@keyframes skeleton {
-  0% {
-    background-position: 150%;
-  }
-  100% {
-    background-position: -50%;
   }
 }
 @keyframes aura {
@@ -3603,6 +3519,59 @@
   50% {
     opacity: 0.6;
     filter: blur(1.5rem);
+  }
+}
+@keyframes progress {
+  50% {
+    background-position-x: -115%;
+  }
+}
+@keyframes skeleton {
+  0% {
+    background-position: 150%;
+  }
+  100% {
+    background-position: -50%;
+  }
+}
+@keyframes rating {
+  0%, 40% {
+    scale: 1.1;
+    filter: brightness(1.05) contrast(1.05);
+  }
+}
+@keyframes menu {
+  0% {
+    opacity: 0;
+  }
+}
+@keyframes toast {
+  0% {
+    scale: 0.9;
+    opacity: 0;
+  }
+  100% {
+    scale: 1;
+    opacity: 1;
+  }
+}
+@keyframes rotator {
+  89.9999%, 100% {
+    --first-item-position: 0 0%;
+  }
+  90%, 99.9999% {
+    --first-item-position: 0 calc(var(--items) * 100%);
+  }
+  100% {
+    translate: 0 -100%;
+  }
+}
+@keyframes radio {
+  0% {
+    padding: 5px;
+  }
+  50% {
+    padding: 3px;
   }
 }
 @layer base {

@@ -1,15 +1,6 @@
 import pytest
 
 
-@pytest.fixture
-def experience(pro, higher_ed_school):
-    from techpourtoutes.models import TrainingExperience
-
-    return TrainingExperience.objects.create(
-        user=pro, higher_ed_school=higher_ed_school, course="Master Informatique"
-    )
-
-
 @pytest.mark.django_db
 def test_form_prefills_from_experience(experience, higher_ed_school):
     from techpourtoutes.forms import TrainingExperienceForm
