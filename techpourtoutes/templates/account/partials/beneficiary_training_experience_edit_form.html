@@ -1,6 +1,6 @@
 <c-patterns.form
     id="beneficiary-training-experience-{{ experience.pk|default:form.prefix|default:"current-year" }}"
-    class="w-full mt-4 relative"
+    outer_class="w-full mt-4 pb-4 relative"
     hx-post="{% if experience %}{% url 'beneficiary_training_experience_edit' experience.pk %}{% else %}{% url 'beneficiary_training_experience_add' %}{% endif %}"
     hx-target="this"
     hx-swap="outerHTML">

@@ -2,6 +2,8 @@ from django import forms
 from django.utils.translation import gettext_lazy as _
 from phonenumber_field.formfields import PhoneNumberField
 
+from techpourtoutes.forms.validators import validate_birth_date
+
 from ..models import POSTAL_CODE_VALIDATOR
 
 
@@ -10,7 +12,7 @@ class BeneficiaryAccountEditForm(forms.Form):
     last_name = forms.CharField(label=_("Nom*"))
     email = forms.EmailField(label=_("Email*"))
     phone = PhoneNumberField(region="FR", label=_("Numéro de téléphone"), required=False)
-    birth_date = forms.DateField(label=_("Date de naissance*"))
+    birth_date = forms.DateField(label=_("Date de naissance*"), validators=[validate_birth_date])
     postal_code = forms.CharField(
         label=_("Code postal"),
         required=False,

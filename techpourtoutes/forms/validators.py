@@ -2,6 +2,8 @@ from django import forms
 from django.core.exceptions import ValidationError
 from django.utils.translation import gettext_lazy as _
 
+from techpourtoutes.views.beneficiary_views import _age
+
 from ..models import HigherEdSchool, School
 
 
@@ -27,3 +29,9 @@ def resolve_school(identifier):
         return School.objects.get(identifier=identifier)
     except School.DoesNotExist, ValidationError, ValueError:
         raise forms.ValidationError(_("Sélectionnez un établissement valide."))
+
+
+def validate_birth_date(birth_date):
+    age = _age(birth_date=birth_date)
+    if age < 15 or age > 25:
+        raise forms.ValidationError(_("L'âge doit être compris entre 15 et 25 ans."))
