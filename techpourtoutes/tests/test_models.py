@@ -501,6 +501,140 @@ def test_training_experience_links_pro_and_higher_ed_school(pro, higher_ed_schoo
 
 
 @pytest.mark.django_db
+def test_eligible_school_str_shows_name_and_postal_code():
+    from techpourtoutes.models import EligibleSchool
+
+    school = EligibleSchool(
+        uai="0750001A",
+        name="Lycée Voltaire",
+        postal_code="75011",
+        education_level=EligibleSchool.EducationLevel.NON_SUP,
+    )
+    school.save()
+    assert str(school) == "Lycée Voltaire (75011)"
+
+
+@pytest.mark.django_db
+def test_eligible_school_uai_is_unique():
+    from techpourtoutes.models import EligibleSchool
+
+    EligibleSchool(
+        uai="0750001A",
+        name="Lycée Voltaire",
+        postal_code="75011",
+        education_level=EligibleSchool.EducationLevel.NON_SUP,
+    ).save()
+    with pytest.raises(ValidationError):
+        EligibleSchool(
+            uai="0750001A",
+            name="Autre lycée",
+            postal_code="75012",
+            education_level=EligibleSchool.EducationLevel.NON_SUP,
+        ).save()
+
+
+@pytest.mark.django_db
+def test_eligible_school_save_populates_normalized_name():
+    from techpourtoutes.models import EligibleSchool
+
+    school = EligibleSchool(
+        uai="0750001A",
+        name="Lycée Privée",
+        postal_code="75001",
+        education_level=EligibleSchool.EducationLevel.NON_SUP,
+    )
+    school.save()
+    assert school.name_normalized == "Lycee Privee"
+
+
+@pytest.mark.django_db
+def test_eligible_school_record_creates_new_school():
+    from techpourtoutes.models import EligibleSchool
+
+    school = EligibleSchool.objects.record(
+        uai="0750001A",
+        name="Lycée Voltaire",
+        postal_code="75011",
+        level=EligibleSchool.EducationLevel.NON_SUP,
+        matches_digital_domain=True,
+    )
+
+    assert EligibleSchool.objects.count() == 1
+    assert school.education_level == EligibleSchool.EducationLevel.NON_SUP
+    assert school.matches_digital_domain is True
+
+
+@pytest.mark.django_db
+def test_eligible_school_record_upgrades_level_to_both_when_levels_differ():
+    from techpourtoutes.models import EligibleSchool
+
+    EligibleSchool.objects.record(
+        uai="0750001A",
+        name="Lycée Voltaire",
+        postal_code="75011",
+        level=EligibleSchool.EducationLevel.NON_SUP,
+        matches_digital_domain=False,
+    )
+    school = EligibleSchool.objects.record(
+        uai="0750001A",
+        name="Lycée Voltaire",
+        postal_code="75011",
+        level=EligibleSchool.EducationLevel.SUP,
+        matches_digital_domain=False,
+    )
+
+    assert EligibleSchool.objects.count() == 1
+    assert school.education_level == EligibleSchool.EducationLevel.BOTH
+
+
+@pytest.mark.django_db
+def test_eligible_school_record_never_resets_matches_digital_domain_to_false():
+    from techpourtoutes.models import EligibleSchool
+
+    EligibleSchool.objects.record(
+        uai="0750001A",
+        name="Lycée Voltaire",
+        postal_code="75011",
+        level=EligibleSchool.EducationLevel.SUP,
+        matches_digital_domain=True,
+    )
+    school = EligibleSchool.objects.record(
+        uai="0750001A",
+        name="Lycée Voltaire",
+        postal_code="75011",
+        level=EligibleSchool.EducationLevel.SUP,
+        matches_digital_domain=False,
+    )
+
+    assert school.matches_digital_domain is True
+
+
+@pytest.mark.django_db
+def test_eligible_school_record_is_idempotent_for_same_level():
+    from techpourtoutes.models import EligibleSchool
+
+    EligibleSchool.objects.record(
+        uai="0750001A",
+        name="Lycée Voltaire",
+        postal_code="75011",
+        level=EligibleSchool.EducationLevel.NON_SUP,
+        matches_digital_domain=True,
+    )
+    EligibleSchool.objects.record(
+        uai="0750001A",
+        name="Lycée Voltaire",
+        postal_code="75011",
+        level=EligibleSchool.EducationLevel.NON_SUP,
+        matches_digital_domain=True,
+    )
+
+    assert EligibleSchool.objects.count() == 1
+    assert EligibleSchool.objects.get(uai="0750001A").education_level == (
+        EligibleSchool.EducationLevel.NON_SUP
+    )
+
+
+@pytest.mark.django_db
 def test_soft_delete_anonymizes_expected_fields(pro):
     original_pk = pro.pk
     original_professional_situation = pro.professional_situation

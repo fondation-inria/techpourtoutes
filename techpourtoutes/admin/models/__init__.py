@@ -1,3 +1,3 @@
-from . import pro, user
+from . import eligible_school, pro, user
 
-__all__ = ["pro", "user"]
+__all__ = ["eligible_school", "pro", "user"]
