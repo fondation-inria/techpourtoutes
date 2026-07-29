@@ -2,6 +2,7 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 from django.core.management import call_command
+from django.core.management.base import CommandError
 
 from techpourtoutes.models import EligibleSchool
 
@@ -33,6 +34,13 @@ RECORD_HORS_CONTRAT = {
     "ens_code_postal": "13001",
     "formation_for_libelle": "bac pro CIEL",
 }
+RECORD_CIEL_NO_UAI = {
+    "ens_code_uai": "",
+    "ens_statut": "public",
+    "lieu_denseignement_ens_libelle": "Micro-lycée sans UAI",
+    "ens_code_postal": "76000",
+    "formation_for_libelle": "bac techno STMG",
+}
 
 
 def _mock_response(records):
@@ -42,9 +50,29 @@ def _mock_response(records):
     return response
 
 
+def _mock_get_filtering_by_status(records):
+    def _handler(_url, params=None, **_kwargs):
+        status = (params or {}).get("facet.ens_statut")
+        matching = [r for r in records if status is None or r.get("ens_statut") == status]
+        return _mock_response(matching)
+
+    return _handler
+
+
+def _mock_login_response():
+    response = MagicMock()
+    response.is_success = True
+    response.json.return_value = {"token": "test-token"}
+    return response
+
+
 def _call(records):
-    with patch("techpourtoutes.management.commands._onisep_dataset.httpx.get") as mock_get:
-        mock_get.return_value = _mock_response(records)
+    with (
+        patch("techpourtoutes.management.commands._onisep_dataset.httpx.post") as mock_post,
+        patch("techpourtoutes.management.commands._onisep_dataset.httpx.get") as mock_get,
+    ):
+        mock_post.return_value = _mock_login_response()
+        mock_get.side_effect = _mock_get_filtering_by_status(records)
         call_command("import_lycee_formations")
 
 
@@ -86,3 +114,27 @@ def test_rerun_is_idempotent():
     _call([RECORD_CIEL])
 
     assert EligibleSchool.objects.count() == 1
+
+
+@pytest.mark.django_db
+def test_matched_formation_without_uai_does_not_crash():
+    _call([RECORD_CIEL_NO_UAI])
+
+    assert EligibleSchool.objects.count() == 0
+
+
+@pytest.mark.django_db
+def test_raises_when_onisep_login_fails():
+    response = MagicMock()
+    response.is_success = False
+    response.status_code = 401
+    with (
+        patch(
+            "techpourtoutes.management.commands._onisep_dataset.httpx.post",
+            return_value=response,
+        ),
+        patch("techpourtoutes.management.commands._onisep_dataset.httpx.get") as mock_get,
+    ):
+        with pytest.raises(CommandError):
+            call_command("import_lycee_formations")
+        mock_get.assert_not_called()

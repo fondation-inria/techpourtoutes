@@ -21,7 +21,7 @@ class Migration(migrations.Migration):
                 ('name', models.CharField(max_length=255, verbose_name="nom de l'établissement")),
                 ('name_normalized', models.CharField(blank=True, editable=False, max_length=255)),
                 ('postal_code', models.CharField(blank=True, max_length=10, verbose_name='code postal')),
-                ('education_level', models.CharField(choices=[('non_sup', 'Lycée (pas sup)'), ('sup', 'Supérieur'), ('both', 'Les deux')], max_length=10)),
+                ('education_level', models.CharField(choices=[('non_sup', 'Lycée'), ('sup', 'Supérieur'), ('both', 'Les deux')], max_length=10)),
                 ('matches_digital_domain', models.BooleanField(default=False, verbose_name='formation numérique/informatique repérée')),
             ],
             options={

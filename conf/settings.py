@@ -189,6 +189,11 @@ JOBIRL_URL = env("JOBIRL_URL", default="")
 # Schools import (data.education.gouv.fr)
 HUWISE_API_KEY = env("HUWISE_API_KEY", default="")
 
+# Formations import (api.opendata.onisep.fr)
+ONISEP_API_EMAIL = env("ONISEP_API_EMAIL", default="")
+ONISEP_API_PASSWORD = env("ONISEP_API_PASSWORD", default="")
+ONISEP_APPLICATION_ID = env("ONISEP_APPLICATION_ID", default="")
+
 # n8n webhooks
 N8N_WORKSHOP_WEBHOOK_URL = env(
     "N8N_WORKSHOP_WEBHOOK_URL",

@@ -17,14 +17,16 @@ class EligibleSchoolManager(models.Manager):
                 "matches_digital_domain": matches_digital_domain,
             },
         )
-        school.merge(level=level, matches_digital_domain=matches_digital_domain)
+        school.merge(
+            postal_code=postal_code, level=level, matches_digital_domain=matches_digital_domain
+        )
         school.save()
         return school
 
 
 class EligibleSchool(BaseModel):
     class EducationLevel(models.TextChoices):
-        NON_SUP = "non_sup", _("Lycée (pas sup)")
+        NON_SUP = "non_sup", _("Lycée")
         SUP = "sup", _("Supérieur")
         BOTH = "both", _("Les deux")
 
@@ -47,7 +49,9 @@ class EligibleSchool(BaseModel):
         self.name_normalized = strip_accents(self.name)
         super().save(*args, **kwargs)
 
-    def merge(self, *, level, matches_digital_domain):
+    def merge(self, *, postal_code, level, matches_digital_domain):
+        if not self.postal_code and postal_code:
+            self.postal_code = postal_code
         if level != self.education_level:
             self.education_level = self.EducationLevel.BOTH
         if matches_digital_domain:
