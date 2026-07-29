@@ -610,6 +610,45 @@ def test_eligible_school_record_never_resets_matches_digital_domain_to_false():
 
 
 @pytest.mark.django_db
+def test_eligible_school_record_never_resets_matches_apprenticeship_to_false():
+    from techpourtoutes.models import EligibleSchool
+
+    EligibleSchool.objects.record(
+        uai="0750001A",
+        name="Lycée Voltaire",
+        postal_code="75011",
+        level=EligibleSchool.EducationLevel.SUP,
+        matches_digital_domain=False,
+        matches_apprenticeship=True,
+    )
+    school = EligibleSchool.objects.record(
+        uai="0750001A",
+        name="Lycée Voltaire",
+        postal_code="75011",
+        level=EligibleSchool.EducationLevel.SUP,
+        matches_digital_domain=False,
+        matches_apprenticeship=False,
+    )
+
+    assert school.matches_apprenticeship is True
+
+
+@pytest.mark.django_db
+def test_eligible_school_record_defaults_matches_apprenticeship_to_false():
+    from techpourtoutes.models import EligibleSchool
+
+    school = EligibleSchool.objects.record(
+        uai="0750001A",
+        name="Lycée Voltaire",
+        postal_code="75011",
+        level=EligibleSchool.EducationLevel.SUP,
+        matches_digital_domain=False,
+    )
+
+    assert school.matches_apprenticeship is False
+
+
+@pytest.mark.django_db
 def test_eligible_school_record_is_idempotent_for_same_level():
     from techpourtoutes.models import EligibleSchool
 

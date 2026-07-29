@@ -23,6 +23,7 @@ class Migration(migrations.Migration):
                 ('postal_code', models.CharField(blank=True, max_length=10, verbose_name='code postal')),
                 ('education_level', models.CharField(choices=[('non_sup', 'Lycée'), ('sup', 'Supérieur'), ('both', 'Les deux')], max_length=10)),
                 ('matches_digital_domain', models.BooleanField(default=False, verbose_name='formation numérique/informatique repérée')),
+                ('matches_apprenticeship', models.BooleanField(default=False, verbose_name='formation en apprentissage repérée')),
             ],
             options={
                 'verbose_name': 'établissement éligible',

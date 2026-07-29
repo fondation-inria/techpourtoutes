@@ -7,7 +7,16 @@ from .base import BaseModel
 
 
 class EligibleSchoolManager(models.Manager):
-    def record(self, *, uai, name, postal_code, level, matches_digital_domain):
+    def record(
+        self,
+        *,
+        uai,
+        name,
+        postal_code,
+        level,
+        matches_digital_domain,
+        matches_apprenticeship=False,
+    ):
         school, _created = self.get_or_create(
             uai=uai,
             defaults={
@@ -15,10 +24,14 @@ class EligibleSchoolManager(models.Manager):
                 "postal_code": postal_code,
                 "education_level": level,
                 "matches_digital_domain": matches_digital_domain,
+                "matches_apprenticeship": matches_apprenticeship,
             },
         )
         school.merge(
-            postal_code=postal_code, level=level, matches_digital_domain=matches_digital_domain
+            postal_code=postal_code,
+            level=level,
+            matches_digital_domain=matches_digital_domain,
+            matches_apprenticeship=matches_apprenticeship,
         )
         school.save()
         return school
@@ -38,6 +51,9 @@ class EligibleSchool(BaseModel):
     matches_digital_domain = models.BooleanField(
         default=False, verbose_name=_("formation numérique/informatique repérée")
     )
+    matches_apprenticeship = models.BooleanField(
+        default=False, verbose_name=_("formation en apprentissage repérée")
+    )
 
     objects = EligibleSchoolManager()
 
@@ -49,13 +65,15 @@ class EligibleSchool(BaseModel):
         self.name_normalized = strip_accents(self.name)
         super().save(*args, **kwargs)
 
-    def merge(self, *, postal_code, level, matches_digital_domain):
+    def merge(self, *, postal_code, level, matches_digital_domain, matches_apprenticeship=False):
         if not self.postal_code and postal_code:
             self.postal_code = postal_code
         if level != self.education_level:
             self.education_level = self.EducationLevel.BOTH
         if matches_digital_domain:
             self.matches_digital_domain = True
+        if matches_apprenticeship:
+            self.matches_apprenticeship = True
 
     def __str__(self):
         return f"{self.name} ({self.postal_code})"
