@@ -41,8 +41,8 @@ class Command(BaseCommand):
                         name=school.display_label,
                         postal_code=record.get("code_postal") or "",
                         level=EligibleSchool.EducationLevel.SUP,
-                        matches_digital_domain=is_digital,
-                        matches_apprenticeship=True,
+                        matches_digital_domain=False,
+                        matches_digital_apprenticeship=is_digital,
                     )
                     distinct_uais_added.add(uai)
 

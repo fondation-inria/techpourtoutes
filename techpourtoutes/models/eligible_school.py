@@ -15,7 +15,7 @@ class EligibleSchoolManager(models.Manager):
         postal_code,
         level,
         matches_digital_domain,
-        matches_apprenticeship=False,
+        matches_digital_apprenticeship=False,
     ):
         school, _created = self.get_or_create(
             uai=uai,
@@ -24,14 +24,14 @@ class EligibleSchoolManager(models.Manager):
                 "postal_code": postal_code,
                 "education_level": level,
                 "matches_digital_domain": matches_digital_domain,
-                "matches_apprenticeship": matches_apprenticeship,
+                "matches_digital_apprenticeship": matches_digital_apprenticeship,
             },
         )
         school.merge(
             postal_code=postal_code,
             level=level,
             matches_digital_domain=matches_digital_domain,
-            matches_apprenticeship=matches_apprenticeship,
+            matches_digital_apprenticeship=matches_digital_apprenticeship,
         )
         school.save()
         return school
@@ -49,10 +49,10 @@ class EligibleSchool(BaseModel):
     postal_code = models.CharField(max_length=10, blank=True, verbose_name=_("code postal"))
     education_level = models.CharField(max_length=10, choices=EducationLevel.choices)
     matches_digital_domain = models.BooleanField(
-        default=False, verbose_name=_("formation numérique/informatique repérée")
+        default=False, verbose_name=_("propose une formation en informatique")
     )
-    matches_apprenticeship = models.BooleanField(
-        default=False, verbose_name=_("formation en apprentissage repérée")
+    matches_digital_apprenticeship = models.BooleanField(
+        default=False, verbose_name=_("propose une alternance en informatique")
     )
 
     objects = EligibleSchoolManager()
@@ -65,15 +65,17 @@ class EligibleSchool(BaseModel):
         self.name_normalized = strip_accents(self.name)
         super().save(*args, **kwargs)
 
-    def merge(self, *, postal_code, level, matches_digital_domain, matches_apprenticeship=False):
+    def merge(
+        self, *, postal_code, level, matches_digital_domain, matches_digital_apprenticeship=False
+    ):
         if not self.postal_code and postal_code:
             self.postal_code = postal_code
         if level != self.education_level:
             self.education_level = self.EducationLevel.BOTH
         if matches_digital_domain:
             self.matches_digital_domain = True
-        if matches_apprenticeship:
-            self.matches_apprenticeship = True
+        if matches_digital_apprenticeship:
+            self.matches_digital_apprenticeship = True
 
     def __str__(self):
         return f"{self.name} ({self.postal_code})"

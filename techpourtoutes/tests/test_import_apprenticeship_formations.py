@@ -74,7 +74,9 @@ def test_records_formation_for_known_higher_ed_school(higher_ed_school):
 
 
 @pytest.mark.django_db
-def test_digital_formation_sets_matches_digital_domain(higher_ed_school):
+def test_digital_formation_sets_matches_digital_apprenticeship_but_not_digital_domain(
+    higher_ed_school,
+):
     record = _record(
         higher_ed_school.uai,
         "f1",
@@ -83,7 +85,8 @@ def test_digital_formation_sets_matches_digital_domain(higher_ed_school):
     _call(_mock_response([record]))
 
     school = EligibleSchool.objects.get(uai=higher_ed_school.uai)
-    assert school.matches_digital_domain is True
+    assert school.matches_digital_apprenticeship is True
+    assert school.matches_digital_domain is False
 
 
 @pytest.mark.django_db
@@ -92,6 +95,7 @@ def test_non_digital_formation_does_not_set_matches_digital_domain(higher_ed_sch
 
     school = EligibleSchool.objects.get(uai=higher_ed_school.uai)
     assert school.matches_digital_domain is False
+    assert school.matches_digital_apprenticeship is False
 
 
 @pytest.mark.django_db

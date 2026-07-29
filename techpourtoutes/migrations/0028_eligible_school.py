@@ -22,8 +22,8 @@ class Migration(migrations.Migration):
                 ('name_normalized', models.CharField(blank=True, editable=False, max_length=255)),
                 ('postal_code', models.CharField(blank=True, max_length=10, verbose_name='code postal')),
                 ('education_level', models.CharField(choices=[('non_sup', 'Lycée'), ('sup', 'Supérieur'), ('both', 'Les deux')], max_length=10)),
-                ('matches_digital_domain', models.BooleanField(default=False, verbose_name='formation numérique/informatique repérée')),
-                ('matches_apprenticeship', models.BooleanField(default=False, verbose_name='formation en apprentissage repérée')),
+                ('matches_digital_domain', models.BooleanField(default=False, verbose_name='propose une formation en informatique')),
+                ('matches_digital_apprenticeship', models.BooleanField(default=False, verbose_name='propose une alternance en informatique')),
             ],
             options={
                 'verbose_name': 'établissement éligible',

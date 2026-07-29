@@ -10,8 +10,8 @@ class EligibleSchoolAdmin(admin.ModelAdmin):
         "postal_code",
         "education_level",
         "matches_digital_domain",
-        "matches_apprenticeship",
+        "matches_digital_apprenticeship",
     )
     list_display_links = list_display
     search_fields = ("name",)
-    list_filter = ("education_level", "matches_digital_domain", "matches_apprenticeship")
+    list_filter = ("education_level", "matches_digital_domain", "matches_digital_apprenticeship")

@@ -610,7 +610,7 @@ def test_eligible_school_record_never_resets_matches_digital_domain_to_false():
 
 
 @pytest.mark.django_db
-def test_eligible_school_record_never_resets_matches_apprenticeship_to_false():
+def test_eligible_school_record_never_resets_matches_digital_apprenticeship_to_false():
     from techpourtoutes.models import EligibleSchool
 
     EligibleSchool.objects.record(
@@ -619,7 +619,7 @@ def test_eligible_school_record_never_resets_matches_apprenticeship_to_false():
         postal_code="75011",
         level=EligibleSchool.EducationLevel.SUP,
         matches_digital_domain=False,
-        matches_apprenticeship=True,
+        matches_digital_apprenticeship=True,
     )
     school = EligibleSchool.objects.record(
         uai="0750001A",
@@ -627,14 +627,14 @@ def test_eligible_school_record_never_resets_matches_apprenticeship_to_false():
         postal_code="75011",
         level=EligibleSchool.EducationLevel.SUP,
         matches_digital_domain=False,
-        matches_apprenticeship=False,
+        matches_digital_apprenticeship=False,
     )
 
-    assert school.matches_apprenticeship is True
+    assert school.matches_digital_apprenticeship is True
 
 
 @pytest.mark.django_db
-def test_eligible_school_record_defaults_matches_apprenticeship_to_false():
+def test_eligible_school_record_defaults_matches_digital_apprenticeship_to_false():
     from techpourtoutes.models import EligibleSchool
 
     school = EligibleSchool.objects.record(
@@ -645,7 +645,7 @@ def test_eligible_school_record_defaults_matches_apprenticeship_to_false():
         matches_digital_domain=False,
     )
 
-    assert school.matches_apprenticeship is False
+    assert school.matches_digital_apprenticeship is False
 
 
 @pytest.mark.django_db
