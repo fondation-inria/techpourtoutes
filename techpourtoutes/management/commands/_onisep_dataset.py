@@ -27,7 +27,8 @@ def get_auth_headers():
 def fetch_all_records(dataset_id, headers, extra_params=None):
     records = []
     offset = 0
-    while True:
+    total = None
+    while total is None or offset < total:
         response = httpx.get(
             DATASET_URL.format(dataset_id=dataset_id),
             params={"size": PAGE_SIZE, "from": offset, **(extra_params or {})},
@@ -40,10 +41,11 @@ def fetch_all_records(dataset_id, headers, extra_params=None):
             )
         payload = response.json()
         results = payload["results"]
+        if not results:
+            break
         records.extend(results)
         offset += len(results)
-        if not results or offset >= payload["total"]:
-            break
+        total = payload["total"]
     return records
 
 

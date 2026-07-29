@@ -35,12 +35,12 @@ class Command(BaseCommand):
         headers = get_auth_headers()
         records = fetch_all_records(DATASET_ID, headers)
 
-        touched_uais = set()
+        distinct_uais_added = set()
         for record in records:
-            classified = self._classify(record, known_uais)
-            if classified is None:
+            school_data = self._eligible_school_from_record(record, known_uais)
+            if school_data is None:
                 continue
-            uai, name, postal_code, level, is_digital = classified
+            uai, name, postal_code, level, is_digital = school_data
             EligibleSchool.objects.record(
                 uai=uai,
                 name=name,
@@ -48,32 +48,35 @@ class Command(BaseCommand):
                 level=level,
                 matches_digital_domain=is_digital,
             )
-            touched_uais.add(uai)
+            distinct_uais_added.add(uai)
 
-        self.stdout.write(self.style.SUCCESS(f"  {len(touched_uais)} établissements importés."))
+        self.stdout.write(
+            self.style.SUCCESS(f"  {len(distinct_uais_added)} établissements importés.")
+        )
 
     def _sync_higher_ed_schools(self):
         for school in HigherEdSchool.objects.exclude(uai=""):
-            EligibleSchool.objects.record(
-                uai=school.uai,
-                name=school.display_label,
-                postal_code="",
-                level=EligibleSchool.EducationLevel.SUP,
-                matches_digital_domain=False,
-            )
+            for uai in school.uai.split(";"):
+                EligibleSchool.objects.record(
+                    uai=uai,
+                    name=school.display_label,
+                    postal_code="",
+                    level=EligibleSchool.EducationLevel.SUP,
+                    matches_digital_domain=False,
+                )
 
-    def _classify(self, record, known_uais):
+    def _eligible_school_from_record(self, record, known_uais):
         uai = record.get("ens_code_uai")
         if not uai:
             return None
-        libelle = record.get("formation_for_libelle", "")
+        label = record.get("formation_for_libelle", "")
         name = record.get("lieu_denseignement_ens_libelle", "")
         postal_code = record.get("ens_code_postal", "")
 
         if (
             record.get("for_type") == CPGE_FOR_TYPE
             and record.get("ens_statut") in ACCEPTED_STATUSES
-            and matches_any_acronym(libelle, CPGE_ACRONYMS)
+            and matches_any_acronym(label, CPGE_ACRONYMS)
         ):
             return uai, name, postal_code, EligibleSchool.EducationLevel.BOTH, True
 
@@ -97,5 +100,5 @@ class Command(BaseCommand):
         domain = record.get("for_indexation_domaine_web_onisep", "").lower()
         if any(keyword in domain for keyword in DIGITAL_KEYWORDS):
             return True
-        libelle = record.get("formation_for_libelle", "").lower()
-        return any(keyword in libelle for keyword in DIGITAL_KEYWORDS)
+        label = record.get("formation_for_libelle", "").lower()
+        return any(keyword in label for keyword in DIGITAL_KEYWORDS)

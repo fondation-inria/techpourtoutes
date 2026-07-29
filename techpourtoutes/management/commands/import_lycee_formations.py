@@ -22,25 +22,31 @@ class Command(BaseCommand):
             )
         ]
 
-        count = 0
+        distinct_uais_added = set()
         for record in records:
-            if not self._is_matched(record):
+            school_data = self._eligible_school_from_record(record)
+            if school_data is None:
                 continue
-            uai = record.get("ens_code_uai")
-            if not uai:
-                continue
+            uai, name, postal_code, level, is_digital = school_data
             EligibleSchool.objects.record(
                 uai=uai,
-                name=record["lieu_denseignement_ens_libelle"],
-                postal_code=record.get("ens_code_postal", ""),
-                level=EligibleSchool.EducationLevel.NON_SUP,
-                matches_digital_domain=True,
+                name=name,
+                postal_code=postal_code,
+                level=level,
+                matches_digital_domain=is_digital,
             )
-            count += 1
+            distinct_uais_added.add(uai)
 
-        self.stdout.write(self.style.SUCCESS(f"  {count} établissements importés."))
+        self.stdout.write(
+            self.style.SUCCESS(f"  {len(distinct_uais_added)} établissements importés.")
+        )
 
-    def _is_matched(self, record):
-        if record.get("ens_statut") not in ACCEPTED_STATUSES:
-            return False
-        return matches_any_acronym(record.get("formation_for_libelle", ""), CRITERIA_ACRONYMS)
+    def _eligible_school_from_record(self, record):
+        uai = record.get("ens_code_uai")
+        if not uai:
+            return None
+        if not matches_any_acronym(record.get("formation_for_libelle", ""), CRITERIA_ACRONYMS):
+            return None
+        name = record["lieu_denseignement_ens_libelle"]
+        postal_code = record.get("ens_code_postal", "")
+        return uai, name, postal_code, EligibleSchool.EducationLevel.NON_SUP, True
