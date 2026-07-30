@@ -10,7 +10,7 @@ CRITERIA_ACRONYMS = ["CIEL", "STMG", "STI2D", "TSI", "STL"]
 
 
 class Command(BaseCommand):
-    help = "Repère les lycées (bac CIEL / bac techno) pertinents depuis l'API ONISEP"
+    help = "Importe les lycées (bac CIEL / bac techno) pertinents depuis l'API ONISEP"
 
     def handle(self, *args, **options):
         headers = get_auth_headers()

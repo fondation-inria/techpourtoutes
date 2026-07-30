@@ -26,7 +26,7 @@ DIGITAL_KEYWORDS = ["informatique", "réseau"]
 
 
 class Command(BaseCommand):
-    help = "Repère les établissements du supérieur (CPGE + informatique/réseau) via l'API ONISEP"
+    help = "Importe les établissements du supérieur (CPGE + informatique/réseau) via l'API ONISEP"
 
     def handle(self, *args, **options):
         self._sync_higher_ed_schools()

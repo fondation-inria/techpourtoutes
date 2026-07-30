@@ -21,7 +21,7 @@ DIGITAL_KEYWORDS = ["informatique", "réseau"]
 
 class Command(BaseCommand):
     help = (
-        "Repère les formations en apprentissage des établissements du supérieur connus "
+        "Importe les formations en apprentissage des établissements des 3 conférences "
         "via le Catalogue Apprentissage (intercariforef)"
     )
 
@@ -92,5 +92,5 @@ class Command(BaseCommand):
         domain = record.get("onisep_domaine_sousdomaine") or ""
         discipline = record.get("onisep_discipline") or ""
         label = record.get("intitule_long") or ""
-        haystack = f"{domain} {discipline} {label}".lower()
-        return any(keyword in haystack for keyword in DIGITAL_KEYWORDS)
+        combined_labels = f"{domain} {discipline} {label}".lower()
+        return any(keyword in combined_labels for keyword in DIGITAL_KEYWORDS)
