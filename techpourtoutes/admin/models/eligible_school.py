@@ -7,11 +7,12 @@ from techpourtoutes.models import EligibleSchool
 class EligibleSchoolAdmin(admin.ModelAdmin):
     list_display = (
         "name",
+        "uai",
         "postal_code",
         "education_level",
         "matches_digital_domain",
         "matches_digital_apprenticeship",
     )
     list_display_links = list_display
-    search_fields = ("name",)
+    search_fields = ("name", "uai")
     list_filter = ("education_level", "matches_digital_domain", "matches_digital_apprenticeship")
