@@ -705,13 +705,13 @@ def test_soft_delete_anonymizes_expected_fields(pro):
     original_pk = pro.pk
     original_professional_situation = pro.professional_situation
     original_engagements = pro.engagements
+    original_postal_code = pro.postal_code
     original_structure_name = pro.structure_name
     original_structure_id = pro.structure_id
     original_civility = pro.civility
     original_job_title = pro.job_title
 
     pro.soft_delete()
-    pro.save()
     pro.refresh_from_db()
 
     assert not pro.is_active
@@ -725,13 +725,13 @@ def test_soft_delete_anonymizes_expected_fields(pro):
     assert not pro.brevo_sync_enabled
 
     assert pro.phone == ""
-    assert pro.postal_code == ""
     assert pro.faveod_id is None
     assert pro.jobirl_user_id is None
     assert pro.jobirl_user_token == ""
 
     assert pro.professional_situation == original_professional_situation
     assert pro.engagements == original_engagements
+    assert pro.postal_code == original_postal_code
     assert pro.structure_name == original_structure_name
     assert pro.structure_id == original_structure_id
     assert pro.civility == original_civility
@@ -743,9 +743,9 @@ def test_soft_delete_anonymizes_expected_fields_for_beneficiary(beneficiary):
     from techpourtoutes.models import Beneficiary
 
     original_pk = beneficiary.pk
+    original_postal_code = beneficiary.postal_code
 
     beneficiary.soft_delete()
-    beneficiary.save()
     beneficiary.refresh_from_db()
 
     assert not beneficiary.is_active
@@ -759,9 +759,9 @@ def test_soft_delete_anonymizes_expected_fields_for_beneficiary(beneficiary):
     assert not beneficiary.brevo_sync_enabled
 
     assert beneficiary.phone == ""
-    assert beneficiary.postal_code == ""
     assert beneficiary.jobirl_user_id is None
     assert beneficiary.jobirl_user_token == ""
 
     assert isinstance(beneficiary, Beneficiary)
     assert beneficiary.birth_date is None
+    assert beneficiary.postal_code == original_postal_code

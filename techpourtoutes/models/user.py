@@ -237,7 +237,6 @@ class User(BaseModel, AbstractUser):
         self.username = f"deleted_{self.pk}"
         self.email = f"deleted_{self.pk}@deleted.local"
         self.phone = ""
-        self.postal_code = ""
         self.login_token_hash = ""
         self.login_token_expires_at = None
         self.login_code_hash = ""
