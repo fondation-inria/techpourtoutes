@@ -2,7 +2,13 @@ import pytest
 from django.core import mail
 from django.test import override_settings
 
-from techpourtoutes.mailers import AuthMailer, CoalitionInternalMailer, CoalitionUserMailer
+from techpourtoutes.mailers import (
+    AccountInternalMailer,
+    AccountMailer,
+    AuthMailer,
+    CoalitionInternalMailer,
+    CoalitionUserMailer,
+)
 from techpourtoutes.models import Pro
 
 
@@ -133,11 +139,11 @@ def test_login_code_attaches_its_brevo_tags(pro):
 
 @pytest.mark.django_db
 @override_settings(EMAIL_BACKEND="django.core.mail.backends.locmem.EmailBackend")
-def test_delete_account_sends_confirmation_email_to_user(pro):
-    CoalitionUserMailer.delete_account(
+def test_delete_account_sends_confirmation_email_with_vous_form_to_pro(pro):
+    AccountMailer.delete_account(
         recipient_email=pro.email,
         first_name=pro.first_name,
-        engagements=[],
+        is_pro=True,
     )
 
     assert len(mail.outbox) == 1
@@ -145,15 +151,34 @@ def test_delete_account_sends_confirmation_email_to_user(pro):
     assert message.to == [pro.email]
     assert message.subject == "Confirmation de suppression de votre compte"
     assert pro.first_name in message.body
+    assert "vous confirmons" in message.body
 
 
 @pytest.mark.django_db
 @override_settings(EMAIL_BACKEND="django.core.mail.backends.locmem.EmailBackend")
-def test_delete_account_email_includes_jobirl_information_for_mentor(pro):
-    CoalitionUserMailer.delete_account(
+def test_delete_account_sends_confirmation_email_with_tu_form_to_beneficiary(beneficiary):
+    AccountMailer.delete_account(
+        recipient_email=beneficiary.email,
+        first_name=beneficiary.first_name,
+        is_pro=False,
+    )
+
+    assert len(mail.outbox) == 1
+    message = mail.outbox[0]
+    assert message.to == [beneficiary.email]
+    assert message.subject == "Confirmation de suppression de ton compte"
+    assert beneficiary.first_name in message.body
+    assert "te confirmons" in message.body
+
+
+@pytest.mark.django_db
+@override_settings(EMAIL_BACKEND="django.core.mail.backends.locmem.EmailBackend")
+def test_delete_account_email_includes_jobirl_information_for_pro_with_jobirl_account(pro):
+    AccountMailer.delete_account(
         recipient_email=pro.email,
         first_name=pro.first_name,
-        engagements=[Pro.Engagement.MENTOR],
+        is_pro=True,
+        has_jobirl_account=True,
     )
 
     body = mail.outbox[0].body
@@ -164,11 +189,47 @@ def test_delete_account_email_includes_jobirl_information_for_mentor(pro):
 
 @pytest.mark.django_db
 @override_settings(EMAIL_BACKEND="django.core.mail.backends.locmem.EmailBackend")
-def test_delete_account_email_omits_jobirl_information_for_non_mentor(pro):
-    CoalitionUserMailer.delete_account(
+def test_delete_account_email_omits_jobirl_information_for_pro_without_jobirl_account(pro):
+    AccountMailer.delete_account(
         recipient_email=pro.email,
         first_name=pro.first_name,
-        engagements=[],
+        is_pro=True,
+        has_jobirl_account=False,
+    )
+
+    body = mail.outbox[0].body
+
+    assert "JobIRL" not in body
+    assert "e-mentorat@jobirl.com" not in body
+
+
+@pytest.mark.django_db
+@override_settings(EMAIL_BACKEND="django.core.mail.backends.locmem.EmailBackend")
+def test_delete_account_email_includes_jobirl_information_for_beneficiary_with_jobirl_account(
+    beneficiary,
+):
+    AccountMailer.delete_account(
+        recipient_email=beneficiary.email,
+        first_name=beneficiary.first_name,
+        is_pro=False,
+        has_jobirl_account=True,
+    )
+
+    body = mail.outbox[0].body
+
+    assert "JobIRL" in body
+    assert "e-mentorat@jobirl.com" in body
+
+
+@pytest.mark.django_db
+@override_settings(EMAIL_BACKEND="django.core.mail.backends.locmem.EmailBackend")
+def test_delete_account_email_omits_jobirl_information_for_beneficiary_without_jobirl_account(
+    beneficiary,
+):
+    AccountMailer.delete_account(
+        recipient_email=beneficiary.email,
+        first_name=beneficiary.first_name,
+        is_pro=False,
     )
 
     body = mail.outbox[0].body
@@ -180,15 +241,14 @@ def test_delete_account_email_omits_jobirl_information_for_non_mentor(pro):
 @pytest.mark.django_db
 @override_settings(EMAIL_BACKEND="django.core.mail.backends.locmem.EmailBackend")
 def test_delete_account_confirmation_attaches_its_brevo_tags(pro):
-    CoalitionUserMailer.delete_account(
+    AccountMailer.delete_account(
         recipient_email=pro.email,
         first_name=pro.first_name,
-        engagements=[],
+        is_pro=True,
     )
 
     assert mail.outbox[0].tags == [
         "utilisateur",
-        "coalition",
         "suppression du compte",
     ]
 
@@ -196,10 +256,10 @@ def test_delete_account_confirmation_attaches_its_brevo_tags(pro):
 @pytest.mark.django_db
 @override_settings(
     EMAIL_BACKEND="django.core.mail.backends.locmem.EmailBackend",
-    COALITION_ACCOUNT_DELETION_RECIPIENTS=["dpo@example.com"],
+    ACCOUNT_DELETION_RECIPIENTS=["dpo@example.com"],
 )
 def test_delete_account_request_sends_email_to_configured_recipients(pro):
-    CoalitionInternalMailer.delete_account_request(
+    AccountInternalMailer.delete_account_request(
         first_name=pro.first_name,
         last_name=pro.last_name,
         jobirl_id=pro.jobirl_user_id,
@@ -220,10 +280,10 @@ def test_delete_account_request_sends_email_to_configured_recipients(pro):
 @pytest.mark.django_db
 @override_settings(
     EMAIL_BACKEND="django.core.mail.backends.locmem.EmailBackend",
-    COALITION_ACCOUNT_DELETION_RECIPIENTS=["dpo@example.com"],
+    ACCOUNT_DELETION_RECIPIENTS=["dpo@example.com"],
 )
 def test_delete_account_request_attaches_its_brevo_tags(pro):
-    CoalitionInternalMailer.delete_account_request(
+    AccountInternalMailer.delete_account_request(
         first_name=pro.first_name,
         last_name=pro.last_name,
         jobirl_id=pro.jobirl_user_id,
@@ -231,6 +291,5 @@ def test_delete_account_request_attaches_its_brevo_tags(pro):
 
     assert mail.outbox[0].tags == [
         "interne",
-        "coalition",
         "suppression du compte",
     ]

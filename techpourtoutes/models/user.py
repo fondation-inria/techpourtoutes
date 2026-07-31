@@ -91,6 +91,12 @@ class User(BaseModel, AbstractUser):
         verbose_name=_("code postal"),
     )
     phone = PhoneNumberField(region="FR", blank=True, verbose_name=_("téléphone"))
+    jobirl_user_id = models.BigIntegerField(
+        null=True, blank=True, verbose_name=_("identifiant utilisateur jobirl")
+    )
+    jobirl_user_token = models.CharField(
+        max_length=128, blank=True, verbose_name=_("token utilisateur jobirl")
+    )
 
     class Meta(AbstractUser.Meta):
         abstract = False
@@ -230,12 +236,16 @@ class User(BaseModel, AbstractUser):
         self.last_name = ""
         self.username = f"deleted_{self.pk}"
         self.email = f"deleted_{self.pk}@deleted.local"
+        self.phone = ""
+        self.postal_code = ""
         self.login_token_hash = ""
         self.login_token_expires_at = None
         self.login_code_hash = ""
         self.login_code_expires_at = None
         self.login_code_attempts = 0
         self.brevo_sync_enabled = False
+        self.jobirl_user_id = None
+        self.jobirl_user_token = ""
         self.save()
 
 
