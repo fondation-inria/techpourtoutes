@@ -524,8 +524,8 @@ def test_training_ambassador_new_pro_receives_welcome_email(
         ) as new_engagement,
         patch.object(
             CoalitionUserMailer,
-            "welcome",
-        ) as welcome,
+            "welcome_training_ambassador",
+        ) as welcome_training_ambassador,
     ):
         response = client.post(
             reverse("training_ambassador_landing"),
@@ -538,7 +538,7 @@ def test_training_ambassador_new_pro_receives_welcome_email(
 
     new_training_ambassador.assert_called_once()
     new_engagement.assert_not_called()
-    welcome.assert_called_once()
+    welcome_training_ambassador.assert_called_once()
 
 
 @pytest.mark.django_db

@@ -28,12 +28,11 @@ class CoalitionUserMailer(BaseMailer):
         )
 
     @classmethod
-    def welcome_training_ambassador(cls, *, pro, token):
-        login_url = f"{settings.SITE_URL}{reverse('login_verify', args=[token])}"
+    def welcome_training_ambassador(cls, *, pro):
         cls.send_mail(
             subject="Bienvenue dans la Coalition !",
             recipient_list=[pro.email],
-            context={"pro": pro, "login_url": login_url},
+            context={"pro": pro},
             tags=["utilisateur", "coalition", "ambassadrice étudiante", "mail de bienvenue"],
         )
 
