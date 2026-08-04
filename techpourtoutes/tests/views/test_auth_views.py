@@ -792,3 +792,113 @@ def test_email_change_resend_remails(_code, client, pro):
     assert mail.outbox[0].to == [pro.email]
     stored = [str(m) for m in get_messages(response.wsgi_request)]
     assert "Un nouveau code vous a été envoyé par mail." in stored
+
+
+@pytest.mark.django_db
+def test_account_page_shows_communication_checkbox_checked_when_synced(client, pro):
+    client.force_login(pro)
+    content = client.get(reverse("account")).content.decode()
+    assert "Je veux recevoir ponctuellement des nouvelles de TechPourToutes" in content
+    assert "account-communication-card" in content
+    assert "checked" in content
+
+
+@pytest.mark.django_db
+def test_account_communication_opt_in_enables_brevo_sync(client, pro):
+    pro.brevo_sync_enabled = False
+    pro.save()
+    client.force_login(pro)
+
+    response = client.post(reverse("account_communication"), data={"newsletter_consent": "on"})
+
+    assert response.status_code == 200
+    pro.refresh_from_db()
+    assert pro.brevo_sync_enabled is True
+
+
+@pytest.mark.django_db
+def test_account_communication_opt_out_disables_brevo_sync(client, pro):
+    client.force_login(pro)
+
+    response = client.post(reverse("account_communication"), data={})
+
+    assert response.status_code == 200
+    pro.refresh_from_db()
+    assert pro.brevo_sync_enabled is False
+
+
+@pytest.mark.django_db(transaction=True)
+def test_account_communication_opt_out_dispatches_delete(client, pro):
+    client.force_login(pro)
+
+    with patch("techpourtoutes.signals.delete_brevo_contact_task") as delete_task:
+        client.post(reverse("account_communication"), data={})
+
+    delete_task.delay.assert_called_once_with(str(pro.pk), 42)
+
+
+@pytest.fixture
+def experience(pro, higher_ed_school):
+    from techpourtoutes.models import TrainingExperience
+
+    return TrainingExperience.objects.create(
+        pro=pro, higher_ed_school=higher_ed_school, course="Master Informatique"
+    )
+
+
+@pytest.mark.django_db
+def test_account_page_lists_a_card_per_training_experience(client, pro, experience):
+    client.force_login(pro)
+    content = client.get(reverse("account")).content.decode()
+    assert f"training-experience-{experience.pk}" in content
+    assert "Master Informatique" in content
+
+
+@pytest.mark.django_db
+def test_training_experience_edit_get_prefills_form(client, pro, experience):
+    client.force_login(pro)
+    response = client.get(reverse("training_experience_edit", args=[experience.pk]))
+    assert response.status_code == 200
+    assert response.context["form"].initial["course"] == "Master Informatique"
+
+
+@pytest.mark.django_db
+def test_training_experience_edit_post_updates_experience(client, pro, experience):
+    other = _another_school()
+    client.force_login(pro)
+
+    response = client.post(
+        reverse("training_experience_edit", args=[experience.pk]),
+        data={"higher_ed_school_id": str(other.id), "course": "Doctorat"},
+    )
+
+    assert response.status_code == 200
+    experience.refresh_from_db()
+    assert experience.course == "Doctorat"
+    assert experience.higher_ed_school == other
+
+
+@pytest.mark.django_db
+def test_training_experience_cannot_be_edited_by_another_pro(client, experience):
+    from techpourtoutes.models import Pro
+
+    intruder = Pro(
+        username="eve@example.com",
+        email="eve@example.com",
+        civility="Madame",
+        professional_situation="student",
+        job_title="Étudiante",
+    )
+    intruder.save()
+    client.force_login(intruder)
+
+    response = client.get(reverse("training_experience_edit", args=[experience.pk]))
+    assert response.status_code == 404
+
+
+def _another_school():
+    from techpourtoutes.models import HigherEdSchool
+
+    school = HigherEdSchool(full_name="École polytechnique", name="X", uai="0911568K")
+    school.save()
+    return school
