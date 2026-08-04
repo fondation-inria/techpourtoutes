@@ -1,5 +1,5 @@
 <div id="funnel-step" class="w-full flex flex-col gap-y-6 my-auto">
-    {% include "beneficiary/partials/inscription/error.html" %}
+    <c-layout.partials.messages wrapper_class="w-full flex flex-col gap-y-2" />
     <c-components.card nobg=True>
         <c-patterns.form
             hx-post="{% url 'inscription_funnel' %}"
@@ -21,10 +21,14 @@
                 <c-components.button type="submit" label="Continuer" />
             </div>
         </c-patterns.form>
-        <c-components.button
-            type="button"
-            variant="quaternary"
-            label="Je n'ai pas reçu de code"
-            class="w-fit mx-auto" />
+        <c-patterns.form
+            hx-post="{% url 'inscription_funnel' %}"
+            hx-target="#funnel-step"
+            hx-swap="outerHTML"
+            class="mt-2 items-center">
+            <input type="hidden" name="step" value="resend">
+            <input type="hidden" name="email" value="{{ email }}">
+            <c-components.button type="submit" variant="quaternary" label="Je n'ai pas reçu de code" />
+        </c-patterns.form>
     </c-components.card>
 </div>

@@ -21,6 +21,7 @@ document.addEventListener("alpine:init", () => {
             const params = event.detail.parameters;
             const control = ["step", "to", "csrfmiddlewaretoken"];
             const stored = { ...this.answers };
+            this.forgetAnswersOf(event.detail.elt, stored);
             Object.keys(params).forEach((key) => {
                 if (!control.includes(key)) stored[key] = params[key];
             });
@@ -28,6 +29,13 @@ document.addEventListener("alpine:init", () => {
             Object.keys(stored).forEach((key) => {
                 if (!(key in params)) params[key] = stored[key];
             });
+        },
+
+        // A submitted screen replaces its own answers rather than merging into them: an unchecked
+        // box sends nothing, so without this its previous value would come back on every request.
+        forgetAnswersOf(element, stored) {
+            if (element.tagName !== "FORM") return;
+            element.querySelectorAll("[name]").forEach((field) => delete stored[field.name]);
         },
 
         reset() {

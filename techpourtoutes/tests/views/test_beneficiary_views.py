@@ -109,6 +109,8 @@ def test_existing_email_redirects_to_login(client, beneficiary_mode):
     response = client.post(FUNNEL_URL, {"step": "email", "email": "taken@example.com"})
     assert "se-connecter" in response["HX-Redirect"]
     assert f"back={quote('/', safe='')}" in response["HX-Redirect"]
+    # A dead-end too: the client must not keep answers it can never submit.
+    assert "funnelReset" in response["HX-Trigger"]
 
 
 @pytest.mark.django_db
@@ -227,12 +229,43 @@ def test_code_step_with_invalid_code_shows_error(client, beneficiary_mode):
 
 
 @pytest.mark.django_db
+@override_settings(EMAIL_BACKEND="django.core.mail.backends.locmem.EmailBackend")
+def test_resend_step_mails_a_new_code_and_stays_on_the_code_screen(client, beneficiary_mode):
+    beneficiary = Beneficiary.objects.create(
+        username="oceane@example.com", email="oceane@example.com", first_name="Océane"
+    )
+    beneficiary.issue_login_code()
+    previous_hash = beneficiary.login_code_hash
+
+    response = client.post(FUNNEL_URL, {"step": "resend", "email": beneficiary.email})
+
+    assert response.status_code == 200
+    assert b"Saisis le code" in response.content
+    assert "a été envoyé par mail.".encode() in response.content
+    beneficiary.refresh_from_db()
+    assert beneficiary.login_code_hash != previous_hash
+    assert len(mail.outbox) == 1
+    assert mail.outbox[0].subject == "Ton code de connexion à TechPourToutes"
+
+
+@pytest.mark.django_db
+@override_settings(EMAIL_BACKEND="django.core.mail.backends.locmem.EmailBackend")
+def test_resend_step_with_unknown_email_sends_nothing(client, beneficiary_mode):
+    response = client.post(FUNNEL_URL, {"step": "resend", "email": "inconnue@example.com"})
+
+    assert response.status_code == 200
+    assert b"Saisis le code" in response.content
+    assert mail.outbox == []
+
+
+@pytest.mark.django_db
 def test_details_step_routes_back_to_furthest_invalid_step_with_error(client, beneficiary_mode):
     # Email and study status are fine, but the birth date is invalid: the user is sent back
     # to the identity step (the furthest-back screen that needs correcting), not to email.
     response = client.post(FUNNEL_URL, _details_post(birth_date="not-a-date"))
 
     assert b'name="step" value="identity"' in response.content
+    assert "Certaines informations sont incomplètes ou invalides".encode() in response.content
     assert not Beneficiary.objects.exists()
 
 
@@ -242,6 +275,7 @@ def test_details_step_does_not_create_when_email_is_missing(client, beneficiary_
 
     assert response.status_code == 200
     assert b'name="step" value="email"' in response.content
+    assert b"Ton adresse mail n" in response.content
     assert not Beneficiary.objects.exists()
 
 

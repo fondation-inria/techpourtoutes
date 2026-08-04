@@ -16,6 +16,7 @@ from ..forms import (
 )
 from ..mailers import AuthMailer, BeneficiaryMailer
 from ..models import Beneficiary, User
+from ..ratelimit import rate_limit
 
 # The funnel steps in order — the single source of truth navigation is derived from.
 _STEPS = ("email", "identity", "study_status", "details")
@@ -67,8 +68,9 @@ def inscription_funnel(request):
         "email": _advance,
         "identity": _advance,
         "study_status": _advance,
-        "details": _handle_details,
+        "details": _create_beneficiary,
         "code": _handle_code,
+        "resend": _handle_resend,
         "back": _handle_back,
     }
     handler = handlers.get(request.POST.get("step"), _advance)
@@ -94,7 +96,7 @@ def _advance(request):
     return _render_step(request, _next_step(step))
 
 
-def _handle_details(request):
+def _create_beneficiary(request):
     # The client can't be trusted, so the whole payload is re-validated here, reusing each step's
     # validator. On the first failure the user is sent back to that screen with an error banner.
     try:
@@ -131,7 +133,19 @@ def _handle_code(request):
         user.backend = "django.contrib.auth.backends.ModelBackend"
         login(request, user)
         return HttpResponse(headers={"HX-Redirect": reverse("account")})
-    return _render_step(request, "code", email=email, error=_CODE_ERROR)
+    return _render_step_with_error(request, "code", _CODE_ERROR, email=email)
+
+
+@rate_limit("RATELIMIT_LOGIN", keys=("email",))
+def _handle_resend(request):
+    # "Je n'ai pas reçu de code": mail a fresh code and stay on the screen. Like the login page,
+    # an unknown email gets the same confirmation rather than revealing that no account exists.
+    email = request.POST.get("email", "")
+    user = User.objects.filter(email=email, is_active=True).first()
+    if user is not None:
+        AuthMailer.login_code(user=user, code=user.issue_login_code())
+    messages.success(request, _RESEND_NOTICE)
+    return _render_step(request, "code", email=email)
 
 
 def _handle_back(request):
@@ -151,7 +165,7 @@ class _StepInterrupt(Exception):
 def _validate_email(request, *, error=None):
     form = BeneficiaryEmailForm(data=request.POST)
     if not form.is_valid():
-        raise _StepInterrupt(_render_step(request, "email", form=form, error=error))
+        raise _StepInterrupt(_render_step_with_error(request, "email", error, form=form))
     existing = _login_redirect_for_existing_email(request, form.cleaned_data["email"])
     if existing is not None:
         raise _StepInterrupt(existing)
@@ -161,7 +175,7 @@ def _validate_email(request, *, error=None):
 def _validate_identity(request, *, error=None):
     form = BeneficiaryIdentityForm(data=request.POST)
     if not form.is_valid():
-        raise _StepInterrupt(_render_step(request, "identity", form=form, error=error))
+        raise _StepInterrupt(_render_step_with_error(request, "identity", error, form=form))
     age = _age(form.cleaned_data["birth_date"])
     if age < 15 or age > 25:
         raise _StepInterrupt(_render_terminal(request, "too_young" if age < 15 else "too_old"))
@@ -171,7 +185,7 @@ def _validate_identity(request, *, error=None):
 def _validate_study(request, *, error=None):
     form = BeneficiaryStudyStatusForm(data=request.POST)
     if not form.is_valid():
-        raise _StepInterrupt(_render_step(request, "study_status", form=form, error=error))
+        raise _StepInterrupt(_render_step_with_error(request, "study_status", error, form=form))
     return form.cleaned_data
 
 
@@ -190,6 +204,7 @@ _IDENTITY_ERROR = (
 )
 _STUDY_ERROR = "Indique où tu en es dans tes études pour continuer."
 _CODE_ERROR = "Code invalide ou expiré."
+_RESEND_NOTICE = "Un nouveau code t'a été envoyé par mail."
 
 
 def _login_redirect_for_existing_email(request, email):
@@ -199,7 +214,9 @@ def _login_redirect_for_existing_email(request, email):
     messages.error(request, "Un compte existe déjà avec cet email.")
     back_url = reverse("coalition_home" if hasattr(user, "pro") else "home")
     login_url = f"{reverse('login_request')}?{urlencode({'back': back_url})}"
-    return HttpResponse(headers={"HX-Redirect": login_url})
+    # A dead-end like the age gates: the answers must not survive, or the client would resume
+    # the funnel on an email it can never submit.
+    return HttpResponse(headers={"HX-Redirect": login_url, "HX-Trigger": "funnelReset"})
 
 
 def _age(birth_date):
@@ -244,6 +261,14 @@ def _has_answer_for(form_class, data):
 def _render_step(request, step, *, form=None, **extra):
     context = _step_context(request, step, form, **extra)
     return render(request, f"beneficiary/partials/inscription/{step}.html", context)
+
+
+def _render_step_with_error(request, step, error, **extra):
+    # `error` is only set when the user is bounced back from a later screen and needs telling why;
+    # a failure on the screen she is already on speaks for itself through the field errors.
+    if error:
+        messages.error(request, error)
+    return _render_step(request, step, **extra)
 
 
 def _render_terminal(request, template):
