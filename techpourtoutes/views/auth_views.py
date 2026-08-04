@@ -189,6 +189,7 @@ def account_edit(request):
     form_class = AccountEditForm if is_pro else BeneficiaryAccountEditForm
     form_kwarg = "pro" if is_pro else "beneficiary"
 
+    form = form_class(**{form_kwarg: user})
     if request.method == "POST":
         form = form_class(data=request.POST, **{form_kwarg: user})
         if form.is_valid():
@@ -198,18 +199,11 @@ def account_edit(request):
                 "account/partials/info_card.html",
                 {"user": user, "is_pro": is_pro, "is_beneficiary": is_beneficiary},
             )
-        return render(
-            request,
-            "account/partials/edit_form.html",
-            {"form": form, "user": user, "is_pro": is_pro, "is_beneficiary": is_beneficiary},
-        )
-    else:
-        form = form_class(**{form_kwarg: user})
-        return render(
-            request,
-            "account/partials/edit_form.html",
-            {"form": form, "user": user, "is_pro": is_pro, "is_beneficiary": is_beneficiary},
-        )
+    return render(
+        request,
+        "account/partials/edit_form.html",
+        {"form": form, "user": user, "is_pro": is_pro, "is_beneficiary": is_beneficiary},
+    )
 
 
 @login_required

@@ -101,7 +101,7 @@ def school_year_label(start_date, end_date):
 
 def current_school_year_start_date():
     today = timezone.localdate()
-    start_year = today.year if today.month >= SCHOOL_YEAR_ROLLOVER_MONTH else today.year - 1
+    start_year = today.year if today.month > SCHOOL_YEAR_ROLLOVER_MONTH else today.year - 1
     return date(start_year, 9, 1)
 
 
