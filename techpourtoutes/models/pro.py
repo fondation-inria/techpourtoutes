@@ -22,13 +22,6 @@ class Pro(User):
         RETIRED = "retired", _("À la retraite")
         JOBLESS = "jobless", _("Sans emploi")
 
-    class Civility(models.TextChoices):
-        MADAME = "Madame", _("Madame")
-        MONSIEUR = "Monsieur", _("Monsieur")
-
-    civility = models.CharField(
-        max_length=10, choices=Civility.choices, verbose_name=_("civilité")
-    )
     professional_situation = models.CharField(
         max_length=20,
         choices=ProfessionalSituation.choices,

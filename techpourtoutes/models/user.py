@@ -27,11 +27,18 @@ class ActiveUserManager(UserManager):
 
 
 class User(BaseModel, AbstractUser):
+    class Civility(models.TextChoices):
+        MADAME = "Madame", _("Madame")
+        MONSIEUR = "Monsieur", _("Monsieur")
+
     objects = ActiveUserManager()
     all_objects = models.Manager()
     email = models.EmailField(
         _("adresse mail"),
         validators=[EmailValidator(message=_("Saisissez une adresse mail valide."))],
+    )
+    civility = models.CharField(
+        max_length=10, choices=Civility.choices, blank=True, verbose_name=_("civilité")
     )
     login_token_hash = models.CharField(
         max_length=64,
