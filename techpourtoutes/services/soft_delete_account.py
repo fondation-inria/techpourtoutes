@@ -8,6 +8,8 @@ class SoftDeleteAccount(BaseService):
     def perform(self, *, user):
         jobirl_id = user.jobirl_user_id
         AccountMailer.deletion_confirmation(user=user)
-        if jobirl_id is not None or (isinstance(user, Pro) and "workshops" in user.engagements):
-            AccountMailer.request_external_account_deletion(user=user)
+        if jobirl_id is not None:
+            AccountMailer.request_jobirl_account_deletion(user=user)
+        if isinstance(user, Pro) and "workshops" in user.engagements:
+            AccountMailer.request_latitudes_account_deletion(user=user)
         user.soft_delete()

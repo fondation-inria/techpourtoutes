@@ -230,13 +230,13 @@ def test_delete_account_confirmation_attaches_its_brevo_tags(pro):
 @pytest.mark.django_db
 @override_settings(
     EMAIL_BACKEND="django.core.mail.backends.locmem.EmailBackend",
-    EXTERNAL_ACCOUNT_DELETION_RECIPIENTS=["dpo@example.com"],
+    JOBIRL_ACCOUNT_DELETION_RECIPIENTS=["dpo@example.com"],
 )
-def test_delete_account_request_sends_email_to_configured_recipients(pro):
+def test_delete_jobirl_account_request_sends_email_to_configured_recipients(pro):
     pro.jobirl_user_id = 12345
     pro.save()
 
-    AccountMailer.request_external_account_deletion(user=pro)
+    AccountMailer.request_jobirl_account_deletion(user=pro)
 
     assert len(mail.outbox) == 1
     message = mail.outbox[0]
@@ -253,10 +253,43 @@ def test_delete_account_request_sends_email_to_configured_recipients(pro):
 @pytest.mark.django_db
 @override_settings(
     EMAIL_BACKEND="django.core.mail.backends.locmem.EmailBackend",
-    EXTERNAL_ACCOUNT_DELETION_RECIPIENTS=["dpo@example.com"],
+    JOBIRL_ACCOUNT_DELETION_RECIPIENTS=["dpo@example.com"],
 )
-def test_delete_account_request_attaches_its_brevo_tags(pro):
-    AccountMailer.request_external_account_deletion(user=pro)
+def test_delete_jobirl_account_request_attaches_its_brevo_tags(pro):
+    AccountMailer.request_jobirl_account_deletion(user=pro)
+
+    assert mail.outbox[0].tags == [
+        "interne",
+        "suppression du compte",
+    ]
+
+
+@pytest.mark.django_db
+@override_settings(
+    EMAIL_BACKEND="django.core.mail.backends.locmem.EmailBackend",
+    LATITUDE_ACCOUNT_DELETION_RECIPIENTS=["latitudes@example.com"],
+)
+def test_delete_latitudes_account_request_sends_email_to_configured_recipients(pro):
+    AccountMailer.request_latitudes_account_deletion(user=pro)
+
+    assert len(mail.outbox) == 1
+    message = mail.outbox[0]
+
+    assert message.to == ["latitudes@example.com"]
+    assert message.subject == "Demande de suppression de données personnelles"
+
+    body = message.body
+    assert pro.first_name in body
+    assert pro.last_name in body
+
+
+@pytest.mark.django_db
+@override_settings(
+    EMAIL_BACKEND="django.core.mail.backends.locmem.EmailBackend",
+    LATITUDE_ACCOUNT_DELETION_RECIPIENTS=["latitudes@example.com"],
+)
+def test_delete_latitudes_account_request_attaches_its_brevo_tags(pro):
+    AccountMailer.request_latitudes_account_deletion(user=pro)
 
     assert mail.outbox[0].tags == [
         "interne",
