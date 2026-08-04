@@ -164,7 +164,7 @@ def _validate_identity(request, *, error=None):
         raise _StepInterrupt(_render_step(request, "identity", form=form, error=error))
     age = _age(form.cleaned_data["birth_date"])
     if age < 15 or age > 25:
-        raise _StepInterrupt(_render_terminal(request, "_too_young" if age < 15 else "_too_old"))
+        raise _StepInterrupt(_render_terminal(request, "too_young" if age < 15 else "too_old"))
     return form.cleaned_data
 
 
@@ -243,7 +243,7 @@ def _has_answer_for(form_class, data):
 
 def _render_step(request, step, *, form=None, **extra):
     context = _step_context(request, step, form, **extra)
-    return render(request, f"beneficiary/partials/inscription/_{step}.html", context)
+    return render(request, f"beneficiary/partials/inscription/{step}.html", context)
 
 
 def _render_terminal(request, template):
