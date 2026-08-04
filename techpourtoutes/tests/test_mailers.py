@@ -3,11 +3,10 @@ from django.core import mail
 from django.test import override_settings
 
 from techpourtoutes.mailers import (
-    AccountInternalMailer,
     AccountMailer,
     AuthMailer,
-    CoalitionInternalMailer,
-    CoalitionUserMailer,
+    ConsortiumMailer,
+    ProMailer,
 )
 from techpourtoutes.models import Pro
 
@@ -15,7 +14,7 @@ from techpourtoutes.models import Pro
 @pytest.mark.django_db
 @override_settings(EMAIL_BACKEND="django.core.mail.backends.locmem.EmailBackend")
 def test_welcome_sends_email_to_pro(pro):
-    CoalitionUserMailer.welcome(pro=pro, token="tok-abc")
+    ProMailer.welcome(pro=pro, token="tok-abc")
 
     assert len(mail.outbox) == 1
     message = mail.outbox[0]
@@ -27,7 +26,7 @@ def test_welcome_sends_email_to_pro(pro):
 @pytest.mark.django_db
 @override_settings(EMAIL_BACKEND="django.core.mail.backends.locmem.EmailBackend")
 def test_welcome_includes_account_login_url(pro):
-    CoalitionUserMailer.welcome(pro=pro, token="tok-abc")
+    ProMailer.welcome(pro=pro, token="tok-abc")
 
     assert "/se-connecter/token/tok-abc" in mail.outbox[0].body
 
@@ -49,7 +48,7 @@ def test_welcome_includes_account_login_url(pro):
     ],
 )
 def test_new_pro_routes_to_engagement_recipient(pro, engagement, recipient):
-    CoalitionInternalMailer.new_pro(pro=pro, engagement=engagement)
+    ConsortiumMailer.new_pro(pro=pro, engagement=engagement)
 
     assert len(mail.outbox) == 1
     message = mail.outbox[0]
@@ -68,7 +67,7 @@ def test_new_training_ambassador_includes_experience_in_body(pro, higher_ed_scho
     experience = TrainingExperience.objects.create(
         user=pro, higher_ed_school=higher_ed_school, course="Master IA"
     )
-    CoalitionInternalMailer.new_training_ambassador(pro=pro, training_experience=experience)
+    ConsortiumMailer.new_training_ambassador(pro=pro, training_experience=experience)
 
     message = mail.outbox[0]
     assert message.to == ["training@example.com"]
@@ -82,7 +81,7 @@ def test_new_training_ambassador_includes_experience_in_body(pro, higher_ed_scho
     COALITION_WORK_AMBASSADOR_RECIPIENTS=["ambassador@example.com"],
 )
 def test_new_pro_includes_pro_details_in_body(pro):
-    CoalitionInternalMailer.new_pro(pro=pro, engagement=Pro.Engagement.WORK_AMBASSADOR)
+    ConsortiumMailer.new_pro(pro=pro, engagement=Pro.Engagement.WORK_AMBASSADOR)
 
     body = mail.outbox[0].body
     assert pro.first_name in body
@@ -112,7 +111,7 @@ def test_login_send_code_body_contains_the_code(pro):
 @pytest.mark.django_db
 @override_settings(EMAIL_BACKEND="django.core.mail.backends.locmem.EmailBackend")
 def test_new_engagement_sends_email_to_pro(pro):
-    CoalitionUserMailer.new_engagement(pro=pro)
+    ProMailer.new_engagement(pro=pro)
 
     assert len(mail.outbox) == 1
     message = mail.outbox[0]
@@ -124,7 +123,7 @@ def test_new_engagement_sends_email_to_pro(pro):
 @pytest.mark.django_db
 @override_settings(EMAIL_BACKEND="django.core.mail.backends.locmem.EmailBackend")
 def test_welcome_attaches_its_brevo_tags(pro):
-    CoalitionUserMailer.welcome(pro=pro, token="tok-abc")
+    ProMailer.welcome(pro=pro, token="tok-abc")
 
     assert mail.outbox[0].tags == ["utilisateur", "coalition", "mail de bienvenue"]
 
@@ -140,11 +139,7 @@ def test_login_code_attaches_its_brevo_tags(pro):
 @pytest.mark.django_db
 @override_settings(EMAIL_BACKEND="django.core.mail.backends.locmem.EmailBackend")
 def test_delete_account_sends_confirmation_email_with_vous_form_to_pro(pro):
-    AccountMailer.delete_account(
-        recipient_email=pro.email,
-        first_name=pro.first_name,
-        is_pro=True,
-    )
+    AccountMailer.deletion_confirmation(user=pro)
 
     assert len(mail.outbox) == 1
     message = mail.outbox[0]
@@ -157,11 +152,7 @@ def test_delete_account_sends_confirmation_email_with_vous_form_to_pro(pro):
 @pytest.mark.django_db
 @override_settings(EMAIL_BACKEND="django.core.mail.backends.locmem.EmailBackend")
 def test_delete_account_sends_confirmation_email_with_tu_form_to_beneficiary(beneficiary):
-    AccountMailer.delete_account(
-        recipient_email=beneficiary.email,
-        first_name=beneficiary.first_name,
-        is_pro=False,
-    )
+    AccountMailer.deletion_confirmation(user=beneficiary)
 
     assert len(mail.outbox) == 1
     message = mail.outbox[0]
@@ -174,12 +165,10 @@ def test_delete_account_sends_confirmation_email_with_tu_form_to_beneficiary(ben
 @pytest.mark.django_db
 @override_settings(EMAIL_BACKEND="django.core.mail.backends.locmem.EmailBackend")
 def test_delete_account_email_includes_jobirl_information_for_pro_with_jobirl_account(pro):
-    AccountMailer.delete_account(
-        recipient_email=pro.email,
-        first_name=pro.first_name,
-        is_pro=True,
-        has_jobirl_account=True,
-    )
+    pro.jobirl_user_id = 12345
+    pro.save()
+
+    AccountMailer.deletion_confirmation(user=pro)
 
     body = mail.outbox[0].body
 
@@ -190,12 +179,7 @@ def test_delete_account_email_includes_jobirl_information_for_pro_with_jobirl_ac
 @pytest.mark.django_db
 @override_settings(EMAIL_BACKEND="django.core.mail.backends.locmem.EmailBackend")
 def test_delete_account_email_omits_jobirl_information_for_pro_without_jobirl_account(pro):
-    AccountMailer.delete_account(
-        recipient_email=pro.email,
-        first_name=pro.first_name,
-        is_pro=True,
-        has_jobirl_account=False,
-    )
+    AccountMailer.deletion_confirmation(user=pro)
 
     body = mail.outbox[0].body
 
@@ -208,12 +192,10 @@ def test_delete_account_email_omits_jobirl_information_for_pro_without_jobirl_ac
 def test_delete_account_email_includes_jobirl_information_for_beneficiary_with_jobirl_account(
     beneficiary,
 ):
-    AccountMailer.delete_account(
-        recipient_email=beneficiary.email,
-        first_name=beneficiary.first_name,
-        is_pro=False,
-        has_jobirl_account=True,
-    )
+    beneficiary.jobirl_user_id = 6789
+    beneficiary.save()
+
+    AccountMailer.deletion_confirmation(user=beneficiary)
 
     body = mail.outbox[0].body
 
@@ -226,11 +208,7 @@ def test_delete_account_email_includes_jobirl_information_for_beneficiary_with_j
 def test_delete_account_email_omits_jobirl_information_for_beneficiary_without_jobirl_account(
     beneficiary,
 ):
-    AccountMailer.delete_account(
-        recipient_email=beneficiary.email,
-        first_name=beneficiary.first_name,
-        is_pro=False,
-    )
+    AccountMailer.deletion_confirmation(user=beneficiary)
 
     body = mail.outbox[0].body
 
@@ -241,11 +219,7 @@ def test_delete_account_email_omits_jobirl_information_for_beneficiary_without_j
 @pytest.mark.django_db
 @override_settings(EMAIL_BACKEND="django.core.mail.backends.locmem.EmailBackend")
 def test_delete_account_confirmation_attaches_its_brevo_tags(pro):
-    AccountMailer.delete_account(
-        recipient_email=pro.email,
-        first_name=pro.first_name,
-        is_pro=True,
-    )
+    AccountMailer.deletion_confirmation(user=pro)
 
     assert mail.outbox[0].tags == [
         "utilisateur",
@@ -256,14 +230,13 @@ def test_delete_account_confirmation_attaches_its_brevo_tags(pro):
 @pytest.mark.django_db
 @override_settings(
     EMAIL_BACKEND="django.core.mail.backends.locmem.EmailBackend",
-    ACCOUNT_DELETION_RECIPIENTS=["dpo@example.com"],
+    EXTERNAL_ACCOUNT_DELETION_RECIPIENTS=["dpo@example.com"],
 )
 def test_delete_account_request_sends_email_to_configured_recipients(pro):
-    AccountInternalMailer.delete_account_request(
-        first_name=pro.first_name,
-        last_name=pro.last_name,
-        jobirl_id=pro.jobirl_user_id,
-    )
+    pro.jobirl_user_id = 12345
+    pro.save()
+
+    AccountMailer.request_external_account_deletion(user=pro)
 
     assert len(mail.outbox) == 1
     message = mail.outbox[0]
@@ -280,14 +253,10 @@ def test_delete_account_request_sends_email_to_configured_recipients(pro):
 @pytest.mark.django_db
 @override_settings(
     EMAIL_BACKEND="django.core.mail.backends.locmem.EmailBackend",
-    ACCOUNT_DELETION_RECIPIENTS=["dpo@example.com"],
+    EXTERNAL_ACCOUNT_DELETION_RECIPIENTS=["dpo@example.com"],
 )
 def test_delete_account_request_attaches_its_brevo_tags(pro):
-    AccountInternalMailer.delete_account_request(
-        first_name=pro.first_name,
-        last_name=pro.last_name,
-        jobirl_id=pro.jobirl_user_id,
-    )
+    AccountMailer.request_external_account_deletion(user=pro)
 
     assert mail.outbox[0].tags == [
         "interne",

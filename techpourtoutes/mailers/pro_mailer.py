@@ -4,7 +4,7 @@ from django.urls import reverse
 from .base_mailer import BaseMailer
 
 
-class CoalitionUserMailer(BaseMailer):
+class ProMailer(BaseMailer):
     from_email = "TechPourToutes <agir@techpourtoutes.io>"
 
     @classmethod

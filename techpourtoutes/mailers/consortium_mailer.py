@@ -4,7 +4,7 @@ from ..models import Pro
 from .base_mailer import BaseMailer
 
 
-class CoalitionInternalMailer(BaseMailer):
+class ConsortiumMailer(BaseMailer):
     from_email = "TechPourToutes <agir@techpourtoutes.io>"
 
     @classmethod

@@ -219,8 +219,8 @@ COALITION_SPONSOR_RECIPIENTS = env.list(
 )
 
 
-ACCOUNT_DELETION_RECIPIENTS = env.list(
-    "ACCOUNT_DELETION_RECIPIENTS", default=["bonjour@techpourtoutes.io"]
+EXTERNAL_ACCOUNT_DELETION_RECIPIENTS = env.list(
+    "EXTERNAL_ACCOUNT_DELETION_RECIPIENTS", default=["bonjour@techpourtoutes.io"]
 )
 
 # Celery
