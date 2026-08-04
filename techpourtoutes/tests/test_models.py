@@ -712,7 +712,6 @@ def test_soft_delete_anonymizes_expected_fields(pro):
     original_job_title = pro.job_title
 
     pro.soft_delete()
-    pro.save()
     pro.refresh_from_db()
 
     assert not pro.is_active
@@ -737,3 +736,32 @@ def test_soft_delete_anonymizes_expected_fields(pro):
     assert pro.structure_id == original_structure_id
     assert pro.civility == original_civility
     assert pro.job_title == original_job_title
+
+
+@pytest.mark.django_db
+def test_soft_delete_anonymizes_expected_fields_for_beneficiary(beneficiary):
+    from techpourtoutes.models import Beneficiary
+
+    original_pk = beneficiary.pk
+    original_postal_code = beneficiary.postal_code
+
+    beneficiary.soft_delete()
+    beneficiary.refresh_from_db()
+
+    assert not beneficiary.is_active
+    assert not beneficiary.has_usable_password()
+    assert beneficiary.first_name == ""
+    assert beneficiary.last_name == ""
+    assert beneficiary.username == f"deleted_{original_pk}"
+    assert beneficiary.email == f"deleted_{original_pk}@deleted.local"
+    assert beneficiary.login_token_hash == ""
+    assert beneficiary.login_token_expires_at is None
+    assert not beneficiary.brevo_sync_enabled
+
+    assert beneficiary.phone == ""
+    assert beneficiary.jobirl_user_id is None
+    assert beneficiary.jobirl_user_token == ""
+
+    assert isinstance(beneficiary, Beneficiary)
+    assert beneficiary.birth_date is None
+    assert beneficiary.postal_code == original_postal_code

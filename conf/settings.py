@@ -217,8 +217,13 @@ COALITION_TRAINING_AMBASSADOR_RECIPIENTS = env.list(
 COALITION_SPONSOR_RECIPIENTS = env.list(
     "COALITION_SPONSOR_RECIPIENTS", default=["bonjour@techpourtoutes.io"]
 )
-COALITION_ACCOUNT_DELETION_RECIPIENTS = env.list(
-    "COALITION_ACCOUNT_DELETION_RECIPIENTS", default=["bonjour@techpourtoutes.io"]
+
+
+JOBIRL_ACCOUNT_DELETION_RECIPIENTS = env.list(
+    "JOBIRL_ACCOUNT_DELETION_RECIPIENTS", default=["bonjour@techpourtoutes.io"]
+)
+LATITUDE_ACCOUNT_DELETION_RECIPIENTS = env.list(
+    "LATITUDE_ACCOUNT_DELETION_RECIPIENTS", default=["bonjour@techpourtoutes.io"]
 )
 
 # Celery

@@ -1,12 +1,13 @@
+{% load politeness %}
 <c-layout.email>
   <p style="font-size:15px;color:#374151;">Bonjour {{ first_name }},</p>
   <p style="font-size:15px;color:#374151;">
-    Nous vous confirmons la suppression de votre compte sur la plateforme TechPourToutes. 
+    Nous {% politeness "vous" "te" %} confirmons la suppression de {% politeness "votre" "ton" %} compte sur la plateforme TechPourToutes.
   </p>
 
-  {% if is_mentor %}
+  {% if has_jobirl_account %}
   <p style="font-size:15px;color:#374151;">
-    Nous avons transmis votre demande à JobIRL. Nous vous invitons à les contacter directement pour valider la suppression de votre compte également chez eux&nbsp;:
+    Nous avons transmis {% politeness "votre" "ta" %} demande à JobIRL. Nous {% politeness "vous" "te" %} invitons à les contacter directement pour valider la suppression de {% politeness "votre" "ton" %} compte également chez eux&nbsp;:
     <br><br>
     Julie Masmejean
     <br>

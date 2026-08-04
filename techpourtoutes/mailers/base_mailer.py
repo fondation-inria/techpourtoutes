@@ -20,7 +20,7 @@ class BaseMailer:
     `tags` are attached to the message and consumed by Anymail's Brevo backend in production;
     other backends ignore them.
 
-    Example: `CoalitionUserMailer.welcome` renders `emails/coalition/user/welcome.{txt,html}`.
+    Example: `ProMailer.welcome` renders `emails/coalition/user/welcome.{txt,html}`.
     """
 
     from_email = None

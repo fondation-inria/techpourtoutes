@@ -18,5 +18,9 @@ class Beneficiary(User):
             self.set_unusable_password()
         super().save(*args, **kwargs)
 
+    def soft_delete(self):
+        self.birth_date = None
+        super().soft_delete()
+
 
 connect_brevo_sync(Beneficiary)

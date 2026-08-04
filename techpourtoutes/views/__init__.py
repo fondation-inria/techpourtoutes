@@ -1,4 +1,4 @@
-from .auth_views import (
+from .account_views import (
     account,
     account_communication,
     account_edit,
@@ -13,13 +13,15 @@ from .auth_views import (
     email_change,
     email_change_resend,
     email_change_verify,
+    pro_training_experience_edit,
+    pro_training_experience_info,
+)
+from .auth_views import (
     login_code,
     login_request,
     login_to_jobirl,
     login_verify,
     logout_view,
-    pro_training_experience_edit,
-    pro_training_experience_info,
 )
 from .beneficiary_views import beneficiary_home
 from .coalition_views import (
