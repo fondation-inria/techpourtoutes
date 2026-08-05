@@ -78,5 +78,5 @@ def test_training_ambassador_form_resubmitting_same_school_updates_experience(
         saved = form.save()
         form.after_save(saved)
 
-    experience = TrainingExperience.objects.get(pro=pro, higher_ed_school=higher_ed_school)
+    experience = TrainingExperience.objects.get(user=pro, higher_ed_school=higher_ed_school)
     assert experience.course == "Master"

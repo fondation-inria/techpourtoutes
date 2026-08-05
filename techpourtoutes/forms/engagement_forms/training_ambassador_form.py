@@ -28,7 +28,7 @@ class TrainingAmbassadorForm(BaseEngagementForm):
 
     def after_save(self, pro):
         training_experience, _created = TrainingExperience.objects.update_or_create(
-            pro=pro,
+            user=pro,
             higher_ed_school=self._higher_ed_school,
             defaults={"course": self.cleaned_data["course"]},
         )
