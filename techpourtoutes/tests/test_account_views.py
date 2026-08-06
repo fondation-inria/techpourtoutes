@@ -189,7 +189,7 @@ def test_delete_account_post_valid_logs_out_redirects_and_shows_success_message(
     assert client.session.get("_auth_user_id") is None
 
     stored = [str(m) for m in get_messages(response.wsgi_request)]
-    assert any("Votre compte a été supprimé." in m for m in stored)
+    assert any("Le compte a bien été supprimé." in m for m in stored)
 
 
 @patch("techpourtoutes.views.account_views.SoftDeleteAccount")
