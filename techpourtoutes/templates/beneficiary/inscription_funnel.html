@@ -5,7 +5,7 @@
     footer=False
     head_js="js/alpine.persist.min.js js/beneficiary_funnel.js">
     <div x-data="beneficiaryFunnel" class="w-full md:max-w-xl flex flex-col py-8">
-        <img src="{% static 'images/techpourtoutes-logo.png' %}" alt="logo TechPourToutes" class="w-48 shrink-0 mb-8" />
+        <img src="{% static 'images/techpourtoutes-logo-new.svg' %}" alt="logo TechPourToutes" class="w-48 shrink-0 mb-8" />
         {# Stateless shell: on load, the client asks the server for the right step through a #}
         {# "resume" POST; the Alpine component piggy-backs the answers stored in sessionStorage. #}
         <div id="funnel-step"
@@ -19,6 +19,10 @@
         </div>
     </div>
     <c-slot name="right">
-        <div class="hidden md:block flex-1"></div>
+        <div class="hidden md:block flex-1">
+            <img src="{% static 'images/inscription-funnel-hero.webp' %}"
+                 alt="Le futur sera numérique... et féminin"
+                 class="w-full h-full object-cover rounded-3xl" />
+        </div>
     </c-slot>
 </c-layout.base>

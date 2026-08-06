@@ -231,7 +231,9 @@ def test_workshops_landing_post_valid_creates_pro_and_enqueues_task(client):
     pro = Pro.objects.get(email="manon@example.com")
     assert pro.structure_id == "0750001A"
     assert "workshops" in pro.engagements
-    mock_task.delay.assert_called_once_with(str(pro.pk), ["future_of_tech", "future_of_ia"], "")
+    mock_task.delay.assert_called_once_with(
+        pro_pk=str(pro.pk), ateliers=["future_of_tech", "future_of_ia"], remark=""
+    )
 
 
 @pytest.mark.django_db

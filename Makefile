@@ -39,6 +39,9 @@ run:
 	uv run python manage.py tailwind runserver
 
 test:
+	uv run pytest
+
+verbose-test:
 	uv run pytest -vv
 
 lint:

@@ -14,9 +14,13 @@ from ..forms import (
     StudyStatus,
     VerificationCodeForm,
 )
-from ..mailers import AuthMailer, BeneficiaryMailer
+from ..mailers import AuthMailer
 from ..models import Beneficiary, User
 from ..ratelimit import rate_limit
+from ..tasks import send_beneficiary_welcome_email_task
+
+# Delay before the welcome email is sent, so it doesn't land before the login code.
+_WELCOME_EMAIL_DELAY_SECONDS = 5 * 60
 
 # The funnel steps in order — the single source of truth navigation is derived from.
 _STEPS = ("email", "identity", "study_status", "details")
@@ -116,7 +120,9 @@ def _create_beneficiary(request):
     )
     beneficiary.save()
     AuthMailer.login_code(user=beneficiary, code=beneficiary.issue_login_code())
-    BeneficiaryMailer.welcome(beneficiary=beneficiary)
+    send_beneficiary_welcome_email_task.apply_async(
+        kwargs={"beneficiary_pk": str(beneficiary.pk)}, countdown=_WELCOME_EMAIL_DELAY_SECONDS
+    )
     response = _render_step(request, "code", email=beneficiary.email)
     response["HX-Trigger"] = "funnelReset"
     return response

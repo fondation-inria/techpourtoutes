@@ -29,7 +29,9 @@ def test_post_save_signal_dispatches_upsert_task_after_commit(valid_pro_model_da
         pro.save()
         upsert_task.delay.assert_not_called()
 
-    upsert_task.delay.assert_called_once_with(str(pro.pk), "techpourtoutes.Pro")
+    upsert_task.delay.assert_called_once_with(
+        instance_pk=str(pro.pk), model_label="techpourtoutes.Pro"
+    )
 
 
 @pytest.mark.django_db(transaction=True)
@@ -43,7 +45,7 @@ def test_pre_delete_signal_dispatches_delete_task_after_commit(pro, mock_tasks):
         pro.delete()
         delete_task.delay.assert_not_called()
 
-    delete_task.delay.assert_called_once_with(pro_pk, 42)
+    delete_task.delay.assert_called_once_with(ext_id=pro_pk, list_id=42)
 
 
 @pytest.mark.django_db(transaction=True)
@@ -100,7 +102,7 @@ def test_opt_out_transition_dispatches_delete(pro, mock_tasks):
         reloaded.brevo_sync_enabled = False
         reloaded.save()
 
-    delete_task.delay.assert_called_once_with(str(pro.pk), 42)
+    delete_task.delay.assert_called_once_with(ext_id=str(pro.pk), list_id=42)
     upsert_task.delay.assert_not_called()
 
 
@@ -118,7 +120,7 @@ def test_opt_out_delete_dispatched_only_once_across_saves(pro, mock_tasks):
         reloaded.save()
         reloaded.save()
 
-    delete_task.delay.assert_called_once_with(str(pro.pk), 42)
+    delete_task.delay.assert_called_once_with(ext_id=str(pro.pk), list_id=42)
 
 
 @pytest.mark.django_db(transaction=True)

@@ -834,7 +834,7 @@ def test_account_communication_opt_out_dispatches_delete(client, pro):
     with patch("techpourtoutes.signals.delete_brevo_contact_task") as delete_task:
         client.post(reverse("account_communication"), data={})
 
-    delete_task.delay.assert_called_once_with(str(pro.pk), 42)
+    delete_task.delay.assert_called_once_with(ext_id=str(pro.pk), list_id=42)
 
 
 @pytest.fixture

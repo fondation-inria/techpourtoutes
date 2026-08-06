@@ -25,7 +25,9 @@ def _contact_was_previously_synced(instance):
 
 def _schedule_contact_upsert(instance, sender):
     pk, model_label = str(instance.pk), sender._meta.label
-    transaction.on_commit(lambda: upsert_brevo_contact_task.delay(pk, model_label))
+    transaction.on_commit(
+        lambda: upsert_brevo_contact_task.delay(instance_pk=pk, model_label=model_label)
+    )
 
 
 def _schedule_contact_deletion(instance):
@@ -33,7 +35,7 @@ def _schedule_contact_deletion(instance):
     if list_id is None:
         return
     pk = str(instance.pk)
-    transaction.on_commit(lambda: delete_brevo_contact_task.delay(pk, list_id))
+    transaction.on_commit(lambda: delete_brevo_contact_task.delay(ext_id=pk, list_id=list_id))
 
 
 def _remember_sync_state(instance):
@@ -49,7 +51,7 @@ def _on_user_deleted(sender, instance, **kwargs):
     if list_id is None:
         return
     pk = str(instance.pk)
-    transaction.on_commit(lambda: delete_brevo_contact_task.delay(pk, list_id))
+    transaction.on_commit(lambda: delete_brevo_contact_task.delay(ext_id=pk, list_id=list_id))
 
 
 def connect_brevo_sync(model_cls):

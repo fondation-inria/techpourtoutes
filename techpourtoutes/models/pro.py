@@ -2,8 +2,6 @@ from django.contrib.postgres.fields import ArrayField
 from django.db import models
 from django.utils.translation import gettext_lazy as _
 
-from techpourtoutes.signals import connect_brevo_sync
-
 from .user import User
 
 
@@ -70,6 +68,3 @@ class Pro(User):
         self.jobirl_user_id = None
         self.jobirl_user_token = ""
         super().soft_delete()
-
-
-connect_brevo_sync(Pro)

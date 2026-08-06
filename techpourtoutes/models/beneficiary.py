@@ -1,8 +1,6 @@
 from django.db import models
 from django.utils.translation import gettext_lazy as _
 
-from techpourtoutes.signals import connect_brevo_sync
-
 from .user import User
 
 
@@ -18,6 +16,3 @@ class Beneficiary(User):
             self.set_unusable_password()
             self.civility = User.Civility.MADAME
         super().save(*args, **kwargs)
-
-
-connect_brevo_sync(Beneficiary)
