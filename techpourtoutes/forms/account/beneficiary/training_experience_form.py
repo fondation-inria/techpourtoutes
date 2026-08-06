@@ -1,3 +1,5 @@
+from uuid import uuid4
+
 from django import forms
 from django.utils.translation import gettext_lazy as _
 
@@ -29,14 +31,16 @@ class BeneficiaryTrainingExperienceForm(forms.Form):
     higher_ed_school_label = forms.CharField(widget=forms.HiddenInput, required=False)
 
     def __init__(self, *args, experience=None, beneficiary=None, current_year=False, **kwargs):
+        self.current_year = current_year or (
+            experience is not None and experience.is_current_school_year
+        )
+        self.dom_id = self._build_dom_id(experience, self.current_year)
         if experience is not None:
             kwargs.setdefault("initial", self._initial_from_experience(experience))
+        kwargs.setdefault("auto_id", f"id_{self.dom_id}_%s")
         super().__init__(*args, **kwargs)
         self._experience = experience
         self._beneficiary = beneficiary or (experience.user if experience else None)
-        self._current_year = current_year or (
-            experience is not None and experience.is_current_school_year
-        )
         self._school = None
         self._higher_ed_school = None
         self._setup_period_label()
@@ -66,7 +70,7 @@ class BeneficiaryTrainingExperienceForm(forms.Form):
         """The current school year owns a dedicated locked form; other years exclude it."""
         current_label = current_school_year_label()
         field = self.fields["period_label"]
-        if self._current_year:
+        if self.current_year:
             field.choices = [(current_label, current_label)]
             field.disabled = True
             self.initial.setdefault("period_label", current_label)
@@ -78,7 +82,7 @@ class BeneficiaryTrainingExperienceForm(forms.Form):
 
     def _setup_not_enrolled(self):
         """Only the current year can be declared without a training, which then needs no detail."""
-        if not self._current_year:
+        if not self.current_year:
             del self.fields["not_enrolled"]
             return
         self.fields["not_enrolled"].initial = self._experience is None
@@ -106,6 +110,13 @@ class BeneficiaryTrainingExperienceForm(forms.Form):
             return resolver(self.cleaned_data[field])
         except forms.ValidationError as error:
             self.add_error(field, error)
+
+    @staticmethod
+    def _build_dom_id(experience, current_year):
+        """Namespaces element ids so several open forms never collide on the account page."""
+        if experience is not None:
+            return str(experience.pk)
+        return "current-year" if current_year else uuid4().hex
 
     @staticmethod
     def _initial_from_experience(experience):

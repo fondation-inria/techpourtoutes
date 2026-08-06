@@ -1,5 +1,3 @@
-import uuid
-
 from django.contrib import messages
 from django.contrib.auth import logout
 from django.contrib.auth.decorators import login_required
@@ -198,53 +196,21 @@ def pro_training_experience_edit(request, pk):
 
 @login_required
 def beneficiary_training_experience_form(request, pk=None):
-    beneficiary = None
-    experience = None
-    if pk is None:
-        beneficiary = _get_beneficiary(request)
-    else:
-        experience = _get_beneficiary_training_experience(request, pk)
+    beneficiary, experience = _resolve_beneficiary_training_experience_target(request, pk)
+    form = BeneficiaryTrainingExperienceForm(
+        data=request.POST if request.method == "POST" else None,
+        beneficiary=beneficiary,
+        experience=experience,
+        current_year=request.GET.get("current_year") == "true",
+    )
 
-    if request.method == "POST":
-        if experience is None:
-            prefix = request.POST.get("form_prefix")
-            is_new_current_year = prefix == "current-year"
-        else:
-            prefix = str(experience.pk)
-            is_new_current_year = False
-        form = BeneficiaryTrainingExperienceForm(
-            data=request.POST,
-            beneficiary=beneficiary,
-            experience=experience,
-            current_year=is_new_current_year,
-            prefix=prefix,
-        )
-        if form.is_valid():
-            if form.cleaned_data.get("not_enrolled"):
-                if experience is not None:
-                    rejection = _reject_last_training_experience(request, experience)
-                    if rejection:
-                        return rejection
-                    experience.delete()
-                return _render_beneficiary_training_experience_item(request, experience=None)
-            saved = form.save(experience or TrainingExperience(user=beneficiary))
-            return _render_beneficiary_training_experience_item(
-                request, saved, oob_swap=_training_experience_oob_swap(saved)
-            )
-    elif experience is None:
-        is_new_current_year = request.GET.get("current_year") == "true"
-        prefix = "current-year" if is_new_current_year else uuid.uuid4().hex
-        form = BeneficiaryTrainingExperienceForm(
-            beneficiary=beneficiary, current_year=is_new_current_year, prefix=prefix
-        )
-    else:
-        is_new_current_year = False
-        form = BeneficiaryTrainingExperienceForm(experience=experience, prefix=str(experience.pk))
+    if request.method == "POST" and form.is_valid():
+        return _submit_beneficiary_training_experience_form(request, form, beneficiary, experience)
 
     return render(
         request,
         "account/partials/beneficiary_training_experience_edit_form.html",
-        {"form": form, "experience": experience, "current_year": is_new_current_year},
+        {"form": form, "experience": experience},
     )
 
 
@@ -350,6 +316,26 @@ def _get_beneficiary_training_experience(request, pk):
     if not hasattr(request.user, "beneficiary"):
         raise Http404
     return get_object_or_404(request.user.beneficiary.training_experiences, pk=pk)
+
+
+def _resolve_beneficiary_training_experience_target(request, pk):
+    if pk is None:
+        return _get_beneficiary(request), None
+    return None, _get_beneficiary_training_experience(request, pk)
+
+
+def _submit_beneficiary_training_experience_form(request, form, beneficiary, experience):
+    if form.cleaned_data.get("not_enrolled"):
+        if experience is not None:
+            rejection = _reject_last_training_experience(request, experience)
+            if rejection:
+                return rejection
+            experience.delete()
+        return _render_beneficiary_training_experience_item(request, experience=None)
+    saved = form.save(experience or TrainingExperience(user=beneficiary))
+    return _render_beneficiary_training_experience_item(
+        request, saved, oob_swap=_training_experience_oob_swap(saved)
+    )
 
 
 def _reject_last_training_experience(request, experience):

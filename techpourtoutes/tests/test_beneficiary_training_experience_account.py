@@ -142,15 +142,14 @@ def test_beneficiary_training_experience_edit_post_repositions_when_period_chang
     )
     client.force_login(beneficiary)
 
-    prefix = str(beneficiary_experience.pk)
     response = client.post(
         reverse("beneficiary_training_experience_edit", args=[beneficiary_experience.pk]),
         data={
-            f"{prefix}-period_label": "2021-2022",
-            f"{prefix}-level": "premiere",
-            f"{prefix}-course": "Première",
-            f"{prefix}-school_identifier": school.identifier,
-            f"{prefix}-school_name": school.name,
+            "period_label": "2021-2022",
+            "level": "premiere",
+            "course": "Première",
+            "school_identifier": school.identifier,
+            "school_name": school.name,
         },
     )
 
@@ -186,14 +185,13 @@ def test_beneficiary_training_experience_edit_post_updates_experience(
 ):
     client.force_login(beneficiary)
 
-    prefix = str(beneficiary_experience.pk)
     response = client.post(
         reverse("beneficiary_training_experience_edit", args=[beneficiary_experience.pk]),
         data={
-            f"{prefix}-period_label": "2024-2025",
-            f"{prefix}-level": "bac_1",
-            f"{prefix}-course": "Licence",
-            f"{prefix}-higher_ed_school_id": str(higher_ed_school.id),
+            "period_label": "2024-2025",
+            "level": "bac_1",
+            "course": "Licence",
+            "higher_ed_school_id": str(higher_ed_school.id),
         },
     )
 
@@ -395,7 +393,7 @@ def test_beneficiary_training_experience_add_get_current_year_returns_checked_fo
 
     assert response.status_code == 200
     content = response.content.decode()
-    checkbox = re.search(r'<input[^>]*id="id_current-year-not_enrolled"[^>]*>', content)
+    checkbox = re.search(r'<input[^>]*id="id_current-year_not_enrolled"[^>]*>', content)
     assert checkbox is not None
     assert "checked" in checkbox.group()
 
@@ -427,8 +425,8 @@ def test_beneficiary_training_experience_add_post_current_year_not_enrolled_crea
     client.force_login(beneficiary)
 
     response = client.post(
-        reverse("beneficiary_training_experience_add"),
-        data={"form_prefix": "current-year", "current-year-not_enrolled": "on"},
+        reverse("beneficiary_training_experience_add") + "?current_year=true",
+        data={"not_enrolled": "on"},
     )
 
     assert response.status_code == 200
@@ -447,13 +445,12 @@ def test_beneficiary_training_experience_add_post_current_year_creates_experienc
     client.force_login(beneficiary)
 
     response = client.post(
-        reverse("beneficiary_training_experience_add"),
+        reverse("beneficiary_training_experience_add") + "?current_year=true",
         data={
-            "form_prefix": "current-year",
-            "current-year-level": "seconde",
-            "current-year-course": "Tronc commun",
-            "current-year-school_identifier": school.identifier,
-            "current-year-school_name": school.name,
+            "level": "seconde",
+            "course": "Tronc commun",
+            "school_identifier": school.identifier,
+            "school_name": school.name,
         },
     )
 
@@ -482,7 +479,7 @@ def test_beneficiary_training_experience_edit_post_not_enrolled_deletes_current_
 
     response = client.post(
         reverse("beneficiary_training_experience_edit", args=[current.pk]),
-        data={f"{current.pk}-not_enrolled": "on"},
+        data={"not_enrolled": "on"},
     )
 
     assert response.status_code == 200
@@ -522,18 +519,19 @@ def test_beneficiary_training_experience_card_modifier_targets_closest_ancestor(
 
 
 @pytest.mark.django_db
-def test_beneficiary_training_experience_add_forms_get_distinct_prefixes(client, beneficiary):
+def test_beneficiary_training_experience_add_forms_get_distinct_dom_ids(client, beneficiary):
     client.force_login(beneficiary)
 
-    first = client.get(reverse("beneficiary_training_experience_add")).content.decode()
-    second = client.get(reverse("beneficiary_training_experience_add")).content.decode()
+    first = client.get(reverse("beneficiary_training_experience_add"))
+    second = client.get(reverse("beneficiary_training_experience_add"))
 
-    first_prefix = re.search(r'name="form_prefix" value="([^"]+)"', first).group(1)
-    second_prefix = re.search(r'name="form_prefix" value="([^"]+)"', second).group(1)
+    first_dom_id = first.context["form"].dom_id
+    second_dom_id = second.context["form"].dom_id
 
-    assert first_prefix != second_prefix
-    assert f'id="id_{first_prefix}-level"' in first
-    assert f'id="id_{second_prefix}-level"' in second
+    assert first_dom_id != second_dom_id
+    assert f'id="beneficiary-training-experience-{first_dom_id}"' in first.content.decode()
+    assert f'id="id_{first_dom_id}_level"' in first.content.decode()
+    assert f'id="id_{second_dom_id}_level"' in second.content.decode()
 
 
 @pytest.mark.django_db
@@ -547,29 +545,50 @@ def test_beneficiary_training_experience_current_year_and_new_year_forms_do_not_
     ).content.decode()
     new_year_content = client.get(reverse("beneficiary_training_experience_add")).content.decode()
 
-    assert 'id="id_current-year-level"' in current_year_content
-    assert 'id="id_current-year-level"' not in new_year_content
+    assert 'id="id_current-year_level"' in current_year_content
+    assert 'id="id_current-year_level"' not in new_year_content
 
 
 @pytest.mark.django_db
-def test_beneficiary_training_experience_add_invalid_post_reuses_submitted_prefix(
+def test_beneficiary_training_experience_add_invalid_post_rerenders_form_with_consistent_ids(
     client, beneficiary
 ):
     client.force_login(beneficiary)
 
     response = client.post(
         reverse("beneficiary_training_experience_add"),
-        data={"form_prefix": "abc123", "period_label": "2024-2025"},
+        data={"period_label": "2024-2025"},
     )
 
     assert response.status_code == 200
     assert response.context["form"].errors
+    dom_id = response.context["form"].dom_id
     content = response.content.decode()
-    assert 'id="id_abc123-level"' in content
+    assert f'id="beneficiary-training-experience-{dom_id}"' in content
+    assert f'id="id_{dom_id}_level"' in content
 
 
 @pytest.mark.django_db
-def test_beneficiary_training_experience_edit_forms_get_distinct_prefixes(
+def test_beneficiary_training_experience_add_invalid_post_keeps_current_year_form(
+    client, beneficiary
+):
+    client.force_login(beneficiary)
+
+    response = client.post(
+        reverse("beneficiary_training_experience_add") + "?current_year=true",
+        data={"not_enrolled": ""},
+    )
+
+    assert response.status_code == 200
+    form = response.context["form"]
+    assert form.errors
+    assert form.current_year
+    assert form.dom_id == "current-year"
+    assert 'id="id_current-year_not_enrolled"' in response.content.decode()
+
+
+@pytest.mark.django_db
+def test_beneficiary_training_experience_edit_forms_get_distinct_dom_ids(
     client, beneficiary, beneficiary_experience, school
 ):
     from techpourtoutes.models import TrainingExperience
@@ -591,5 +610,5 @@ def test_beneficiary_training_experience_edit_forms_get_distinct_prefixes(
         reverse("beneficiary_training_experience_edit", args=[other.pk])
     ).content.decode()
 
-    assert f'id="id_{beneficiary_experience.pk}-level"' in first
-    assert f'id="id_{other.pk}-level"' in second
+    assert f'id="id_{beneficiary_experience.pk}_level"' in first
+    assert f'id="id_{other.pk}_level"' in second

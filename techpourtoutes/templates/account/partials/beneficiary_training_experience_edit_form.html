@@ -1,7 +1,7 @@
 <c-patterns.form
-    id="beneficiary-training-experience-{{ form.prefix }}"
+    id="beneficiary-training-experience-{{ form.dom_id }}"
     outer_class="w-full mt-4 pb-4 relative"
-    hx-post="{% if experience %}{% url 'beneficiary_training_experience_edit' experience.pk %}{% else %}{% url 'beneficiary_training_experience_add' %}{% endif %}"
+    hx-post="{% if experience %}{% url 'beneficiary_training_experience_edit' experience.pk %}{% else %}{% url 'beneficiary_training_experience_add' %}{% if form.current_year %}?current_year=true{% endif %}{% endif %}"
     hx-target="this"
     hx-swap="outerHTML">
         {% if experience and not experience.is_current_school_year %}
@@ -16,14 +16,13 @@
                 hx-headers='{"X-CSRFToken": "{{ csrf_token }}"}'
                 hx-confirm="Voulez-vous vraiment supprimer cette année de formation ?" />
         {% endif %}
-        <input type="hidden" name="form_prefix" value="{{ form.prefix }}">
         <p class="description-text-xxs pr-8">Les champs suivis d'un astérisque (*) sont obligatoires.</p>
         <c-components.form_fields.select field=form.period_label
-            variant="{% if experience.is_current_school_year or current_year %}disabled{% else %}default{% endif %}" />
-        <div x-data="{ notEnrolled: {% if experience.is_current_school_year or current_year %}{{ form.not_enrolled.value|yesno:'true,false' }}{% else %}false{% endif %}, level: '{{ form.level.value|default:'' }}' }"
+            variant="{% if form.current_year %}disabled{% else %}default{% endif %}" />
+        <div x-data="{ notEnrolled: {% if form.current_year %}{{ form.not_enrolled.value|yesno:'true,false' }}{% else %}false{% endif %}, level: '{{ form.level.value|default:'' }}' }"
              @select-change="level = $event.detail.value"
              @change="if ($event.target.name === '{{ form.not_enrolled.html_name|default:'' }}') notEnrolled = $event.target.checked">
-            {% if experience.is_current_school_year or current_year %}
+            {% if form.current_year %}
                 <c-components.form_fields.checkbox field=form.not_enrolled label_class="text-md" full_width=True />
             {% endif %}
             <template x-if="!notEnrolled">
@@ -38,7 +37,7 @@
                             postal_field=form.school_postal_code
                             label="Votre établissement*"
                             description="Recherchez par nom et/ou code postal"
-                            unique_id="{{ form.prefix }}"
+                            unique_id="{{ form.dom_id }}"
                         />
                     </template>
                     <template x-if="level.startsWith('bac_')">
@@ -47,7 +46,7 @@
                             label_field=form.higher_ed_school_label
                             label="Votre établissement*"
                             description="Recherchez par nom"
-                            unique_id="{{ form.prefix }}"
+                            unique_id="{{ form.dom_id }}"
                         />
                     </template>
                     <br>
@@ -61,7 +60,7 @@
                     hx-get="{% url 'beneficiary_training_experience_info' experience.pk %}"
                     hx-target="#beneficiary-training-experience-{{ experience.pk }}"
                     hx-swap="outerHTML" />
-            {% elif not current_year %}
+            {% elif not form.current_year %}
                 <c-components.button label="Annuler" variant="secondary" type="button"
                     hx-on:click="this.closest('[id^=beneficiary-training-experience-]').remove()" />
             {% endif %}
