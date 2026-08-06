@@ -12,6 +12,7 @@ class AccountMailer(BaseMailer):
     def deletion_confirmation(cls, *, user):
         is_pro = isinstance(user, Pro)
         pronoun = "votre" if is_pro else "ton"
+        from_email = cls.from_email if is_pro else "TechPourToutes <bonjour@techpourtoutes.io>"
         cls.send_mail(
             subject=f"Confirmation de suppression de {pronoun} compte",
             recipient_list=[user.email],
@@ -21,6 +22,7 @@ class AccountMailer(BaseMailer):
                 "has_jobirl_account": user.jobirl_user_id is not None,
             },
             tags=["utilisateur", "suppression du compte"],
+            from_email=from_email,
         )
 
     @classmethod

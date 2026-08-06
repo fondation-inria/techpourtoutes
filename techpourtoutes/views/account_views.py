@@ -293,7 +293,7 @@ def delete_account(request):
                 {"form": form},
             )
         logout(request)
-        messages.success(request, "Votre compte a été supprimé.")
+        messages.success(request, "Le compte a bien été supprimé.")
         return HttpResponse(headers={"HX-Redirect": "/"})
     return render(
         request,

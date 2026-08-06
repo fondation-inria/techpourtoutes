@@ -164,6 +164,22 @@ def test_delete_account_sends_confirmation_email_with_tu_form_to_beneficiary(ben
 
 @pytest.mark.django_db
 @override_settings(EMAIL_BACKEND="django.core.mail.backends.locmem.EmailBackend")
+def test_delete_account_confirmation_sent_from_agir_address_for_pro(pro):
+    AccountMailer.deletion_confirmation(user=pro)
+
+    assert mail.outbox[0].from_email == "TechPourToutes <agir@techpourtoutes.io>"
+
+
+@pytest.mark.django_db
+@override_settings(EMAIL_BACKEND="django.core.mail.backends.locmem.EmailBackend")
+def test_delete_account_confirmation_sent_from_bonjour_address_for_beneficiary(beneficiary):
+    AccountMailer.deletion_confirmation(user=beneficiary)
+
+    assert mail.outbox[0].from_email == "TechPourToutes <bonjour@techpourtoutes.io>"
+
+
+@pytest.mark.django_db
+@override_settings(EMAIL_BACKEND="django.core.mail.backends.locmem.EmailBackend")
 def test_delete_account_email_includes_jobirl_information_for_pro_with_jobirl_account(pro):
     pro.jobirl_user_id = 12345
     pro.save()
