@@ -2,7 +2,9 @@ Bonjour {{ pro.first_name }},
 
 Un grand merci de ton intérêt pour le programme TechPourToutes, et plus particulièrement pour le rôle d'ambassadrice étudiante.
 
-Afin de t'accompagner au mieux dans la prise en main de tes missions et de te présenter le programme TechPourToutes dans son ensemble, merci de t'inscrire au webinaire d'accueil via ce lien : https://beta.framadate.org/polls/techpourtoutes
+Afin de t'accompagner au mieux dans la prise en main de tes missions et de te présenter le programme TechPourToutes dans son ensemble, merci de t'inscrire au webinaire d'accueil :
+
+https://beta.framadate.org/polls/techpourtoutes
 
 Il s'agit d'une session en ligne de moins d'1h te permettant de rencontrer l'équipe et de poser toutes tes questions !
 
