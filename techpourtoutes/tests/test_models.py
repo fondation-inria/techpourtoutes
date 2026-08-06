@@ -11,7 +11,12 @@ from django.utils import timezone
 def test_user_has_uuid_pk():
     from techpourtoutes.models import User
 
-    user = User.objects.create_user(username="test@example.com", email="test@example.com")
+    user = User.objects.create_user(
+        username="test@example.com",
+        email="test@example.com",
+        first_name="Test",
+        last_name="User",
+    )
     assert isinstance(user.pk, uuid.UUID)
 
 
@@ -473,7 +478,7 @@ def test_workshop_request_query_pros_by_type(pro):
 
 
 def test_strip_accents():
-    from techpourtoutes.text import strip_accents
+    from techpourtoutes.utils.text import strip_accents
 
     assert strip_accents("Lycée privée à Nîmes") == "Lycee privee a Nimes"
 
@@ -644,60 +649,163 @@ def test_training_experience_rejects_duplicate_period_label_for_same_beneficiary
         duplicate.save()
 
 
-def test_current_school_year_start_date_before_rollover_month(monkeypatch):
-    from datetime import date
-
-    from techpourtoutes.models.training_experience import current_school_year_start_date
-
-    monkeypatch.setattr(
-        "techpourtoutes.models.training_experience.timezone.localdate",
-        lambda: date(2026, 3, 15),
-    )
-
-    assert current_school_year_start_date() == date(2025, 9, 1)
-
-
-def test_current_school_year_start_date_after_rollover_month(monkeypatch):
-    from datetime import date
-
-    from techpourtoutes.models.training_experience import current_school_year_start_date
-
-    monkeypatch.setattr(
-        "techpourtoutes.models.training_experience.timezone.localdate",
-        lambda: date(2026, 9, 1),
-    )
-
-    assert current_school_year_start_date() == date(2026, 9, 1)
-
-
-def test_school_year_choices_ranges_from_ten_years_back_to_next_year(monkeypatch):
-    from datetime import date
-
-    from techpourtoutes.models.training_experience import school_year_choices
-
-    monkeypatch.setattr(
-        "techpourtoutes.models.training_experience.timezone.localdate",
-        lambda: date(2026, 3, 15),
-    )
-
-    choices = school_year_choices()
-
-    assert choices[0] == ("2026-2027", "2026-2027")
-    assert choices[-1] == ("2015-2016", "2015-2016")
-    assert len(choices) == 12
-
-
 def test_training_experience_is_current_school_year():
     from datetime import date
 
     from techpourtoutes.models import TrainingExperience
-    from techpourtoutes.models.training_experience import current_school_year_start_date
+    from techpourtoutes.utils.school_year import current_school_year_start_date
 
     current = TrainingExperience(start_date=current_school_year_start_date())
     past = TrainingExperience(start_date=date(2000, 9, 1))
 
     assert current.is_current_school_year
     assert not past.is_current_school_year
+
+
+@pytest.mark.django_db
+def test_training_experience_slots_places_current_year_placeholder_after_future_experience(
+    beneficiary, school
+):
+    from datetime import date
+
+    from techpourtoutes.models import TrainingExperience
+    from techpourtoutes.models.training_experience import training_experience_slots
+    from techpourtoutes.utils.school_year import next_school_year_start_date
+
+    next_year = TrainingExperience.objects.create(
+        user=beneficiary,
+        school=school,
+        level=TrainingExperience.Level.BAC_1,
+        start_date=next_school_year_start_date(),
+        end_date=date(next_school_year_start_date().year + 1, 8, 31),
+        course="Prépa",
+    )
+
+    slots = training_experience_slots(beneficiary.training_experiences.all())
+
+    assert slots == [next_year, None]
+
+
+@pytest.mark.django_db
+def test_training_experience_slots_omits_placeholder_when_current_year_experience_exists(
+    beneficiary, school
+):
+    from datetime import date
+
+    from techpourtoutes.models import TrainingExperience
+    from techpourtoutes.models.training_experience import training_experience_slots
+    from techpourtoutes.utils.school_year import current_school_year_start_date
+
+    current = TrainingExperience.objects.create(
+        user=beneficiary,
+        school=school,
+        level=TrainingExperience.Level.TERMINALE,
+        start_date=current_school_year_start_date(),
+        end_date=date(current_school_year_start_date().year + 1, 8, 31),
+        course="Terminale",
+    )
+
+    slots = training_experience_slots(beneficiary.training_experiences.all())
+
+    assert slots == [current]
+
+
+@pytest.mark.django_db
+def test_training_experience_insertion_anchor_targets_current_year_slot_for_a_future_experience(
+    beneficiary, school
+):
+    from datetime import date
+
+    from techpourtoutes.models import TrainingExperience
+    from techpourtoutes.models.training_experience import training_experience_insertion_anchor
+    from techpourtoutes.utils.school_year import (
+        current_school_year_start_date,
+        next_school_year_start_date,
+    )
+
+    current = TrainingExperience.objects.create(
+        user=beneficiary,
+        school=school,
+        level=TrainingExperience.Level.TERMINALE,
+        start_date=current_school_year_start_date(),
+        end_date=date(current_school_year_start_date().year + 1, 8, 31),
+        course="Terminale",
+    )
+
+    anchor = training_experience_insertion_anchor(beneficiary, next_school_year_start_date())
+
+    assert anchor == current.pk
+
+
+@pytest.mark.django_db
+def test_training_experience_insertion_anchor_targets_current_year_placeholder_when_missing(
+    beneficiary,
+):
+    from techpourtoutes.models.training_experience import training_experience_insertion_anchor
+    from techpourtoutes.utils.school_year import next_school_year_start_date
+
+    anchor = training_experience_insertion_anchor(beneficiary, next_school_year_start_date())
+
+    assert anchor == "current-year"
+
+
+@pytest.mark.django_db
+def test_training_experience_insertion_anchor_returns_none_for_the_earliest_experience(
+    beneficiary, school
+):
+    from datetime import date
+
+    from techpourtoutes.models import TrainingExperience
+    from techpourtoutes.models.training_experience import training_experience_insertion_anchor
+
+    TrainingExperience.objects.create(
+        user=beneficiary,
+        school=school,
+        level=TrainingExperience.Level.SECONDE,
+        start_date=date(2022, 9, 1),
+        end_date=date(2023, 8, 31),
+        course="Seconde",
+    )
+
+    anchor = training_experience_insertion_anchor(beneficiary, date(2018, 9, 1))
+
+    assert anchor is None
+
+
+@pytest.mark.django_db
+def test_training_experience_insertion_anchor_excludes_the_experience_being_edited(
+    beneficiary, school
+):
+    from datetime import date
+
+    from techpourtoutes.models import TrainingExperience
+    from techpourtoutes.models.training_experience import training_experience_insertion_anchor
+
+    edited = TrainingExperience.objects.create(
+        user=beneficiary,
+        school=school,
+        level=TrainingExperience.Level.SECONDE,
+        start_date=date(2022, 9, 1),
+        end_date=date(2023, 8, 31),
+        course="Seconde",
+    )
+
+    anchor = training_experience_insertion_anchor(
+        beneficiary, date(2022, 9, 1), exclude_pk=edited.pk
+    )
+
+    assert anchor is None
+
+
+def test_training_experience_secondary_and_higher_ed_levels_partition_all_levels():
+    from techpourtoutes.models import TrainingExperience
+
+    covered_levels = set(TrainingExperience.SECONDARY_LEVELS) | set(
+        TrainingExperience.HIGHER_ED_LEVELS
+    )
+
+    assert covered_levels == set(TrainingExperience.Level)
+    assert set(TrainingExperience.SECONDARY_LEVELS).isdisjoint(TrainingExperience.HIGHER_ED_LEVELS)
 
 
 @pytest.mark.django_db
@@ -716,8 +824,8 @@ def test_soft_delete_anonymizes_expected_fields(pro):
 
     assert not pro.is_active
     assert not pro.has_usable_password()
-    assert pro.first_name == ""
-    assert pro.last_name == ""
+    assert pro.first_name == "Prénom"
+    assert pro.last_name == "Nom"
     assert pro.username == f"deleted_{original_pk}"
     assert pro.email == f"deleted_{original_pk}@deleted.local"
     assert pro.login_token_hash == ""
@@ -750,8 +858,8 @@ def test_soft_delete_anonymizes_expected_fields_for_beneficiary(beneficiary):
 
     assert not beneficiary.is_active
     assert not beneficiary.has_usable_password()
-    assert beneficiary.first_name == ""
-    assert beneficiary.last_name == ""
+    assert beneficiary.first_name == "Prénom"
+    assert beneficiary.last_name == "Nom"
     assert beneficiary.username == f"deleted_{original_pk}"
     assert beneficiary.email == f"deleted_{original_pk}@deleted.local"
     assert beneficiary.login_token_hash == ""

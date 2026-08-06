@@ -1,11 +1,11 @@
 from django import forms
 from django.utils.translation import gettext_lazy as _
 
-from ..models import TrainingExperience
-from .validators import resolve_higher_ed_school
+from ....models import TrainingExperience
+from ...validators import resolve_higher_ed_school
 
 
-class TrainingExperienceForm(forms.Form):
+class ProTrainingExperienceForm(forms.Form):
     higher_ed_school_id = forms.CharField(
         widget=forms.HiddenInput, label=_("Votre établissement*")
     )
@@ -17,7 +17,7 @@ class TrainingExperienceForm(forms.Form):
             *[(level.value, level.label) for level in TrainingExperience.HIGHER_ED_LEVELS],
         ],
     )
-    course = forms.CharField(label=_("Votre cursus*"))
+    course = forms.CharField(label=_("Votre filière*"))
 
     def __init__(self, *args, experience=None, **kwargs):
         if experience is not None:

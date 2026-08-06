@@ -28,7 +28,7 @@ def test_training_ambassador_form_valid(higher_ed_school):
 def test_training_ambassador_form_save_creates_student_pro_and_experience(higher_ed_school):
     from techpourtoutes.forms import TrainingAmbassadorForm
     from techpourtoutes.models import Pro
-    from techpourtoutes.models.training_experience import (
+    from techpourtoutes.utils.school_year import (
         current_school_year_end_date,
         current_school_year_start_date,
     )

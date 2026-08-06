@@ -408,7 +408,12 @@ def test_login_verify_while_another_user_authenticated_logs_them_out_and_logs_in
     from django.contrib.auth import get_user_model
 
     User = get_user_model()
-    other_user = User.objects.create_user(username="other@example.com", email="other@example.com")
+    other_user = User.objects.create_user(
+        username="other@example.com",
+        email="other@example.com",
+        first_name="Other",
+        last_name="User",
+    )
     plaintext = pro.issue_login_token()
     client.force_login(other_user)
 
@@ -469,7 +474,12 @@ def test_login_to_jobirl_requires_login(client):
 def test_login_to_jobirl_for_non_mentor_renders_error(client, db):
     from techpourtoutes.models import User
 
-    user = User.objects.create_user(username="plain@example.com", email="plain@example.com")
+    user = User.objects.create_user(
+        username="plain@example.com",
+        email="plain@example.com",
+        first_name="Plain",
+        last_name="User",
+    )
     client.force_login(user)
 
     response = client.get(reverse("login_to_jobirl"))

@@ -1,11 +1,14 @@
-from datetime import date
-
 from django import forms
 from django.utils.translation import gettext_lazy as _
 
-from ..models import TrainingExperience, school_year_choices
-from ..models.training_experience import current_school_year_label
-from .validators import resolve_higher_ed_school, resolve_school
+from techpourtoutes.utils.school_year import (
+    current_school_year_label,
+    school_year_choices,
+    school_year_dates,
+)
+
+from ....models import TrainingExperience
+from ...validators import resolve_higher_ed_school, resolve_school
 
 
 class BeneficiaryTrainingExperienceForm(forms.Form):
@@ -49,7 +52,7 @@ class BeneficiaryTrainingExperienceForm(forms.Form):
         return cleaned_data
 
     def save(self, experience):
-        experience.start_date, experience.end_date = _dates_from_period_label(
+        experience.start_date, experience.end_date = school_year_dates(
             self.cleaned_data["period_label"]
         )
         experience.level = self.cleaned_data["level"]
@@ -86,7 +89,7 @@ class BeneficiaryTrainingExperienceForm(forms.Form):
     def _has_duplicate_period_label(self, period_label):
         if self._beneficiary is None:
             return False
-        start_date = _dates_from_period_label(period_label)[0]
+        start_date = school_year_dates(period_label)[0]
         duplicates = self._beneficiary.training_experiences.filter(start_date=start_date)
         if self._experience is not None:
             duplicates = duplicates.exclude(pk=self._experience.pk)
@@ -118,8 +121,3 @@ class BeneficiaryTrainingExperienceForm(forms.Form):
             "higher_ed_school_id": str(higher_ed_school.pk) if higher_ed_school else "",
             "higher_ed_school_label": higher_ed_school.display_label if higher_ed_school else "",
         }
-
-
-def _dates_from_period_label(period_label):
-    start_year, end_year = (int(year) for year in period_label.split("-"))
-    return date(start_year, 9, 1), date(end_year, 8, 31)

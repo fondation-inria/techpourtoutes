@@ -1,5 +1,5 @@
 <c-patterns.form
-    id="beneficiary-training-experience-{{ experience.pk|default:form.prefix|default:"current-year" }}"
+    id="beneficiary-training-experience-{{ form.prefix }}"
     outer_class="w-full mt-4 pb-4 relative"
     hx-post="{% if experience %}{% url 'beneficiary_training_experience_edit' experience.pk %}{% else %}{% url 'beneficiary_training_experience_add' %}{% endif %}"
     hx-target="this"
@@ -7,7 +7,7 @@
         {% if experience and not experience.is_current_school_year %}
             <c-components.button type="button" variant="icon"
                 icon="trash"
-                icon_size_class="w-4 h-4"
+                icon_size_class="w-6 h-6"
                 class="absolute top-0 right-0 p-1 text-primary-700 rounded-sm"
                 aria-label="Supprimer cette année"
                 hx-post="{% url 'beneficiary_training_experience_delete' experience.pk %}"
@@ -16,12 +16,7 @@
                 hx-headers='{"X-CSRFToken": "{{ csrf_token }}"}'
                 hx-confirm="Voulez-vous vraiment supprimer cette année de formation ?" />
         {% endif %}
-        {% if current_year %}
-            <input type="hidden" name="current_year" value="true">
-        {% endif %}
-        {% if not experience and not current_year %}
-            <input type="hidden" name="form_prefix" value="{{ form.prefix }}">
-        {% endif %}
+        <input type="hidden" name="form_prefix" value="{{ form.prefix }}">
         <p class="description-text-xxs pr-8">Les champs suivis d'un astérisque (*) sont obligatoires.</p>
         <c-components.form_fields.select field=form.period_label
             variant="{% if experience.is_current_school_year or current_year %}disabled{% else %}default{% endif %}" />
@@ -43,7 +38,7 @@
                             postal_field=form.school_postal_code
                             label="Votre établissement*"
                             description="Recherchez par nom et/ou code postal"
-                            unique_id="{{ experience.pk|default:form.prefix|default:'current-year' }}"
+                            unique_id="{{ form.prefix }}"
                         />
                     </template>
                     <template x-if="level.startsWith('bac_')">
@@ -52,7 +47,7 @@
                             label_field=form.higher_ed_school_label
                             label="Votre établissement*"
                             description="Recherchez par nom"
-                            unique_id="{{ experience.pk|default:form.prefix|default:'current-year' }}"
+                            unique_id="{{ form.prefix }}"
                         />
                     </template>
                     <br>

@@ -95,7 +95,7 @@ make icons    # rebuild SVG sprite
 make seed     # seed DB with minimal dev data (idempotent)
 ```
 
-Seed creates: one `Pro` with superuser role — `admin@techpourtoutes.io` / `admin`.
+Seed creates: one `Pro` with superuser role — `admin@techpourtoutes.io` / `admin` — and one `Beneficiary` with a `TrainingExperience` — `beneficiary@techpourtoutes.io` / `beneficiary`.
 
 ## Architecture
 

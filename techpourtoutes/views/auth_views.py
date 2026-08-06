@@ -14,7 +14,7 @@ from ..mailers import AuthMailer
 from ..models import User
 from ..ratelimit import rate_limit
 from ..services.jobirl_api.refresh_access_token import RefreshAccessToken
-from ..text import mask_email
+from ..utils.text import mask_email
 
 
 @rate_limit("RATELIMIT_LOGIN", keys=("email",))
@@ -117,7 +117,7 @@ def login_verify(request, token):
 def login_to_jobirl(request):
     if not hasattr(request.user, "pro"):
         messages.error(request, "Vous n'avez pas de compte mentor sur JobIRL")
-        form = CommunicationForm(pro=request.user)
+        form = CommunicationForm(user=request.user)
         return render(request, "account/account.html", {"form": form})
 
     result = RefreshAccessToken(pro=request.user.pro)

@@ -132,6 +132,10 @@ def inactive_user(db):
     from techpourtoutes.models import User
 
     user = User.objects.create_user(
-        username="inactive@example.com", email="inactive@example.com", is_active=False
+        username="inactive@example.com",
+        email="inactive@example.com",
+        first_name="Inactive",
+        last_name="User",
+        is_active=False,
     )
     return user

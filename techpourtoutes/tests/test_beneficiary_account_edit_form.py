@@ -5,9 +5,9 @@ import pytest
 
 @pytest.mark.django_db
 def test_form_prefills_from_beneficiary(beneficiary):
-    from techpourtoutes.forms import BeneficiaryAccountEditForm
+    from techpourtoutes.forms import BeneficiaryEditAccountForm
 
-    form = BeneficiaryAccountEditForm(beneficiary=beneficiary)
+    form = BeneficiaryEditAccountForm(beneficiary=beneficiary)
     assert form.initial["first_name"] == "Jade"
     assert form.initial["last_name"] == "Petit"
     assert form.initial["birth_date"] == date(2008, 3, 15)
@@ -17,17 +17,17 @@ def test_form_prefills_from_beneficiary(beneficiary):
 
 @pytest.mark.django_db
 def test_form_email_field_is_disabled(beneficiary):
-    from techpourtoutes.forms import BeneficiaryAccountEditForm
+    from techpourtoutes.forms import BeneficiaryEditAccountForm
 
-    form = BeneficiaryAccountEditForm(beneficiary=beneficiary)
+    form = BeneficiaryEditAccountForm(beneficiary=beneficiary)
     assert form.fields["email"].disabled
 
 
 @pytest.mark.django_db
 def test_form_save_updates_beneficiary(beneficiary):
-    from techpourtoutes.forms import BeneficiaryAccountEditForm
+    from techpourtoutes.forms import BeneficiaryEditAccountForm
 
-    form = BeneficiaryAccountEditForm(
+    form = BeneficiaryEditAccountForm(
         data={
             "first_name": "Léa",
             "last_name": "Petit",
@@ -47,9 +47,9 @@ def test_form_save_updates_beneficiary(beneficiary):
 
 @pytest.mark.django_db
 def test_form_rejects_invalid_postal_code():
-    from techpourtoutes.forms import BeneficiaryAccountEditForm
+    from techpourtoutes.forms import BeneficiaryEditAccountForm
 
-    form = BeneficiaryAccountEditForm(
+    form = BeneficiaryEditAccountForm(
         data={
             "first_name": "Léa",
             "last_name": "Petit",
@@ -63,8 +63,8 @@ def test_form_rejects_invalid_postal_code():
 
 @pytest.mark.django_db
 def test_form_rejects_missing_birth_date():
-    from techpourtoutes.forms import BeneficiaryAccountEditForm
+    from techpourtoutes.forms import BeneficiaryEditAccountForm
 
-    form = BeneficiaryAccountEditForm(data={"first_name": "Léa", "last_name": "Petit"})
+    form = BeneficiaryEditAccountForm(data={"first_name": "Léa", "last_name": "Petit"})
     assert not form.is_valid()
     assert "birth_date" in form.errors

@@ -3,9 +3,9 @@ import pytest
 
 @pytest.mark.django_db
 def test_form_prefills_from_experience(experience, higher_ed_school):
-    from techpourtoutes.forms import TrainingExperienceForm
+    from techpourtoutes.forms import ProTrainingExperienceForm
 
-    form = TrainingExperienceForm(experience=experience)
+    form = ProTrainingExperienceForm(experience=experience)
     assert form.initial["higher_ed_school_id"] == str(higher_ed_school.id)
     assert form.initial["higher_ed_school_label"] == higher_ed_school.display_label
     assert form.initial["course"] == "Master Informatique"
@@ -13,9 +13,9 @@ def test_form_prefills_from_experience(experience, higher_ed_school):
 
 @pytest.mark.django_db
 def test_form_save_updates_experience(experience, higher_ed_school):
-    from techpourtoutes.forms import TrainingExperienceForm
+    from techpourtoutes.forms import ProTrainingExperienceForm
 
-    form = TrainingExperienceForm(
+    form = ProTrainingExperienceForm(
         data={
             "higher_ed_school_id": str(higher_ed_school.id),
             "level": "bac_5",
@@ -32,8 +32,8 @@ def test_form_save_updates_experience(experience, higher_ed_school):
 
 @pytest.mark.django_db
 def test_form_rejects_unknown_school():
-    from techpourtoutes.forms import TrainingExperienceForm
+    from techpourtoutes.forms import ProTrainingExperienceForm
 
-    form = TrainingExperienceForm(data={"higher_ed_school_id": "not-a-real-id", "course": "X"})
+    form = ProTrainingExperienceForm(data={"higher_ed_school_id": "not-a-real-id", "course": "X"})
     assert not form.is_valid()
     assert "higher_ed_school_id" in form.errors

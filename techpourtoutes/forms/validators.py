@@ -2,7 +2,7 @@ from django import forms
 from django.core.exceptions import ValidationError
 from django.utils.translation import gettext_lazy as _
 
-from techpourtoutes.views.beneficiary_views import _age
+from techpourtoutes.utils.dates import compute_age
 
 from ..models import HigherEdSchool, School
 
@@ -32,6 +32,7 @@ def resolve_school(identifier):
 
 
 def validate_birth_date(birth_date):
-    age = _age(birth_date=birth_date)
+    """Beneficiaries must be between 15 and 25 years old."""
+    age = compute_age(birth_date=birth_date)
     if age < 15 or age > 25:
         raise forms.ValidationError(_("L'âge doit être compris entre 15 et 25 ans."))

@@ -1,15 +1,16 @@
-from datetime import date
-
 from django.db import models
-from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
+
+from techpourtoutes.utils.school_year import (
+    current_school_year_start_date,
+    next_school_year_start_date,
+    school_year_label,
+)
 
 from .base import BaseModel
 from .higher_ed_school import HigherEdSchool
 from .school import School
 from .user import User
-
-SCHOOL_YEAR_ROLLOVER_MONTH = 8
 
 
 class TrainingExperience(BaseModel):
@@ -62,7 +63,7 @@ class TrainingExperience(BaseModel):
     )
     start_date = models.DateField(null=True, blank=True, verbose_name=_("date de début"))
     end_date = models.DateField(null=True, blank=True, verbose_name=_("date de fin"))
-    course = models.CharField(max_length=255, verbose_name=_("cursus"))
+    course = models.CharField(max_length=255, verbose_name=_("filière"))
 
     class Meta:
         verbose_name = _("formation")
@@ -95,37 +96,24 @@ class TrainingExperience(BaseModel):
         return self.period_label
 
 
-def school_year_label(start_date, end_date):
-    return f"{start_date.year}-{end_date.year}"
+def training_experience_slots(training_experiences):
+    """Experiences plus a placeholder (None) for a missing current year, sorted for display."""
+    slots = list(training_experiences)
+    if not any(experience.is_current_school_year for experience in slots):
+        slots.append(None)
+    return sorted(slots, key=_slot_start_date, reverse=True)
 
 
-def current_school_year_start_date():
-    today = timezone.localdate()
-    start_year = today.year if today.month > SCHOOL_YEAR_ROLLOVER_MONTH else today.year - 1
-    return date(start_year, 9, 1)
+def training_experience_insertion_anchor(beneficiary, start_date, exclude_pk=None):
+    """Id of the slot to insert before an experience with this start date, or None to append."""
+    siblings = beneficiary.training_experiences.all()
+    if exclude_pk is not None:
+        siblings = siblings.exclude(pk=exclude_pk)
+    for slot in training_experience_slots(siblings):
+        if _slot_start_date(slot) < start_date:
+            return slot.pk if slot else "current-year"
+    return None
 
 
-def next_school_year_start_date():
-    return date(current_school_year_start_date().year + 1, 9, 1)
-
-
-def current_school_year_end_date():
-    return date(current_school_year_start_date().year + 1, 8, 31)
-
-
-def current_school_year_label():
-    start_date = current_school_year_start_date()
-    return school_year_label(start_date, date(start_date.year + 1, 8, 31))
-
-
-def school_year_choices(years_back=10, years_forward=1):
-    current_start_year = current_school_year_start_date().year
-    return [
-        (
-            school_year_label(date(year, 9, 1), date(year + 1, 8, 31)),
-            school_year_label(date(year, 9, 1), date(year + 1, 8, 31)),
-        )
-        for year in reversed(
-            range(current_start_year - years_back, current_start_year + years_forward + 1)
-        )
-    ]
+def _slot_start_date(experience):
+    return experience.start_date if experience is not None else current_school_year_start_date()

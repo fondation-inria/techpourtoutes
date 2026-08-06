@@ -35,6 +35,8 @@ DISABLE_ADMIN_2FA = env.bool("DISABLE_ADMIN_2FA", default=False)
 SEED_ENABLED = env.bool("SEED_ENABLED", default=DEBUG)
 SEED_ADMIN_EMAIL = env("SEED_ADMIN_EMAIL", default="admin@techpourtoutes.io")
 SEED_ADMIN_PASSWORD = env("SEED_ADMIN_PASSWORD", default="admin")
+SEED_BENEFICIARY_EMAIL = env("SEED_BENEFICIARY_EMAIL", default="beneficiary@techpourtoutes.io")
+SEED_BENEFICIARY_PASSWORD = env("SEED_BENEFICIARY_PASSWORD", default="beneficiary")
 DATABASES = {
     "default": {
         **env.db("DATABASE_URL"),

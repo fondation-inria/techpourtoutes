@@ -2,7 +2,9 @@ from django import forms
 from django.utils.translation import gettext_lazy as _
 from phonenumber_field.formfields import PhoneNumberField
 
-from ...models import POSTAL_CODE_VALIDATOR, Pro
+from techpourtoutes.validators import POSTAL_CODE_VALIDATOR
+
+from ...models import Pro
 from ..validators import require_structure_when_working
 from .base_engagement_form import BaseEngagementForm
 

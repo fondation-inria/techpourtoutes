@@ -31,7 +31,7 @@ urlpatterns = [
     ),
     path(
         "mon-compte/formations/beneficiaire/ajouter/",
-        views.beneficiary_training_experience_add,
+        views.beneficiary_training_experience_form,
         name="beneficiary_training_experience_add",
     ),
     path(
@@ -41,7 +41,7 @@ urlpatterns = [
     ),
     path(
         "mon-compte/formations/beneficiaire/<uuid:pk>/modifier/",
-        views.beneficiary_training_experience_edit,
+        views.beneficiary_training_experience_form,
         name="beneficiary_training_experience_edit",
     ),
     path(

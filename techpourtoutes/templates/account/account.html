@@ -1,4 +1,3 @@
-{% load beneficiary_training_experience %}
 <c-layout.base>
     <c-components.title title="Mon compte" variant="h1" />
 
@@ -8,29 +7,14 @@
 
     {% include "account/partials/info_card.html" %}
 
-    {% if request.user.pro %}
+    {% if is_pro %}
         {% for experience in user.training_experiences.all %}
             {% include "account/partials/pro_training_experience_card.html" %}
         {% endfor %}
     {% endif %}
 
-    {% if request.user.beneficiary %}
-        {% with training_experiences=request.user.beneficiary.training_experiences.all %}
-            <c-components.card title="Formation">
-                <div id="beneficiary-training-experiences" class="divide-y divide-neutral-200">
-                    {% current_year_training_experience_slot training_experiences %}
-                    {% for experience in training_experiences %}
-                        {% include "account/partials/beneficiary_training_experience_card.html" %}
-                    {% endfor %}
-                </div>
-                <div class="flex mt-3 justify-start">
-                    <c-components.button label="Ajouter une année" variant="quaternary" icon-position="start" icon="plus-light"
-                        hx-get="{% url 'beneficiary_training_experience_add' %}"
-                        hx-target="#beneficiary-training-experiences"
-                        hx-swap="beforeend" />
-                </div>
-            </c-components.card>
-        {% endwith %}
+    {% if is_beneficiary %}
+        {% include "account/partials/beneficiary_training_experience_card.html" %}
     {% endif %}
 
     {% include "account/partials/communication_card.html" %}

@@ -45,6 +45,8 @@ def test_training_experience_cannot_be_edited_by_another_pro(client, experience)
     intruder = Pro(
         username="eve@example.com",
         email="eve@example.com",
+        first_name="Eve",
+        last_name="Intruder",
         civility="Madame",
         professional_situation="student",
         job_title="Étudiante",

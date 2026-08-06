@@ -16,6 +16,27 @@ def test_account_page_lists_a_card_per_beneficiary_training_experience(
 
 
 @pytest.mark.django_db
+def test_account_page_places_current_year_placeholder_after_future_experience(client, beneficiary):
+    from techpourtoutes.models import TrainingExperience
+    from techpourtoutes.utils.school_year import next_school_year_start_date
+
+    next_year = TrainingExperience.objects.create(
+        user=beneficiary,
+        level=TrainingExperience.Level.BAC_1,
+        start_date=next_school_year_start_date(),
+        end_date=date(next_school_year_start_date().year + 1, 8, 31),
+        course="Prépa",
+    )
+    client.force_login(beneficiary)
+
+    content = client.get(reverse("account")).content.decode()
+
+    assert content.index(f'id="beneficiary-training-experience-{next_year.pk}"') < content.index(
+        'id="beneficiary-training-experience-current-year"'
+    )
+
+
+@pytest.mark.django_db
 def test_beneficiary_training_experience_add_get_returns_empty_form(client, beneficiary):
     client.force_login(beneficiary)
     response = client.get(reverse("beneficiary_training_experience_add"))
@@ -43,6 +64,101 @@ def test_beneficiary_training_experience_add_post_creates_experience(client, ben
     created = beneficiary.training_experiences.get()
     assert created.school == school
     assert created.course == "Tronc commun"
+
+
+@pytest.mark.django_db
+def test_beneficiary_training_experience_add_post_repositions_card_before_older_experience(
+    client, beneficiary, school
+):
+    from techpourtoutes.models import TrainingExperience
+
+    older = TrainingExperience.objects.create(
+        user=beneficiary,
+        school=school,
+        level=TrainingExperience.Level.SECONDE,
+        start_date=date(2020, 9, 1),
+        end_date=date(2021, 8, 31),
+        course="Seconde",
+    )
+    client.force_login(beneficiary)
+
+    response = client.post(
+        reverse("beneficiary_training_experience_add"),
+        data={
+            "period_label": "2022-2023",
+            "level": "premiere",
+            "course": "Première",
+            "school_identifier": school.identifier,
+            "school_name": school.name,
+        },
+    )
+
+    assert response.status_code == 200
+    content = response.content.decode()
+    assert f'hx-swap-oob="beforebegin:#beneficiary-training-experience-{older.pk}"' in content
+    created = beneficiary.training_experiences.exclude(pk=older.pk).get()
+    # htmx drops the oob-carrying element itself for non-outerHTML swap styles and only
+    # inserts its children, so the id must live on a nested element, not the oob element.
+    id_tag_start = content.index(f'id="beneficiary-training-experience-{created.pk}"')
+    id_tag_open = content.rindex("<", 0, id_tag_start)
+    id_tag_close = content.index(">", id_tag_start)
+    assert "hx-swap-oob" not in content[id_tag_open:id_tag_close]
+
+
+@pytest.mark.django_db
+def test_beneficiary_training_experience_add_post_appends_when_it_is_the_earliest(
+    client, beneficiary, beneficiary_experience, school
+):
+    client.force_login(beneficiary)
+
+    response = client.post(
+        reverse("beneficiary_training_experience_add"),
+        data={
+            "period_label": "2020-2021",
+            "level": "seconde",
+            "course": "Seconde",
+            "school_identifier": school.identifier,
+            "school_name": school.name,
+        },
+    )
+
+    assert response.status_code == 200
+    assert 'hx-swap-oob="beforeend:#beneficiary-training-experiences"' in response.content.decode()
+
+
+@pytest.mark.django_db
+def test_beneficiary_training_experience_edit_post_repositions_when_period_changes(
+    client, beneficiary, beneficiary_experience, school
+):
+    from techpourtoutes.models import TrainingExperience
+
+    older = TrainingExperience.objects.create(
+        user=beneficiary,
+        school=school,
+        level=TrainingExperience.Level.SECONDE,
+        start_date=date(2020, 9, 1),
+        end_date=date(2021, 8, 31),
+        course="Seconde",
+    )
+    client.force_login(beneficiary)
+
+    prefix = str(beneficiary_experience.pk)
+    response = client.post(
+        reverse("beneficiary_training_experience_edit", args=[beneficiary_experience.pk]),
+        data={
+            f"{prefix}-period_label": "2021-2022",
+            f"{prefix}-level": "premiere",
+            f"{prefix}-course": "Première",
+            f"{prefix}-school_identifier": school.identifier,
+            f"{prefix}-school_name": school.name,
+        },
+    )
+
+    assert response.status_code == 200
+    assert (
+        f'hx-swap-oob="beforebegin:#beneficiary-training-experience-{older.pk}"'
+        in response.content.decode()
+    )
 
 
 @pytest.mark.django_db
@@ -128,7 +244,7 @@ def test_beneficiary_training_experience_delete_removes_experience(
     client, beneficiary, beneficiary_experience
 ):
     from techpourtoutes.models import TrainingExperience
-    from techpourtoutes.models.training_experience import current_school_year_start_date
+    from techpourtoutes.utils.school_year import current_school_year_start_date
 
     TrainingExperience.objects.create(
         user=beneficiary,
@@ -150,7 +266,7 @@ def test_beneficiary_training_experience_delete_removes_experience(
 @pytest.mark.django_db
 def test_beneficiary_training_experience_delete_rejects_current_school_year(client, beneficiary):
     from techpourtoutes.models import TrainingExperience
-    from techpourtoutes.models.training_experience import current_school_year_start_date
+    from techpourtoutes.utils.school_year import current_school_year_start_date
 
     current = TrainingExperience.objects.create(
         user=beneficiary,
@@ -279,7 +395,7 @@ def test_beneficiary_training_experience_add_get_current_year_returns_checked_fo
 
     assert response.status_code == 200
     content = response.content.decode()
-    checkbox = re.search(r'<input[^>]*id="id_not_enrolled"[^>]*>', content)
+    checkbox = re.search(r'<input[^>]*id="id_current-year-not_enrolled"[^>]*>', content)
     assert checkbox is not None
     assert "checked" in checkbox.group()
 
@@ -287,7 +403,7 @@ def test_beneficiary_training_experience_add_get_current_year_returns_checked_fo
 @pytest.mark.django_db
 def test_account_page_does_not_duplicate_existing_current_year_experience(client, beneficiary):
     from techpourtoutes.models import TrainingExperience
-    from techpourtoutes.models.training_experience import current_school_year_start_date
+    from techpourtoutes.utils.school_year import current_school_year_start_date
 
     current = TrainingExperience.objects.create(
         user=beneficiary,
@@ -312,7 +428,7 @@ def test_beneficiary_training_experience_add_post_current_year_not_enrolled_crea
 
     response = client.post(
         reverse("beneficiary_training_experience_add"),
-        data={"not_enrolled": "on", "current_year": "true"},
+        data={"form_prefix": "current-year", "current-year-not_enrolled": "on"},
     )
 
     assert response.status_code == 200
@@ -326,18 +442,18 @@ def test_beneficiary_training_experience_add_post_current_year_not_enrolled_crea
 def test_beneficiary_training_experience_add_post_current_year_creates_experience(
     client, beneficiary, school
 ):
-    from techpourtoutes.models.training_experience import current_school_year_start_date
+    from techpourtoutes.utils.school_year import current_school_year_start_date
 
     client.force_login(beneficiary)
 
     response = client.post(
         reverse("beneficiary_training_experience_add"),
         data={
-            "level": "seconde",
-            "course": "Tronc commun",
-            "school_identifier": school.identifier,
-            "school_name": school.name,
-            "current_year": "true",
+            "form_prefix": "current-year",
+            "current-year-level": "seconde",
+            "current-year-course": "Tronc commun",
+            "current-year-school_identifier": school.identifier,
+            "current-year-school_name": school.name,
         },
     )
 
@@ -353,7 +469,7 @@ def test_beneficiary_training_experience_edit_post_not_enrolled_deletes_current_
     client, beneficiary, beneficiary_experience
 ):
     from techpourtoutes.models import TrainingExperience
-    from techpourtoutes.models.training_experience import current_school_year_start_date
+    from techpourtoutes.utils.school_year import current_school_year_start_date
 
     current = TrainingExperience.objects.create(
         user=beneficiary,
@@ -431,8 +547,8 @@ def test_beneficiary_training_experience_current_year_and_new_year_forms_do_not_
     ).content.decode()
     new_year_content = client.get(reverse("beneficiary_training_experience_add")).content.decode()
 
-    assert 'id="id_level"' in current_year_content
-    assert 'id="id_level"' not in new_year_content
+    assert 'id="id_current-year-level"' in current_year_content
+    assert 'id="id_current-year-level"' not in new_year_content
 
 
 @pytest.mark.django_db

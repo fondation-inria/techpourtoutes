@@ -5,12 +5,14 @@ from urllib.parse import urlencode
 
 from django.contrib.auth.models import AbstractUser, UserManager
 from django.core import signing
-from django.core.validators import EmailValidator, RegexValidator
+from django.core.validators import EmailValidator
 from django.db import models
 from django.urls import reverse
 from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
 from phonenumber_field.modelfields import PhoneNumberField
+
+from techpourtoutes.validators import POSTAL_CODE_VALIDATOR
 
 from .base import BaseModel
 
@@ -18,7 +20,6 @@ LOGIN_TOKEN_TTL = timedelta(hours=1)
 VERIFICATION_CODE_TTL = timedelta(minutes=15)
 VERIFICATION_CODE_MAX_ATTEMPTS = 5
 EMAIL_CHANGE_TOKEN_SALT = "email-change"
-POSTAL_CODE_VALIDATOR = RegexValidator(r"^\d{5}$", _("Entrez un code postal valide à 5 chiffres."))
 
 
 class ActiveUserManager(UserManager):
@@ -33,6 +34,8 @@ class User(BaseModel, AbstractUser):
 
     objects = ActiveUserManager()
     all_objects = models.Manager()
+    first_name = models.CharField(_("prénom"), max_length=150)
+    last_name = models.CharField(_("nom"), max_length=150)
     email = models.EmailField(
         _("adresse mail"),
         validators=[EmailValidator(message=_("Saisissez une adresse mail valide."))],
@@ -239,8 +242,8 @@ class User(BaseModel, AbstractUser):
     def soft_delete(self):
         self.is_active = False
         self.set_unusable_password()
-        self.first_name = ""
-        self.last_name = ""
+        self.first_name = "Prénom"
+        self.last_name = "Nom"
         self.username = f"deleted_{self.pk}"
         self.email = f"deleted_{self.pk}@deleted.local"
         self.phone = ""

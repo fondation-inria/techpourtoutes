@@ -1,4 +1,4 @@
-from techpourtoutes.text import mask_email
+from techpourtoutes.utils.text import mask_email
 
 
 def test_mask_email_hides_middle_of_local_part():

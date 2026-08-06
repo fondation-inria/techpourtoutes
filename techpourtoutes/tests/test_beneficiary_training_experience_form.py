@@ -38,7 +38,7 @@ def test_form_prefills_from_experience_with_higher_ed_school(beneficiary, higher
 def test_form_locks_period_label_for_current_school_year_experience(beneficiary, school):
     from techpourtoutes.forms import BeneficiaryTrainingExperienceForm
     from techpourtoutes.models import TrainingExperience
-    from techpourtoutes.models.training_experience import current_school_year_start_date
+    from techpourtoutes.utils.school_year import current_school_year_start_date
 
     current = TrainingExperience.objects.create(
         user=beneficiary,
@@ -165,7 +165,7 @@ def test_form_period_label_choices_exclude_current_school_year_when_not_current_
     beneficiary,
 ):
     from techpourtoutes.forms import BeneficiaryTrainingExperienceForm
-    from techpourtoutes.models.training_experience import current_school_year_label
+    from techpourtoutes.utils.school_year import current_school_year_label
 
     form = BeneficiaryTrainingExperienceForm(beneficiary=beneficiary)
 
@@ -178,7 +178,7 @@ def test_form_for_current_year_without_experience_locks_period_label_and_default
     beneficiary,
 ):
     from techpourtoutes.forms import BeneficiaryTrainingExperienceForm
-    from techpourtoutes.models.training_experience import current_school_year_label
+    from techpourtoutes.utils.school_year import current_school_year_label
 
     form = BeneficiaryTrainingExperienceForm(beneficiary=beneficiary, current_year=True)
 
@@ -193,7 +193,7 @@ def test_form_for_current_year_creates_experience_when_not_enrolled_is_unchecked
 ):
     from techpourtoutes.forms import BeneficiaryTrainingExperienceForm
     from techpourtoutes.models import TrainingExperience
-    from techpourtoutes.models.training_experience import current_school_year_start_date
+    from techpourtoutes.utils.school_year import current_school_year_start_date
 
     form = BeneficiaryTrainingExperienceForm(
         beneficiary=beneficiary,

@@ -11,26 +11,27 @@ from django.views.decorators.http import require_POST
 from techpourtoutes.services.soft_delete_account import SoftDeleteAccount
 
 from ..forms import (
-    AccountEditForm,
-    BeneficiaryAccountEditForm,
+    BeneficiaryEditAccountForm,
     BeneficiaryTrainingExperienceForm,
     CommunicationForm,
     DeleteAccountForm,
     EmailChangeForm,
-    TrainingExperienceForm,
+    ProEditAccountForm,
+    ProTrainingExperienceForm,
     VerificationCodeForm,
 )
 from ..mailers import AuthMailer
 from ..models import TrainingExperience
+from ..models.training_experience import training_experience_insertion_anchor
 from ..ratelimit import rate_limit
 from ..services.verify_email_change_code import VerifyEmailChangeCode
-from ..text import mask_email
+from ..utils.text import mask_email
 
 
 @login_required
 def account(request):
     is_pro, is_beneficiary, user = _resolve_account(request)
-    form = CommunicationForm(pro=user)
+    form = CommunicationForm(user=user)
     return render(
         request,
         "account/account.html",
@@ -41,10 +42,8 @@ def account(request):
 @require_POST
 @login_required
 def account_communication(request):
-    is_pro, is_beneficiary, user = _resolve_account(request)
-    if not is_pro and not is_beneficiary:
-        return redirect("account")
-    form = CommunicationForm(data=request.POST, pro=user)
+    _is_pro, _is_beneficiary, user = _resolve_account(request)
+    form = CommunicationForm(data=request.POST, user=user)
     if form.is_valid():
         form.save(user)
     return render(
@@ -67,12 +66,11 @@ def account_info(request):
 @login_required
 def account_edit(request):
     is_pro, is_beneficiary, user = _resolve_account(request)
-    if not is_pro and not is_beneficiary:
-        return redirect("account")
 
-    form_class = AccountEditForm if is_pro else BeneficiaryAccountEditForm
+    form_class = ProEditAccountForm if is_pro else BeneficiaryEditAccountForm
     form_kwarg = "pro" if is_pro else "beneficiary"
 
+    form = form_class(**{form_kwarg: user})
     if request.method == "POST":
         form = form_class(data=request.POST, **{form_kwarg: user})
         if form.is_valid():
@@ -82,18 +80,11 @@ def account_edit(request):
                 "account/partials/info_card.html",
                 {"user": user, "is_pro": is_pro, "is_beneficiary": is_beneficiary},
             )
-        return render(
-            request,
-            "account/partials/edit_form.html",
-            {"form": form, "user": user, "is_pro": is_pro, "is_beneficiary": is_beneficiary},
-        )
-    else:
-        form = form_class(**{form_kwarg: user})
-        return render(
-            request,
-            "account/partials/edit_form.html",
-            {"form": form, "user": user, "is_pro": is_pro, "is_beneficiary": is_beneficiary},
-        )
+    return render(
+        request,
+        "account/partials/edit_form.html",
+        {"form": form, "user": user, "is_pro": is_pro, "is_beneficiary": is_beneficiary},
+    )
 
 
 @login_required
@@ -188,7 +179,7 @@ def pro_training_experience_info(request, pk):
 def pro_training_experience_edit(request, pk):
     experience = _get_pro_training_experience(request, pk)
     if request.method == "POST":
-        form = TrainingExperienceForm(data=request.POST)
+        form = ProTrainingExperienceForm(data=request.POST)
         if form.is_valid():
             form.save(experience)
             return render(
@@ -197,7 +188,7 @@ def pro_training_experience_edit(request, pk):
                 {"experience": experience},
             )
     else:
-        form = TrainingExperienceForm(experience=experience)
+        form = ProTrainingExperienceForm(experience=experience)
     return render(
         request,
         "account/partials/pro_training_experience_edit_form.html",
@@ -206,93 +197,72 @@ def pro_training_experience_edit(request, pk):
 
 
 @login_required
-def beneficiary_training_experience_add(request):
-    beneficiary = _get_beneficiary(request)
+def beneficiary_training_experience_form(request, pk=None):
+    beneficiary = None
+    experience = None
+    if pk is None:
+        beneficiary = _get_beneficiary(request)
+    else:
+        experience = _get_beneficiary_training_experience(request, pk)
+
     if request.method == "POST":
-        current_year = request.POST.get("current_year") == "true"
-        prefix = None if current_year else request.POST.get("form_prefix")
+        if experience is None:
+            prefix = request.POST.get("form_prefix")
+            is_new_current_year = prefix == "current-year"
+        else:
+            prefix = str(experience.pk)
+            is_new_current_year = False
         form = BeneficiaryTrainingExperienceForm(
-            data=request.POST, beneficiary=beneficiary, current_year=current_year, prefix=prefix
+            data=request.POST,
+            beneficiary=beneficiary,
+            experience=experience,
+            current_year=is_new_current_year,
+            prefix=prefix,
         )
         if form.is_valid():
             if form.cleaned_data.get("not_enrolled"):
-                return _render_beneficiary_training_experience_card(request, experience=None)
-            experience = form.save(TrainingExperience(user=beneficiary))
-            return render(
-                request,
-                "account/partials/beneficiary_training_experience_card.html",
-                {"experience": experience},
+                if experience is not None:
+                    rejection = _reject_last_training_experience(request, experience)
+                    if rejection:
+                        return rejection
+                    experience.delete()
+                return _render_beneficiary_training_experience_item(request, experience=None)
+            saved = form.save(experience or TrainingExperience(user=beneficiary))
+            return _render_beneficiary_training_experience_item(
+                request, saved, oob_swap=_training_experience_oob_swap(saved)
             )
-    else:
-        current_year = request.GET.get("current_year") == "true"
-        prefix = None if current_year else uuid.uuid4().hex
+    elif experience is None:
+        is_new_current_year = request.GET.get("current_year") == "true"
+        prefix = "current-year" if is_new_current_year else uuid.uuid4().hex
         form = BeneficiaryTrainingExperienceForm(
-            beneficiary=beneficiary, current_year=current_year, prefix=prefix
+            beneficiary=beneficiary, current_year=is_new_current_year, prefix=prefix
         )
+    else:
+        is_new_current_year = False
+        form = BeneficiaryTrainingExperienceForm(experience=experience, prefix=str(experience.pk))
+
     return render(
         request,
         "account/partials/beneficiary_training_experience_edit_form.html",
-        {"form": form, "experience": None, "current_year": current_year},
+        {"form": form, "experience": experience, "current_year": is_new_current_year},
     )
 
 
 @login_required
 def beneficiary_training_experience_info(request, pk):
-    beneficiary = _get_beneficiary(request)
-    experience = _get_beneficiary_training_experience(beneficiary, pk)
-    return render(
-        request,
-        "account/partials/beneficiary_training_experience_card.html",
-        {"experience": experience},
-    )
-
-
-@login_required
-def beneficiary_training_experience_edit(request, pk):
-    beneficiary = _get_beneficiary(request)
-    experience = _get_beneficiary_training_experience(beneficiary, pk)
-    if request.method == "POST":
-        form = BeneficiaryTrainingExperienceForm(
-            data=request.POST, experience=experience, prefix=str(experience.pk)
-        )
-        if form.is_valid():
-            if form.cleaned_data.get("not_enrolled"):
-                if not _has_other_training_experience(beneficiary, pk):
-                    messages.error(
-                        request,
-                        "Au moins une formation doit être renseignée.",
-                    )
-                    return HttpResponse(headers={"HX-Redirect": reverse("account")})
-                experience.delete()
-                return _render_beneficiary_training_experience_card(request, experience=None)
-            form.save(experience)
-            return render(
-                request,
-                "account/partials/beneficiary_training_experience_card.html",
-                {"experience": experience},
-            )
-    else:
-        form = BeneficiaryTrainingExperienceForm(experience=experience, prefix=str(experience.pk))
-    return render(
-        request,
-        "account/partials/beneficiary_training_experience_edit_form.html",
-        {"form": form, "experience": experience},
-    )
+    experience = _get_beneficiary_training_experience(request, pk)
+    return _render_beneficiary_training_experience_item(request, experience)
 
 
 @require_POST
 @login_required
 def beneficiary_training_experience_delete(request, pk):
-    beneficiary = _get_beneficiary(request)
-    experience = _get_beneficiary_training_experience(beneficiary, pk)
+    experience = _get_beneficiary_training_experience(request, pk)
     if experience.is_current_school_year:
         return HttpResponseForbidden()
-    if not _has_other_training_experience(beneficiary, pk):
-        messages.error(
-            request,
-            "Au moins une formation doit être renseignée.",
-        )
-        return HttpResponse(headers={"HX-Redirect": reverse("account")})
+    rejection = _reject_last_training_experience(request, experience)
+    if rejection:
+        return rejection
     experience.delete()
     return HttpResponse()
 
@@ -353,12 +323,21 @@ def _get_pro_training_experience(request, pk):
     return get_object_or_404(request.user.pro.training_experiences, pk=pk)
 
 
-def _render_beneficiary_training_experience_card(request, experience):
+def _render_beneficiary_training_experience_item(request, experience, oob_swap=None):
     return render(
         request,
-        "account/partials/beneficiary_training_experience_card.html",
-        {"experience": experience},
+        "account/partials/beneficiary_training_experience_item.html",
+        {"experience": experience, "oob_swap": oob_swap},
     )
+
+
+def _training_experience_oob_swap(experience):
+    anchor = training_experience_insertion_anchor(
+        experience.user, experience.start_date, exclude_pk=experience.pk
+    )
+    if anchor is None:
+        return "beforeend:#beneficiary-training-experiences"
+    return f"beforebegin:#beneficiary-training-experience-{anchor}"
 
 
 def _get_beneficiary(request):
@@ -367,9 +346,18 @@ def _get_beneficiary(request):
     return request.user.beneficiary
 
 
-def _get_beneficiary_training_experience(beneficiary, pk):
-    return get_object_or_404(beneficiary.training_experiences, pk=pk)
+def _get_beneficiary_training_experience(request, pk):
+    if not hasattr(request.user, "beneficiary"):
+        raise Http404
+    return get_object_or_404(request.user.beneficiary.training_experiences, pk=pk)
 
 
-def _has_other_training_experience(beneficiary, pk):
-    return beneficiary.training_experiences.exclude(pk=pk).exists()
+def _reject_last_training_experience(request, experience):
+    if _has_other_training_experience(experience):
+        return None
+    messages.error(request, "Au moins une formation doit être renseignée.")
+    return HttpResponse(headers={"HX-Redirect": reverse("account")})
+
+
+def _has_other_training_experience(experience):
+    return experience.user.training_experiences.exclude(pk=experience.pk).exists()
