@@ -56,7 +56,8 @@ def training_ambassador_landing(request):
             if already_exists:
                 CoalitionUserMailer.new_engagement(pro=pro)
             else:
-                CoalitionUserMailer.welcome_training_ambassador(pro=pro)
+                CoalitionUserMailer.welcome(pro=pro, token=pro.issue_login_token())
+            CoalitionUserMailer.welcome_training_ambassador(pro=pro)
             return redirect("coalition_welcome")
         else:
             _render_errors(request, form)

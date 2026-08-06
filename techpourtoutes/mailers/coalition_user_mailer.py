@@ -30,7 +30,7 @@ class CoalitionUserMailer(BaseMailer):
     @classmethod
     def welcome_training_ambassador(cls, *, pro):
         cls.send_mail(
-            subject="Bienvenue dans la Coalition !",
+            subject="Une dernière étape pour devenir ambassadrice étudiante",
             recipient_list=[pro.email],
             context={"pro": pro},
             tags=["utilisateur", "coalition", "ambassadrice étudiante", "mail de bienvenue"],
