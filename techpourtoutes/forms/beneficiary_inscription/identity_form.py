@@ -1,22 +1,7 @@
 from django import forms
-from django.db import models
 from django.urls import reverse_lazy
 from django.utils.html import format_html
 from django.utils.translation import gettext_lazy as _
-
-
-class StudyStatus(models.TextChoices):
-    MIDDLE_HIGH_SCHOOL = "middle_high_school", _("Je suis au collège ou au lycée")
-    HIGHER_EDUCATION = "higher_education", _("Je fais des études supérieures")
-    FINISHED = "finished", _("J'ai terminé mes études")
-    RESUMING = "resuming", _("Je veux reprendre mes études")
-
-
-class BeneficiaryEmailForm(forms.Form):
-    email = forms.EmailField(
-        label=_("Ton adresse mail"),
-        error_messages={"invalid": _("Saisis une adresse mail valide.")},
-    )
 
 
 class BeneficiaryIdentityForm(forms.Form):
@@ -58,9 +43,3 @@ class BeneficiaryIdentityForm(forms.Form):
             reverse_lazy("conditions_generales"),
             reverse_lazy("donnees_personnelles"),
         )
-
-
-class BeneficiaryStudyStatusForm(forms.Form):
-    study_status = forms.ChoiceField(
-        choices=StudyStatus.choices, widget=forms.RadioSelect, label=""
-    )

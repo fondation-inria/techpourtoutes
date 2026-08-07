@@ -9,7 +9,10 @@ from django.utils.http import urlencode
 
 from ..forms import (
     BeneficiaryEmailForm,
+    BeneficiaryHigherEducationTrainingExperienceForm,
+    BeneficiaryHighSchoolTrainingExperienceForm,
     BeneficiaryIdentityForm,
+    BeneficiaryLastDiplomaTrainingExperienceForm,
     BeneficiaryStudyStatusForm,
     StudyStatus,
     VerificationCodeForm,
@@ -23,7 +26,7 @@ from ..tasks import send_beneficiary_welcome_email_task
 _WELCOME_EMAIL_DELAY_SECONDS = 5 * 60
 
 # The funnel steps in order — the single source of truth navigation is derived from.
-_STEPS = ("email", "identity", "study_status", "details")
+_STEPS = ("email", "identity", "study_status", "training_experience")
 
 # Progress bar percentage per step. The "+ 1" reserves a final segment for the success screen,
 # which shows no bar, so the last form step stops short of 100%.
@@ -31,25 +34,11 @@ STEP_PROGRESS = {
     step: round(100 * (index + 1) / (len(_STEPS) + 1)) for index, step in enumerate(_STEPS)
 }
 
-# Labels of the three (non-persisted) detail inputs shown on the "études" screen, per study status.
-_LAST_DIPLOMA_LABELS = (
-    "En quelle année as-tu obtenu ton dernier diplôme ?",
-    "De quelle filière es-tu diplômée ?",
-    "Dans quel établissement as-tu obtenu ce diplôme ?",
-)
-DETAILS_FIELDS = {
-    StudyStatus.MIDDLE_HIGH_SCHOOL: (
-        "En quelle classe es-tu ?",
-        "Dans quel établissement étudies-tu ?",
-        "Quel diplôme prépares-tu ?",
-    ),
-    StudyStatus.HIGHER_EDUCATION: (
-        "Quel est ton niveau d'études actuel ?",
-        "Dans quel établissement étudies-tu ?",
-        "Quelle est ta filière ?",
-    ),
-    StudyStatus.FINISHED: _LAST_DIPLOMA_LABELS,
-    StudyStatus.RESUMING: _LAST_DIPLOMA_LABELS,
+_TRAINING_EXPERIENCE_FORMS = {
+    StudyStatus.HIGH_SCHOOL: BeneficiaryHighSchoolTrainingExperienceForm,
+    StudyStatus.HIGHER_EDUCATION: BeneficiaryHigherEducationTrainingExperienceForm,
+    StudyStatus.FINISHED: BeneficiaryLastDiplomaTrainingExperienceForm,
+    StudyStatus.RESUMING: BeneficiaryLastDiplomaTrainingExperienceForm,
 }
 
 
@@ -72,7 +61,7 @@ def inscription_funnel(request):
         "email": _advance,
         "identity": _advance,
         "study_status": _advance,
-        "details": _create_beneficiary,
+        "training_experience": _create_beneficiary,
         "code": _handle_code,
         "resend": _handle_resend,
         "back": _handle_back,
@@ -107,6 +96,7 @@ def _create_beneficiary(request):
         email = _validate_email(request, error=_EMAIL_ERROR)
         identity = _validate_identity(request, error=_IDENTITY_ERROR)
         _validate_study(request, error=_STUDY_ERROR)
+        training_experience_form = _validate_training_experience(request)
     except _StepInterrupt as interrupt:
         return interrupt.response
 
@@ -119,6 +109,7 @@ def _create_beneficiary(request):
         brevo_sync_enabled=identity["newsletter_consent"],
     )
     beneficiary.save()
+    training_experience_form.save(beneficiary)
     AuthMailer.login_code(user=beneficiary, code=beneficiary.issue_login_code())
     send_beneficiary_welcome_email_task.apply_async(
         kwargs={"beneficiary_pk": str(beneficiary.pk)}, countdown=_WELCOME_EMAIL_DELAY_SECONDS
@@ -144,8 +135,6 @@ def _handle_code(request):
 
 @rate_limit("RATELIMIT_LOGIN", keys=("email",))
 def _handle_resend(request):
-    # "Je n'ai pas reçu de code": mail a fresh code and stay on the screen. Like the login page,
-    # an unknown email gets the same confirmation rather than revealing that no account exists.
     email = request.POST.get("email", "")
     user = User.objects.filter(email=email, is_active=True).first()
     if user is not None:
@@ -195,6 +184,13 @@ def _validate_study(request, *, error=None):
     return form.cleaned_data
 
 
+def _validate_training_experience(request):
+    form = _TRAINING_EXPERIENCE_FORMS[request.POST["study_status"]](data=request.POST)
+    if not form.is_valid():
+        raise _StepInterrupt(_render_step(request, "training_experience", form=form))
+    return form
+
+
 _STEP_VALIDATORS = {
     "email": _validate_email,
     "identity": _validate_identity,
@@ -220,8 +216,6 @@ def _login_redirect_for_existing_email(request, email):
     messages.error(request, "Un compte existe déjà avec cet email.")
     back_url = reverse("coalition_home" if hasattr(user, "pro") else "home")
     login_url = f"{reverse('login_request')}?{urlencode({'back': back_url})}"
-    # A dead-end like the age gates: the answers must not survive, or the client would resume
-    # the funnel on an email it can never submit.
     return HttpResponse(headers={"HX-Redirect": login_url, "HX-Trigger": "funnelReset"})
 
 
@@ -243,7 +237,6 @@ def _previous_step(step):
     return _STEPS[max(_STEPS.index(step) - 1, 0)]
 
 
-# Forms that gate each step; a step counts as answered once the data carries one of its fields.
 _STEP_FORMS = {
     "email": BeneficiaryEmailForm,
     "identity": BeneficiaryIdentityForm,
@@ -253,10 +246,12 @@ _STEP_FORMS = {
 
 # Furthest step the client can resume to, based on which answers it already carries.
 def _resume_step(data):
-    for step in _STEPS:
-        gate = _STEP_FORMS.get(step)
-        if gate is None or not _has_answer_for(gate, data):
+    for step in _STEPS[:-1]:
+        if not _has_answer_for(_STEP_FORMS[step], data):
             return step
+    # The last screen is picked from the study status, so an unknown one resumes on that question.
+    if data.get("study_status") not in _TRAINING_EXPERIENCE_FORMS:
+        return "study_status"
     return _STEPS[-1]
 
 
@@ -270,8 +265,6 @@ def _render_step(request, step, *, form=None, **extra):
 
 
 def _render_step_with_error(request, step, error, **extra):
-    # `error` is only set when the user is bounced back from a later screen and needs telling why;
-    # a failure on the screen she is already on speaks for itself through the field errors.
     if error:
         messages.error(request, error)
     return _render_step(request, step, **extra)
@@ -294,11 +287,16 @@ def _step_context(request, step, form=None, **extra):
     }
     if step in _FORM_BUILDERS:
         context["form"] = form or _FORM_BUILDERS[step](data)
-    if step == "details":
-        context["detail_labels"] = DETAILS_FIELDS.get(
-            data.get("study_status"), _LAST_DIPLOMA_LABELS
-        )
+    if step == "training_experience":
+        context.update(_training_experience_context(data, form))
     return context
+
+
+def _training_experience_context(data, form):
+    study_status = data.get("study_status")
+    form_class = _TRAINING_EXPERIENCE_FORMS[study_status]
+    # `initial` is rewritten by the form, so it needs a mutable copy of the answers.
+    return {"study_status": study_status, "form": form or form_class(initial=data.dict())}
 
 
 _FORM_BUILDERS = {

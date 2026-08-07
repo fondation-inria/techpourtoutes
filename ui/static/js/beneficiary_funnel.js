@@ -17,9 +17,12 @@ document.addEventListener("alpine:init", () => {
         },
 
         // Persist the freshly submitted fields, then piggy-back every prior answer on the request.
+        // Only the funnel's own POSTs carry the answers: the establishment autocomplete fires its
+        // own GET from inside the form, and must not leak them into the query string.
         sendAnswers(event) {
+            if (event.detail.verb !== "post") return;
             const params = event.detail.parameters;
-            const control = ["step", "to", "csrfmiddlewaretoken"];
+            const control = ["step", "to", "csrfmiddlewaretoken", "q"];
             const stored = { ...this.answers };
             this.forgetAnswersOf(event.detail.elt, stored);
             Object.keys(params).forEach((key) => {

@@ -26,7 +26,6 @@ class BaseEngagementForm(forms.Form):
     required (the user already accepted them at sign-up).
     """
 
-    # Identity fields written onto every Pro, whatever the engagement.
     BASE_FIELDS = ("civility", "first_name", "last_name")
 
     pro_fields: ClassVar[tuple[str, ...]] = ()
