@@ -62,7 +62,6 @@ class Command(BaseCommand):
             postal_code="75001",
         )
         beneficiary.save()
-        beneficiary.set_password(settings.SEED_BENEFICIARY_PASSWORD)
         beneficiary.save(update_fields=["password"])
 
         school, _ = School.objects.get_or_create(
@@ -77,8 +76,4 @@ class Command(BaseCommand):
             end_date=current_school_year_end_date(),
             course="Spécialité mathématiques",
         )
-        self.stdout.write(
-            self.style.SUCCESS(
-                f"  Beneficiary created: {email} / {settings.SEED_BENEFICIARY_PASSWORD}"
-            )
-        )
+        self.stdout.write(self.style.SUCCESS(f"  Beneficiary created: {email}"))

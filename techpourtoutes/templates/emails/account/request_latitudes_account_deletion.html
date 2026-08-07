@@ -1,7 +1,7 @@
 <c-layout.email>
   <p style="font-size:15px;color:#374151;">Bonjour Manon,</p>
   <p style="font-size:15px;color:#374151;">
-    {{ first_name }} {{ last_name }} a demandé la suppression de son compte sur TechPourToutes. Pouvez-vous supprimer les données de votre côté ou prendre contact avec {% if civility == "Madame" %}elle{% else %}lui{% endif %}&nbsp;?
+    {{ user.first_name }} {{ user.last_name }} a demandé la suppression de son compte sur TechPourToutes. Pouvez-vous supprimer les données de votre côté ou prendre contact avec {% if user.civility == "Madame" %}elle{% else %}lui{% endif %}&nbsp;?
   </p>
   <p style="font-size:15px;color:#374151;">
     Bonne journée

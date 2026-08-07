@@ -20,21 +20,25 @@ from ..forms import (
 )
 from ..mailers import AuthMailer
 from ..models import TrainingExperience
-from ..models.training_experience import training_experience_insertion_anchor
 from ..ratelimit import rate_limit
 from ..services.verify_email_change_code import VerifyEmailChangeCode
 from ..utils.text import mask_email
+from ..utils.training_experience import (
+    training_experience_insertion_anchor,
+    training_experience_slots,
+)
 
 
 @login_required
 def account(request):
     is_pro, is_beneficiary, user = _resolve_account(request)
     form = CommunicationForm(user=user)
-    return render(
-        request,
-        "account/account.html",
-        {"user": user, "is_pro": is_pro, "is_beneficiary": is_beneficiary, "form": form},
-    )
+    context = {"user": user, "is_pro": is_pro, "is_beneficiary": is_beneficiary, "form": form}
+    if is_beneficiary:
+        context["training_experience_slots"] = training_experience_slots(
+            user.training_experiences.all()
+        )
+    return render(request, "account/account.html", context)
 
 
 @require_POST
@@ -117,7 +121,7 @@ def email_change_verify(request):
     if payload is None:
         messages.error(
             request,
-            "Votre demande de changement d'adresse a expiré. Veuillez recommencer.",
+            "La demande de changement d'adresse a expiré. Veuillez recommencer.",
         )
         return redirect("account")
 
@@ -126,7 +130,7 @@ def email_change_verify(request):
         result = VerifyEmailChangeCode(user=user, payload=payload, code=form.cleaned_data["code"])
         if result.success:
             if payload["stage"] == "new":
-                messages.success(request, "Votre adresse mail a été modifiée.")
+                messages.success(request, "L'adresse mail a bien été modifiée.")
             return redirect(result.redirect_url)
         form.add_error("code", result.errors[0])
 
@@ -152,14 +156,14 @@ def email_change_resend(request):
     if payload is None:
         messages.error(
             request,
-            "Votre demande de changement d'adresse a expiré. Veuillez recommencer.",
+            "La demande de changement d'adresse a expiré. Veuillez recommencer.",
         )
         return redirect("account")
 
     stage, new_email = payload["stage"], payload["new_email"]
     recipient = new_email if stage == "new" else user.email
     AuthMailer.change_email(user=user, code=user.set_email_change_code(), new_email=recipient)
-    messages.success(request, "Un nouveau code vous a été envoyé par mail.")
+    messages.success(request, "Un nouveau code a été envoyé par mail.")
     return redirect(user.email_change_verify_url(user.issue_email_change_token(new_email, stage)))
 
 

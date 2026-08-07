@@ -326,7 +326,7 @@ def test_email_change_full_flow_updates_email(_code, client, pro):
     assert pro.email == "new@example.com"
     assert pro.username == "new@example.com"
     stored = [str(m) for m in get_messages(verify_new.wsgi_request)]
-    assert any("adresse mail a été modifiée" in m for m in stored)
+    assert any("adresse mail a bien été modifiée" in m for m in stored)
 
 
 @patch("techpourtoutes.models.user.generate_numeric_code", return_value="123456")
@@ -342,4 +342,4 @@ def test_email_change_resend_remails(_code, client, pro):
     assert len(mail.outbox) == 1
     assert mail.outbox[0].to == [pro.email]
     stored = [str(m) for m in get_messages(response.wsgi_request)]
-    assert "Un nouveau code vous a été envoyé par mail." in stored
+    assert "Un nouveau code a été envoyé par mail." in stored

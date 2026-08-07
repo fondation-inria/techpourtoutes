@@ -29,12 +29,7 @@ class AccountMailer(BaseMailer):
     def request_jobirl_account_deletion(cls, *, user):
         cls.send_mail(
             subject="Demande de suppression de données personnelles",
-            context={
-                "first_name": user.first_name,
-                "last_name": user.last_name,
-                "jobirl_id": user.jobirl_user_id,
-                "civility": user.civility,
-            },
+            context={"user": user},
             recipient_list=settings.JOBIRL_ACCOUNT_DELETION_RECIPIENTS,
             tags=["interne", "suppression du compte"],
         )
@@ -43,11 +38,7 @@ class AccountMailer(BaseMailer):
     def request_latitudes_account_deletion(cls, *, user):
         cls.send_mail(
             subject="Demande de suppression de données personnelles",
-            context={
-                "first_name": user.first_name,
-                "last_name": user.last_name,
-                "civility": user.civility,
-            },
+            context={"user": user},
             recipient_list=settings.LATITUDE_ACCOUNT_DELETION_RECIPIENTS,
             tags=["interne", "suppression du compte"],
         )

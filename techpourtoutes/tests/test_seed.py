@@ -40,12 +40,10 @@ def test_seed_creates_beneficiary_with_configured_credentials():
     with override_settings(
         SEED_ENABLED=True,
         SEED_BENEFICIARY_EMAIL="reviewer-beneficiary@example.com",
-        SEED_BENEFICIARY_PASSWORD="s3cret-review-pass",
     ):
         call_command("seed")
 
     beneficiary = Beneficiary.objects.get(email="reviewer-beneficiary@example.com")
-    assert beneficiary.check_password("s3cret-review-pass")
     assert TrainingExperience.objects.filter(user=beneficiary).exists()
 
 

@@ -1,7 +1,6 @@
-{% load beneficiary_training_experience %}
 <c-components.card title="Formation">
     <div id="beneficiary-training-experiences" class="divide-y divide-neutral-200">
-        {% for experience in user.training_experiences.all|as_training_experience_slots %}
+        {% for experience in training_experience_slots %}
             {% include "account/partials/beneficiary_training_experience_item.html" %}
         {% endfor %}
     </div>

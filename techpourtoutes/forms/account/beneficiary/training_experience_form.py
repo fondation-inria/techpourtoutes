@@ -86,7 +86,7 @@ class BeneficiaryTrainingExperienceForm(forms.Form):
             del self.fields["not_enrolled"]
             return
         self.fields["not_enrolled"].initial = self._experience is None
-        if self.data.get(self.add_prefix("not_enrolled")):
+        if self.data.get("not_enrolled"):
             self.fields["level"].required = False
             self.fields["course"].required = False
 
