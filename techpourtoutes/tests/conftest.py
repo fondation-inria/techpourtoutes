@@ -39,6 +39,65 @@ def higher_ed_school(db):
 
 
 @pytest.fixture
+def school(db):
+    from techpourtoutes.models import School
+
+    school = School(identifier="0750001A", name="Lycée Voltaire", postal_code="75011")
+    school.save()
+    return school
+
+
+@pytest.fixture
+def beneficiary(db):
+    from datetime import date
+
+    from techpourtoutes.models import Beneficiary
+
+    beneficiary = Beneficiary(
+        username="jade@example.com",
+        first_name="Jade",
+        last_name="Petit",
+        email="jade@example.com",
+        phone="+33612345678",
+        birth_date=date(2008, 3, 15),
+    )
+    beneficiary.save()
+    return beneficiary
+
+
+@pytest.fixture
+def experience(pro, higher_ed_school):
+    from datetime import date
+
+    from techpourtoutes.models import TrainingExperience
+
+    return TrainingExperience.objects.create(
+        user=pro,
+        higher_ed_school=higher_ed_school,
+        level=TrainingExperience.Level.BAC_3,
+        start_date=date(2019, 9, 1),
+        end_date=date(2020, 8, 31),
+        course="Master Informatique",
+    )
+
+
+@pytest.fixture
+def beneficiary_experience(beneficiary, school):
+    from datetime import date
+
+    from techpourtoutes.models import TrainingExperience
+
+    return TrainingExperience.objects.create(
+        user=beneficiary,
+        school=school,
+        level=TrainingExperience.Level.TERMINALE,
+        start_date=date(2023, 9, 1),
+        end_date=date(2024, 8, 31),
+        course="Spécialité mathématiques",
+    )
+
+
+@pytest.fixture
 def mock_create_mentor():
     instance = MagicMock(success=True, failure=False, errors=[])
     with patch(
@@ -73,6 +132,10 @@ def inactive_user(db):
     from techpourtoutes.models import User
 
     user = User.objects.create_user(
-        username="inactive@example.com", email="inactive@example.com", is_active=False
+        username="inactive@example.com",
+        email="inactive@example.com",
+        first_name="Inactive",
+        last_name="User",
+        is_active=False,
     )
     return user

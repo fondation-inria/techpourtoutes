@@ -25,6 +25,7 @@ SITEMAP_EXCLUDED_URL_NAMES = {
     "email_change",
     "email_change_resend",
     "email_change_verify",
+    "beneficiary_training_experience_add",
     "delete_account_modal",
     "delete_account",
     # Funnel steps (not landing pages)

@@ -33,7 +33,12 @@ def test_brevo_attributes_for_pro_returns_mapped_attributes(pro):
 def test_brevo_attributes_for_bare_user_returns_none(db):
     from techpourtoutes.models import User
 
-    user = User.objects.create_user(username="bare@example.com", email="bare@example.com")
+    user = User.objects.create_user(
+        username="bare@example.com",
+        email="bare@example.com",
+        first_name="Bare",
+        last_name="User",
+    )
 
     assert brevo_attributes_for(user) is None
 
@@ -48,7 +53,12 @@ def test_brevo_list_id_for_pro_returns_pro_list_id(pro):
 def test_brevo_list_id_for_bare_user_returns_none(db):
     from techpourtoutes.models import User
 
-    user = User.objects.create_user(username="bare@example.com", email="bare@example.com")
+    user = User.objects.create_user(
+        username="bare@example.com",
+        email="bare@example.com",
+        first_name="Bare",
+        last_name="User",
+    )
 
     assert brevo_list_id_for(user) is None
 

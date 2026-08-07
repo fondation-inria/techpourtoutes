@@ -2,7 +2,9 @@ from django import forms
 from django.core.exceptions import ValidationError
 from django.utils.translation import gettext_lazy as _
 
-from ..models import HigherEdSchool
+from techpourtoutes.utils.dates import compute_age
+
+from ..models import HigherEdSchool, School
 
 
 def require_structure_when_working(form, cleaned_data):
@@ -19,3 +21,18 @@ def resolve_higher_ed_school(pk):
         return HigherEdSchool.objects.get(pk=pk)
     except HigherEdSchool.DoesNotExist, ValidationError, ValueError:
         raise forms.ValidationError(_("Sélectionnez un établissement valide."))
+
+
+def resolve_school(identifier):
+    """Resolve a school by identifier, raising a form error if it is unknown."""
+    try:
+        return School.objects.get(identifier=identifier)
+    except School.DoesNotExist, ValidationError, ValueError:
+        raise forms.ValidationError(_("Sélectionnez un établissement valide."))
+
+
+def validate_birth_date(birth_date):
+    """Beneficiaries must be between 15 and 25 years old."""
+    age = compute_age(birth_date=birth_date)
+    if age < 15 or age > 25:
+        raise forms.ValidationError(_("L'âge doit être compris entre 15 et 25 ans."))

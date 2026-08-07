@@ -31,7 +31,9 @@ def test_sync_brevo_contact_calls_client_upsert(pro, mock_brevo_client):
 def test_sync_brevo_contact_skips_when_no_mapping(db, mock_brevo_client):
     from techpourtoutes.models import User
 
-    user = User.objects.create_user(username="bare@x.fr", email="bare@x.fr")
+    user = User.objects.create_user(
+        username="bare@x.fr", email="bare@x.fr", first_name="Bare", last_name="User"
+    )
 
     result = SyncBrevoContact(instance=user)
 

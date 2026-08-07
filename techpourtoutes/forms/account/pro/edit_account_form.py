@@ -2,11 +2,13 @@ from django import forms
 from django.utils.translation import gettext_lazy as _
 from phonenumber_field.formfields import PhoneNumberField
 
-from ..models import POSTAL_CODE_VALIDATOR, Pro
-from .validators import require_structure_when_working
+from techpourtoutes.validators import POSTAL_CODE_VALIDATOR
+
+from ....models import Pro
+from ...validators import require_structure_when_working
 
 
-class AccountEditForm(forms.Form):
+class ProEditAccountForm(forms.Form):
     first_name = forms.CharField(label=_("Prénom*"))
     last_name = forms.CharField(label=_("Nom*"))
     phone = PhoneNumberField(region="FR", label=_("Numéro de téléphone"), required=False)

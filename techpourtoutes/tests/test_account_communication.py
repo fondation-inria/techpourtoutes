@@ -45,3 +45,14 @@ def test_account_communication_opt_out_dispatches_delete(client, pro):
         client.post(reverse("account_communication"), data={})
 
     delete_task.delay.assert_called_once_with(str(pro.pk), 42)
+
+
+@pytest.mark.django_db
+def test_account_communication_works_for_beneficiary(client, beneficiary):
+    client.force_login(beneficiary)
+
+    response = client.post(reverse("account_communication"), data={"newsletter_consent": "on"})
+
+    assert response.status_code == 200
+    beneficiary.refresh_from_db()
+    assert beneficiary.brevo_sync_enabled is True

@@ -4,7 +4,7 @@ from ..models import Pro
 from .base_mailer import BaseMailer
 
 
-class CoalitionInternalMailer(BaseMailer):
+class ConsortiumMailer(BaseMailer):
     from_email = "TechPourToutes <agir@techpourtoutes.io>"
 
     @classmethod
@@ -35,14 +35,4 @@ class CoalitionInternalMailer(BaseMailer):
                 "engagement": engagement_label,
             },
             tags=["interne", "coalition", "nouvelle demande d'engagement"],
-        )
-
-    @classmethod
-    def delete_account_request(cls, *, first_name, last_name, jobirl_id):
-        recipient_list = settings.COALITION_ACCOUNT_DELETION_RECIPIENTS
-        cls.send_mail(
-            subject="Demande de suppression de données personnelles",
-            context={"first_name": first_name, "last_name": last_name, "jobirl_id": jobirl_id},
-            recipient_list=recipient_list,
-            tags=["interne", "coalition", "suppression du compte"],
         )

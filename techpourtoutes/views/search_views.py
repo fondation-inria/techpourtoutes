@@ -2,7 +2,7 @@ from django.db.models import Q
 from django.shortcuts import render
 
 from ..models import HigherEdSchool, School
-from ..text import strip_accents
+from ..utils.text import strip_accents
 
 SCHOOL_PAGE_SIZE = 20
 
