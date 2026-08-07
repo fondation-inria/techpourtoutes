@@ -75,6 +75,25 @@ def test_import_schools_deduplicates_records_with_same_identifier():
 
 
 @pytest.mark.django_db
+def test_if_empty_skips_import_when_rows_already_exist():
+    School.objects.create(identifier="0750001A", name="Existant", postal_code="75011")
+    with patch("techpourtoutes.management.commands.import_schools.httpx.get") as mock_get:
+        call_command("import_schools", if_empty=True)
+
+    mock_get.assert_not_called()
+    assert School.objects.count() == 1
+
+
+@pytest.mark.django_db
+def test_if_empty_runs_import_when_table_is_empty():
+    with patch("techpourtoutes.management.commands.import_schools.httpx.get") as mock_get:
+        mock_get.return_value = _mock_response(RECORDS)
+        call_command("import_schools", if_empty=True)
+
+    assert School.objects.count() == 2
+
+
+@pytest.mark.django_db
 def test_import_schools_skips_records_without_identifier_or_name():
     records = [
         *RECORDS,

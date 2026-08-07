@@ -15,8 +15,8 @@ def _write_csv(tmp_path, *rows):
     return str(path)
 
 
-def _import(tmp_path, *rows):
-    call_command("import_higher_ed_schools", path=_write_csv(tmp_path, *rows))
+def _import(tmp_path, *rows, **options):
+    call_command("import_higher_ed_schools", path=_write_csv(tmp_path, *rows), **options)
 
 
 @pytest.mark.django_db
@@ -72,6 +72,30 @@ def test_rerun_is_idempotent(tmp_path):
     _import(tmp_path, row)
 
     assert HigherEdSchool.objects.count() == 1
+
+
+@pytest.mark.django_db
+def test_if_empty_skips_import_when_rows_already_exist(tmp_path):
+    HigherEdSchool.objects.create(full_name="Existant", name="EX", uai="0000000X")
+    _import(
+        tmp_path,
+        "VetAgro Sup établissement,13000858400018,928,CGE,0690193K,VetAgro Sup,,,,,,",
+        if_empty=True,
+    )
+
+    assert HigherEdSchool.objects.count() == 1
+    assert HigherEdSchool.objects.get().name == "EX"
+
+
+@pytest.mark.django_db
+def test_if_empty_runs_import_when_table_is_empty(tmp_path):
+    _import(
+        tmp_path,
+        "VetAgro Sup établissement,13000858400018,928,CGE,0690193K,VetAgro Sup,,,,,,",
+        if_empty=True,
+    )
+
+    assert HigherEdSchool.objects.get(uai="0690193K").name == "VetAgro Sup"
 
 
 @pytest.mark.django_db
