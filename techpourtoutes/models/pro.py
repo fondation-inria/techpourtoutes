@@ -1,14 +1,10 @@
 from django.contrib.postgres.fields import ArrayField
-from django.core.validators import RegexValidator
 from django.db import models
 from django.utils.translation import gettext_lazy as _
-from phonenumber_field.modelfields import PhoneNumberField
 
 from techpourtoutes.signals import connect_brevo_sync
 
 from .user import User
-
-POSTAL_CODE_VALIDATOR = RegexValidator(r"^\d{5}$", _("Entrez un code postal valide à 5 chiffres."))
 
 
 class Pro(User):
@@ -26,14 +22,6 @@ class Pro(User):
         RETIRED = "retired", _("À la retraite")
         JOBLESS = "jobless", _("Sans emploi")
 
-    class Civility(models.TextChoices):
-        MADAME = "Madame", _("Madame")
-        MONSIEUR = "Monsieur", _("Monsieur")
-
-    civility = models.CharField(
-        max_length=10, choices=Civility.choices, verbose_name=_("civilité")
-    )
-    phone = PhoneNumberField(region="FR", blank=True, verbose_name=_("téléphone"))
     professional_situation = models.CharField(
         max_length=20,
         choices=ProfessionalSituation.choices,
@@ -46,20 +34,8 @@ class Pro(User):
         max_length=20, blank=True, verbose_name=_("identifiant de la structure")
     )
     job_title = models.CharField(max_length=255, blank=True, verbose_name=_("métier"))
-    postal_code = models.CharField(
-        max_length=5,
-        blank=True,
-        validators=[POSTAL_CODE_VALIDATOR],
-        verbose_name=_("code postal"),
-    )
     faveod_id = models.IntegerField(
         null=True, blank=True, unique=True, verbose_name=_("identifiant faveod")
-    )
-    jobirl_user_id = models.BigIntegerField(
-        null=True, blank=True, verbose_name=_("identifiant utilisateur jobirl")
-    )
-    jobirl_user_token = models.CharField(
-        max_length=128, blank=True, verbose_name=_("token utilisateur jobirl")
     )
     engagements = ArrayField(
         models.CharField(max_length=30, choices=Engagement.choices),
@@ -83,10 +59,7 @@ class Pro(User):
             self.engagements.append(engagement)
 
     def soft_delete(self):
-        self.phone = ""
         self.faveod_id = None
-        self.jobirl_user_id = None
-        self.jobirl_user_token = ""
         super().soft_delete()
 
 

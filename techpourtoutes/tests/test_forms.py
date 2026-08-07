@@ -212,18 +212,18 @@ def _account_edit_data(**overrides):
 
 @pytest.mark.django_db
 def test_account_edit_form_structure_name_required_when_working():
-    from techpourtoutes.forms import AccountEditForm
+    from techpourtoutes.forms import ProEditAccountForm
 
-    form = AccountEditForm(data=_account_edit_data(structure_name=""))
+    form = ProEditAccountForm(data=_account_edit_data(structure_name=""))
     assert not form.is_valid()
     assert "structure_name" in form.errors
 
 
 @pytest.mark.django_db
 def test_account_edit_form_structure_name_not_required_when_jobless():
-    from techpourtoutes.forms import AccountEditForm
+    from techpourtoutes.forms import ProEditAccountForm
 
-    form = AccountEditForm(
+    form = ProEditAccountForm(
         data=_account_edit_data(professional_situation="jobless", structure_name="")
     )
     assert form.is_valid(), form.errors
@@ -231,9 +231,9 @@ def test_account_edit_form_structure_name_not_required_when_jobless():
 
 @pytest.mark.django_db
 def test_account_edit_form_rejects_invalid_postal_code():
-    from techpourtoutes.forms import AccountEditForm
+    from techpourtoutes.forms import ProEditAccountForm
 
-    form = AccountEditForm(data=_account_edit_data(postal_code="123"))
+    form = ProEditAccountForm(data=_account_edit_data(postal_code="123"))
     assert not form.is_valid()
     assert "postal_code" in form.errors
 

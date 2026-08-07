@@ -2,7 +2,7 @@ from django.contrib.postgres.fields import ArrayField
 from django.db import models
 from django.utils.translation import gettext_lazy as _
 
-from techpourtoutes.text import strip_accents
+from techpourtoutes.utils.text import strip_accents
 
 from .base import BaseModel
 

@@ -1,0 +1,12 @@
+{% load politeness %}Bonjour {{ first_name }},
+
+Nous {% politeness "vous" "te" %} confirmons la suppression de {% politeness "votre" "ton" %} compte sur la plateforme TechPourToutes.
+
+{% if has_jobirl_account %}
+Nous avons transmis {% politeness "votre" "ta" %} demande à JobIRL. Nous {% politeness "vous" "te" %} invitons à les contacter directement pour valider la suppression de {% politeness "votre" "ton" %} compte également chez eux :
+Julie Masmejean
+e-mentorat@jobirl.com
+06 31 59 74 43
+{% endif %}
+
+Bonne journée

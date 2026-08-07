@@ -5,9 +5,10 @@
     label=""
     description=""
     class=""
+    unique_id=""
 />
 
-<c-components.form-fields.base :field=name_field label=label description=description class=class>
+<c-components.form-fields.base :field=name_field :errors=id_field.errors label=label description=description class=class>
     <div x-data="{
             open: false,
             query: '{{ name_field.value|default:""|escapejs }}{% if name_field.value and postal_field.value %} ({{ postal_field.value|escapejs }}){% endif %}',
@@ -30,6 +31,7 @@
                 this.$nextTick(() => this.$refs.searchInput.focus());
             }
          }"
+         x-init="htmx.process($el)"
          @click.outside="open = false"
          @keydown.escape="open = false"
          class="relative">
@@ -38,6 +40,7 @@
         <input type="hidden" name="{{ postal_field.html_name }}" :value="postalCode">
         <input type="text"
                x-show="!structureId"
+               x-cloak
                x-ref="searchInput"
                id="{{ name_field.id_for_label }}"
                x-model="query"
@@ -48,9 +51,9 @@
                placeholder="Rechercher un établissement…"
                hx-get="{% url 'search_schools' %}"
                hx-trigger="focus, input changed delay:300ms"
-               hx-target="#school-results"
+               hx-target="#school-results{% if unique_id %}-{{ unique_id }}{% endif %}"
                hx-swap="innerHTML"
-               class="field-base field-default" />
+               class="field-base {% if id_field.errors %}field-error{% else %}field-default{% endif %}" />
         <div x-show="structureId" x-cloak
              class="field-base field-default flex items-start justify-between gap-2">
             <span class="wrap-break-word" x-text="query"></span>
@@ -62,7 +65,7 @@
                     aria-label="Effacer la sélection" />
         </div>
         <ul x-show="open && !structureId" x-cloak
-            id="school-results"
+            id="school-results{% if unique_id %}-{{ unique_id }}{% endif %}"
             class="absolute z-10 mt-1 w-full bg-neutral-50 rounded shadow-thin-bottom shadow-primary-700 max-h-60 overflow-y-auto"
             role="listbox"></ul>
     </div>

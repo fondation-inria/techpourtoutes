@@ -2807,6 +2807,9 @@
   .-right-5 {
     right: calc(var(--spacing) * -5);
   }
+  .right-0 {
+    right: 0px;
+  }
   .right-3 {
     right: calc(var(--spacing) * 3);
   }
@@ -3767,6 +3770,16 @@
   .gap-y-8 {
     row-gap: calc(var(--spacing) * 8);
   }
+  :where(.divide-y > :not(:last-child)) {
+    --tw-divide-y-reverse: 0;
+    border-bottom-style: var(--tw-border-style);
+    border-top-style: var(--tw-border-style);
+    border-top-width: calc(1px * var(--tw-divide-y-reverse));
+    border-bottom-width: calc(1px * calc(1 - var(--tw-divide-y-reverse)));
+  }
+  :where(.divide-neutral-200 > :not(:last-child)) {
+    border-color: var(--color-neutral-200);
+  }
   .truncate {
     overflow: hidden;
     text-overflow: ellipsis;
@@ -3967,6 +3980,9 @@
   }
   .pt-12 {
     padding-top: calc(var(--spacing) * 12);
+  }
+  .pr-8 {
+    padding-right: calc(var(--spacing) * 8);
   }
   .pb-2 {
     padding-bottom: calc(var(--spacing) * 2);
@@ -5003,6 +5019,11 @@
   inherits: false;
   initial-value: 0;
 }
+@property --tw-divide-y-reverse {
+  syntax: "*";
+  inherits: false;
+  initial-value: 0;
+}
 @property --tw-border-style {
   syntax: "*";
   inherits: false;
@@ -5154,6 +5175,7 @@
       --tw-skew-x: initial;
       --tw-skew-y: initial;
       --tw-space-y-reverse: 0;
+      --tw-divide-y-reverse: 0;
       --tw-border-style: solid;
       --tw-leading: initial;
       --tw-font-weight: initial;

@@ -184,6 +184,9 @@
     <path d="M128.000 96.000V128.000V149.333V224.000M191.621 78.941C188.462 52.499 165.958 32.000 138.667 32.000C121.218 32.000 105.726 40.379 95.996 53.333C60.652 53.335 32.000 81.988 32.000 117.333C32.000 152.679 60.654 181.333 96.000 181.333H170.667C200.122 181.333 224.000 157.455 224.000 128.000C224.000 105.983 210.659 87.083 191.621 78.941Z" stroke="#1616dd" stroke-width="5" stroke-linecap="round" stroke-linejoin="round" id="devenir-mecene-light-primary"></path>
   </g>
   </symbol>
+  <symbol id="edit" viewBox="0 0 24 24" fill="none">
+    <path stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" d="M16.862 4.487 18.55 2.8a1.875 1.875 0 1 1 2.652 2.652L10.582 16.07a4.5 4.5 0 0 1-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 0 1 1.13-1.897l8.932-8.931Zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0 1 15.75 21H5.25A2.25 2.25 0 0 1 3 18.75V8.25A2.25 2.25 0 0 1 5.25 6H10" />
+  </symbol>
   <symbol id="external-link" viewBox="0 0 24 24" fill="none">
     <path stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" d="M13.5 6H5.25A2.25 2.25 0 0 0 3 8.25v10.5A2.25 2.25 0 0 0 5.25 21h10.5A2.25 2.25 0 0 0 18 18.75V10.5m-10.5 6L21 3m0 0h-5.25M21 3v5.25" />
   </symbol>
@@ -435,7 +438,7 @@
     <path d="M158.851 136.471L116.185 210.372L79.234 189.039L121.901 115.138M130.093 58.284L203.994 100.951L177.327 147.138L103.426 104.472L130.093 58.284Z" stroke="#1616dd" stroke-width="5" stroke-linecap="round" stroke-linejoin="round" id="pitcher-mon-metier-light-primary"></path>
   </g>
   </symbol>
-  <symbol id="plus-light" viewBox="0 0 256 256" fill="none">
+  <symbol id="plus-light" viewBox="48 48 160 160" fill="none">
     <defs>
     <linearGradient id="plus-light-gradient1">
       <stop class="stop1" offset="0%" stop-color="#8f66ff"></stop>
@@ -444,7 +447,7 @@
   </defs>
   <rect id="plus-light-backgr" width="256" height="256" fill="none" rx="70"></rect>
   <g id="plus-light-group" transform="translate(0,0) scale(1)">
-    <path d="M128.000 64.000V192.000M64.000 128.000H192.000" stroke="#1616dd" stroke-width="5" stroke-linecap="round" stroke-linejoin="round" id="plus-light-primary"></path>
+    <path d="M128.000 64.000V192.000M64.000 128.000H192.000" stroke="currentColor" stroke-width="10" stroke-linecap="round" stroke-linejoin="round" id="plus-light-primary"></path>
   </g>
   </symbol>
   <symbol id="quote-end" viewBox="0 0 640 640">
@@ -480,5 +483,8 @@
     <path d="M128.000 85.354C181.020 85.354 224.000 104.457 224.000 128.021C224.000 151.585 181.020 170.688 128.000 170.688C74.981 170.688 32.000 151.585 32.000 128.021C32.000 104.457 74.981 85.354 128.000 85.354ZM164.949 106.688C191.459 152.604 196.406 199.377 175.999 211.159C155.591 222.942 117.558 195.270 91.049 149.355C64.539 103.438 59.592 56.665 79.999 44.882C100.406 33.100 138.439 60.771 164.949 106.688ZM164.950 149.354C138.441 195.270 100.407 222.941 80.000 211.159C59.593 199.377 64.540 152.604 91.049 106.687C117.558 60.771 155.593 33.100 176.000 44.882C196.406 56.664 191.459 103.438 164.950 149.354Z" stroke="#1616dd" stroke-width="5" stroke-linecap="round" id="sengager-light-primary"></path>
     <path d="M127.946 127.893V128.000" stroke="#ff00ff" stroke-width="5" stroke-linecap="round" id="sengager-light-secondary"></path>
   </g>
+  </symbol>
+  <symbol id="trash" viewBox="2 2 20 20" fill="none">
+    <path stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" d="M5 7h14M9 7V5a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2m3 0-.8 12.1a2 2 0 0 1-2 1.9H8.8a2 2 0 0 1-2-1.9L6 7h12ZM10 11v6M14 11v6" />
   </symbol>
 </svg>

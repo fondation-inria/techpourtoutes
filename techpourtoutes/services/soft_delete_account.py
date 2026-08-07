@@ -1,20 +1,15 @@
-from techpourtoutes.mailers.coalition_internal_mailer import CoalitionInternalMailer
-from techpourtoutes.mailers.coalition_user_mailer import CoalitionUserMailer
+from techpourtoutes.mailers.account_mailer import AccountMailer
+from techpourtoutes.models import Pro
 
 from .base import BaseService
 
 
 class SoftDeleteAccount(BaseService):
     def perform(self, *, user):
-        recipient_email = user.email
-        first_name = user.first_name
-        last_name = user.last_name
-        engagements = user.engagements
         jobirl_id = user.jobirl_user_id
+        AccountMailer.deletion_confirmation(user=user)
+        if jobirl_id is not None:
+            AccountMailer.request_jobirl_account_deletion(user=user)
+        if isinstance(user, Pro) and "workshops" in user.engagements:
+            AccountMailer.request_latitudes_account_deletion(user=user)
         user.soft_delete()
-        CoalitionUserMailer.delete_account(
-            recipient_email=recipient_email, first_name=first_name, engagements=engagements
-        )
-        CoalitionInternalMailer.delete_account_request(
-            first_name=first_name, last_name=last_name, jobirl_id=jobirl_id
-        )

@@ -11,7 +11,12 @@ from django.utils import timezone
 def test_user_has_uuid_pk():
     from techpourtoutes.models import User
 
-    user = User.objects.create_user(username="test@example.com", email="test@example.com")
+    user = User.objects.create_user(
+        username="test@example.com",
+        email="test@example.com",
+        first_name="Test",
+        last_name="User",
+    )
     assert isinstance(user.pk, uuid.UUID)
 
 
@@ -473,7 +478,7 @@ def test_workshop_request_query_pros_by_type(pro):
 
 
 def test_strip_accents():
-    from techpourtoutes.text import strip_accents
+    from techpourtoutes.utils.text import strip_accents
 
     assert strip_accents("Lycée privée à Nîmes") == "Lycee privee a Nimes"
 
@@ -501,6 +506,174 @@ def test_training_experience_links_pro_and_higher_ed_school(pro, higher_ed_schoo
 
 
 @pytest.mark.django_db
+def test_beneficiary_creation_saves_all_fields():
+    from datetime import date
+
+    from techpourtoutes.models import Beneficiary
+
+    beneficiary = Beneficiary(
+        username="jade@example.com",
+        first_name="Jade",
+        last_name="Petit",
+        email="jade@example.com",
+        birth_date=date(2008, 3, 15),
+        postal_code="75011",
+    )
+    beneficiary.save()
+
+    saved = Beneficiary.objects.get(email="jade@example.com")
+    assert saved.first_name == "Jade"
+    assert saved.birth_date == date(2008, 3, 15)
+    assert saved.postal_code == "75011"
+
+
+@pytest.mark.django_db
+def test_beneficiary_rejects_invalid_postal_code():
+    from datetime import date
+
+    from techpourtoutes.models import Beneficiary
+
+    beneficiary = Beneficiary(
+        username="jade@example.com",
+        first_name="Jade",
+        last_name="Petit",
+        email="jade@example.com",
+        birth_date=date(2008, 3, 15),
+        postal_code="123",
+    )
+    with pytest.raises(ValidationError):
+        beneficiary.save()
+
+
+@pytest.mark.django_db
+def test_training_experience_links_beneficiary_and_school(beneficiary, school):
+    from datetime import date
+
+    from techpourtoutes.models import TrainingExperience
+
+    experience = TrainingExperience(
+        user=beneficiary,
+        school=school,
+        level=TrainingExperience.Level.TERMINALE,
+        start_date=date(2024, 9, 1),
+        end_date=date(2025, 8, 31),
+        course="Spécialité mathématiques",
+    )
+    experience.save()
+
+    assert experience in beneficiary.training_experiences.all()
+    assert experience in school.training_experiences.all()
+
+
+@pytest.mark.django_db
+def test_training_experience_links_beneficiary_and_higher_ed_school(beneficiary, higher_ed_school):
+    from datetime import date
+
+    from techpourtoutes.models import TrainingExperience
+
+    experience = TrainingExperience(
+        user=beneficiary,
+        higher_ed_school=higher_ed_school,
+        level=TrainingExperience.Level.BAC_1,
+        start_date=date(2024, 9, 1),
+        end_date=date(2025, 8, 31),
+        course="Licence informatique",
+    )
+    experience.save()
+
+    assert experience in beneficiary.training_experiences.all()
+    assert experience in higher_ed_school.training_experiences.all()
+
+
+@pytest.mark.django_db
+def test_training_experiences_are_ordered_reverse_chronologically(beneficiary, school):
+    from datetime import date
+
+    from techpourtoutes.models import TrainingExperience
+
+    TrainingExperience.objects.create(
+        user=beneficiary,
+        school=school,
+        level=TrainingExperience.Level.TERMINALE,
+        start_date=date(2024, 9, 1),
+        end_date=date(2025, 8, 31),
+        course="Terminale",
+    )
+    TrainingExperience.objects.create(
+        user=beneficiary,
+        school=school,
+        level=TrainingExperience.Level.SECONDE,
+        start_date=date(2022, 9, 1),
+        end_date=date(2023, 8, 31),
+        course="Seconde",
+    )
+    TrainingExperience.objects.create(
+        user=beneficiary,
+        school=school,
+        level=TrainingExperience.Level.PREMIERE,
+        start_date=date(2023, 9, 1),
+        end_date=date(2024, 8, 31),
+        course="Première",
+    )
+
+    labels = [experience.period_label for experience in beneficiary.training_experiences.all()]
+    assert labels == ["2024-2025", "2023-2024", "2022-2023"]
+
+
+@pytest.mark.django_db
+def test_training_experience_rejects_duplicate_period_label_for_same_beneficiary(
+    beneficiary, school
+):
+    from datetime import date
+
+    from techpourtoutes.models import TrainingExperience
+
+    TrainingExperience.objects.create(
+        user=beneficiary,
+        school=school,
+        level=TrainingExperience.Level.TERMINALE,
+        start_date=date(2024, 9, 1),
+        end_date=date(2025, 8, 31),
+        course="Terminale",
+    )
+    duplicate = TrainingExperience(
+        user=beneficiary,
+        school=school,
+        level=TrainingExperience.Level.PREMIERE,
+        start_date=date(2024, 9, 1),
+        end_date=date(2025, 8, 31),
+        course="Première",
+    )
+
+    with pytest.raises(ValidationError):
+        duplicate.save()
+
+
+def test_training_experience_is_current_school_year():
+    from datetime import date
+
+    from techpourtoutes.models import TrainingExperience
+    from techpourtoutes.utils.school_year import current_school_year_start_date
+
+    current = TrainingExperience(start_date=current_school_year_start_date())
+    past = TrainingExperience(start_date=date(2000, 9, 1))
+
+    assert current.is_current_school_year
+    assert not past.is_current_school_year
+
+
+def test_training_experience_secondary_and_higher_ed_levels_partition_all_levels():
+    from techpourtoutes.models import TrainingExperience
+
+    covered_levels = set(TrainingExperience.SECONDARY_LEVELS) | set(
+        TrainingExperience.HIGHER_ED_LEVELS
+    )
+
+    assert covered_levels == set(TrainingExperience.Level)
+    assert set(TrainingExperience.SECONDARY_LEVELS).isdisjoint(TrainingExperience.HIGHER_ED_LEVELS)
+
+
+@pytest.mark.django_db
 def test_soft_delete_anonymizes_expected_fields(pro):
     original_pk = pro.pk
     original_professional_situation = pro.professional_situation
@@ -512,13 +685,12 @@ def test_soft_delete_anonymizes_expected_fields(pro):
     original_job_title = pro.job_title
 
     pro.soft_delete()
-    pro.save()
     pro.refresh_from_db()
 
     assert not pro.is_active
     assert not pro.has_usable_password()
-    assert pro.first_name == ""
-    assert pro.last_name == ""
+    assert pro.first_name == "Prénom"
+    assert pro.last_name == "Nom"
     assert pro.username == f"deleted_{original_pk}"
     assert pro.email == f"deleted_{original_pk}@deleted.local"
     assert pro.login_token_hash == ""
@@ -537,3 +709,32 @@ def test_soft_delete_anonymizes_expected_fields(pro):
     assert pro.structure_id == original_structure_id
     assert pro.civility == original_civility
     assert pro.job_title == original_job_title
+
+
+@pytest.mark.django_db
+def test_soft_delete_anonymizes_expected_fields_for_beneficiary(beneficiary):
+    from techpourtoutes.models import Beneficiary
+
+    original_pk = beneficiary.pk
+    original_postal_code = beneficiary.postal_code
+
+    beneficiary.soft_delete()
+    beneficiary.refresh_from_db()
+
+    assert not beneficiary.is_active
+    assert not beneficiary.has_usable_password()
+    assert beneficiary.first_name == "Prénom"
+    assert beneficiary.last_name == "Nom"
+    assert beneficiary.username == f"deleted_{original_pk}"
+    assert beneficiary.email == f"deleted_{original_pk}@deleted.local"
+    assert beneficiary.login_token_hash == ""
+    assert beneficiary.login_token_expires_at is None
+    assert not beneficiary.brevo_sync_enabled
+
+    assert beneficiary.phone == ""
+    assert beneficiary.jobirl_user_id is None
+    assert beneficiary.jobirl_user_token == ""
+
+    assert isinstance(beneficiary, Beneficiary)
+    assert beneficiary.birth_date is None
+    assert beneficiary.postal_code == original_postal_code

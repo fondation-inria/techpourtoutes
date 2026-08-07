@@ -1,21 +1,26 @@
-from .auth_views import (
+from .account_views import (
     account,
     account_communication,
     account_edit,
     account_email,
     account_info,
+    beneficiary_training_experience_delete,
+    beneficiary_training_experience_form,
+    beneficiary_training_experience_info,
     delete_account,
     delete_account_modal,
     email_change,
     email_change_resend,
     email_change_verify,
+    pro_training_experience_edit,
+    pro_training_experience_info,
+)
+from .auth_views import (
     login_code,
     login_request,
     login_to_jobirl,
     login_verify,
     logout_view,
-    training_experience_edit,
-    training_experience_info,
 )
 from .beneficiary_views import beneficiary_home
 from .coalition_views import (
@@ -53,6 +58,9 @@ __all__ = [
     "account_email",
     "account_info",
     "beneficiary_home",
+    "beneficiary_training_experience_delete",
+    "beneficiary_training_experience_form",
+    "beneficiary_training_experience_info",
     "coalition_home",
     "coalition_welcome",
     "conditions_generales",
@@ -73,6 +81,8 @@ __all__ = [
     "mentor_landing",
     "notre_manifeste",
     "pourquoi_nous_ecrivons_au_feminin",
+    "pro_training_experience_edit",
+    "pro_training_experience_info",
     "qui_sommes_nous",
     "schema_pluriannuel",
     "search_higher_ed_schools",
@@ -81,8 +91,6 @@ __all__ = [
     "signer_manifeste",
     "sponsor_landing",
     "training_ambassador_landing",
-    "training_experience_edit",
-    "training_experience_info",
     "work_ambassador_landing",
     "workshops_landing",
 ]
