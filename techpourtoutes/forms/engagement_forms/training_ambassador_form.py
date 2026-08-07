@@ -2,6 +2,11 @@ from django import forms
 from django.utils.translation import gettext_lazy as _
 from phonenumber_field.formfields import PhoneNumberField
 
+from techpourtoutes.utils.school_year import (
+    current_school_year_end_date,
+    current_school_year_start_date,
+)
+
 from ...models import Pro, TrainingExperience
 from ..validators import resolve_higher_ed_school
 from .base_engagement_form import BaseEngagementForm
@@ -19,7 +24,7 @@ class TrainingAmbassadorForm(BaseEngagementForm):
         widget=forms.HiddenInput, label=_("Votre établissement*")
     )
     higher_ed_school_label = forms.CharField(widget=forms.HiddenInput, required=False)
-    course = forms.CharField(label=_("Votre cursus/spécialité*"))
+    course = forms.CharField(label=_("Votre filière*"))
 
     def clean_higher_ed_school_id(self):
         pk = self.cleaned_data["higher_ed_school_id"]
@@ -30,6 +35,10 @@ class TrainingAmbassadorForm(BaseEngagementForm):
         training_experience, _created = TrainingExperience.objects.update_or_create(
             user=pro,
             higher_ed_school=self._higher_ed_school,
-            defaults={"course": self.cleaned_data["course"]},
+            defaults={
+                "course": self.cleaned_data["course"],
+                "start_date": current_school_year_start_date(),
+                "end_date": current_school_year_end_date(),
+            },
         )
         return training_experience

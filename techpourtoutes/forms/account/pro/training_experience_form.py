@@ -1,0 +1,45 @@
+from django import forms
+from django.utils.translation import gettext_lazy as _
+
+from ....models import TrainingExperience
+from ...validators import resolve_higher_ed_school
+
+
+class ProTrainingExperienceForm(forms.Form):
+    higher_ed_school_id = forms.CharField(
+        widget=forms.HiddenInput, label=_("Votre établissement*")
+    )
+    higher_ed_school_label = forms.CharField(widget=forms.HiddenInput, required=False)
+    level = forms.ChoiceField(
+        label=_("Niveau*"),
+        choices=[
+            ("", _("Sélectionner une option")),
+            *[(level.value, level.label) for level in TrainingExperience.HIGHER_ED_LEVELS],
+        ],
+    )
+    course = forms.CharField(label=_("Votre filière*"))
+
+    def __init__(self, *args, experience=None, **kwargs):
+        if experience is not None:
+            kwargs.setdefault(
+                "initial",
+                {
+                    "higher_ed_school_id": str(experience.higher_ed_school_id),
+                    "higher_ed_school_label": experience.higher_ed_school.display_label,
+                    "level": experience.level,
+                    "course": experience.course,
+                },
+            )
+        super().__init__(*args, **kwargs)
+
+    def clean_higher_ed_school_id(self):
+        pk = self.cleaned_data["higher_ed_school_id"]
+        self._higher_ed_school = resolve_higher_ed_school(pk)
+        return pk
+
+    def save(self, experience):
+        experience.higher_ed_school = self._higher_ed_school
+        experience.level = self.cleaned_data["level"]
+        experience.course = self.cleaned_data["course"]
+        experience.save()
+        return experience

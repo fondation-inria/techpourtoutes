@@ -95,7 +95,7 @@ make icons    # rebuild SVG sprite
 make seed     # seed DB with minimal dev data (idempotent)
 ```
 
-Seed creates: one `Pro` with superuser role — `admin@techpourtoutes.io` / `admin`.
+Seed creates: one `Pro` with superuser role — `admin@techpourtoutes.io` / `admin` — and one `Beneficiary` with a `TrainingExperience` — `beneficiary@techpourtoutes.io` / `beneficiary`.
 
 ## Architecture
 
@@ -123,7 +123,7 @@ Django 6 + PostgreSQL project. Locale is French (fr-FR), timezone Europe/Paris.
 
 **Service objects:** Inherit from `BaseService` (`techpourtoutes/services/base.py`). Implement `perform(**kwargs)`; call `self.fail("message")` to signal failure. Check `result.success` / `result.failure` and `result.errors` at the call site.
 
-**Mailers:** `techpourtoutes/mailers.py` — class-based, no inheritance. Each mailer exposes `@classmethod` methods that call `send_mail` with rendered txt+html templates (`CoalitionUserMailer`, `CoalitionInternalMailer`, `AuthMailer`).
+**Mailers:** `techpourtoutes/mailers.py` — class-based, no inheritance. Each mailer exposes `@classmethod` methods that call `send_mail` with rendered txt+html templates (`ProMailer`, `ConsortiumMailer`, `AuthMailer`, `AccountMailer`).
 
 **Jobirl integration:** External mentoring platform. Services live in `techpourtoutes/services/jobirl_api/`. Use `JobirlApiBaseService` (extends `BaseService`) for requests — it wraps `JobirlClient` (`techpourtoutes/clients/jobirl.py`) and exposes `result.jobirl_response_body` (the `datas` key from the response) on success.
 
@@ -179,7 +179,7 @@ A handful of tests have no single source file and stay at the root of `tests/`: 
 
 ### Fixtures
 
-- `techpourtoutes/tests/conftest.py` — available everywhere: `pro`, `higher_ed_school`, `inactive_user`, `valid_pro_model_data`, `valid_pro_data`, `mock_create_mentor`
+- `techpourtoutes/tests/conftest.py` — available everywhere: `pro`, `beneficiary`, `school`, `higher_ed_school`, `experience`, `beneficiary_experience`, `inactive_user`, `valid_pro_model_data`, `valid_pro_data`, `mock_create_mentor`
 - Directory-level `conftest.py` for fixtures shared within one directory only (`tests/admin/conftest.py`, `tests/services/brevo_api/conftest.py`). Don't promote a fixture to the root `conftest.py` until a second directory needs it
 - The root `conftest.py` (project root, not `tests/`) holds autouse fixtures for the whole suite: in-memory cache, simple static storage (no manifest), eager Celery, mocked Brevo SDK
 

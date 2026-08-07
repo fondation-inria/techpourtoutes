@@ -1,0 +1,69 @@
+<c-patterns.form
+    id="beneficiary-training-experience-{{ form.dom_id }}"
+    outer_class="w-full mt-4 pb-4 relative"
+    hx-post="{% if experience %}{% url 'beneficiary_training_experience_edit' experience.pk %}{% else %}{% url 'beneficiary_training_experience_add' %}{% if form.current_year %}?current_year=true{% endif %}{% endif %}"
+    hx-target="this"
+    hx-swap="outerHTML">
+        {% if experience and not experience.is_current_school_year %}
+            <c-components.button type="button" variant="icon"
+                icon="trash"
+                icon_size_class="w-6 h-6"
+                class="absolute top-0 right-0 p-1 text-primary-700 rounded-sm"
+                aria-label="Supprimer cette année"
+                hx-post="{% url 'beneficiary_training_experience_delete' experience.pk %}"
+                hx-target="#beneficiary-training-experience-{{ experience.pk }}"
+                hx-swap="delete"
+                hx-headers='{"X-CSRFToken": "{{ csrf_token }}"}'
+                hx-confirm="Voulez-vous vraiment supprimer cette année de formation ?" />
+        {% endif %}
+        <p class="description-text-xxs pr-8">Les champs suivis d'un astérisque (*) sont obligatoires.</p>
+        <c-components.form_fields.select field=form.period_label
+            variant="{% if form.current_year %}disabled{% else %}default{% endif %}" />
+        <div x-data="{ notEnrolled: {% if form.current_year %}{{ form.not_enrolled.value|yesno:'true,false' }}{% else %}false{% endif %}, level: '{{ form.level.value|default:'' }}' }"
+             @select-change="level = $event.detail.value"
+             @change="if ($event.target.name === '{{ form.not_enrolled.html_name|default:'' }}') notEnrolled = $event.target.checked">
+            {% if form.current_year %}
+                <c-components.form_fields.checkbox field=form.not_enrolled label_class="text-md" full_width=True />
+            {% endif %}
+            <template x-if="!notEnrolled">
+                <div>
+                    <br>
+                    <c-components.form_fields.select field=form.level :watchable=True />
+                    <br>
+                    <template x-if="level != '' && !level.startsWith('bac_')">
+                        <c-components.form_fields.school_search
+                            name_field=form.school_name
+                            id_field=form.school_identifier
+                            postal_field=form.school_postal_code
+                            label="Votre établissement*"
+                            description="Recherchez par nom et/ou code postal"
+                            unique_id="{{ form.dom_id }}"
+                        />
+                    </template>
+                    <template x-if="level.startsWith('bac_')">
+                        <c-components.form_fields.higher_ed_school_search
+                            id_field=form.higher_ed_school_id
+                            label_field=form.higher_ed_school_label
+                            label="Votre établissement*"
+                            description="Recherchez par nom"
+                            unique_id="{{ form.dom_id }}"
+                        />
+                    </template>
+                    <br>
+                    <c-components.form_fields.input field=form.course />
+                </div>
+            </template>
+        </div>
+        <div class="flex justify-end gap-2">
+            {% if experience %}
+                <c-components.button label="Annuler" variant="secondary" type="button"
+                    hx-get="{% url 'beneficiary_training_experience_info' experience.pk %}"
+                    hx-target="#beneficiary-training-experience-{{ experience.pk }}"
+                    hx-swap="outerHTML" />
+            {% elif not form.current_year %}
+                <c-components.button label="Annuler" variant="secondary" type="button"
+                    hx-on:click="this.closest('[id^=beneficiary-training-experience-]').remove()" />
+            {% endif %}
+            <c-components.button type="submit" label="Sauvegarder" />
+        </div>
+    </c-patterns.form>

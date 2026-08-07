@@ -7,9 +7,18 @@
 
     {% include "account/partials/info_card.html" %}
 
-    {% for experience in user.training_experiences.all %}
-        {% include "account/partials/training_experience_card.html" %}
-    {% endfor %}
+    {% if is_pro %}
+        {# a pro can only have one training experience for now #}
+        {% with experience=user.training_experiences.first %}
+            {% if experience %}
+                {% include "account/partials/pro_training_experience_card.html" %}
+            {% endif %}
+        {% endwith %}
+    {% endif %}
+
+    {% if is_beneficiary %}
+        {% include "account/partials/beneficiary_training_experience_card.html" %}
+    {% endif %}
 
     {% include "account/partials/communication_card.html" %}
 

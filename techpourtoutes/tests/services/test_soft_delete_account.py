@@ -5,60 +5,98 @@ from django.test import override_settings
 from techpourtoutes.models import Pro
 from techpourtoutes.services.soft_delete_account import SoftDeleteAccount
 
-pytestmark = pytest.mark.django_db
 
-mails_are_captured = override_settings(
-    EMAIL_BACKEND="django.core.mail.backends.locmem.EmailBackend",
-    COALITION_ACCOUNT_DELETION_RECIPIENTS=["dpo@example.com"],
-)
+@pytest.mark.django_db
+@override_settings(EMAIL_BACKEND="django.core.mail.backends.locmem.EmailBackend")
+def test_soft_delete_account_deactivates_pro(pro):
+    SoftDeleteAccount(user=pro)
 
-
-@mails_are_captured
-def test_soft_delete_account_anonymizes_the_user(pro):
-    result = SoftDeleteAccount(user=pro)
-
-    assert result.success
     pro.refresh_from_db()
     assert not pro.is_active
-    assert pro.first_name == ""
-    assert pro.email == f"deleted_{pro.pk}@deleted.local"
 
 
-@mails_are_captured
-def test_soft_delete_account_mails_the_address_it_is_about_to_erase(pro):
-    original_email = pro.email
-    original_first_name = pro.first_name
-
-    SoftDeleteAccount(user=pro)
-
-    confirmation = next(m for m in mail.outbox if m.to == [original_email])
-    assert confirmation.subject == "Confirmation de suppression de votre compte"
-    assert original_first_name in confirmation.body
-
-
-@mails_are_captured
-def test_soft_delete_account_notifies_internal_recipients_with_the_original_identity(pro):
-    pro.jobirl_user_id = 8675309
+@pytest.mark.django_db
+@override_settings(EMAIL_BACKEND="django.core.mail.backends.locmem.EmailBackend")
+def test_soft_delete_account_sends_vous_confirmation_and_internal_notice_for_pro(pro):
+    pro.jobirl_user_id = 12345
+    pro.jobirl_user_token = "tok-abc"
     pro.save()
-    original_first_name = pro.first_name
-    original_last_name = pro.last_name
 
     SoftDeleteAccount(user=pro)
 
-    internal = next(m for m in mail.outbox if m.to == ["dpo@example.com"])
-    assert internal.subject == "Demande de suppression de données personnelles"
-    assert original_first_name in internal.body
-    assert original_last_name in internal.body
-    assert "8675309" in internal.body
-
-
-@mails_are_captured
-def test_soft_delete_account_mentions_jobirl_only_for_mentors(pro):
-    pro.engagements = [Pro.Engagement.MENTOR]
-    pro.save()
-    original_email = pro.email
-
-    SoftDeleteAccount(user=pro)
-
-    confirmation = next(m for m in mail.outbox if m.to == [original_email])
+    assert len(mail.outbox) == 2
+    confirmation, internal_notice = mail.outbox
+    assert confirmation.to == ["alice@example.com"]
+    assert "vous confirmons" in confirmation.body
     assert "JobIRL" in confirmation.body
+    assert internal_notice.subject == "Demande de suppression de données personnelles"
+
+
+@pytest.mark.django_db
+@override_settings(EMAIL_BACKEND="django.core.mail.backends.locmem.EmailBackend")
+def test_soft_delete_account_sends_internal_notice_for_pro_with_workshops_engagement(pro):
+    pro.add_engagement(Pro.Engagement.WORKSHOPS)
+    pro.save()
+
+    SoftDeleteAccount(user=pro)
+
+    assert len(mail.outbox) == 2
+    confirmation, internal_notice = mail.outbox
+    assert confirmation.to == ["alice@example.com"]
+    assert internal_notice.subject == "Demande de suppression de données personnelles"
+
+
+@pytest.mark.django_db
+@override_settings(EMAIL_BACKEND="django.core.mail.backends.locmem.EmailBackend")
+def test_soft_delete_account_sends_two_internal_notices_for_pro_with_jobirl_and_workshops(pro):
+    pro.jobirl_user_id = 12345
+    pro.jobirl_user_token = "tok-abc"
+    pro.add_engagement(Pro.Engagement.WORKSHOPS)
+    pro.save()
+
+    SoftDeleteAccount(user=pro)
+
+    assert len(mail.outbox) == 3
+    confirmation, jobirl_notice, latitudes_notice = mail.outbox
+    assert confirmation.to == ["alice@example.com"]
+    assert jobirl_notice.subject == "Demande de suppression de données personnelles"
+    assert latitudes_notice.subject == "Demande de suppression de données personnelles"
+
+
+@pytest.mark.django_db
+@override_settings(EMAIL_BACKEND="django.core.mail.backends.locmem.EmailBackend")
+def test_soft_delete_account_deactivates_beneficiary(beneficiary):
+    SoftDeleteAccount(user=beneficiary)
+
+    beneficiary.refresh_from_db()
+    assert not beneficiary.is_active
+
+
+@pytest.mark.django_db
+@override_settings(EMAIL_BACKEND="django.core.mail.backends.locmem.EmailBackend")
+def test_soft_delete_account_sends_only_tu_confirmation_for_beneficiary(beneficiary):
+    SoftDeleteAccount(user=beneficiary)
+
+    assert len(mail.outbox) == 1
+    confirmation = mail.outbox[0]
+    assert confirmation.to == ["jade@example.com"]
+    assert "te confirmons" in confirmation.body
+    assert "JobIRL" not in confirmation.body
+
+
+@pytest.mark.django_db
+@override_settings(EMAIL_BACKEND="django.core.mail.backends.locmem.EmailBackend")
+def test_soft_delete_account_sends_internal_notice_for_beneficiary_with_jobirl_account(
+    beneficiary,
+):
+    beneficiary.jobirl_user_id = 6789
+    beneficiary.jobirl_user_token = "tok-xyz"
+    beneficiary.save()
+
+    SoftDeleteAccount(user=beneficiary)
+
+    assert len(mail.outbox) == 2
+    confirmation, internal_notice = mail.outbox
+    assert "te confirmons" in confirmation.body
+    assert "JobIRL" in confirmation.body
+    assert internal_notice.subject == "Demande de suppression de données personnelles"

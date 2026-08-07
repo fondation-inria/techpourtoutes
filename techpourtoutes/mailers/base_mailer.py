@@ -12,27 +12,27 @@ class BaseMailer:
 
     A subclass exposes `@classmethod`s that call
     `cls.send_mail(subject=..., recipient_list=..., context=..., tags=...)`. It may set
-    `from_email` (otherwise Django falls back to `DEFAULT_FROM_EMAIL`). No other attribute is
-    required:
+    `from_email` (otherwise Django falls back to `DEFAULT_FROM_EMAIL`), and `send_mail` accepts
+    a `from_email` override per call. No other attribute is required:
     - the template name is the calling method's name;
     - the folder is derived from the class name (`Mailer` suffix dropped, CamelCase split).
 
     `tags` are attached to the message and consumed by Anymail's Brevo backend in production;
     other backends ignore them.
 
-    Example: `CoalitionUserMailer.welcome` renders `emails/coalition/user/welcome.{txt,html}`.
+    Example: `ProMailer.welcome` renders `emails/coalition/user/welcome.{txt,html}`.
     """
 
     from_email = None
 
     @classmethod
-    def send_mail(cls, *, subject, recipient_list, context=None, tags=None):
+    def send_mail(cls, *, subject, recipient_list, context=None, tags=None, from_email=None):
         template = sys._getframe(1).f_code.co_name  # retrieves the calling method name
         full_context = cls._base_context() | (context or {})
         message = EmailMultiAlternatives(
             subject=subject,
             body=render_to_string(cls._template_path(template, "txt"), full_context),
-            from_email=cls.from_email,
+            from_email=from_email or cls.from_email,
             to=recipient_list,
         )
         message.attach_alternative(

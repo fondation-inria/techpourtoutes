@@ -3,7 +3,7 @@ from django.conf import settings
 from django.core.management.base import BaseCommand, CommandError
 
 from techpourtoutes.models import School
-from techpourtoutes.text import strip_accents
+from techpourtoutes.utils.text import strip_accents
 
 DATASET_URL = (
     "https://data.education.gouv.fr/api/explore/v2.1/catalog/datasets/"

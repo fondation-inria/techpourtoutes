@@ -10,7 +10,12 @@ from django.urls import reverse
 @override_settings(RATELIMIT_LOGIN="2/3600")
 @pytest.mark.django_db
 def test_login_request_throttled_per_email_across_ips(client):
-    get_user_model().objects.create_user(username="cible@example.com", email="cible@example.com")
+    get_user_model().objects.create_user(
+        username="cible@example.com",
+        email="cible@example.com",
+        first_name="Cible",
+        last_name="User",
+    )
     url = reverse("login_request")
     for i in range(2):
         response = client.post(

@@ -33,7 +33,12 @@ def test_brevo_attributes_for_pro_returns_mapped_attributes(pro):
 def test_brevo_attributes_for_bare_user_returns_none(db):
     from techpourtoutes.models import User
 
-    user = User.objects.create_user(username="bare@example.com", email="bare@example.com")
+    user = User.objects.create_user(
+        username="bare@example.com",
+        email="bare@example.com",
+        first_name="Bare",
+        last_name="User",
+    )
 
     assert brevo_attributes_for(user) is None
 
@@ -48,7 +53,12 @@ def test_brevo_list_id_for_pro_returns_pro_list_id(pro):
 def test_brevo_list_id_for_bare_user_returns_none(db):
     from techpourtoutes.models import User
 
-    user = User.objects.create_user(username="bare@example.com", email="bare@example.com")
+    user = User.objects.create_user(
+        username="bare@example.com",
+        email="bare@example.com",
+        first_name="Bare",
+        last_name="User",
+    )
 
     assert brevo_list_id_for(user) is None
 
@@ -60,6 +70,8 @@ def test_brevo_attributes_for_beneficiary_includes_phone_numbers():
     beneficiary = Beneficiary(
         username="lea@example.com",
         email="lea@example.com",
+        first_name="Léa",
+        last_name="Petit",
         phone="0612345678",
     )
     beneficiary.save()
@@ -74,7 +86,12 @@ def test_brevo_attributes_for_beneficiary_includes_phone_numbers():
 def test_brevo_attributes_omits_phone_numbers_when_phone_is_blank():
     from techpourtoutes.models import Beneficiary
 
-    beneficiary = Beneficiary(username="lea@example.com", email="lea@example.com")
+    beneficiary = Beneficiary(
+        username="lea@example.com",
+        email="lea@example.com",
+        first_name="Léa",
+        last_name="Petit",
+    )
     beneficiary.save()
 
     attrs = brevo_attributes_for(beneficiary)

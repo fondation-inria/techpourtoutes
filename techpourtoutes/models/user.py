@@ -5,12 +5,14 @@ from urllib.parse import urlencode
 
 from django.contrib.auth.models import AbstractUser, UserManager
 from django.core import signing
-from django.core.validators import EmailValidator, RegexValidator
+from django.core.validators import EmailValidator
 from django.db import models
 from django.urls import reverse
 from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
 from phonenumber_field.modelfields import PhoneNumberField
+
+from techpourtoutes.validators import POSTAL_CODE_VALIDATOR
 
 from .base import BaseModel
 
@@ -18,8 +20,6 @@ LOGIN_TOKEN_TTL = timedelta(hours=1)
 VERIFICATION_CODE_TTL = timedelta(minutes=15)
 VERIFICATION_CODE_MAX_ATTEMPTS = 5
 EMAIL_CHANGE_TOKEN_SALT = "email-change"
-
-POSTAL_CODE_VALIDATOR = RegexValidator(r"^\d{5}$", _("Entrez un code postal valide à 5 chiffres."))
 
 
 class ActiveUserManager(UserManager):
@@ -34,19 +34,14 @@ class User(BaseModel, AbstractUser):
 
     objects = ActiveUserManager()
     all_objects = models.Manager()
+    first_name = models.CharField(_("prénom"), max_length=150)
+    last_name = models.CharField(_("nom"), max_length=150)
     email = models.EmailField(
         _("adresse mail"),
         validators=[EmailValidator(message=_("Saisissez une adresse mail valide."))],
     )
     civility = models.CharField(
         max_length=10, choices=Civility.choices, blank=True, verbose_name=_("civilité")
-    )
-    phone = PhoneNumberField(region="FR", blank=True, verbose_name=_("téléphone"))
-    postal_code = models.CharField(
-        max_length=5,
-        blank=True,
-        validators=[POSTAL_CODE_VALIDATOR],
-        verbose_name=_("code postal"),
     )
     login_token_hash = models.CharField(
         max_length=64,
@@ -98,6 +93,19 @@ class User(BaseModel, AbstractUser):
         default=True,
         verbose_name=_("est un compte activé"),
         help_text=_("Si décoché, ce compte est désactivé"),
+    )
+    postal_code = models.CharField(
+        max_length=5,
+        blank=True,
+        validators=[POSTAL_CODE_VALIDATOR],
+        verbose_name=_("code postal"),
+    )
+    phone = PhoneNumberField(region="FR", blank=True, verbose_name=_("téléphone"))
+    jobirl_user_id = models.BigIntegerField(
+        null=True, blank=True, verbose_name=_("identifiant utilisateur jobirl")
+    )
+    jobirl_user_token = models.CharField(
+        max_length=128, blank=True, verbose_name=_("token utilisateur jobirl")
     )
 
     class Meta(AbstractUser.Meta):
@@ -234,16 +242,19 @@ class User(BaseModel, AbstractUser):
     def soft_delete(self):
         self.is_active = False
         self.set_unusable_password()
-        self.first_name = ""
-        self.last_name = ""
+        self.first_name = "Prénom"
+        self.last_name = "Nom"
         self.username = f"deleted_{self.pk}"
         self.email = f"deleted_{self.pk}@deleted.local"
+        self.phone = ""
         self.login_token_hash = ""
         self.login_token_expires_at = None
         self.login_code_hash = ""
         self.login_code_expires_at = None
         self.login_code_attempts = 0
         self.brevo_sync_enabled = False
+        self.jobirl_user_id = None
+        self.jobirl_user_token = ""
         self.save()
 
 

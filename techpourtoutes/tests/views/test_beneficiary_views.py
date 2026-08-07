@@ -104,7 +104,11 @@ def test_email_step_advances_to_identity(client, beneficiary_mode):
 @pytest.mark.django_db
 def test_existing_email_redirects_to_login(client, beneficiary_mode):
     User.objects.create_user(
-        username="taken@example.com", email="taken@example.com", password="irrelevant"
+        username="taken@example.com",
+        email="taken@example.com",
+        password="irrelevant",
+        first_name="Taken",
+        last_name="User",
     )
     response = client.post(FUNNEL_URL, {"step": "email", "email": "taken@example.com"})
     assert "se-connecter" in response["HX-Redirect"]
@@ -142,6 +146,16 @@ def test_identity_step_shows_too_old_screen_above_25(client, beneficiary_mode):
     assert b'name="step" value="study_status"' not in response.content
     assert b"Rejoindre la coalition" in response.content
     assert "funnelReset" in response["HX-Trigger"]
+
+
+@pytest.mark.django_db
+def test_identity_step_keeps_birth_date_when_form_is_invalid(client, beneficiary_mode):
+    # <input type="date"> only accepts YYYY-MM-DD, so the re-rendered field must keep that format.
+    birth_date = _birth_date_for_age(20)
+    response = client.post(FUNNEL_URL, {**_identity_post_for_age(20), "terms_accepted": ""})
+
+    assert b'name="step" value="identity"' in response.content
+    assert f'value="{birth_date.isoformat()}"'.encode() in response.content
 
 
 @pytest.mark.django_db
@@ -188,7 +202,10 @@ def test_details_step_sends_login_code_and_welcome_emails(client, beneficiary_mo
 @pytest.mark.django_db
 def test_funnel_redirects_authenticated_user_to_account(client, beneficiary_mode):
     beneficiary = Beneficiary.objects.create(
-        username="oceane@example.com", email="oceane@example.com", first_name="Océane"
+        username="oceane@example.com",
+        email="oceane@example.com",
+        first_name="Océane",
+        last_name="Durand",
     )
     client.force_login(beneficiary)
 
@@ -201,7 +218,10 @@ def test_funnel_redirects_authenticated_user_to_account(client, beneficiary_mode
 @pytest.mark.django_db
 def test_code_step_with_valid_code_logs_in_and_redirects(client, beneficiary_mode):
     beneficiary = Beneficiary.objects.create(
-        username="oceane@example.com", email="oceane@example.com", first_name="Océane"
+        username="oceane@example.com",
+        email="oceane@example.com",
+        first_name="Océane",
+        last_name="Durand",
     )
     code = beneficiary.issue_login_code()
 
@@ -214,7 +234,10 @@ def test_code_step_with_valid_code_logs_in_and_redirects(client, beneficiary_mod
 @pytest.mark.django_db
 def test_code_step_with_invalid_code_shows_error(client, beneficiary_mode):
     beneficiary = Beneficiary.objects.create(
-        username="oceane@example.com", email="oceane@example.com", first_name="Océane"
+        username="oceane@example.com",
+        email="oceane@example.com",
+        first_name="Océane",
+        last_name="Durand",
     )
     beneficiary.issue_login_code()
 
@@ -232,7 +255,10 @@ def test_code_step_with_invalid_code_shows_error(client, beneficiary_mode):
 @override_settings(EMAIL_BACKEND="django.core.mail.backends.locmem.EmailBackend")
 def test_resend_step_mails_a_new_code_and_stays_on_the_code_screen(client, beneficiary_mode):
     beneficiary = Beneficiary.objects.create(
-        username="oceane@example.com", email="oceane@example.com", first_name="Océane"
+        username="oceane@example.com",
+        email="oceane@example.com",
+        first_name="Océane",
+        last_name="Durand",
     )
     beneficiary.issue_login_code()
     previous_hash = beneficiary.login_code_hash
@@ -282,7 +308,8 @@ def test_details_step_does_not_create_when_email_is_missing(client, beneficiary_
 @pytest.mark.django_db
 def test_back_step_returns_previous_step_prefilled(client, beneficiary_mode):
     response = client.post(
-        FUNNEL_URL, {**_valid_identity_post(), "step": "back", "to": "study_status"}
+        FUNNEL_URL, {**_identity_post_for_age(20), "step": "back", "to": "study_status"}
     )
     assert b'name="step" value="identity"' in response.content
     assert "Océane".encode() in response.content
+    assert f'value="{_birth_date_for_age(20).isoformat()}"'.encode() in response.content

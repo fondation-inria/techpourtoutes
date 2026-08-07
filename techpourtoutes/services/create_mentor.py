@@ -1,4 +1,4 @@
-from ..mailers import CoalitionUserMailer
+from ..mailers import ProMailer
 from .base import BaseService
 from .jobirl_api.register_mentor import RegisterMentorOnJobirl
 
@@ -15,6 +15,6 @@ class CreateMentor(BaseService):
         already_exists = pro.pk is not None
         pro.save()
         if already_exists:
-            CoalitionUserMailer.new_engagement(pro=pro)
+            ProMailer.new_engagement(pro=pro)
         else:
-            CoalitionUserMailer.welcome(pro=pro, token=pro.issue_login_token())
+            ProMailer.welcome(pro=pro, token=pro.issue_login_token())

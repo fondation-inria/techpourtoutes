@@ -16,3 +16,7 @@ class Beneficiary(User):
             self.set_unusable_password()
             self.civility = User.Civility.MADAME
         super().save(*args, **kwargs)
+
+    def soft_delete(self):
+        self.birth_date = None
+        super().soft_delete()

@@ -39,6 +39,7 @@ DISABLE_ADMIN_2FA = env.bool("DISABLE_ADMIN_2FA", default=False)
 SEED_ENABLED = env.bool("SEED_ENABLED", default=DEBUG)
 SEED_ADMIN_EMAIL = env("SEED_ADMIN_EMAIL", default="admin@techpourtoutes.io")
 SEED_ADMIN_PASSWORD = env("SEED_ADMIN_PASSWORD", default="admin")
+SEED_BENEFICIARY_EMAIL = env("SEED_BENEFICIARY_EMAIL", default="beneficiary@techpourtoutes.io")
 DATABASES = {
     "default": {
         **env.db("DATABASE_URL"),
@@ -222,8 +223,13 @@ COALITION_TRAINING_AMBASSADOR_RECIPIENTS = env.list(
 COALITION_SPONSOR_RECIPIENTS = env.list(
     "COALITION_SPONSOR_RECIPIENTS", default=["bonjour@techpourtoutes.io"]
 )
-COALITION_ACCOUNT_DELETION_RECIPIENTS = env.list(
-    "COALITION_ACCOUNT_DELETION_RECIPIENTS", default=["bonjour@techpourtoutes.io"]
+
+
+JOBIRL_ACCOUNT_DELETION_RECIPIENTS = env.list(
+    "JOBIRL_ACCOUNT_DELETION_RECIPIENTS", default=["bonjour@techpourtoutes.io"]
+)
+LATITUDE_ACCOUNT_DELETION_RECIPIENTS = env.list(
+    "LATITUDE_ACCOUNT_DELETION_RECIPIENTS", default=["bonjour@techpourtoutes.io"]
 )
 
 # Celery

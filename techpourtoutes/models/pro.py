@@ -35,12 +35,6 @@ class Pro(User):
     faveod_id = models.IntegerField(
         null=True, blank=True, unique=True, verbose_name=_("identifiant faveod")
     )
-    jobirl_user_id = models.BigIntegerField(
-        null=True, blank=True, verbose_name=_("identifiant utilisateur jobirl")
-    )
-    jobirl_user_token = models.CharField(
-        max_length=128, blank=True, verbose_name=_("token utilisateur jobirl")
-    )
     engagements = ArrayField(
         models.CharField(max_length=30, choices=Engagement.choices),
         default=list,
@@ -63,8 +57,5 @@ class Pro(User):
             self.engagements.append(engagement)
 
     def soft_delete(self):
-        self.phone = ""
         self.faveod_id = None
-        self.jobirl_user_id = None
-        self.jobirl_user_token = ""
         super().soft_delete()

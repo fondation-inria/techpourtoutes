@@ -105,7 +105,11 @@ def test_unchecking_a_required_box_after_going_back_blocks_the_step(
 
 def test_existing_email_wipes_progress(page, funnel_url, beneficiary_mode):
     User.objects.create_user(
-        username="taken@example.com", email="taken@example.com", password="irrelevant"
+        username="taken@example.com",
+        email="taken@example.com",
+        password="irrelevant",
+        first_name="Taken",
+        last_name="User",
     )
     page.goto(funnel_url)
     expect(page.locator('input[name="step"]:not([value="back"])')).to_have_value("email")

@@ -1,0 +1,7 @@
+Bonjour Julie,
+
+{{ user.first_name }} {{ user.last_name }} a demandé la suppression de son compte sur TechPourToutes. Pouvez-vous supprimer les données de votre côté ou prendre contact avec {% if user.civility == "Madame" %}elle{% else %}lui{% endif %}&nbsp;?
+
+id JobIRL : {{ user.jobirl_user_id }}
+
+Bonne journée
