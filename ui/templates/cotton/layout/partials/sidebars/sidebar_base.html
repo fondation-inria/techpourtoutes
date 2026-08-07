@@ -9,6 +9,8 @@
         </div>
         {% if is_coalition_page %}
             {% include "cotton/layout/partials/sidebars/sidebar_coalition.html" %}
+        {% else %}
+            {% include "cotton/layout/partials/sidebars/sidebar_beneficiary.html" %}
         {% endif %}
     </div>
     <div class="border-t border-blue-background p-3">

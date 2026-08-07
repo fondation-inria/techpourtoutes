@@ -1554,6 +1554,7 @@
     .input:focus-within {
       outline: 2px solid var(--input-color);
       outline-offset: 2px;
+      isolation: isolate;
     }
     @media (pointer: coarse) {
       @supports (-webkit-touch-callout: none) {
@@ -2010,6 +2011,14 @@
       --step-bg: var(--color-error);
       --step-fg: var(--color-error-content);
     }
+    .steps .step-error:after {
+      --step-bg: var(--color-error);
+      --step-fg: var(--color-error-content);
+    }
+    .steps .step-error > .step-icon {
+      --step-bg: var(--color-error);
+      --step-fg: var(--color-error-content);
+    }
   }
   @layer daisyui.l1.l2.l3 {
     .drawer-side > .drawer-overlay {
@@ -2078,6 +2087,13 @@
     border-width: 0;
   }
   @layer daisyui.l1.l2.l3 {
+    .drawer-side > .drawer-overlay {
+      position: sticky;
+      top: 0px;
+      cursor: pointer;
+      place-self: stretch;
+      background-color: oklch(0% 0 0 / 40%);
+    }
     .select {
       position: relative;
       display: inline-flex;
@@ -2172,6 +2188,7 @@
     .select:focus {
       outline: 2px solid var(--input-color);
       outline-offset: 2px;
+      isolation: isolate;
     }
     .select:focus-within {
       --input-color: var(--color-base-content);
@@ -2185,6 +2202,7 @@
     .select:focus-within {
       outline: 2px solid var(--input-color);
       outline-offset: 2px;
+      isolation: isolate;
     }
     .select:open {
       --input-color: var(--color-base-content);
@@ -2358,6 +2376,58 @@
     }
     [dir="rtl"] .select select::picker(select) {
       translate: 0.5rem 0;
+    }
+  }
+  @layer daisyui.l1.l2 {
+    .swap {
+      position: relative;
+      display: inline-grid;
+      cursor: pointer;
+      place-content: center;
+      vertical-align: middle;
+      webkit-user-select: none;
+      user-select: none;
+    }
+    .swap input {
+      appearance: none;
+      border: none;
+    }
+    .swap > * {
+      grid-column-start: 1;
+      grid-row-start: 1;
+    }
+    @media (prefers-reduced-motion: no-preference) {
+      .swap > * {
+        transition-property: transform, rotate, opacity;
+        transition-duration: 0.2s;
+        transition-timing-function: cubic-bezier(0, 0, 0.2, 1);
+      }
+    }
+    .swap .swap-on {
+      opacity: 0%;
+    }
+    .swap .swap-indeterminate {
+      opacity: 0%;
+    }
+    .swap input:indeterminate ~ .swap-on {
+      opacity: 0%;
+    }
+    :is(:is(.select), .select select) option {
+      border-radius: var(--radius-field);
+      padding-block: calc(0.25rem * 1.5);
+      padding-inline: calc(0.25rem * var(--option-px, 3));
+      transition-property: color, background-color;
+      transition-duration: 0.2s;
+      transition-timing-function: cubic-bezier(0, 0, 0.2, 1);
+      white-space: normal;
+    }
+    .swap input:checked ~ .swap-on {
+      opacity: 100%;
+      backface-visibility: visible;
+    }
+    .swap input:indeterminate ~ .swap-indeterminate {
+      opacity: 100%;
+      backface-visibility: visible;
     }
     .checkbox {
       border: var(--border) solid var(--input-color, var(--color-base-content));
