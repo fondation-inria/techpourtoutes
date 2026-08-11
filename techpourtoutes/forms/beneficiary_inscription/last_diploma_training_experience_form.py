@@ -9,10 +9,10 @@ _ESTABLISHMENT_LABEL = _("Dans quel établissement as-tu obtenu ce diplôme ?*")
 
 
 class BeneficiaryLastDiplomaTrainingExperienceForm(BaseTrainingExperienceForm):
-    """Formation de celles qui ont fini ou veulent reprendre leurs études : leur dernier diplôme.
+    """Training of those who finished or want to resume their studies: their last diploma.
 
-    Le niveau ouvrant sur le secondaire comme sur le supérieur, l'écran porte les champs cachés
-    des deux composants de recherche et n'en active qu'un, celui qui correspond au niveau choisi.
+    Since the level covers both secondary and higher education, the screen carries the hidden
+    fields of both search components and activates only the one matching the chosen level.
     """
 
     period_label = forms.ChoiceField(

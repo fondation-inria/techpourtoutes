@@ -1,0 +1,35 @@
+<c-components.modal title="Es-tu sûre de vouloir passer cette étape ?">
+    <br>
+    <p class="text-center text-sm">
+        Pour te mettre en relation avec une mentor, nous avons besoin que tu nous transmettes ces informations.
+        <br><br>
+        Si tu passes cette étape, tu pourras toujours compléter le formulaire plus tard dans ton espace personnel.
+    </p>
+    <br>
+    <div class="flex justify-center">
+        <c-patterns.form
+            hx-post="{% url 'inscription_funnel' %}"
+            hx-target="#funnel-step"
+            hx-swap="outerHTML"
+            class="max-w-lg"
+        >
+            <input type="hidden" name="action" value="skip">
+            <input type="hidden" name="wants_mentor" value="false">
+            <div class="flex flex-col items-center gap-4">
+                <c-components.button
+                    label="Compléter le formulaire"
+                    type="button"
+                    variant="primary"
+                    size="lg"
+                    hx-on:click="document.getElementById('modal-container').innerHTML = ''"
+                />
+                <c-components.button
+                    label="Passer"
+                    variant="secondary"
+                    type="submit"
+                    class="mt-2"
+                />
+            </div>
+        </c-patterns.form>
+    </div>
+</c-components.modal>

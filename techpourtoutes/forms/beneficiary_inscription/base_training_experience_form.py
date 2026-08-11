@@ -16,10 +16,10 @@ def level_choices(levels):
 
 
 class BaseTrainingExperienceForm(TrainingExperienceFormMixin, forms.Form):
-    """Formation déclarée à l'inscription.
+    """Training declared at registration.
 
-    Chaque sous-classe déclare les niveaux qu'elle propose, les champs cachés qu'alimente son
-    composant de recherche d'établissement, et l'année scolaire que porte la formation.
+    Each subclass declares the levels it offers, the hidden fields fed by its establishment
+    search component, and the school year the training belongs to.
     """
 
     def __init__(self, *args, **kwargs):
@@ -43,5 +43,5 @@ class BaseTrainingExperienceForm(TrainingExperienceFormMixin, forms.Form):
         )
 
     def training_dates(self):
-        """Une formation suivie porte l'année scolaire en cours."""
+        """An ongoing training belongs to the current school year."""
         return current_school_year_start_date(), current_school_year_end_date()

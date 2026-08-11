@@ -6,7 +6,7 @@
             hx-target="#funnel-step"
             hx-swap="outerHTML"
             class="flex flex-col gap-4">
-            <input type="hidden" name="step" value="code">
+            <input type="hidden" name="action" value="code">
             <input type="hidden" name="email" value="{{ email }}">
             <c-components.title title="Saisis le code reçu par mail" variant="h2-black" />
             <p>
@@ -26,7 +26,7 @@
             hx-target="#funnel-step"
             hx-swap="outerHTML"
             class="mt-2 items-center">
-            <input type="hidden" name="step" value="resend">
+            <input type="hidden" name="action" value="resend">
             <input type="hidden" name="email" value="{{ email }}">
             <c-components.button type="submit" variant="quaternary" label="Je n'ai pas reçu de code" />
         </c-patterns.form>

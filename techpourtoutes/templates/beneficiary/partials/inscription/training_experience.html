@@ -5,7 +5,7 @@
             hx-post="{% url 'inscription_funnel' %}"
             hx-target="#funnel-step"
             hx-swap="outerHTML">
-            <input type="hidden" name="step" value="training_experience">
+            <input type="hidden" name="action" value="training_experience">
             <c-components.title title="Rejoins le club, {{ first_name }}" variant="h2-black" />
             <p class="text-xs text-neutral-500">Tous les champs sont obligatoires</p>
             {% if study_status == "high_school" %}
