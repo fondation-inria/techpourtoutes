@@ -25,7 +25,7 @@ def beneficiary_mode():
 
 def _valid_identity_post():
     return {
-        "step": "identity",
+        "action": "identity",
         "email": "oceane@example.com",
         "first_name": "Océane",
         "last_name": "Durand",
@@ -51,7 +51,7 @@ def _identity_post_for_age(age):
 # (this is what the Alpine/sessionStorage front-end injects into every request).
 def _answers(**overrides):
     return {
-        "step": "training_experience",
+        "action": "training_experience",
         "email": "oceane@example.com",
         "first_name": "Océane",
         "last_name": "Durand",
@@ -110,14 +110,14 @@ def test_get_renders_funnel_shell(client, beneficiary_mode):
     # The GET is a stateless shell; the step itself is fetched by the client via "resume".
     assert b'id="funnel-step"' in response.content
     assert b'x-data="beneficiaryFunnel"' in response.content
-    assert b'"step": "resume"' in response.content
+    assert b'"action": "resume"' in response.content
 
 
 @pytest.mark.django_db
 def test_resume_without_answers_renders_email_step(client, beneficiary_mode):
-    response = client.post(FUNNEL_URL, {"step": "resume"})
+    response = client.post(FUNNEL_URL, {"action": "resume"})
     assert response.status_code == 200
-    assert b'name="step" value="email"' in response.content
+    assert b'name="action" value="email"' in response.content
 
 
 @pytest.mark.django_db
@@ -125,14 +125,14 @@ def test_resume_returns_furthest_reached_step_prefilled(client, beneficiary_mode
     response = client.post(
         FUNNEL_URL,
         {
-            "step": "resume",
+            "action": "resume",
             "email": "oceane@example.com",
             "first_name": "Océane",
             "last_name": "Durand",
             "birth_date": "2005-01-01",
         },
     )
-    assert b'name="step" value="study_status"' in response.content
+    assert b'name="action" value="study_status"' in response.content
     assert "Océane".encode() in response.content
 
 
@@ -142,7 +142,7 @@ def test_resume_returns_to_the_study_status_when_it_is_unknown(client, beneficia
     response = client.post(
         FUNNEL_URL,
         {
-            "step": "resume",
+            "action": "resume",
             "email": "oceane@example.com",
             "first_name": "Océane",
             "last_name": "Durand",
@@ -151,14 +151,14 @@ def test_resume_returns_to_the_study_status_when_it_is_unknown(client, beneficia
         },
     )
 
-    assert b'name="step" value="study_status"' in response.content
+    assert b'name="action" value="study_status"' in response.content
 
 
 @pytest.mark.django_db
 def test_email_step_advances_to_identity(client, beneficiary_mode):
-    response = client.post(FUNNEL_URL, {"step": "email", "email": "oceane@example.com"})
+    response = client.post(FUNNEL_URL, {"action": "email", "email": "oceane@example.com"})
     assert response.status_code == 200
-    assert b'name="step" value="identity"' in response.content
+    assert b'name="action" value="identity"' in response.content
 
 
 @pytest.mark.django_db
@@ -170,7 +170,7 @@ def test_existing_email_redirects_to_login(client, beneficiary_mode):
         first_name="Taken",
         last_name="User",
     )
-    response = client.post(FUNNEL_URL, {"step": "email", "email": "taken@example.com"})
+    response = client.post(FUNNEL_URL, {"action": "email", "email": "taken@example.com"})
     assert "se-connecter" in response["HX-Redirect"]
     assert f"back={quote('/', safe='')}" in response["HX-Redirect"]
     # A dead-end too: the client must not keep answers it can never submit.
@@ -179,7 +179,7 @@ def test_existing_email_redirects_to_login(client, beneficiary_mode):
 
 @pytest.mark.django_db
 def test_existing_pro_email_redirects_to_login_with_coalition_back(client, beneficiary_mode, pro):
-    response = client.post(FUNNEL_URL, {"step": "email", "email": pro.email})
+    response = client.post(FUNNEL_URL, {"action": "email", "email": pro.email})
     assert "se-connecter" in response["HX-Redirect"]
     assert f"back={quote('/coalition/', safe='')}" in response["HX-Redirect"]
 
@@ -188,13 +188,13 @@ def test_existing_pro_email_redirects_to_login_with_coalition_back(client, benef
 @pytest.mark.parametrize("age", [15, 20, 25])
 def test_identity_step_advances_when_age_is_eligible(client, beneficiary_mode, age):
     response = client.post(FUNNEL_URL, _identity_post_for_age(age))
-    assert b'name="step" value="study_status"' in response.content
+    assert b'name="action" value="study_status"' in response.content
 
 
 @pytest.mark.django_db
 def test_identity_step_shows_too_young_screen_below_15(client, beneficiary_mode):
     response = client.post(FUNNEL_URL, _identity_post_for_age(14))
-    assert b'name="step" value="study_status"' not in response.content
+    assert b'name="action" value="study_status"' not in response.content
     assert b"un peu de patience" in response.content
     # The terminal screen tells the client to wipe its stored answers.
     assert "funnelReset" in response["HX-Trigger"]
@@ -203,7 +203,7 @@ def test_identity_step_shows_too_young_screen_below_15(client, beneficiary_mode)
 @pytest.mark.django_db
 def test_identity_step_shows_too_old_screen_above_25(client, beneficiary_mode):
     response = client.post(FUNNEL_URL, _identity_post_for_age(26))
-    assert b'name="step" value="study_status"' not in response.content
+    assert b'name="action" value="study_status"' not in response.content
     assert b"Rejoindre la coalition" in response.content
     assert "funnelReset" in response["HX-Trigger"]
 
@@ -214,7 +214,7 @@ def test_identity_step_keeps_birth_date_when_form_is_invalid(client, beneficiary
     birth_date = _birth_date_for_age(20)
     response = client.post(FUNNEL_URL, {**_identity_post_for_age(20), "terms_accepted": ""})
 
-    assert b'name="step" value="identity"' in response.content
+    assert b'name="action" value="identity"' in response.content
     assert f'value="{birth_date.isoformat()}"'.encode() in response.content
 
 
@@ -224,9 +224,9 @@ def test_study_status_step_offers_the_secondary_levels_to_a_high_schooler(
 ):
     response = client.post(
         FUNNEL_URL,
-        {**_valid_identity_post(), "step": "study_status", "study_status": "high_school"},
+        {**_valid_identity_post(), "action": "study_status", "study_status": "high_school"},
     )
-    assert b'name="step" value="training_experience"' in response.content
+    assert b'name="action" value="training_experience"' in response.content
     assert b"En quelle classe es-tu ?" in response.content
     assert b"Terminale" in response.content
     assert b"Bac +5" not in response.content
@@ -236,7 +236,7 @@ def test_study_status_step_offers_the_secondary_levels_to_a_high_schooler(
 def test_study_status_step_offers_the_higher_ed_levels_to_a_student(client, beneficiary_mode):
     response = client.post(
         FUNNEL_URL,
-        {**_valid_identity_post(), "step": "study_status", "study_status": "higher_education"},
+        {**_valid_identity_post(), "action": "study_status", "study_status": "higher_education"},
     )
     assert "Quel est ton niveau d&#x27;études actuel ?".encode() in response.content
     assert b"Bac +5" in response.content
@@ -247,7 +247,7 @@ def test_study_status_step_offers_the_higher_ed_levels_to_a_student(client, bene
 def test_study_status_step_asks_a_graduate_about_her_last_diploma(client, beneficiary_mode):
     response = client.post(
         FUNNEL_URL,
-        {**_valid_identity_post(), "step": "study_status", "study_status": "finished"},
+        {**_valid_identity_post(), "action": "study_status", "study_status": "finished"},
     )
     content = response.content.decode()
 
@@ -323,7 +323,7 @@ def test_training_experience_step_does_not_create_without_an_establishment(
 ):
     response = client.post(FUNNEL_URL, _high_school_post(school, school_identifier=""))
 
-    assert b'name="step" value="training_experience"' in response.content
+    assert b'name="action" value="training_experience"' in response.content
     assert "Sélectionnez un établissement valide.".encode() in response.content
     assert not Beneficiary.objects.exists()
 
@@ -372,7 +372,9 @@ def test_code_step_with_valid_code_logs_in_and_redirects(client, beneficiary_mod
     )
     code = beneficiary.issue_login_code()
 
-    response = client.post(FUNNEL_URL, {"step": "code", "email": beneficiary.email, "code": code})
+    response = client.post(
+        FUNNEL_URL, {"action": "code", "email": beneficiary.email, "code": code}
+    )
 
     assert response["HX-Redirect"] == "/mon-compte/"
     assert client.session.get("_auth_user_id") == str(beneficiary.pk)
@@ -389,7 +391,7 @@ def test_code_step_with_invalid_code_shows_error(client, beneficiary_mode):
     beneficiary.issue_login_code()
 
     response = client.post(
-        FUNNEL_URL, {"step": "code", "email": beneficiary.email, "code": "000000"}
+        FUNNEL_URL, {"action": "code", "email": beneficiary.email, "code": "000000"}
     )
 
     assert response.status_code == 200
@@ -410,7 +412,7 @@ def test_resend_step_mails_a_new_code_and_stays_on_the_code_screen(client, benef
     beneficiary.issue_login_code()
     previous_hash = beneficiary.login_code_hash
 
-    response = client.post(FUNNEL_URL, {"step": "resend", "email": beneficiary.email})
+    response = client.post(FUNNEL_URL, {"action": "resend", "email": beneficiary.email})
 
     assert response.status_code == 200
     assert b"Saisis le code" in response.content
@@ -424,7 +426,7 @@ def test_resend_step_mails_a_new_code_and_stays_on_the_code_screen(client, benef
 @pytest.mark.django_db
 @override_settings(EMAIL_BACKEND="django.core.mail.backends.locmem.EmailBackend")
 def test_resend_step_with_unknown_email_sends_nothing(client, beneficiary_mode):
-    response = client.post(FUNNEL_URL, {"step": "resend", "email": "inconnue@example.com"})
+    response = client.post(FUNNEL_URL, {"action": "resend", "email": "inconnue@example.com"})
 
     assert response.status_code == 200
     assert b"Saisis le code" in response.content
@@ -441,7 +443,7 @@ def test_training_experience_step_routes_back_to_furthest_invalid_step_with_erro
         FUNNEL_URL, _higher_education_post(higher_ed_school, birth_date="not-a-date")
     )
 
-    assert b'name="step" value="identity"' in response.content
+    assert b'name="action" value="identity"' in response.content
     assert "Certaines informations sont incomplètes ou invalides".encode() in response.content
     assert not Beneficiary.objects.exists()
 
@@ -453,7 +455,7 @@ def test_training_experience_step_does_not_create_when_email_is_missing(
     response = client.post(FUNNEL_URL, _higher_education_post(higher_ed_school, email=""))
 
     assert response.status_code == 200
-    assert b'name="step" value="email"' in response.content
+    assert b'name="action" value="email"' in response.content
     assert b"Ton adresse mail n" in response.content
     assert not Beneficiary.objects.exists()
 
@@ -461,8 +463,8 @@ def test_training_experience_step_does_not_create_when_email_is_missing(
 @pytest.mark.django_db
 def test_back_step_returns_previous_step_prefilled(client, beneficiary_mode):
     response = client.post(
-        FUNNEL_URL, {**_identity_post_for_age(20), "step": "back", "to": "study_status"}
+        FUNNEL_URL, {**_identity_post_for_age(20), "action": "back", "to": "study_status"}
     )
-    assert b'name="step" value="identity"' in response.content
+    assert b'name="action" value="identity"' in response.content
     assert "Océane".encode() in response.content
     assert f'value="{_birth_date_for_age(20).isoformat()}"'.encode() in response.content

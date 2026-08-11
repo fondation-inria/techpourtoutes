@@ -1,8 +1,9 @@
 from datetime import date, datetime
 
-from django.apps import apps
 from django.conf import settings
 from phonenumber_field.phonenumber import PhoneNumber
+
+from techpourtoutes.models import Beneficiary, Pro
 
 BREVO_MULTIPLE_CHOICE_FIELDS = {"civility", "professional_situation", "engagements"}
 
@@ -76,11 +77,11 @@ def brevo_list_id_for(instance) -> int | None:
 
 
 def _is_pro(instance) -> bool:
-    return isinstance(instance, apps.get_model("techpourtoutes", "Pro"))
+    return isinstance(instance, Pro)
 
 
 def _is_beneficiary(instance) -> bool:
-    return isinstance(instance, apps.get_model("techpourtoutes", "Beneficiary"))
+    return isinstance(instance, Beneficiary)
 
 
 def _phone_attributes(instance) -> dict:

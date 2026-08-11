@@ -22,7 +22,7 @@ document.addEventListener("alpine:init", () => {
         sendAnswers(event) {
             if (event.detail.verb !== "post") return;
             const params = event.detail.parameters;
-            const control = ["step", "to", "csrfmiddlewaretoken", "q"];
+            const control = ["action", "to", "csrfmiddlewaretoken", "q"];
             const stored = { ...this.answers };
             this.forgetAnswersOf(event.detail.elt, stored);
             Object.keys(params).forEach((key) => {

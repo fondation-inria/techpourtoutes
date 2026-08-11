@@ -5,17 +5,17 @@ from .validators import resolve_higher_ed_school, resolve_school
 
 
 class TrainingExperienceFormMixin:
-    """Résolution de l'établissement choisi dans l'autocomplete et écriture de la formation.
+    """Resolves the establishment picked in the autocomplete and writes the training.
 
-    Les champs cachés qu'alimentent les composants de recherche, ainsi que les dates de la
-    formation, restent déclarés par le formulaire qui utilise le mixin.
+    The hidden fields fed by the search components, as well as the training dates, stay
+    declared by the form using the mixin.
     """
 
     _school = None
     _higher_ed_school = None
 
     def resolve_establishment(self, level):
-        """Le niveau décide de la table : secondaire → School, supérieur → HigherEdSchool."""
+        """The level decides the table: secondary → School, higher ed → HigherEdSchool."""
         if level in TrainingExperience.SECONDARY_LEVELS:
             self._school = self._resolve("school_identifier", resolve_school)
         elif level in TrainingExperience.HIGHER_ED_LEVELS:

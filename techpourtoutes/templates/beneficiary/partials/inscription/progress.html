@@ -3,7 +3,7 @@
         hx-post="{% url 'inscription_funnel' %}"
         hx-target="#funnel-step"
         hx-swap="outerHTML">
-        <input type="hidden" name="step" value="back">
+        <input type="hidden" name="action" value="back">
         <input type="hidden" name="to" value="{{ step }}">
         <c-components.button type="submit" variant="quaternary" class="w-fit px-1 text-neutral-900! font-normal">
             <span class="flex items-center gap-1">

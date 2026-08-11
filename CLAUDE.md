@@ -159,6 +159,7 @@ Django 6 + PostgreSQL project. Locale is French (fr-FR), timezone Europe/Paris.
 - Service objects for procedural logic with success/failure states (sequential actions, external calls)
 - Keep models and views lean
 - Comments only for code that is truly difficult to understand (avoid unnecessary comments)
+- Docstrings are always written in English, even though the UI locale is French
 - Do not reference AI tools (Claude, Cursor, etc.) in code, comments, or commits
 - Avoid unnecessary guard clauses and intermediate variable assignments
 - Prefer native framework solutions over custom implementations

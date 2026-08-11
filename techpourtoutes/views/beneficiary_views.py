@@ -1,5 +1,3 @@
-from datetime import date
-
 from django.contrib import messages
 from django.contrib.auth import login
 from django.http import HttpResponse
@@ -21,6 +19,7 @@ from ..mailers import AuthMailer
 from ..models import Beneficiary, User
 from ..ratelimit import rate_limit
 from ..tasks import send_beneficiary_welcome_email_task
+from ..utils.dates import compute_age
 
 # Delay before the welcome email is sent, so it doesn't land before the login code.
 _WELCOME_EMAIL_DELAY_SECONDS = 5 * 60
@@ -30,7 +29,7 @@ _STEPS = ("email", "identity", "study_status", "training_experience")
 
 # Progress bar percentage per step. The "+ 1" reserves a final segment for the success screen,
 # which shows no bar, so the last form step stops short of 100%.
-STEP_PROGRESS = {
+_STEP_PROGRESS = {
     step: round(100 * (index + 1) / (len(_STEPS) + 1)) for index, step in enumerate(_STEPS)
 }
 
@@ -58,19 +57,17 @@ def inscription_funnel(request):
 
     handlers = {
         "resume": _handle_resume,
-        "email": _advance,
-        "identity": _advance,
-        "study_status": _advance,
-        "training_experience": _create_beneficiary,
+        "back": _handle_back,
         "code": _handle_code,
         "resend": _handle_resend,
-        "back": _handle_back,
+        # The one step that doesn't move forward: submitting the last one creates the account.
+        _STEPS[-1]: _create_beneficiary,
     }
-    handler = handlers.get(request.POST.get("step"), _advance)
+    handler = handlers.get(request.POST.get("action"), _advance)
     return handler(request)
 
 
-# ------------------- step handlers -------------------
+# ------------------- actions -------------------
 
 
 def _handle_resume(request):
@@ -79,14 +76,18 @@ def _handle_resume(request):
 
 def _advance(request):
     # Each forward step validates its own answers, then hands off to the next screen.
-    step = request.POST.get("step")
+    step = request.POST.get("action")
     if step not in _STEP_VALIDATORS:
-        step = "email"
+        step = _STEPS[0]
     try:
         _STEP_VALIDATORS[step](request)
     except _StepInterrupt as interrupt:
         return interrupt.response
     return _render_step(request, _next_step(step))
+
+
+def _handle_back(request):
+    return _render_step(request, _previous_step(request.POST.get("to")))
 
 
 def _create_beneficiary(request):
@@ -119,9 +120,13 @@ def _create_beneficiary(request):
     return response
 
 
+# ------------------- login code -------------------
+
+_CODE_ERROR = "Code invalide ou expiré."
+_RESEND_NOTICE = "Un nouveau code t'a été envoyé par mail."
+
+
 def _handle_code(request):
-    # Terminal step: the code was mailed when the beneficiary was created. A valid code logs her
-    # in and sends her to her account; an invalid one re-renders the screen with an error banner.
     email = request.POST.get("email", "")
     user = User.objects.filter(email=email, is_active=True).first()
     form = VerificationCodeForm(request.POST)
@@ -143,11 +148,13 @@ def _handle_resend(request):
     return _render_step(request, "code", email=email)
 
 
-def _handle_back(request):
-    return _render_step(request, _previous_step(request.POST.get("to")))
-
-
 # ------------------- validation -------------------
+
+_EMAIL_ERROR = "Ton adresse mail n'est pas valide, corrige-la pour continuer."
+_IDENTITY_ERROR = (
+    "Certaines informations sont incomplètes ou invalides, corrige-les pour continuer."
+)
+_STUDY_ERROR = "Indique où tu en es dans tes études pour continuer."
 
 
 class _StepInterrupt(Exception):
@@ -171,9 +178,9 @@ def _validate_identity(request, *, error=None):
     form = BeneficiaryIdentityForm(data=request.POST)
     if not form.is_valid():
         raise _StepInterrupt(_render_step_with_error(request, "identity", error, form=form))
-    age = _age(form.cleaned_data["birth_date"])
+    age = compute_age(birth_date=form.cleaned_data["birth_date"])
     if age < 15 or age > 25:
-        raise _StepInterrupt(_render_terminal(request, "too_young" if age < 15 else "too_old"))
+        raise _StepInterrupt(_render_age_dead_end(request, "too_young" if age < 15 else "too_old"))
     return form.cleaned_data
 
 
@@ -191,24 +198,6 @@ def _validate_training_experience(request):
     return form
 
 
-_STEP_VALIDATORS = {
-    "email": _validate_email,
-    "identity": _validate_identity,
-    "study_status": _validate_study,
-}
-
-
-# ------------------- private -------------------
-
-_EMAIL_ERROR = "Ton adresse mail n'est pas valide, corrige-la pour continuer."
-_IDENTITY_ERROR = (
-    "Certaines informations sont incomplètes ou invalides, corrige-les pour continuer."
-)
-_STUDY_ERROR = "Indique où tu en es dans tes études pour continuer."
-_CODE_ERROR = "Code invalide ou expiré."
-_RESEND_NOTICE = "Un nouveau code t'a été envoyé par mail."
-
-
 def _login_redirect_for_existing_email(request, email):
     user = User.objects.filter(email=email).first()
     if user is None:
@@ -219,12 +208,20 @@ def _login_redirect_for_existing_email(request, email):
     return HttpResponse(headers={"HX-Redirect": login_url, "HX-Trigger": "funnelReset"})
 
 
-def _age(birth_date):
-    today = date.today()
-    age = today.year - birth_date.year
-    if (today.month, today.day) < (birth_date.month, birth_date.day):
-        age -= 1
-    return age
+_STEP_VALIDATORS = {
+    "email": _validate_email,
+    "identity": _validate_identity,
+    "study_status": _validate_study,
+}
+
+
+# ------------------- navigation -------------------
+
+_STEP_FORMS = {
+    "email": BeneficiaryEmailForm,
+    "identity": BeneficiaryIdentityForm,
+    "study_status": BeneficiaryStudyStatusForm,
+}
 
 
 def _next_step(step):
@@ -237,19 +234,10 @@ def _previous_step(step):
     return _STEPS[max(_STEPS.index(step) - 1, 0)]
 
 
-_STEP_FORMS = {
-    "email": BeneficiaryEmailForm,
-    "identity": BeneficiaryIdentityForm,
-    "study_status": BeneficiaryStudyStatusForm,
-}
-
-
-# Furthest step the client can resume to, based on which answers it already carries.
 def _resume_step(data):
     for step in _STEPS[:-1]:
         if not _has_answer_for(_STEP_FORMS[step], data):
             return step
-    # The last screen is picked from the study status, so an unknown one resumes on that question.
     if data.get("study_status") not in _TRAINING_EXPERIENCE_FORMS:
         return "study_status"
     return _STEPS[-1]
@@ -257,6 +245,17 @@ def _resume_step(data):
 
 def _has_answer_for(form_class, data):
     return any(field in data for field in form_class.base_fields)
+
+
+# ------------------- rendering -------------------
+
+_FORM_BUILDERS = {
+    "email": lambda data: BeneficiaryEmailForm(initial={"email": data.get("email")}),
+    "identity": lambda data: BeneficiaryIdentityForm(initial=data),
+    "study_status": lambda data: BeneficiaryStudyStatusForm(
+        initial={"study_status": data.get("study_status")}
+    ),
+}
 
 
 def _render_step(request, step, *, form=None, **extra):
@@ -270,8 +269,7 @@ def _render_step_with_error(request, step, error, **extra):
     return _render_step(request, step, **extra)
 
 
-def _render_terminal(request, template):
-    # Age-gated dead-ends: tell the client to wipe its stored answers on the way out.
+def _render_age_dead_end(request, template):
     response = render(request, f"beneficiary/partials/inscription/{template}.html", {})
     response["HX-Trigger"] = "funnelReset"
     return response
@@ -281,7 +279,7 @@ def _step_context(request, step, form=None, **extra):
     data = request.POST
     context = {
         "step": step,
-        "progress": STEP_PROGRESS.get(step),
+        "progress": _STEP_PROGRESS.get(step),
         "first_name": data.get("first_name"),
         **extra,
     }
@@ -297,12 +295,3 @@ def _training_experience_context(data, form):
     form_class = _TRAINING_EXPERIENCE_FORMS[study_status]
     # `initial` is rewritten by the form, so it needs a mutable copy of the answers.
     return {"study_status": study_status, "form": form or form_class(initial=data.dict())}
-
-
-_FORM_BUILDERS = {
-    "email": lambda data: BeneficiaryEmailForm(initial={"email": data.get("email")}),
-    "identity": lambda data: BeneficiaryIdentityForm(initial=data),
-    "study_status": lambda data: BeneficiaryStudyStatusForm(
-        initial={"study_status": data.get("study_status")}
-    ),
-}
