@@ -57,6 +57,13 @@ urlpatterns = [
         name="delete_account_modal",
     ),
     path("mon-compte/supprimer", views.delete_account, name="delete_account"),
+    # School search
+    path("recherche-etablissements-scolaires/", views.search_schools, name="search_schools"),
+    path(
+        "recherche-etablissements-superieurs/",
+        views.search_higher_ed_schools,
+        name="search_higher_ed_schools",
+    ),
     # Static
     path("donnees-personnelles/", views.donnees_personnelles, name="donnees_personnelles"),
     path("conditions-generales/", views.conditions_generales, name="conditions_generales"),

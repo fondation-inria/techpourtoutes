@@ -86,6 +86,10 @@
   --color-error-on500: #ffffff;
   --color-error-on700: #ffffff;
 
+  /* New DA colors */
+  --color-yellow-500: #fad207;
+  --color-green-500: #00a25e;
+
   /* Named backgrounds */
   --color-blue-background: #f4f4ff;
   --color-mauve-background: #e9e3eb;

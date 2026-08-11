@@ -2,8 +2,6 @@ from django.contrib.postgres.fields import ArrayField
 from django.db import models
 from django.utils.translation import gettext_lazy as _
 
-from techpourtoutes.signals import connect_brevo_sync
-
 from .user import User
 
 
@@ -61,6 +59,3 @@ class Pro(User):
     def soft_delete(self):
         self.faveod_id = None
         super().soft_delete()
-
-
-connect_brevo_sync(Pro)

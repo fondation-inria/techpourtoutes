@@ -3,5 +3,5 @@
 {% url "coalition_home" as coalition_home %}
 {% is_coalition_page as is_coalition_page %}
 <a href="{% if is_coalition_page %}{{ coalition_home }}{% else %}{% url "home" %}{% endif %}" class="block">
-    <img src="{% static 'images/techpourtoutes-logo.png' %}" alt="logo TechPourToutes" class="h-10 w-auto {{ class }}" />
+    <img src="{% static 'images/techpourtoutes-logo-new.svg' %}" alt="logo TechPourToutes" class="h-10 w-auto {{ class }}" />
 </a>

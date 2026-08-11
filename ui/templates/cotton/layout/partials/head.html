@@ -1,5 +1,5 @@
 {% load tailwind_cli static matomo %}
-<c-vars title="TechPourToutes" description="" og_image="" />
+<c-vars title="TechPourToutes" description="" og_image="" head_js="" />
 
 <head>
     <meta charset="UTF-8">
@@ -15,6 +15,7 @@
     <title>{{ title }}</title>
     <link rel="icon" type="image/png" href="{% static FAVICON_NAMEFILE|add:".png" %}">
     {% tailwind_css %}
+    {% for src in head_js.split %}<script defer src="{% static src %}"></script>{% endfor %}
     <script defer src="{% static 'js/alpine.min.js' %}"></script>
     <script defer src="{% static 'js/htmx.min.js' %}"></script>
 </head>

@@ -15,8 +15,17 @@ class Command(BaseCommand):
 
     def add_arguments(self, parser):
         parser.add_argument("--path", default=str(DEFAULT_PATH))
+        parser.add_argument(
+            "--if-empty",
+            action="store_true",
+            help="Skip the import when the HigherEdSchool table already has rows.",
+        )
 
     def handle(self, *args, **options):
+        if options["if_empty"] and HigherEdSchool.objects.exists():
+            self.stdout.write("  HigherEdSchool déjà peuplée, import ignoré.")
+            return
+
         imported = sum(self._import_row(row) for row in self._read_rows(options["path"]))
         self.stdout.write(self.style.SUCCESS(f"  {imported} établissements importés."))
 

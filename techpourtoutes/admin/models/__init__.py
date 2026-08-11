@@ -1,3 +1,3 @@
-from . import pro, user
+from . import beneficiary, pro, user
 
-__all__ = ["pro", "user"]
+__all__ = ["beneficiary", "pro", "user"]

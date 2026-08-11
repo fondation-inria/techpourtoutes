@@ -25,6 +25,10 @@ FAVICON_NAMEFILE = env("FAVICON_NAMEFILE", default="images/favicon-tpt")
 
 ALLOWED_HOSTS = env.list("ALLOWED_HOSTS")
 SITE_URL = env("HOST", default="https://localhost:8000").rstrip("/")
+BENEFICIARY_BOOKING_URL = env(
+    "BENEFICIARY_BOOKING_URL",
+    default="https://outlook.office.com/bookwithme/user/ef04c95ea1e44a329c6ba9bd01786932@fondation-inria.fr/meetingtype/4RQaWcoi4kCW8TruTK0Rxg2?anonymous&ismsaljsauthenabled&ep=mlink",
+)
 # Admin is mounted at this path; override in production to a non-guessable value.
 ADMIN_URL = env("ADMIN_URL", default="admin").strip("/")
 # Escape hatch to disable the admin 2FA requirement outside local dev (e.g. review apps).
@@ -202,6 +206,7 @@ N8N_WORKSHOP_WEBHOOK_BASIC_AUTH_PASSWORD = env(
 
 # Brevo contacts API
 BREVO_PRO_LIST_ID = env.int("BREVO_PRO_LIST_ID", default=0)
+BREVO_BENEFICIARY_LIST_ID = env.int("BREVO_BENEFICIARY_LIST_ID", default=0)
 BREVO_MANIFESTE_LIST_ID = env.int("BREVO_MANIFESTE_LIST_ID", default=0)
 BREVO_SYNC_ENABLED = env.bool("BREVO_SYNC_ENABLED", default=False)
 
