@@ -19,6 +19,7 @@ from .auth_views import (
 )
 from .beneficiary_views import (
     beneficiary_home,
+    find_mentor_landing,
     inscription_funnel,
 )
 from .coalition_views import (
@@ -76,6 +77,7 @@ __all__ = [
     "email_change",
     "email_change_resend",
     "email_change_verify",
+    "find_mentor_landing",
     "inscription_funnel",
     "internships_landing",
     "login_code",

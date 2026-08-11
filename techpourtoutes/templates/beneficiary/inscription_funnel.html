@@ -13,7 +13,7 @@
              hx-trigger="load"
              hx-target="#funnel-step"
              hx-swap="outerHTML"
-             hx-vals='{"step": "resume", "csrfmiddlewaretoken": "{{ csrf_token }}"}'
+             hx-vals='{"step": "resume", "csrfmiddlewaretoken": "{{ csrf_token }}", "wants_mentor": {{ wants_mentor|yesno:"true,false" }}}'
              class="w-full flex flex-col gap-y-6 my-auto items-center justify-center min-h-40">
             <span class="loading loading-spinner text-primary-700"></span>
         </div>

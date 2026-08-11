@@ -1,0 +1,18 @@
+<c-layout.email>
+  <p style="font-size:15px;color:#374151;">Bonjour,</p>
+  <p style="font-size:15px;color:#374151;">
+    <strong>{{ beneficiary.first_name }} {{ beneficiary.last_name }}</strong> nous a transmis les informations de son parent tuteur légal :
+  </p>
+  <p style="font-size:15px;color:#374151;">
+    {{ legal_representative_name }}
+    <br>
+    {{ legal_representative_email }}
+  </p>
+  <p style="font-size:15px;color:#374151;">
+    Si jamais les informations te semblent erronées, tu peux renvoyer un mail à <c-components.inline-link label="{{ beneficiary.email }}" href="mailto:{{ beneficiary.email }}" />.
+    <br>
+    Peux-tu lui envoyer la demande de signature de l'attestation ?
+    <br>
+    Merci  
+  </p>
+</c-layout.email>

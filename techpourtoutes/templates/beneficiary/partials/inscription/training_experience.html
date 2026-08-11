@@ -48,7 +48,7 @@
             {% endif %}
             <c-components.form_fields.input field=form.course />
             <div class="flex justify-center">
-                <c-components.button type="submit" label="Rejoindre le club" />
+                <c-components.button type="submit" label="{% if wants_mentor %}Continuer{% else %}Rejoindre le club{% endif %}" />
             </div>
         </c-patterns.form>
     </c-components.card>

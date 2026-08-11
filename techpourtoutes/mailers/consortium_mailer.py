@@ -36,3 +36,20 @@ class ConsortiumMailer(BaseMailer):
             },
             tags=["interne", "coalition", "nouvelle demande d'engagement"],
         )
+
+    @classmethod
+    def new_mentoring_signup(cls, *, beneficiary, mentoring_signup_data):
+        cls.send_mail(
+            subject="Nouvelle attestation à envoyer",
+            recipient_list=settings.NEW_MENTORING_SIGNUP_RECIPIENTS,
+            context={
+                "beneficiary": beneficiary,
+                "legal_representative_name": mentoring_signup_data.get(
+                    "legal_representative_name"
+                ),
+                "legal_representative_email": mentoring_signup_data.get(
+                    "legal_representative_email"
+                ),
+            },
+            tags=["interne", "bénéficiaire", "nouvelle demande de mentorat"],
+        )

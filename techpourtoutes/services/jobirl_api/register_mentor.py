@@ -12,28 +12,34 @@ JOBIRL_SECTOR_ID = "75851"
 
 
 class RegisterMentorOnJobirl(JobirlApiBaseService):
-    def perform(self, *, pro) -> None:
-        mobile = "".join(c for c in pro.phone.as_national if c.isdigit()) if pro.phone else ""
+    def perform(self, *, user) -> None:
+        mobile = "".join(c for c in user.phone.as_national if c.isdigit()) if user.phone else ""
+        is_pro = hasattr(user, "pro")
         data = {
-            "jobirl_profil": "pro",
-            "mentorat_profil": "mentor",
+            "jobirl_profil": "pro" if is_pro else "jeune",
+            "mentorat_profil": "mentor" if is_pro else "aide",
             "choix": "projet",
             "secteurs_activites": JOBIRL_SECTOR_ID,
-            "civilite": pro.civility,
-            "prenom": pro.first_name,
-            "nom": pro.last_name,
-            "email": pro.email,
+            "civilite": user.civility,
+            "prenom": user.first_name,
+            "nom": user.last_name,
+            "email": user.email,
             "mobile": mobile,
-            "cp": pro.postal_code,
-            "situation_pro": SITUATION_PRO_MAPPING[pro.professional_situation],
-            "poste": pro.job_title,
+            "cp": user.postal_code,
         }
-        if pro.professional_situation == "working":
+        if is_pro:
             data.update(
                 {
-                    "nom_structure": pro.structure_name,
+                    "situation_pro": SITUATION_PRO_MAPPING[user.professional_situation],
+                    "poste": user.job_title,
                 }
             )
+            if user.professional_situation == "working":
+                data.update(
+                    {
+                        "nom_structure": user.structure_name,
+                    }
+                )
 
         self.request(
             method="post",
