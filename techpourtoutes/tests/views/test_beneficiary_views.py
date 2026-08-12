@@ -331,6 +331,31 @@ def test_training_experience_step_does_not_create_without_an_establishment(
 
 @pytest.mark.django_db
 @override_settings(EMAIL_BACKEND="django.core.mail.backends.locmem.EmailBackend")
+def test_a_missing_school_still_creates_the_account_and_reports_it(
+    client, beneficiary_mode, school, formation
+):
+    client.post(
+        FUNNEL_URL,
+        _high_school_post(
+            school,
+            formation,
+            school_id="",
+            school_label="Lycée du bout du monde",
+            school_not_found="on",
+        ),
+    )
+
+    experience = Beneficiary.objects.get(email="oceane@example.com").training_experiences.get()
+    assert experience.school is None
+    assert experience.formation == formation
+    assert experience.level == Level.TERMINALE
+
+    report = next(msg for msg in mail.outbox if msg.to == ["perfectible@techpourtoutes.io"])
+    assert "Lycée du bout du monde" in report.body
+
+
+@pytest.mark.django_db
+@override_settings(EMAIL_BACKEND="django.core.mail.backends.locmem.EmailBackend")
 def test_training_experience_step_sends_login_code_and_welcome_emails(
     client, beneficiary_mode, higher_ed_school, higher_ed_formation
 ):

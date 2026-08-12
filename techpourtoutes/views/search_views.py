@@ -82,13 +82,15 @@ def search_schools(request):
 
 
 def search_formations(request):
-    school = _school_or_none(request.GET.get("school_id"))
-    if school is None:
+    """No school means the user could not find hers: offer the whole catalogue."""
+    school_id = request.GET.get("school_id", "")
+    school = _school_or_none(school_id) if school_id else None
+    if school_id and school is None:
         return HttpResponseBadRequest("Établissement inconnu.")
 
     q, page = _search_params(request)
-    formations = Formation.objects.taught_at(school).search(q)
-    items, next_page = _paginate(formations.order_by("name"), page)
+    formations = Formation.objects.taught_at(school) if school else Formation.objects.all()
+    items, next_page = _paginate(formations.search(q).order_by("name"), page)
     return render(
         request,
         "common/partials/formation_results.html",
@@ -97,7 +99,7 @@ def search_formations(request):
             "q": q,
             "page": page,
             "next_page": next_page,
-            "school_id": school.pk,
+            "school_id": school.pk if school else "",
             "unique_id": request.GET.get("unique_id", ""),
         },
     )

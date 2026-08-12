@@ -60,3 +60,37 @@ def test_form_rejects_a_formation_the_school_does_not_teach(higher_ed_school, hi
 
     assert not form.is_valid()
     assert "formation_id" in form.errors
+
+
+@pytest.mark.django_db
+def test_form_still_requires_a_school_without_the_fallback(higher_ed_formation):
+    from techpourtoutes.forms import ProTrainingExperienceForm
+
+    form = ProTrainingExperienceForm(
+        data={"school_id": "", "level": "bac_5", "formation_id": str(higher_ed_formation.pk)}
+    )
+
+    assert not form.is_valid()
+    assert "school_id" in form.errors
+
+
+@pytest.mark.django_db
+def test_a_missing_school_saves_the_experience_without_one(experience, higher_ed_formation):
+    from techpourtoutes.forms import ProTrainingExperienceForm
+
+    form = ProTrainingExperienceForm(
+        data={
+            "school_id": "",
+            "school_label": "École du bout du monde",
+            "school_not_found": "on",
+            "level": "bac_5",
+            "formation_id": str(higher_ed_formation.pk),
+        }
+    )
+    assert form.is_valid(), form.errors
+    form.save(experience)
+
+    experience.refresh_from_db()
+    assert experience.school is None
+    assert experience.formation == higher_ed_formation
+    assert form.has_missing_record

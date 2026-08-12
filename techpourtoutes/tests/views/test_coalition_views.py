@@ -196,6 +196,35 @@ def test_training_ambassador_landing_post_authenticated_pro_updates_pro(
     assert pro.training_experiences.get().school == higher_ed_school
 
 
+@pytest.mark.django_db
+@override_settings(EMAIL_BACKEND="django.core.mail.backends.locmem.EmailBackend")
+def test_training_ambassador_landing_reports_a_missing_school(
+    client, higher_ed_school, higher_ed_formation
+):
+    from django.core import mail
+
+    from techpourtoutes.models import Pro
+
+    response = client.post(
+        reverse("training_ambassador_landing"),
+        data=_training_ambassador_data(
+            higher_ed_school.id,
+            higher_ed_formation.pk,
+            school_id="",
+            school_label="École du bout du monde",
+            school_not_found="on",
+        ),
+    )
+
+    assert response.status_code == 302
+    experience = Pro.objects.get(email="manon@example.com").training_experiences.get()
+    assert experience.school is None
+    assert experience.formation == higher_ed_formation
+
+    report = next(msg for msg in mail.outbox if msg.to == ["perfectible@techpourtoutes.io"])
+    assert "École du bout du monde" in report.body
+
+
 def _workshop_data(**overrides):
     return {
         "civility": "Madame",
@@ -204,7 +233,7 @@ def _workshop_data(**overrides):
         "email": "manon@example.com",
         "job_title": "Enseignante",
         "structure_uai": "0750001A",
-        "structure_name": "Lycée Voltaire",
+        "school_label": "Lycée Voltaire",
         "postal_code": "75011",
         "remark": "",
         "ateliers": ["future_of_tech", "future_of_ia"],
@@ -238,6 +267,38 @@ def test_workshops_landing_post_valid_creates_pro_and_enqueues_task(client):
         remark="",
         structure_uai="0750001A",
     )
+
+
+@pytest.mark.django_db
+@override_settings(EMAIL_BACKEND="django.core.mail.backends.locmem.EmailBackend")
+def test_workshops_landing_reports_a_missing_school_and_still_notifies_latitudes(client):
+    from django.core import mail
+
+    from techpourtoutes.models import Pro
+
+    with patch("techpourtoutes.views.coalition_views.notify_workshop_request_task") as mock_task:
+        response = client.post(
+            reverse("workshops_landing"),
+            data=_workshop_data(
+                structure_uai="",
+                school_label="Lycée du bout du monde",
+                postal_code="",
+                school_not_found="on",
+            ),
+        )
+
+    assert response.status_code == 302
+    pro = Pro.objects.get(email="manon@example.com")
+    assert pro.structure_name == "Lycée du bout du monde"
+    mock_task.delay.assert_called_once_with(
+        pro_pk=str(pro.pk),
+        ateliers=["future_of_tech", "future_of_ia"],
+        remark="",
+        structure_uai="",
+    )
+
+    report = next(msg for msg in mail.outbox if msg.to == ["perfectible@techpourtoutes.io"])
+    assert "Lycée du bout du monde" in report.body
 
 
 @pytest.mark.django_db

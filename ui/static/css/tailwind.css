@@ -4354,6 +4354,11 @@
       --alert-border-color: var(--color-success);
       --alert-color: var(--color-success);
     }
+    .alert-warning {
+      color: var(--color-warning-content);
+      --alert-border-color: var(--color-warning);
+      --alert-color: var(--color-warning);
+    }
   }
   .text-accent-500 {
     color: var(--color-accent-500);
@@ -5263,6 +5268,7 @@
     --color-secondary-content: var(--color-info-50);
     --color-success: var(--color-success-500);
     --color-warning: var(--color-warning-500);
+    --color-info: var(--color-info-50);
     --color-error: var(--color-error-500);
   }
 }

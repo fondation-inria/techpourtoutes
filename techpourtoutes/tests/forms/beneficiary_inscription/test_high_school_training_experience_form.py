@@ -107,3 +107,77 @@ def test_form_reports_the_school_before_the_formation(school, formation):
 
     assert "school_id" in form.errors
     assert "formation_id" not in form.errors
+
+
+@pytest.mark.django_db
+def test_a_missing_school_still_resolves_a_formation_from_the_whole_catalogue(
+    beneficiary, school, formation
+):
+    from techpourtoutes.models import Formation
+
+    elsewhere = Formation(onisep_id="9999", name="Diplôme d'ingénieur")
+    elsewhere.save()
+
+    form = BeneficiaryHighSchoolTrainingExperienceForm(
+        data=_valid_data(
+            school,
+            formation,
+            school_id="",
+            school_label="Lycée du bout du monde",
+            school_not_found="on",
+            formation_id=str(elsewhere.pk),
+            formation_label=elsewhere.name,
+        )
+    )
+    assert form.is_valid(), form.errors
+
+    experience = form.save(beneficiary)
+
+    assert experience.school is None
+    assert experience.formation == elsewhere
+    assert experience.level == Level.TERMINALE
+
+
+@pytest.mark.django_db
+def test_both_records_missing_saves_the_level_alone(beneficiary, school, formation):
+    form = BeneficiaryHighSchoolTrainingExperienceForm(
+        data=_valid_data(
+            school,
+            formation,
+            school_id="",
+            school_label="Lycée du bout du monde",
+            school_not_found="on",
+            formation_id="",
+            formation_label="Bac pro maréchalerie",
+            formation_not_found="on",
+        )
+    )
+    assert form.is_valid(), form.errors
+
+    experience = form.save(beneficiary)
+
+    assert experience.school is None
+    assert experience.formation is None
+    assert experience.level == Level.TERMINALE
+
+
+@pytest.mark.django_db
+def test_a_missing_school_requires_its_free_text_name(school, formation):
+    form = BeneficiaryHighSchoolTrainingExperienceForm(
+        data=_valid_data(school, formation, school_id="", school_label="", school_not_found="on")
+    )
+
+    assert not form.is_valid()
+    assert "school_label" in form.errors
+
+
+@pytest.mark.django_db
+def test_a_missing_formation_requires_its_free_text_name(school, formation):
+    form = BeneficiaryHighSchoolTrainingExperienceForm(
+        data=_valid_data(
+            school, formation, formation_id="", formation_label="", formation_not_found="on"
+        )
+    )
+
+    assert not form.is_valid()
+    assert "formation_label" in form.errors

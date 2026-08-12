@@ -324,3 +324,56 @@ def test_age_gate_wipes_progress(page, funnel_url, beneficiary_mode):
     page.goto(funnel_url)
     expect(page.locator('input[name="action"]:not([value="back"])')).to_have_value("email")
     expect(page.locator('input[name="email"]')).to_have_value("")
+
+
+def test_a_missing_school_frees_the_field_and_opens_the_whole_catalogue(
+    page, funnel_url, beneficiary_mode
+):
+    _voltaire_teaching("Spécialité mathématiques")
+    elsewhere = Formation(onisep_id="9999", name="Bac pro maréchalerie")
+    elsewhere.save()
+
+    page.goto(funnel_url)
+    _complete_email_step(page)
+    _complete_identity_step(page)
+    _choose_study_status(page, "Je suis au collège ou au lycée")
+    _select_option(page, "En quelle classe es-tu ?*", "Terminale")
+
+    page.get_by_role("button", name="Je ne trouve pas mon établissement").click()
+    _search_field(page, _HIGH_SCHOOL_LABEL).fill("Lycée du bout du monde")
+
+    # No school to scope on: the formation stays usable and offers what no lycée teaches.
+    _pick(page, _HIGH_SCHOOL_FORMATION_LABEL, "marechalerie", "Bac pro maréchalerie")
+    page.get_by_role("button", name="Rejoindre le club").click()
+
+    expect(page.get_by_text("Saisis le code")).to_be_visible()
+    experience = TrainingExperience.objects.get(
+        user=Beneficiary.objects.get(email="oceane@example.com")
+    )
+    assert experience.school is None
+    assert experience.formation == elsewhere
+    assert experience.level == Level.TERMINALE
+
+
+def test_both_records_missing_registers_on_free_text_alone(page, funnel_url, beneficiary_mode):
+    _voltaire_teaching("Spécialité mathématiques")
+
+    page.goto(funnel_url)
+    _complete_email_step(page)
+    _complete_identity_step(page)
+    _choose_study_status(page, "Je suis au collège ou au lycée")
+    _select_option(page, "En quelle classe es-tu ?*", "Terminale")
+
+    page.get_by_role("button", name="Je ne trouve pas mon établissement").click()
+    _search_field(page, _HIGH_SCHOOL_LABEL).fill("Lycée du bout du monde")
+    page.get_by_role("button", name="Je ne trouve pas ma formation").click()
+    _search_field(page, _HIGH_SCHOOL_FORMATION_LABEL).fill("Bac pro maréchalerie")
+    page.get_by_role("button", name="Rejoindre le club").click()
+
+    expect(page.get_by_text("Saisis le code")).to_be_visible()
+    experience = TrainingExperience.objects.get(
+        user=Beneficiary.objects.get(email="oceane@example.com")
+    )
+    assert experience.school is None
+    assert experience.formation is None
+    assert experience.level == Level.TERMINALE

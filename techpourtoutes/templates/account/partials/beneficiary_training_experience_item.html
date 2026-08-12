@@ -11,6 +11,11 @@
 
             Formation : <span class="font-medium">{{ experience.formation.name|default:experience.course }}</span>
         </c-components.text>
+        {% if not experience.school or not experience.formation %}
+            <div role="status" class="alert alert-info mt-2 text-xs">
+                Les informations manquantes ont été transmises à l'équipe TechPourToutes.
+            </div>
+        {% endif %}
     {% else %}
         <c-components.text class="font-light pr-8"><span class="font-medium">Année scolaire en cours</span>
 

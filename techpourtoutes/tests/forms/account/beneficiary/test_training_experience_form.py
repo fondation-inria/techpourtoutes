@@ -208,6 +208,32 @@ def test_form_reports_the_school_before_the_formation(school, formation):
 
 
 @pytest.mark.django_db
+def test_a_missing_formation_keeps_the_school_and_saves_nothing_else(beneficiary, school):
+    from techpourtoutes.forms import BeneficiaryTrainingExperienceForm
+    from techpourtoutes.models import TrainingExperience
+
+    form = BeneficiaryTrainingExperienceForm(
+        data={
+            "period_label": "2024-2025",
+            "level": "terminale",
+            "school_id": str(school.pk),
+            "school_label": school.location_label,
+            "formation_id": "",
+            "formation_label": "Bac pro maréchalerie",
+            "formation_not_found": "on",
+        },
+        beneficiary=beneficiary,
+    )
+    assert form.is_valid(), form.errors
+
+    experience = form.save(TrainingExperience(user=beneficiary))
+
+    assert experience.school == school
+    assert experience.formation is None
+    assert form.has_missing_record
+
+
+@pytest.mark.django_db
 def test_form_has_no_not_enrolled_field_when_not_current_year(beneficiary):
     from techpourtoutes.forms import BeneficiaryTrainingExperienceForm
 

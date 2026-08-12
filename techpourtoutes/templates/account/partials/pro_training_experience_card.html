@@ -11,6 +11,11 @@
 
             Formation : <span class="font-medium">{{ experience.formation.name|default:experience.course }}</span>
         </c-components.text>
+        {% if not experience.school or not experience.formation %}
+            <div role="status" class="alert alert-warning mt-2 text-xs">
+                Les informations manquantes ont été transmises à l'équipe TechPourToutes.
+            </div>
+        {% endif %}
         <div class="flex mt-3 justify-end">
             <c-components.button label="Modifier" variant="secondary"
                 hx-get="{% url 'pro_training_experience_edit' experience.pk %}"

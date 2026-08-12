@@ -113,3 +113,41 @@ def test_training_ambassador_form_resubmitting_same_school_updates_experience(
 
     experience = TrainingExperience.objects.get(user=pro, school=higher_ed_school)
     assert experience.formation == higher_ed_formation
+
+
+@pytest.mark.django_db
+def test_training_ambassador_form_still_requires_a_school_without_the_fallback(
+    higher_ed_school, higher_ed_formation
+):
+    from techpourtoutes.forms import TrainingAmbassadorForm
+
+    form = TrainingAmbassadorForm(
+        data=valid_data(higher_ed_school.id, higher_ed_formation.pk, school_id="")
+    )
+
+    assert not form.is_valid()
+    assert "school_id" in form.errors
+
+
+@pytest.mark.django_db
+def test_a_missing_school_creates_the_experience_without_one(
+    higher_ed_school, higher_ed_formation
+):
+    from techpourtoutes.forms import TrainingAmbassadorForm
+
+    form = TrainingAmbassadorForm(
+        data=valid_data(
+            higher_ed_school.id,
+            higher_ed_formation.pk,
+            school_id="",
+            school_label="École du bout du monde",
+            school_not_found="on",
+        )
+    )
+    assert form.is_valid(), form.errors
+    assert form.has_missing_record
+
+    experience = form.after_save(form.save())
+
+    assert experience.school is None
+    assert experience.formation == higher_ed_formation

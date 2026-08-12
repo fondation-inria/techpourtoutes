@@ -1,0 +1,13 @@
+{% autoescape off %}Bonjour,
+
+{{ user.first_name }} {{ user.last_name }} ({{ user.email }}) n'a pas trouvé son établissement ou sa formation dans le catalogue Onisep.
+
+Formulaire : {{ origin }}
+{% if level %}Niveau : {{ level }}
+{% endif %}
+Établissement : {% if school %}{{ school.name }} (déjà au catalogue){% else %}{{ school_label }} — À CRÉER{% endif %}
+Formation : {% if formation %}{{ formation.name }} (déjà au catalogue){% elif formation_label %}{{ formation_label }} — À CRÉER{% else %}non renseignée{% endif %}
+
+Bonne journée
+L'équipe TechPourToutes
+{% endautoescape %}

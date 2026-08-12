@@ -9,7 +9,6 @@ from techpourtoutes.utils.school_year import (
 
 from ...models import Pro, School, TrainingExperience
 from ..mixins import TrainingExperienceFormMixin
-from ..validators import resolve_school
 from .base_engagement_form import BaseEngagementForm
 
 
@@ -24,21 +23,19 @@ class TrainingAmbassadorForm(TrainingExperienceFormMixin, BaseEngagementForm):
     school_label = forms.CharField(
         widget=forms.HiddenInput, required=False, label=_("Votre établissement*")
     )
-    school_id = forms.CharField(widget=forms.HiddenInput)
+    school_id = forms.CharField(widget=forms.HiddenInput, required=False)
     formation_label = forms.CharField(
         widget=forms.HiddenInput, required=False, label=_("Votre formation*")
     )
     formation_id = forms.CharField(widget=forms.HiddenInput, required=False)
-
-    def clean_school_id(self):
-        school_id = self.cleaned_data["school_id"]
-        self._school = resolve_school(school_id, School.objects.training_ambassador())
-        return school_id
+    school_not_found = forms.BooleanField(widget=forms.HiddenInput, required=False)
+    formation_not_found = forms.BooleanField(widget=forms.HiddenInput, required=False)
 
     def clean(self):
-        """The formation resolves here, once every field clean has settled the school."""
         cleaned_data = super().clean()
+        self.resolve_school(School.objects.training_ambassador())
         self.resolve_formation()
+        self.validate_free_text()
         return cleaned_data
 
     def after_save(self, pro):
