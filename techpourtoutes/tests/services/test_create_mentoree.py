@@ -5,7 +5,7 @@ import pytest
 
 @pytest.mark.django_db
 def test_create_mentoree_calls_jobirl_with_user_and_saves_result(beneficiary):
-    from techpourtoutes.services.create_mentoree import CreateMentoree
+    from techpourtoutes.services.beneficiary.create_mentoree import CreateMentoree
 
     mock = MagicMock(success=True, failure=False, errors=[], user_id=287565, token="tpt_abc")
 

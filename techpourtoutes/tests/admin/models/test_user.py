@@ -20,6 +20,14 @@ def test_admin_never_exposes_credential_fields(verified_admin_client, admin_pro,
 
 
 @pytest.mark.django_db
+def test_user_page_lists_training_experiences(verified_admin_client, admin_pro, experience):
+    url = reverse("admin:techpourtoutes_user_change", args=[admin_pro.pk])
+    content = verified_admin_client.get(url).content.decode()
+    assert "Master Informatique" in content
+    assert "Université Paris-Saclay" in content
+
+
+@pytest.mark.django_db
 def test_user_changelist_lists_details_without_engagements(verified_admin_client, pros):
     content = verified_admin_client.get(reverse(USER_CHANGELIST)).content.decode()
     # Same columns as the Pro list (names + email), minus the Pro-only engagements column.

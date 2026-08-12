@@ -1,0 +1,8 @@
+/* Each inline row shows its columns only: drop the object label Django repeats above them. */
+.inline-related.tabular td.original p {
+  display: none;
+}
+
+.inline-group .tabular tr.has_original td {
+  padding-top: 10px;
+}

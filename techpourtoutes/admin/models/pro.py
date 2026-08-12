@@ -5,6 +5,7 @@ from techpourtoutes.models import Pro
 
 from ..filters import EngagementFilter
 from ..stats import pro_stats
+from .training_experience import TrainingExperienceInline
 from .user import PERSONAL_FIELDS
 from .workshop_request import WorkshopRequestInline
 
@@ -54,6 +55,7 @@ class ProAdmin(admin.ModelAdmin):
     list_display_links = list_display
     search_fields = ("first_name", "last_name", "email")
     list_filter = (EngagementFilter, ("created_at", admin.DateFieldListFilter))
+    inlines = [TrainingExperienceInline, WorkshopRequestInline]
 
     @admin.display(description=_("engagements"))
     def display_engagements(self, obj):
@@ -64,7 +66,7 @@ class ProAdmin(admin.ModelAdmin):
         extra_context = {**(extra_context or {}), "stats": pro_stats()}
         return super().changelist_view(request, extra_context=extra_context)
 
-    def get_inlines(self, _request, obj):
-        if obj and obj.workshop_requests.exists():
-            return [WorkshopRequestInline]
-        return []
+    # def get_inlines(self, _request, obj):
+    #     if obj and obj.workshop_requests.exists():
+    #         return [*self.inlines, WorkshopRequestInline]
+    #     return self.inlines

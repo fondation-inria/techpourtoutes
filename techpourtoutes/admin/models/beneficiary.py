@@ -6,9 +6,10 @@ from django.utils.translation import gettext_lazy as _
 from django.views.decorators.http import require_POST
 
 from techpourtoutes.models import Beneficiary
-from techpourtoutes.services.create_mentoree import CreateMentoree
+from techpourtoutes.services.beneficiary.create_mentoree import CreateMentoree
 
 from ..filters import MentoringStatusFilter
+from .training_experience import TrainingExperienceInline
 from .user import PERSONAL_FIELDS
 
 
@@ -54,6 +55,7 @@ class BeneficiaryAdmin(admin.ModelAdmin):
     list_display_links = list_display[:-1]
     search_fields = ("first_name", "last_name", "email")
     list_filter = (MentoringStatusFilter, ("created_at", admin.DateFieldListFilter))
+    inlines = [TrainingExperienceInline]
 
     def get_urls(self):
         return [
@@ -79,8 +81,6 @@ class BeneficiaryAdmin(admin.ModelAdmin):
     def mentoring_validation_action(self, obj):
         if obj.jobirl_user_id or not obj.legal_representative_email:
             return "—"
-        # Submits through the changelist's own form (checkboxes + bulk actions), which already
-        # carries a CSRF token — `formaction` just redirects this one button to another URL.
         url = reverse("admin:beneficiary_validate_mentoring", args=[obj.pk])
         return format_html(
             '<button type="submit" formaction="{}" class="button">'

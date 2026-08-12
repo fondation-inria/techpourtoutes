@@ -48,6 +48,35 @@ def test_school_display_label_prefers_the_acronym():
 
 
 @pytest.mark.django_db
+def test_school_display_label_shows_the_locality_for_a_homonym():
+    school = School(
+        onisep_id="1",
+        name="ESSCA School of Management",
+        acronym="ESSCA",
+        postal_code="49000",
+        city="Angers",
+    )
+    school.has_homonym = True
+
+    assert school.display_label == "ESSCA (ESSCA School of Management) - 49000 Angers"
+
+
+@pytest.mark.django_db
+def test_school_display_label_of_a_homonym_without_a_locality_stays_bare():
+    school = School(onisep_id="1", name="ESSCA School of Management")
+    school.has_homonym = True
+
+    assert school.display_label == "ESSCA School of Management"
+
+
+@pytest.mark.django_db
+def test_school_locality_joins_the_postal_code_and_the_city():
+    assert School(onisep_id="1", postal_code="49000", city="Angers").locality == "49000 Angers"
+    assert School(onisep_id="2", city="Angers").locality == "Angers"
+    assert School(onisep_id="3").locality == ""
+
+
+@pytest.mark.django_db
 def test_school_location_label_falls_back_to_the_name_without_a_postal_code():
     assert School(onisep_id="1", name="Lycée Voltaire").location_label == "Lycée Voltaire"
 

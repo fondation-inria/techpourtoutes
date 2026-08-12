@@ -1,5 +1,5 @@
-from .base import BaseService
-from .jobirl_api.register_user import RegisterUserOnJobirl
+from ..base import BaseService
+from ..jobirl_api.register_user import RegisterUserOnJobirl
 
 
 class CreateMentoree(BaseService):

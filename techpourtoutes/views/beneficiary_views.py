@@ -21,7 +21,7 @@ from ..forms import (
 from ..mailers import AuthMailer, ConsortiumMailer
 from ..models import Beneficiary, User
 from ..ratelimit import rate_limit
-from ..services.create_mentoree import CreateMentoree
+from ..services.beneficiary.create_mentoree import CreateMentoree
 from ..tasks import send_beneficiary_welcome_email_task
 from ..utils.dates import compute_age
 
