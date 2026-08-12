@@ -4,6 +4,33 @@ from django.utils.translation import gettext_lazy as _
 from techpourtoutes.models import Pro
 
 
+class MentoringStatusFilter(admin.SimpleListFilter):
+    """Derived from legal_representative_email and jobirl_user_id: there is no stored status."""
+
+    title = _("statut mentorat")
+    parameter_name = "mentoring_status"
+
+    NOT_CONCERNED = "not_concerned"
+    PENDING = "pending"
+    REGISTERED = "registered"
+
+    def lookups(self, _request, _model_admin):
+        return (
+            (self.NOT_CONCERNED, _("Pas concernée")),
+            (self.PENDING, _("En attente de validation")),
+            (self.REGISTERED, _("Inscrite à Jobirl")),
+        )
+
+    def queryset(self, _request, queryset):
+        if self.value() == self.REGISTERED:
+            return queryset.exclude(jobirl_user_id=None)
+        if self.value() == self.PENDING:
+            return queryset.filter(jobirl_user_id=None).exclude(legal_representative_email="")
+        if self.value() == self.NOT_CONCERNED:
+            return queryset.filter(jobirl_user_id=None, legal_representative_email="")
+        return queryset
+
+
 class EngagementFilter(admin.SimpleListFilter):
     """
     Multi-select filter: several engagements can be checked at once, carried as a comma-separated

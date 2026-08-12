@@ -1,4 +1,5 @@
 from datetime import date
+from unittest.mock import MagicMock, patch
 from urllib.parse import quote
 
 import pytest
@@ -361,6 +362,51 @@ def test_skip_action_creates_beneficiary_without_mentoring_signup(
     assert beneficiary.phone == ""
     subjects = {message.subject for message in mail.outbox}
     assert "Nouvelle attestation à envoyer" not in subjects
+
+
+@pytest.mark.django_db
+def test_mentoring_signup_step_persists_legal_representative_email_for_a_minor(
+    client, beneficiary_mode, higher_ed_school
+):
+    response = client.post(
+        FUNNEL_URL,
+        _higher_education_post(
+            higher_ed_school,
+            action="mentoring_signup",
+            wants_mentor="true",
+            birth_date=_birth_date_for_age(16).isoformat(),
+            legal_representative_name="Parent Test",
+            legal_representative_email="parent@example.com",
+            phone="0612345678",
+        ),
+    )
+
+    assert b"Saisis le code" in response.content
+    beneficiary = Beneficiary.objects.get(email="oceane@example.com")
+    assert beneficiary.legal_representative_email == "parent@example.com"
+
+
+@pytest.mark.django_db
+def test_mentoring_signup_step_creates_an_adult_beneficiary_without_legal_representative_fields(
+    client, beneficiary_mode, higher_ed_school
+):
+    # The template never shows the legal-representative fields to an adult, so the form must
+    # accept a submission carrying only the phone number.
+    instance = MagicMock(success=True, failure=False, errors=[])
+    with patch("techpourtoutes.views.beneficiary_views.CreateMentoree", return_value=instance):
+        response = client.post(
+            FUNNEL_URL,
+            _higher_education_post(
+                higher_ed_school,
+                action="mentoring_signup",
+                wants_mentor="true",
+                phone="0612345678",
+            ),
+        )
+
+    assert b"Saisis le code" in response.content
+    beneficiary = Beneficiary.objects.get(email="oceane@example.com")
+    assert beneficiary.legal_representative_email == ""
 
 
 @pytest.mark.django_db

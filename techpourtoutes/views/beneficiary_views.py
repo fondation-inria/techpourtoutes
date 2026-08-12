@@ -121,6 +121,7 @@ def _create_beneficiary(request):
     except _StepInterrupt as interrupt:
         return interrupt.response
 
+    is_minor = compute_age(identity["birth_date"]) < 18
     beneficiary = Beneficiary(
         username=email["email"],
         email=email["email"],
@@ -129,6 +130,11 @@ def _create_beneficiary(request):
         birth_date=identity["birth_date"],
         brevo_sync_enabled=identity["newsletter_consent"],
         phone=mentoring_signup_data["phone"] if wants_mentor else "",
+        legal_representative_email=(
+            mentoring_signup_data["legal_representative_email"]
+            if wants_mentor and is_minor
+            else ""
+        ),
     )
     beneficiary.save()
     training_experience_form.save(beneficiary)
@@ -137,7 +143,6 @@ def _create_beneficiary(request):
         kwargs={"beneficiary_pk": str(beneficiary.pk)}, countdown=_WELCOME_EMAIL_DELAY_SECONDS
     )
     if wants_mentor:
-        is_minor = compute_age(identity["birth_date"]) < 18
         if is_minor:
             ConsortiumMailer.new_mentoring_signup(
                 beneficiary=beneficiary, mentoring_signup_data=mentoring_signup_data

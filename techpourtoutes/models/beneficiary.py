@@ -6,6 +6,9 @@ from .user import User
 
 class Beneficiary(User):
     birth_date = models.DateField(null=True, blank=True, verbose_name=_("date de naissance"))
+    legal_representative_email = models.EmailField(
+        blank=True, verbose_name=_("email de la personne responsable légale")
+    )
 
     class Meta:
         verbose_name = _("bénéficiaire")
