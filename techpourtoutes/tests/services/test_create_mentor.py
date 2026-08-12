@@ -33,7 +33,7 @@ def test_create_mentor_calls_jobirl_with_mentor(valid_pro_model_data):
     ) as MockRegister:
         CreateMentor(pro=pro)
 
-    MockRegister.assert_called_once_with(pro=pro)
+    MockRegister.assert_called_once_with(user=pro)
 
 
 @pytest.mark.django_db

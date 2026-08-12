@@ -12,6 +12,7 @@ SITEMAP_EXCLUDED_URL_NAMES = {
     # HTMX partials
     "search_schools",
     "search_higher_ed_schools",
+    "mentoring_signup_skip_modal",
     # Auth / account (private)
     "login_request",
     "login_code",

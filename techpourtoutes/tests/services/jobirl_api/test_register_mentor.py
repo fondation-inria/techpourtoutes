@@ -17,7 +17,7 @@ def test_register_mentor_on_jobirl_sends_correct_data_and_exposes_ids(httpx_mock
         json={"response": "success", "datas": {"id": 287565, "token": "tpt_abc"}},
     )
 
-    result = RegisterMentorOnJobirl(pro=pro)
+    result = RegisterMentorOnJobirl(user=pro)
 
     assert result.success
     assert result.user_id == 287565
@@ -43,7 +43,7 @@ def test_register_mentor_on_jobirl_fails_on_http_error(httpx_mock, pro):
     register_url = f"{JOBIRL_TEST_URL}/techpourtoutes/api/user_register"
     httpx_mock.add_response(url=register_url, status_code=401)
 
-    result = RegisterMentorOnJobirl(pro=pro)
+    result = RegisterMentorOnJobirl(user=pro)
 
     assert result.failure
     assert result.errors
@@ -63,7 +63,7 @@ def test_register_mentor_on_jobirl_includes_api_message_on_4xx(httpx_mock, pro):
         },
     )
 
-    result = RegisterMentorOnJobirl(pro=pro)
+    result = RegisterMentorOnJobirl(user=pro)
 
     assert result.failure
     joined = " ".join(result.errors)
@@ -77,7 +77,7 @@ def test_register_mentor_on_jobirl_fails_on_network_error(httpx_mock, pro):
 
     httpx_mock.add_exception(httpx.RequestError("connection failed"))
 
-    result = RegisterMentorOnJobirl(pro=pro)
+    result = RegisterMentorOnJobirl(user=pro)
 
     assert result.failure
     assert result.errors
@@ -107,7 +107,7 @@ def test_register_mentor_maps_professional_situation(
         json={"response": "success", "datas": {"id": 1, "token": "t"}},
     )
 
-    RegisterMentorOnJobirl(pro=pro)
+    RegisterMentorOnJobirl(user=pro)
 
     body = httpx_mock.get_request().content.decode()
     assert f"situation_pro={expected_situation_pro}" in body
