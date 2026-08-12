@@ -84,6 +84,56 @@ def test_register_mentor_on_jobirl_fails_on_network_error(httpx_mock, pro):
 
 
 @override_settings(JOBIRL_URL=JOBIRL_TEST_URL, JOBIRL_API_KEY=JOBIRL_TEST_API_KEY)
+def test_register_mentor_on_jobirl_sends_beneficiary_data(
+    httpx_mock, beneficiary, beneficiary_experience
+):
+    from techpourtoutes.services.jobirl_api.register_mentor import RegisterMentorOnJobirl
+
+    register_url = f"{JOBIRL_TEST_URL}/techpourtoutes/api/user_register"
+    httpx_mock.add_response(
+        url=register_url,
+        status_code=200,
+        json={"response": "success", "datas": {"id": 1, "token": "t"}},
+    )
+
+    RegisterMentorOnJobirl(user=beneficiary)
+
+    body = httpx_mock.get_request().content.decode()
+    assert "jobirl_profil=jeune" in body
+    assert "mentorat_profil=aide" in body
+    assert f"bdate={beneficiary.birth_date.isoformat()}" in body
+    assert "profil_jeune=lyceenne" in body
+    assert "classe=Terminale" in body
+    assert "niveau_etudes" not in body
+    assert "cp=75011" in body
+    assert "Voltaire" in body
+    assert "etablissement_code_uai_onisep=0750001A" in body
+    assert "formation_code_onisep=7118" in body
+    assert "email_tuteur" not in body
+
+
+@override_settings(JOBIRL_URL=JOBIRL_TEST_URL, JOBIRL_API_KEY=JOBIRL_TEST_API_KEY)
+def test_register_mentor_on_jobirl_includes_legal_representative_email_when_set(
+    httpx_mock, beneficiary, beneficiary_experience
+):
+    from techpourtoutes.services.jobirl_api.register_mentor import RegisterMentorOnJobirl
+
+    beneficiary.legal_representative_email = "parent@example.com"
+    beneficiary.save()
+    register_url = f"{JOBIRL_TEST_URL}/techpourtoutes/api/user_register"
+    httpx_mock.add_response(
+        url=register_url,
+        status_code=200,
+        json={"response": "success", "datas": {"id": 1, "token": "t"}},
+    )
+
+    RegisterMentorOnJobirl(user=beneficiary)
+
+    body = httpx_mock.get_request().content.decode()
+    assert "parent%40example.com" in body or "parent@example.com" in body
+
+
+@override_settings(JOBIRL_URL=JOBIRL_TEST_URL, JOBIRL_API_KEY=JOBIRL_TEST_API_KEY)
 @pytest.mark.parametrize(
     "professional_situation,expected_situation_pro",
     [
