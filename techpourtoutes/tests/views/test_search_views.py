@@ -37,6 +37,37 @@ def higher_ed_schools(db):
     ).save()
 
 
+@pytest.fixture
+def homonym_schools(db):
+    """Two campuses share a name; only the first one is on the ambassador list."""
+    School(
+        onisep_id="20",
+        name="ESSCA School of Management",
+        acronym="ESSCA",
+        postal_code="49000",
+        city="Angers",
+        higher_ed=True,
+        training_ambassador_eligible=True,
+    ).save()
+    School(
+        onisep_id="21",
+        name="ESSCA School of Management",
+        acronym="ESSCA",
+        postal_code="69007",
+        city="Lyon",
+        higher_ed=True,
+    ).save()
+    School(
+        onisep_id="22",
+        name="Audencia Business School",
+        acronym="Audencia",
+        postal_code="44000",
+        city="Nantes",
+        higher_ed=True,
+        training_ambassador_eligible=True,
+    ).save()
+
+
 @pytest.mark.django_db
 def test_search_without_a_scope_is_rejected(client, schools):
     assert client.get(reverse("search_schools"), {"q": "voltaire"}).status_code == 400
@@ -135,6 +166,58 @@ def test_search_higher_ed_schools_renders_the_acronym_and_the_name(client, highe
     content = search_schools(client, "higher_ed", q="UTT").content.decode()
 
     assert "UTT (Université de Technologie de Troyes)" in content
+
+
+@pytest.mark.django_db
+def test_search_higher_ed_schools_locates_the_homonyms(client, homonym_schools):
+    content = search_schools(client, "higher_ed", q="essca").content.decode()
+
+    assert "ESSCA (ESSCA School of Management) - 49000 Angers" in content
+    assert "ESSCA (ESSCA School of Management) - 69007 Lyon" in content
+
+
+@pytest.mark.django_db
+def test_search_higher_ed_schools_leaves_a_unique_name_bare(client, homonym_schools):
+    content = search_schools(client, "higher_ed", q="audencia").content.decode()
+
+    assert "Audencia (Audencia Business School)" in content
+    assert "44000 Nantes" not in content
+
+
+@pytest.mark.django_db
+def test_search_higher_ed_schools_ignores_a_homonym_of_another_perimeter(client, homonym_schools):
+    School(onisep_id="30", name="Audencia Business School", secondary=True).save()
+
+    content = search_schools(client, "higher_ed", q="audencia").content.decode()
+
+    assert "44000 Nantes" not in content
+
+
+@pytest.mark.django_db
+def test_training_ambassador_scope_locates_the_homonyms_of_its_own_list(client, homonym_schools):
+    """Only the Angers campus is eligible: within that perimeter its name is unique."""
+    content = search_schools(client, "training_ambassador", q="essca").content.decode()
+
+    assert "ESSCA (ESSCA School of Management)" in content
+    assert "49000 Angers" not in content
+
+
+@pytest.mark.django_db
+def test_search_schools_never_locates_the_secondary_homonyms(client):
+    for onisep_id, postal_code, city in [("1", "69003", "Lyon"), ("2", "75011", "Paris")]:
+        School(
+            onisep_id=onisep_id,
+            name="Collège Jean Moulin",
+            postal_code=postal_code,
+            city=city,
+            secondary=True,
+        ).save()
+
+    content = search_schools(client, "secondary", q="moulin").content.decode()
+
+    assert "Collège Jean Moulin (69003)" in content
+    assert "Collège Jean Moulin (75011)" in content
+    assert "Lyon" not in content
 
 
 @pytest.mark.django_db

@@ -48,7 +48,9 @@ class School(BaseModel):
     uai = models.CharField(max_length=20, blank=True, verbose_name="UAI")
     siret = models.CharField(max_length=20, blank=True, verbose_name="SIRET")
     type = models.CharField(max_length=100, blank=True, verbose_name=_("type d'établissement"))
-    name = models.CharField(max_length=350, verbose_name=_("nom de l'établissement"))
+    name = models.CharField(
+        max_length=350, db_index=True, verbose_name=_("nom de l'établissement")
+    )
     name_normalized = models.CharField(max_length=350, blank=True, editable=False)
     acronym = models.CharField(max_length=50, blank=True, verbose_name=_("sigle"))
     acronym_normalized = models.CharField(max_length=50, blank=True, editable=False)
@@ -84,6 +86,9 @@ class School(BaseModel):
 
     objects = SchoolQuerySet.as_manager()
 
+    # Raised by the school search when another school of the same perimeter shares this name.
+    has_homonym = False
+
     class Meta:
         verbose_name = _("établissement")
         verbose_name_plural = _("établissements")
@@ -94,8 +99,13 @@ class School(BaseModel):
         super().save(*args, **kwargs)
 
     @property
+    def locality(self):
+        return " ".join(part for part in (self.postal_code, self.city) if part)
+
+    @property
     def display_label(self):
-        return f"{self.acronym} ({self.name})" if self.acronym else self.name
+        label = f"{self.acronym} ({self.name})" if self.acronym else self.name
+        return f"{label} - {self.locality}" if self.has_homonym and self.locality else label
 
     @property
     def location_label(self):

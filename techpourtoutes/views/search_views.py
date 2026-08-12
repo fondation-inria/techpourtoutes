@@ -1,7 +1,7 @@
 from dataclasses import dataclass
 
 from django.core.exceptions import ValidationError
-from django.db.models import Q
+from django.db.models import Count, Q
 from django.http import HttpResponseBadRequest
 from django.shortcuts import render
 
@@ -18,6 +18,7 @@ class SearchScope:
     match_postal_code: bool
     ordering: str
     row_template: str
+    disambiguate_homonyms: bool = False
 
 
 SCOPES = {
@@ -40,12 +41,14 @@ SCOPES = {
         match_postal_code=False,
         ordering="name",
         row_template="common/partials/school_row/higher_ed.html",
+        disambiguate_homonyms=True,
     ),
     "training_ambassador": SearchScope(
         filters=Q(training_ambassador_eligible=True),
         match_postal_code=False,
         ordering="name",
         row_template="common/partials/school_row/higher_ed.html",
+        disambiguate_homonyms=True,
     ),
 }
 
@@ -61,6 +64,8 @@ def search_schools(request):
         q, match_postal_code=scope.match_postal_code
     )
     items, next_page = _paginate(schools.order_by(scope.ordering), page)
+    if scope.disambiguate_homonyms:
+        _flag_homonyms(items, scope.filters)
     return render(
         request,
         "common/partials/school_results.html",
@@ -82,7 +87,6 @@ def search_formations(request):
         return HttpResponseBadRequest("Établissement inconnu.")
 
     q, page = _search_params(request)
-    # Scope first: the fallback answers "nothing is taught here", not "nothing matched".
     formations = Formation.objects.taught_at(school).search(q)
     items, next_page = _paginate(formations.order_by("name"), page)
     return render(
@@ -116,6 +120,19 @@ def _search_params(request):
     except ValueError:
         page = 1
     return q, page
+
+
+def _flag_homonyms(schools, filters):
+    """Two schools of a same perimeter sharing a name are indistinguishable: say where they are."""
+    shared = {
+        row["name"]
+        for row in School.objects.filter(filters, name__in=[school.name for school in schools])
+        .values("name")
+        .annotate(count=Count("pk"))
+        .filter(count__gt=1)
+    }
+    for school in schools:
+        school.has_homonym = school.name in shared
 
 
 def _paginate(queryset, page):
