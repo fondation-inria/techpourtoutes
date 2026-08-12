@@ -28,14 +28,18 @@
   <div class="stats-dashboard__primary">
     <div class="stats-dashboard__value gap-2">{{ stats.total.total }}</div>
     <div class="stats-dashboard__label">{{ stats.total.label }}</div>
+    {% if "recent" in stats.total %}
     <div class="stats-dashboard__delta">+{{ stats.total.recent }} sur 30 derniers jours</div>
+    {% endif %}
   </div>
   <div class="stats-dashboard__grid">
     {% for stat in stats.breakdown %}
     <div class="stats-dashboard__card">
       <div class="stats-dashboard__value">{{ stat.total }}</div>
       <div class="stats-dashboard__label">{{ stat.label }}</div>
+      {% if "recent" in stat %}
       <div class="stats-dashboard__delta">+{{ stat.recent }} sur 30 derniers jours</div>
+      {% endif %}
     </div>
     {% endfor %}
   </div>
