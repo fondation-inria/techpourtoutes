@@ -14,7 +14,7 @@ JOBIRL_SECTOR_ID = "75851"
 BENEFICIARY_FILIERE = "Générale"
 
 
-class RegisterMentorOnJobirl(JobirlApiBaseService):
+class RegisterUserOnJobirl(JobirlApiBaseService):
     def perform(self, *, user) -> None:
         is_pro = hasattr(user, "pro")
         data = self._common_data(user)

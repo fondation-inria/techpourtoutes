@@ -10,7 +10,7 @@ def test_create_mentoree_calls_jobirl_with_user_and_saves_result(beneficiary):
     mock = MagicMock(success=True, failure=False, errors=[], user_id=287565, token="tpt_abc")
 
     with patch(
-        "techpourtoutes.services.create_mentoree.RegisterMentorOnJobirl", return_value=mock
+        "techpourtoutes.services.create_mentoree.RegisterUserOnJobirl", return_value=mock
     ) as MockRegister:
         result = CreateMentoree(beneficiary=beneficiary)
 

@@ -3,7 +3,7 @@ from unittest.mock import MagicMock, patch
 import pytest
 from django.test import override_settings
 
-REGISTER_MENTOR = "techpourtoutes.services.pro.create_mentor.RegisterMentorOnJobirl"
+REGISTER_MENTOR = "techpourtoutes.services.pro.create_mentor.RegisterUserOnJobirl"
 
 
 def _mock_jobirl_registration(*, success=True, user_id=287565, token="tpt_abc", errors=None):

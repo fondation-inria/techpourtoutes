@@ -1,11 +1,11 @@
 from ...mailers import ProMailer
 from ..base import BaseService
-from ..jobirl_api.register_mentor import RegisterMentorOnJobirl
+from ..jobirl_api.register_user import RegisterUserOnJobirl
 
 
 class CreateMentor(BaseService):
     def perform(self, *, pro):
-        result = RegisterMentorOnJobirl(user=pro)
+        result = RegisterUserOnJobirl(user=pro)
         if result.failure:
             self.errors.extend(result.errors)
             return
