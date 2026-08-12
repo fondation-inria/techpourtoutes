@@ -26,13 +26,16 @@ def pro(db):
 
 @pytest.fixture
 def higher_ed_school(db):
-    from techpourtoutes.models import HigherEdSchool
+    from techpourtoutes.models import School
 
-    school = HigherEdSchool(
-        full_name="Université Paris-Saclay",
-        name="UPSaclay",
+    school = School(
+        onisep_id="490",
+        name="Université Paris-Saclay",
+        acronym="UPSaclay",
         siret="13002602400054",
         uai="0911101X",
+        higher_ed=True,
+        training_ambassador_eligible=True,
     )
     school.save()
     return school
@@ -42,7 +45,13 @@ def higher_ed_school(db):
 def school(db):
     from techpourtoutes.models import School
 
-    school = School(identifier="0750001A", name="Lycée Voltaire", postal_code="75011")
+    school = School(
+        onisep_id="14008",
+        uai="0750001A",
+        name="Lycée Voltaire",
+        postal_code="75011",
+        secondary=True,
+    )
     school.save()
     return school
 
@@ -66,35 +75,135 @@ def beneficiary(db):
 
 
 @pytest.fixture
-def experience(pro, higher_ed_school):
+def formation(school):
+    from techpourtoutes.models import Formation, FormationAction
+
+    formation = Formation(onisep_id="7118", name="Spécialité mathématiques")
+    formation.save()
+    FormationAction(onisep_id="69395", formation=formation, school=school).save()
+    return formation
+
+
+@pytest.fixture
+def higher_ed_formation(higher_ed_school):
+    from techpourtoutes.models import Formation, FormationAction
+
+    formation = Formation(onisep_id="9701", name="Master Informatique")
+    formation.save()
+    FormationAction(onisep_id="69396", formation=formation, school=higher_ed_school).save()
+    return formation
+
+
+@pytest.fixture
+def experience(pro, higher_ed_school, higher_ed_formation):
     from datetime import date
 
-    from techpourtoutes.models import TrainingExperience
+    from techpourtoutes.models import Level, TrainingExperience
 
     return TrainingExperience.objects.create(
         user=pro,
-        higher_ed_school=higher_ed_school,
-        level=TrainingExperience.Level.BAC_3,
+        school=higher_ed_school,
+        formation=higher_ed_formation,
+        level=Level.BAC_3,
         start_date=date(2019, 9, 1),
         end_date=date(2020, 8, 31),
-        course="Master Informatique",
     )
 
 
 @pytest.fixture
-def beneficiary_experience(beneficiary, school):
+def beneficiary_experience(beneficiary, school, formation):
     from datetime import date
 
-    from techpourtoutes.models import TrainingExperience
+    from techpourtoutes.models import Level, TrainingExperience
 
     return TrainingExperience.objects.create(
         user=beneficiary,
         school=school,
-        level=TrainingExperience.Level.TERMINALE,
+        formation=formation,
+        level=Level.TERMINALE,
         start_date=date(2023, 9, 1),
         end_date=date(2024, 8, 31),
-        course="Spécialité mathématiques",
     )
+
+
+ONISEP = "https://www.onisep.fr/http/redirection"
+
+
+@pytest.fixture
+def school_record():
+    """One row of an Onisep "structures d'enseignement" file, with its real keys."""
+
+    def build(onisep_id="14008", **overrides):
+        return {
+            "code_uai": "0383399N",
+            "n_siret": "19381912500231",
+            "type_detablissement": "école d'ingénieurs",
+            "nom": "École nationale supérieure d'informatique",
+            "sigle": "Ensimag",
+            "statut": "public",
+            "universite_de_rattachement_libelle_et_uai": "",
+            "universite_de_rattachement_id_et_url_onisep": "",
+            "boite_postale": "BP 72",
+            "adresse": "681 rue de la Passerelle",
+            "cp": "38402",
+            "commune": "Saint-Martin-d'Hères",
+            "commune_cog": "38421",
+            "cedex": "Cedex",
+            "telephone": "04 76 82 72 00",
+            "arrondissement": "",
+            "departement": "38 - Isère",
+            "academie": "Grenoble",
+            "region": "Auvergne-Rhône-Alpes",
+            "region_cog": "84",
+            "longitude_x": 5.76804,
+            "latitude_y": 45.1935,
+            "url_et_id_onisep": f"{ONISEP}/etablissement/slug/ENS.{onisep_id}",
+            **overrides,
+        }
+
+    return build
+
+
+@pytest.fixture
+def formation_record():
+    """One row of the Onisep "formations initiales" file, with its real keys."""
+
+    def build(onisep_id="9701", **overrides):
+        return {
+            "code_nsf": "314",
+            "code_scolarite": "46E31401",
+            "sigle_type_formation": "",
+            "libelle_type_formation": "formation d'école spécialisée",
+            "libelle_formation_principal": "assistant de comptabilité",
+            "sigle_formation": "",
+            "duree": "1 an",
+            "niveau_de_sortie_indicatif": "bac ou équivalent",
+            "code_rncp": "38506",
+            "niveau_de_certification": "4",
+            "libelle_niveau_de_certification": "niveau 4",
+            "url_et_id_onisep": f"{ONISEP}/formation/slug/FOR.{onisep_id}",
+            **overrides,
+        }
+
+    return build
+
+
+@pytest.fixture
+def formation_action_record():
+    """One row of an Onisep "actions de formation" file, with its real keys."""
+
+    def build(onisep_id="69395", formation_id="9701", school_id="14008", **overrides):
+        return {
+            "action_de_formation_af_identifiant_onisep": f"AF.{onisep_id}",
+            "formation_for_libelle": "classe de 1re générale",
+            "for_url_et_id_onisep": f"{ONISEP}/formation/slug/FOR.{formation_id}",
+            "lieu_denseignement_ens_libelle": "Lycée privé polyvalent Saint-Joseph",
+            "ens_url_et_id_onisep": f"{ONISEP}/etablissement/slug/ENS.{school_id}",
+            "ens_code_uai": "0341523W",
+            **overrides,
+        }
+
+    return build
 
 
 @pytest.fixture

@@ -8,24 +8,13 @@ from techpourtoutes.utils.school_year import (
 )
 
 from .base import BaseModel
-from .higher_ed_school import HigherEdSchool
+from .formation import Formation
+from .level import Level
 from .school import School
 from .user import User
 
 
 class TrainingExperience(BaseModel):
-    class Level(models.TextChoices):
-        TROISIEME = "troisieme", _("Troisième")
-        SECONDE = "seconde", _("Seconde")
-        PREMIERE = "premiere", _("Première")
-        TERMINALE = "terminale", _("Terminale")
-        BAC_1 = "bac_1", _("Bac +1")
-        BAC_2 = "bac_2", _("Bac +2")
-        BAC_3 = "bac_3", _("Bac +3")
-        BAC_4 = "bac_4", _("Bac +4")
-        BAC_5 = "bac_5", _("Bac +5")
-        BAC_5_PLUS = "bac_5_plus", _("Au-delà de bac +5")
-
     SECONDARY_LEVELS = [Level.TROISIEME, Level.SECONDE, Level.PREMIERE, Level.TERMINALE]
     HIGHER_ED_LEVELS = [
         Level.BAC_1,
@@ -35,6 +24,7 @@ class TrainingExperience(BaseModel):
         Level.BAC_5,
         Level.BAC_5_PLUS,
     ]
+    LEVELS = SECONDARY_LEVELS + HIGHER_ED_LEVELS
 
     user = models.ForeignKey(
         User,
@@ -42,32 +32,34 @@ class TrainingExperience(BaseModel):
         related_name="training_experiences",
         verbose_name=_("utilisateur"),
     )
-    higher_ed_school = models.ForeignKey(
-        HigherEdSchool,
-        null=True,
-        blank=True,
-        on_delete=models.CASCADE,
-        related_name="training_experiences",
-        verbose_name=_("établissement d'enseignement supérieur"),
-    )
     school = models.ForeignKey(
         School,
         null=True,
         blank=True,
-        on_delete=models.CASCADE,
+        on_delete=models.SET_NULL,
         related_name="training_experiences",
         verbose_name=_("établissement"),
     )
     level = models.CharField(
         max_length=20, choices=Level.choices, blank=True, verbose_name=_("niveau")
     )
+    formation = models.ForeignKey(
+        Formation,
+        null=True,
+        blank=True,
+        on_delete=models.SET_NULL,
+        related_name="training_experiences",
+        verbose_name=_("formation"),
+    )
     start_date = models.DateField(null=True, blank=True, verbose_name=_("date de début"))
     end_date = models.DateField(null=True, blank=True, verbose_name=_("date de fin"))
-    course = models.CharField(max_length=255, verbose_name=_("filière"))
+    # Superseded by `formation`. Kept until `link_training_experience_formations` has run
+    # against a full Onisep catalogue; dropped by the migration that follows.
+    course = models.CharField(max_length=255, blank=True, verbose_name=_("filière"))
 
     class Meta:
-        verbose_name = _("formation")
-        verbose_name_plural = _("formations")
+        verbose_name = _("formation suivie")
+        verbose_name_plural = _("formations suivies")
         ordering = ["-start_date"]
         constraints = [
             models.UniqueConstraint(
@@ -77,7 +69,7 @@ class TrainingExperience(BaseModel):
         ]
 
     def __str__(self):
-        return f"{self.user.email} – {self.course}"
+        return f"{self.user.email} – {self.formation or ''}"
 
     @property
     def is_current_school_year(self):

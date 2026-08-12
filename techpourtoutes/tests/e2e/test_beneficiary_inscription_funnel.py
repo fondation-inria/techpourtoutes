@@ -4,11 +4,25 @@ import pytest
 from playwright.sync_api import expect
 from waffle.testutils import override_switch
 
-from techpourtoutes.models import Beneficiary, School, TrainingExperience, User
+from techpourtoutes.models import (
+    Beneficiary,
+    Formation,
+    FormationAction,
+    Level,
+    School,
+    TrainingExperience,
+    User,
+)
 from techpourtoutes.utils.school_year import current_school_year_start_date
 
 # These tests drive a real browser to cover what the view tests cannot: the client-side
 # sessionStorage behaviour (survive reload, wipe on explicit exit) wired through Alpine + HTMX.
+
+
+_HIGH_SCHOOL_LABEL = "Dans quel établissement étudies-tu ?*"
+_HIGH_SCHOOL_FORMATION_LABEL = "Quelle est ta formation ?*"
+_DIPLOMA_SCHOOL_LABEL = "Dans quel établissement as-tu obtenu ce diplôme ?*"
+_DIPLOMA_FORMATION_LABEL = "De quelle formation es-tu diplômée ?*"
 
 
 @pytest.fixture
@@ -52,8 +66,34 @@ def _select_option(page, label, option):
     page.get_by_role("button", name=option, exact=True).click()
 
 
+def _search_field(page, label):
+    """Both comboboxes post under `q`: only their label tells them apart."""
+    return page.get_by_label(label)
+
+
+def _pick(page, label, query, option):
+    _search_field(page, label).fill(query)
+    page.get_by_role("option", name=option, exact=True).click()
+
+
+def _voltaire_teaching(formation_name):
+    """A lycée and the one formation it delivers, as the imports would have linked them."""
+    school = School(
+        onisep_id="14008",
+        uai="0750001A",
+        name="Lycée Voltaire",
+        postal_code="75011",
+        secondary=True,
+    )
+    school.save()
+    formation = Formation(onisep_id="7118", name=formation_name)
+    formation.save()
+    FormationAction(onisep_id="69395", formation=formation, school=school).save()
+    return school, formation
+
+
 def test_graduate_registers_with_her_last_diploma(page, funnel_url, beneficiary_mode):
-    School(identifier="0750001A", name="Lycée Voltaire", postal_code="75011").save()
+    _, formation = _voltaire_teaching("Bac général")
     diploma_year = current_school_year_start_date().year - 3
 
     page.goto(funnel_url)
@@ -63,22 +103,58 @@ def test_graduate_registers_with_her_last_diploma(page, funnel_url, beneficiary_
 
     _select_option(page, "En quelle année", f"{diploma_year}-{diploma_year + 1}")
     # A diploma can come from either list, so no establishment is offered before the level.
-    expect(page.locator('input[name="q"]')).to_have_count(0)
+    expect(_search_field(page, _DIPLOMA_SCHOOL_LABEL)).to_have_count(0)
     _select_option(page, "Quel est le niveau de ton diplôme ?*", "Terminale")
 
-    page.fill('input[name="q"]', "voltaire")
-    page.get_by_role("button", name="Lycée Voltaire (75011)").click()
-    page.fill('input[name="course"]', "Bac général")
+    _pick(page, _DIPLOMA_SCHOOL_LABEL, "voltaire", "Lycée Voltaire (75011)")
+    _pick(page, _DIPLOMA_FORMATION_LABEL, "bac", "Bac général")
     page.get_by_role("button", name="Rejoindre le club").click()
 
     expect(page.get_by_text("Saisis le code")).to_be_visible()
     experience = TrainingExperience.objects.get(
         user=Beneficiary.objects.get(email="oceane@example.com")
     )
-    assert experience.school.identifier == "0750001A"
-    assert experience.level == TrainingExperience.Level.TERMINALE
-    assert experience.course == "Bac général"
+    assert experience.school.uai == "0750001A"
+    assert experience.level == Level.TERMINALE
+    assert experience.formation == formation
     assert experience.start_date.year == diploma_year
+
+
+def test_the_formation_field_waits_for_the_school(page, funnel_url, beneficiary_mode):
+    _voltaire_teaching("Spécialité mathématiques")
+
+    page.goto(funnel_url)
+    _complete_email_step(page)
+    _complete_identity_step(page)
+    _choose_study_status(page, "Je suis au collège ou au lycée")
+    _select_option(page, "En quelle classe es-tu ?*", "Terminale")
+
+    formation_field = _search_field(page, _HIGH_SCHOOL_FORMATION_LABEL)
+    expect(formation_field).to_be_disabled()
+
+    _pick(page, _HIGH_SCHOOL_LABEL, "voltaire", "Lycée Voltaire (75011)")
+
+    expect(formation_field).to_be_enabled()
+
+
+def test_clearing_the_school_empties_and_disables_the_formation(
+    page, funnel_url, beneficiary_mode
+):
+    _voltaire_teaching("Spécialité mathématiques")
+
+    page.goto(funnel_url)
+    _complete_email_step(page)
+    _complete_identity_step(page)
+    _choose_study_status(page, "Je suis au collège ou au lycée")
+    _select_option(page, "En quelle classe es-tu ?*", "Terminale")
+    _pick(page, _HIGH_SCHOOL_LABEL, "voltaire", "Lycée Voltaire (75011)")
+    _pick(page, _HIGH_SCHOOL_FORMATION_LABEL, "specialite", "Spécialité mathématiques")
+
+    # The first clear button is the school's: dropping it must take the formation down with it.
+    page.get_by_role("button", name="Effacer la sélection").first.click()
+
+    expect(page.locator('input[name="formation_id"]')).to_have_value("")
+    expect(_search_field(page, _HIGH_SCHOOL_FORMATION_LABEL)).to_be_disabled()
 
 
 def test_changing_the_diploma_level_swaps_the_establishment_list(
@@ -89,17 +165,21 @@ def test_changing_the_diploma_level_swaps_the_establishment_list(
     _complete_identity_step(page)
     _choose_study_status(page, "J'ai terminé mes études")
 
+    # Each perimeter owns its own dropdown container, the higher-ed one suffixed "-sup".
+    higher_ed_dropdown = page.locator('[id^="school-results-"][id$="-sup"]')
+
     _select_option(page, "Quel est le niveau de ton diplôme ?*", "Terminale")
     expect(page.get_by_text("Recherche par nom et/ou code postal")).to_be_visible()
+    expect(higher_ed_dropdown).to_have_count(0)
 
     _select_option(page, "Quel est le niveau de ton diplôme ?*", "Bac +3")
 
     expect(page.get_by_text("Recherche par nom et/ou code postal")).to_have_count(0)
-    expect(page.get_by_text("Recherche par nom", exact=True)).to_be_visible()
+    expect(higher_ed_dropdown).to_have_count(1)
 
 
 def test_high_schooler_registers_with_her_school(page, funnel_url, beneficiary_mode):
-    School(identifier="0750001A", name="Lycée Voltaire", postal_code="75011").save()
+    _, formation = _voltaire_teaching("Spécialité mathématiques")
     requests = []
     page.on("request", lambda request: requests.append(request.url))
 
@@ -109,18 +189,17 @@ def test_high_schooler_registers_with_her_school(page, funnel_url, beneficiary_m
     _choose_study_status(page, "Je suis au collège ou au lycée")
 
     _select_option(page, "En quelle classe es-tu ?*", "Terminale")
-    page.fill('input[name="q"]', "voltaire")
-    page.get_by_role("button", name="Lycée Voltaire (75011)").click()
-    page.fill('input[name="course"]', "Spécialité mathématiques")
+    _pick(page, _HIGH_SCHOOL_LABEL, "voltaire", "Lycée Voltaire (75011)")
+    _pick(page, _HIGH_SCHOOL_FORMATION_LABEL, "specialite", "Spécialité mathématiques")
     page.get_by_role("button", name="Rejoindre le club").click()
 
     expect(page.get_by_text("Saisis le code")).to_be_visible()
     experience = TrainingExperience.objects.get(
         user=Beneficiary.objects.get(email="oceane@example.com")
     )
-    assert experience.school.identifier == "0750001A"
-    assert experience.level == TrainingExperience.Level.TERMINALE
-    assert experience.course == "Spécialité mathématiques"
+    assert experience.school.uai == "0750001A"
+    assert experience.level == Level.TERMINALE
+    assert experience.formation == formation
     assert experience.start_date == current_school_year_start_date()
 
     # The autocomplete fires from inside the funnel form: the collected answers must not ride
@@ -131,25 +210,24 @@ def test_high_schooler_registers_with_her_school(page, funnel_url, beneficiary_m
 
 
 def test_a_failed_submit_keeps_the_chosen_school_collapsed(page, funnel_url, beneficiary_mode):
-    School(identifier="0750001A", name="Lycée Voltaire", postal_code="75011").save()
+    _voltaire_teaching("Spécialité mathématiques")
 
     page.goto(funnel_url)
     _complete_email_step(page)
     _complete_identity_step(page)
     _choose_study_status(page, "Je suis au collège ou au lycée")
     _select_option(page, "En quelle classe es-tu ?*", "Terminale")
-    page.fill('input[name="q"]', "voltaire")
-    page.get_by_role("button", name="Lycée Voltaire (75011)").click()
-    # The course is left empty, so the step comes back with an error.
+    _pick(page, _HIGH_SCHOOL_LABEL, "voltaire", "Lycée Voltaire (75011)")
+    # The formation is left unpicked, so the step comes back with an error.
     page.get_by_role("button", name="Rejoindre le club").click()
-    expect(page.get_by_text("Ce champ est obligatoire.")).to_be_visible()
+    expect(page.get_by_text("Sélectionnez une formation valide.")).to_be_visible()
     # htmx only wipes what Alpine computed once its settle phase runs, so the screen has to be
     # judged after it — an immediate assertion would pass on a state that lasts milliseconds.
     page.wait_for_timeout(300)
 
     # The re-rendered screen must show the school as chosen, not the search box reopened
     # underneath it.
-    expect(page.locator('input[name="q"]')).to_be_hidden()
+    expect(_search_field(page, _HIGH_SCHOOL_LABEL)).to_be_hidden()
     expect(page.get_by_text("Lycée Voltaire (75011)")).to_be_visible()
 
 

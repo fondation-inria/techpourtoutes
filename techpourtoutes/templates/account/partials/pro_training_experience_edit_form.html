@@ -8,14 +8,24 @@
             <p class="description-text-xxs">Les champs suivis d'un astérisque (*) sont obligatoires.</p>
             <c-components.text class="font-light"><span class="font-medium">Année scolaire en cours</span></c-components.text>
             <c-components.form_fields.select field=form.level />
-            <c-components.form_fields.higher_ed_school_search
-                id_field=form.higher_ed_school_id
-                label_field=form.higher_ed_school_label
+            <c-components.form_fields.school_search
+                name_field=form.school_label
+                id_field=form.school_id
+                scope="higher_ed"
                 label="Votre établissement*"
                 description="Recherchez par nom"
+                group="{{ experience.pk }}"
                 unique_id="{{ experience.pk }}"
             />
-            <c-components.form_fields.input field=form.course />
+            <c-components.form_fields.formation_search
+                name_field=form.formation_label
+                id_field=form.formation_id
+                school_id_field=form.school_id
+                label="Votre formation*"
+                description="Recherchez par nom"
+                group="{{ experience.pk }}"
+                unique_id="{{ experience.pk }}"
+            />
             <div class="flex justify-end gap-2">
                 <c-components.button label="Annuler" variant="secondary" type="button"
                     hx-get="{% url 'pro_training_experience_info' experience.pk %}"

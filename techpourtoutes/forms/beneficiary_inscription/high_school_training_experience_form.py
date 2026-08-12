@@ -10,11 +10,15 @@ class BeneficiaryHighSchoolTrainingExperienceForm(BaseTrainingExperienceForm):
         label=_("En quelle classe es-tu ?*"),
         choices=level_choices(TrainingExperience.SECONDARY_LEVELS),
     )
-    school_name = forms.CharField(
+    school_label = forms.CharField(
         widget=forms.HiddenInput,
         required=False,
         label=_("Dans quel établissement étudies-tu ?*"),
     )
-    school_identifier = forms.CharField(widget=forms.HiddenInput, required=False)
-    school_postal_code = forms.CharField(widget=forms.HiddenInput, required=False)
-    course = forms.CharField(max_length=255, label=_("Quel diplôme prépares-tu ?*"))
+    school_id = forms.CharField(widget=forms.HiddenInput, required=False)
+    formation_label = forms.CharField(
+        widget=forms.HiddenInput,
+        required=False,
+        label=_("Quelle est ta formation ?*"),
+    )
+    formation_id = forms.CharField(widget=forms.HiddenInput, required=False)

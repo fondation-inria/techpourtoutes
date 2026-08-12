@@ -2,7 +2,7 @@ from datetime import date
 
 import pytest
 
-from techpourtoutes.models import TrainingExperience
+from techpourtoutes.models import Level, TrainingExperience
 from techpourtoutes.utils.school_year import (
     current_school_year_start_date,
     next_school_year_start_date,
@@ -20,7 +20,7 @@ def test_training_experience_slots_places_current_year_placeholder_after_future_
     next_year = TrainingExperience.objects.create(
         user=beneficiary,
         school=school,
-        level=TrainingExperience.Level.BAC_1,
+        level=Level.BAC_1,
         start_date=next_school_year_start_date(),
         end_date=date(next_school_year_start_date().year + 1, 8, 31),
         course="Prépa",
@@ -38,7 +38,7 @@ def test_training_experience_slots_omits_placeholder_when_current_year_experienc
     current = TrainingExperience.objects.create(
         user=beneficiary,
         school=school,
-        level=TrainingExperience.Level.TERMINALE,
+        level=Level.TERMINALE,
         start_date=current_school_year_start_date(),
         end_date=date(current_school_year_start_date().year + 1, 8, 31),
         course="Terminale",
@@ -56,7 +56,7 @@ def test_training_experience_insertion_anchor_targets_current_year_slot_for_a_fu
     current = TrainingExperience.objects.create(
         user=beneficiary,
         school=school,
-        level=TrainingExperience.Level.TERMINALE,
+        level=Level.TERMINALE,
         start_date=current_school_year_start_date(),
         end_date=date(current_school_year_start_date().year + 1, 8, 31),
         course="Terminale",
@@ -83,7 +83,7 @@ def test_training_experience_insertion_anchor_returns_none_for_the_earliest_expe
     TrainingExperience.objects.create(
         user=beneficiary,
         school=school,
-        level=TrainingExperience.Level.SECONDE,
+        level=Level.SECONDE,
         start_date=date(2022, 9, 1),
         end_date=date(2023, 8, 31),
         course="Seconde",
@@ -101,7 +101,7 @@ def test_training_experience_insertion_anchor_excludes_the_experience_being_edit
     edited = TrainingExperience.objects.create(
         user=beneficiary,
         school=school,
-        level=TrainingExperience.Level.SECONDE,
+        level=Level.SECONDE,
         start_date=date(2022, 9, 1),
         end_date=date(2023, 8, 31),
         course="Seconde",

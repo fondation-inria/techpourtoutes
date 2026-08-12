@@ -19,10 +19,10 @@ FONCTION_CHOICES = [
 
 
 class WorkshopForm(BaseEngagementForm):
-    pro_fields = ("structure_name", "structure_id", "job_title", "postal_code")
+    pro_fields = ("structure_name", "job_title", "postal_code")
     pro_constants = {"professional_situation": Pro.ProfessionalSituation.WORKING}
 
-    structure_id = forms.CharField(widget=forms.HiddenInput)
+    structure_uai = forms.CharField(widget=forms.HiddenInput)
     structure_name = forms.CharField(label=_("Votre établissement*"))
     postal_code = forms.CharField(widget=forms.HiddenInput)
     job_title = forms.ChoiceField(label=_("Votre fonction*"), choices=FONCTION_CHOICES)

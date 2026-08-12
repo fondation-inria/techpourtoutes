@@ -1,44 +1,45 @@
 import pytest
 
 from techpourtoutes.forms import BeneficiaryHighSchoolTrainingExperienceForm
-from techpourtoutes.models import TrainingExperience
+from techpourtoutes.models import Level
 from techpourtoutes.utils.school_year import (
     current_school_year_end_date,
     current_school_year_start_date,
 )
 
 
-def _valid_data(school, **overrides):
+def _valid_data(school, formation, **overrides):
     return {
-        "level": TrainingExperience.Level.TERMINALE,
-        "course": "Spécialité mathématiques",
-        "school_name": school.name,
-        "school_identifier": school.identifier,
-        "school_postal_code": school.postal_code,
+        "level": Level.TERMINALE,
+        "formation_label": formation.name,
+        "formation_id": str(formation.pk),
+        "school_label": school.location_label,
+        "school_id": str(school.pk),
         **overrides,
     }
 
 
 @pytest.mark.django_db
-def test_save_creates_a_training_experience_for_the_current_school_year(beneficiary, school):
-    form = BeneficiaryHighSchoolTrainingExperienceForm(data=_valid_data(school))
+def test_save_creates_a_training_experience_for_the_current_school_year(
+    beneficiary, school, formation
+):
+    form = BeneficiaryHighSchoolTrainingExperienceForm(data=_valid_data(school, formation))
     assert form.is_valid(), form.errors
 
     experience = form.save(beneficiary)
 
     assert experience.user == beneficiary
     assert experience.school == school
-    assert experience.higher_ed_school is None
-    assert experience.level == TrainingExperience.Level.TERMINALE
-    assert experience.course == "Spécialité mathématiques"
+    assert experience.level == Level.TERMINALE
+    assert experience.formation == formation
     assert experience.start_date == current_school_year_start_date()
     assert experience.end_date == current_school_year_end_date()
 
 
 @pytest.mark.django_db
-def test_form_rejects_a_higher_education_level(school):
+def test_form_rejects_a_higher_education_level(school, formation):
     form = BeneficiaryHighSchoolTrainingExperienceForm(
-        data=_valid_data(school, level=TrainingExperience.Level.BAC_3)
+        data=_valid_data(school, formation, level=Level.BAC_3)
     )
 
     assert not form.is_valid()
@@ -46,29 +47,63 @@ def test_form_rejects_a_higher_education_level(school):
 
 
 @pytest.mark.django_db
-def test_form_rejects_an_unknown_school(school):
+def test_form_rejects_an_unknown_school(school, formation):
     form = BeneficiaryHighSchoolTrainingExperienceForm(
-        data=_valid_data(school, school_identifier="9999999Z")
+        data=_valid_data(school, formation, school_id="9999999Z")
     )
 
     assert not form.is_valid()
-    assert "school_identifier" in form.errors
+    assert "school_id" in form.errors
 
 
 @pytest.mark.django_db
-def test_form_requires_a_school(school):
+def test_form_requires_a_school(school, formation):
     form = BeneficiaryHighSchoolTrainingExperienceForm(
-        data=_valid_data(school, school_identifier="")
+        data=_valid_data(school, formation, school_id="")
     )
 
     assert not form.is_valid()
-    assert "school_identifier" in form.errors
+    assert "school_id" in form.errors
 
 
 def test_form_ignores_a_level_answered_in_the_other_branch():
     # Going back and switching study status carries the previous level along with the answers.
-    form = BeneficiaryHighSchoolTrainingExperienceForm(
-        initial={"level": TrainingExperience.Level.BAC_3}
-    )
+    form = BeneficiaryHighSchoolTrainingExperienceForm(initial={"level": Level.BAC_3})
 
     assert form["level"].value() == ""
+
+
+@pytest.mark.django_db
+def test_form_requires_a_formation_once_the_school_is_known(school, formation):
+    form = BeneficiaryHighSchoolTrainingExperienceForm(
+        data=_valid_data(school, formation, formation_id="")
+    )
+
+    assert not form.is_valid()
+    assert "formation_id" in form.errors
+
+
+@pytest.mark.django_db
+def test_form_rejects_a_formation_the_school_does_not_teach(school, formation):
+    from techpourtoutes.models import Formation
+
+    elsewhere = Formation(onisep_id="9999", name="Diplôme d'ingénieur")
+    elsewhere.save()
+
+    form = BeneficiaryHighSchoolTrainingExperienceForm(
+        data=_valid_data(school, formation, formation_id=str(elsewhere.pk))
+    )
+
+    assert not form.is_valid()
+    assert "formation_id" in form.errors
+
+
+@pytest.mark.django_db
+def test_form_reports_the_school_before_the_formation(school, formation):
+    """No school, no perimeter: the formation cannot be resolved yet."""
+    form = BeneficiaryHighSchoolTrainingExperienceForm(
+        data=_valid_data(school, formation, school_id="")
+    )
+
+    assert "school_id" in form.errors
+    assert "formation_id" not in form.errors

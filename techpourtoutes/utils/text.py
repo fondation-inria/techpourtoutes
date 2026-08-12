@@ -8,6 +8,11 @@ def strip_accents(text: str) -> str:
     )
 
 
+def capitalize_first(text: str) -> str:
+    """Uppercase the first letter only, leaving the rest alone (unlike `str.capitalize`)."""
+    return text[:1].upper() + text[1:]
+
+
 def mask_email(email: str) -> str:
     """Partially hide a local part for display (e.g. "quentin@inria.fr" -> "q***n@inria.fr")."""
     local, _, domain = email.partition("@")

@@ -93,6 +93,15 @@ def _phone_attributes(instance) -> dict:
     }
 
 
+def _phone_attributes(instance) -> dict:
+    if not instance.phone:
+        return {}
+    return {
+        FIELD_TO_BREVO_ATTR["phone"]: instance.phone.as_e164,
+        "TELEPHONE_RAW_NUMBER": instance.phone.as_e164.replace("+", "00"),
+    }
+
+
 def _attributes_from(instance, fields: list[str]) -> dict:
     result = {}
     for field in fields:

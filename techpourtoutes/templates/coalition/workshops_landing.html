@@ -109,8 +109,10 @@
                             <c-components.form_fields.select field=form.job_title />
                             <c-components.form_fields.school_search
                                 name_field=form.structure_name
-                                id_field=form.structure_id
+                                id_field=form.structure_uai
                                 postal_field=form.postal_code
+                                scope="workshop"
+                                key="uai"
                                 description="Recherchez par nom et/ou code postal"
                             />
                             <c-components.form_fields.checkbox_group field=form.ateliers description="Vous pouvez choisir plusieurs ateliers" />

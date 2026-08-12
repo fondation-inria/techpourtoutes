@@ -5,7 +5,7 @@ from django.shortcuts import redirect, render
 from ..forms import EngagementForm, ManifesteSignatureForm, TrainingAmbassadorForm, WorkshopForm
 from ..mailers import ConsortiumMailer, ProMailer
 from ..models import Pro, WorkshopRequest
-from ..services.create_mentor import CreateMentor
+from ..services.pro.create_mentor import CreateMentor
 from ..tasks import notify_workshop_request_task, upsert_manifeste_signatory_task
 
 
@@ -97,6 +97,7 @@ def workshops_landing(request):
                 pro_pk=str(pro.pk),
                 ateliers=form.cleaned_data["ateliers"],
                 remark=form.cleaned_data["remark"],
+                structure_uai=form.cleaned_data["structure_uai"],
             )
             if already_exists:
                 ProMailer.new_engagement(pro=pro)

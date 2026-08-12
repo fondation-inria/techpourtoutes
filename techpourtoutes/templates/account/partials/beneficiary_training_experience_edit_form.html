@@ -32,25 +32,36 @@
                     <br>
                     <template x-if="level != '' && !level.startsWith('bac_')">
                         <c-components.form_fields.school_search
-                            name_field=form.school_name
-                            id_field=form.school_identifier
-                            postal_field=form.school_postal_code
+                            name_field=form.school_label
+                            id_field=form.school_id
+                            scope="secondary"
                             label="Votre établissement*"
                             description="Recherchez par nom et/ou code postal"
+                            group="{{ form.dom_id }}"
                             unique_id="{{ form.dom_id }}"
                         />
                     </template>
                     <template x-if="level.startsWith('bac_')">
-                        <c-components.form_fields.higher_ed_school_search
-                            id_field=form.higher_ed_school_id
-                            label_field=form.higher_ed_school_label
+                        <c-components.form_fields.school_search
+                            name_field=form.school_label
+                            id_field=form.school_id
+                            scope="higher_ed"
                             label="Votre établissement*"
                             description="Recherchez par nom"
-                            unique_id="{{ form.dom_id }}"
+                            group="{{ form.dom_id }}"
+                            unique_id="{{ form.dom_id }}-sup"
                         />
                     </template>
                     <br>
-                    <c-components.form_fields.input field=form.course />
+                    <c-components.form_fields.formation_search
+                        name_field=form.formation_label
+                        id_field=form.formation_id
+                        school_id_field=form.school_id
+                        label="Votre formation*"
+                        description="Recherchez par nom"
+                        group="{{ form.dom_id }}"
+                        unique_id="{{ form.dom_id }}"
+                    />
                 </div>
             </template>
         </div>

@@ -7,7 +7,7 @@ from django.core import mail
 from django.test import override_settings
 from waffle.testutils import override_switch
 
-from techpourtoutes.models import Beneficiary, TrainingExperience, User
+from techpourtoutes.models import Beneficiary, Level, User
 from techpourtoutes.utils.school_year import (
     current_school_year_label,
     current_school_year_start_date,
@@ -63,25 +63,26 @@ def _answers(**overrides):
     }
 
 
-def _higher_education_post(higher_ed_school, **overrides):
+def _higher_education_post(higher_ed_school, higher_ed_formation, **overrides):
     answers = _answers(
         study_status="higher_education",
         level="bac_3",
-        higher_ed_school_id=str(higher_ed_school.pk),
-        higher_ed_school_label=higher_ed_school.display_label,
-        course="Licence informatique",
+        school_id=str(higher_ed_school.pk),
+        school_label=higher_ed_school.display_label,
+        formation_id=str(higher_ed_formation.pk),
+        formation_label=higher_ed_formation.name,
     )
     return answers | overrides
 
 
-def _high_school_post(school, **overrides):
+def _high_school_post(school, formation, **overrides):
     answers = _answers(
         study_status="high_school",
         level="terminale",
-        school_name=school.name,
-        school_identifier=school.identifier,
-        school_postal_code=school.postal_code,
-        course="Spécialité mathématiques",
+        school_label=school.location_label,
+        school_id=str(school.pk),
+        formation_id=str(formation.pk),
+        formation_label=formation.name,
     )
     return answers | overrides
 
@@ -91,15 +92,15 @@ _DIPLOMA_YEAR = current_school_year_start_date().year - 3
 DIPLOMA_PERIOD_LABEL = f"{_DIPLOMA_YEAR}-{_DIPLOMA_YEAR + 1}"
 
 
-def _last_diploma_post(school, **overrides):
+def _last_diploma_post(school, formation, **overrides):
     answers = _answers(
         study_status="finished",
         period_label=DIPLOMA_PERIOD_LABEL,
         level="terminale",
-        school_name=school.name,
-        school_identifier=school.identifier,
-        school_postal_code=school.postal_code,
-        course="Bac général",
+        school_label=school.location_label,
+        school_id=str(school.pk),
+        formation_id=str(formation.pk),
+        formation_label=formation.name,
     )
     return answers | overrides
 
@@ -263,9 +264,11 @@ def test_study_status_step_asks_a_graduate_about_her_last_diploma(client, benefi
 
 @pytest.mark.django_db
 def test_training_experience_step_creates_beneficiary_and_shows_code_screen(
-    client, beneficiary_mode, higher_ed_school
+    client, beneficiary_mode, higher_ed_school, higher_ed_formation
 ):
-    response = client.post(FUNNEL_URL, _higher_education_post(higher_ed_school))
+    response = client.post(
+        FUNNEL_URL, _higher_education_post(higher_ed_school, higher_ed_formation)
+    )
 
     assert b"Saisis le code" in response.content
     assert "funnelReset" in response["HX-Trigger"]
@@ -278,51 +281,49 @@ def test_training_experience_step_creates_beneficiary_and_shows_code_screen(
 
 @pytest.mark.django_db
 def test_training_experience_step_creates_the_current_year_training(
-    client, beneficiary_mode, higher_ed_school
+    client, beneficiary_mode, higher_ed_school, higher_ed_formation
 ):
-    client.post(FUNNEL_URL, _higher_education_post(higher_ed_school))
+    client.post(FUNNEL_URL, _higher_education_post(higher_ed_school, higher_ed_formation))
 
     experience = Beneficiary.objects.get(email="oceane@example.com").training_experiences.get()
-    assert experience.higher_ed_school == higher_ed_school
-    assert experience.school is None
-    assert experience.level == TrainingExperience.Level.BAC_3
-    assert experience.course == "Licence informatique"
+    assert experience.school == higher_ed_school
+    assert experience.level == Level.BAC_3
+    assert experience.formation == higher_ed_formation
     assert experience.start_date == current_school_year_start_date()
 
 
 @pytest.mark.django_db
 def test_training_experience_step_creates_the_training_of_a_high_schooler(
-    client, beneficiary_mode, school
+    client, beneficiary_mode, school, formation
 ):
-    client.post(FUNNEL_URL, _high_school_post(school))
+    client.post(FUNNEL_URL, _high_school_post(school, formation))
 
     experience = Beneficiary.objects.get(email="oceane@example.com").training_experiences.get()
     assert experience.school == school
-    assert experience.higher_ed_school is None
-    assert experience.level == TrainingExperience.Level.TERMINALE
-    assert experience.course == "Spécialité mathématiques"
+    assert experience.level == Level.TERMINALE
+    assert experience.formation == formation
     assert experience.start_date == current_school_year_start_date()
 
 
 @pytest.mark.django_db
 @pytest.mark.parametrize("study_status", ["finished", "resuming"])
 def test_training_experience_step_creates_the_training_of_a_graduate(
-    client, beneficiary_mode, school, study_status
+    client, beneficiary_mode, school, formation, study_status
 ):
-    client.post(FUNNEL_URL, _last_diploma_post(school, study_status=study_status))
+    client.post(FUNNEL_URL, _last_diploma_post(school, formation, study_status=study_status))
 
     experience = Beneficiary.objects.get(email="oceane@example.com").training_experiences.get()
     assert experience.school == school
-    assert experience.level == TrainingExperience.Level.TERMINALE
-    assert experience.course == "Bac général"
+    assert experience.level == Level.TERMINALE
+    assert experience.formation == formation
     assert (experience.start_date, experience.end_date) == school_year_dates(DIPLOMA_PERIOD_LABEL)
 
 
 @pytest.mark.django_db
 def test_training_experience_step_does_not_create_without_an_establishment(
-    client, beneficiary_mode, school
+    client, beneficiary_mode, school, formation
 ):
-    response = client.post(FUNNEL_URL, _high_school_post(school, school_identifier=""))
+    response = client.post(FUNNEL_URL, _high_school_post(school, formation, school_id=""))
 
     assert b'name="action" value="training_experience"' in response.content
     assert "Sélectionnez un établissement valide.".encode() in response.content
@@ -332,9 +333,9 @@ def test_training_experience_step_does_not_create_without_an_establishment(
 @pytest.mark.django_db
 @override_settings(EMAIL_BACKEND="django.core.mail.backends.locmem.EmailBackend")
 def test_training_experience_step_sends_login_code_and_welcome_emails(
-    client, beneficiary_mode, higher_ed_school
+    client, beneficiary_mode, higher_ed_school, higher_ed_formation
 ):
-    client.post(FUNNEL_URL, _higher_education_post(higher_ed_school))
+    client.post(FUNNEL_URL, _higher_education_post(higher_ed_school, higher_ed_formation))
 
     beneficiary = Beneficiary.objects.get(email="oceane@example.com")
     assert beneficiary.login_code_hash != ""
@@ -350,11 +351,13 @@ def test_training_experience_step_sends_login_code_and_welcome_emails(
 @pytest.mark.django_db
 @override_settings(EMAIL_BACKEND="django.core.mail.backends.locmem.EmailBackend")
 def test_skip_action_creates_beneficiary_without_mentoring_signup(
-    client, beneficiary_mode, higher_ed_school
+    client, beneficiary_mode, higher_ed_school, higher_ed_formation
 ):
     response = client.post(
         FUNNEL_URL,
-        _higher_education_post(higher_ed_school, action="skip", wants_mentor="false"),
+        _higher_education_post(
+            higher_ed_school, higher_ed_formation, action="skip", wants_mentor="false"
+        ),
     )
 
     assert b"Saisis le code" in response.content
@@ -366,12 +369,13 @@ def test_skip_action_creates_beneficiary_without_mentoring_signup(
 
 @pytest.mark.django_db
 def test_mentoring_signup_step_persists_legal_representative_email_for_a_minor(
-    client, beneficiary_mode, higher_ed_school
+    client, beneficiary_mode, higher_ed_school, higher_ed_formation
 ):
     response = client.post(
         FUNNEL_URL,
         _higher_education_post(
             higher_ed_school,
+            higher_ed_formation,
             action="mentoring_signup",
             wants_mentor="true",
             birth_date=_birth_date_for_age(16).isoformat(),
@@ -388,7 +392,7 @@ def test_mentoring_signup_step_persists_legal_representative_email_for_a_minor(
 
 @pytest.mark.django_db
 def test_mentoring_signup_step_creates_an_adult_beneficiary_without_legal_representative_fields(
-    client, beneficiary_mode, higher_ed_school
+    client, beneficiary_mode, higher_ed_school, higher_ed_formation
 ):
     # The template never shows the legal-representative fields to an adult, so the form must
     # accept a submission carrying only the phone number.
@@ -398,6 +402,7 @@ def test_mentoring_signup_step_creates_an_adult_beneficiary_without_legal_repres
             FUNNEL_URL,
             _higher_education_post(
                 higher_ed_school,
+                higher_ed_formation,
                 action="mentoring_signup",
                 wants_mentor="true",
                 phone="0612345678",
@@ -498,12 +503,13 @@ def test_resend_step_with_unknown_email_sends_nothing(client, beneficiary_mode):
 
 @pytest.mark.django_db
 def test_training_experience_step_routes_back_to_furthest_invalid_step_with_error(
-    client, beneficiary_mode, higher_ed_school
+    client, beneficiary_mode, higher_ed_school, higher_ed_formation
 ):
     # Email and study status are fine, but the birth date is invalid: the user is sent back
     # to the identity step (the furthest-back screen that needs correcting), not to email.
     response = client.post(
-        FUNNEL_URL, _higher_education_post(higher_ed_school, birth_date="not-a-date")
+        FUNNEL_URL,
+        _higher_education_post(higher_ed_school, higher_ed_formation, birth_date="not-a-date"),
     )
 
     assert b'name="action" value="identity"' in response.content
@@ -513,9 +519,11 @@ def test_training_experience_step_routes_back_to_furthest_invalid_step_with_erro
 
 @pytest.mark.django_db
 def test_training_experience_step_does_not_create_when_email_is_missing(
-    client, beneficiary_mode, higher_ed_school
+    client, beneficiary_mode, higher_ed_school, higher_ed_formation
 ):
-    response = client.post(FUNNEL_URL, _higher_education_post(higher_ed_school, email=""))
+    response = client.post(
+        FUNNEL_URL, _higher_education_post(higher_ed_school, higher_ed_formation, email="")
+    )
 
     assert response.status_code == 200
     assert b'name="action" value="email"' in response.content

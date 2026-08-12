@@ -95,7 +95,7 @@ make icons    # rebuild SVG sprite
 make seed     # seed DB with minimal dev data (idempotent)
 ```
 
-Seed creates: one `Pro` with superuser role — `admin@techpourtoutes.io` / `admin` — and one `Beneficiary` with a `TrainingExperience` — `beneficiary@techpourtoutes.io` / `beneficiary`.
+Seed creates: one `Pro` with superuser role — `admin@techpourtoutes.io` / `admin` — and one `Beneficiary` with a `TrainingExperience` — `beneficiary@techpourtoutes.io` / `beneficiary`. It also imports the Onisep samples committed under `data/onisep/` (~100 coherent rows per file) rather than downloading the full datasets.
 
 ## Architecture
 
@@ -114,14 +114,37 @@ Django 6 + PostgreSQL project. Locale is French (fr-FR), timezone Europe/Paris.
 **Core entities:**
 - `User` — extends Django's `AbstractUser` via `BaseModel`. Custom user model (`AUTH_USER_MODEL`). Uses passwordless email-link login: `issue_login_token()` generates a hashed token with a 1h TTL; `consume_login_token(plaintext)` validates and invalidates it atomically. Auth views live in `techpourtoutes/views/auth_views.py`.
 - `Pro` — multi-table inheritance from `User`. Adds civility, birth date, phone, job title, personal address, optional structure fields, and Jobirl integration fields (`jobirl_user_id`, `jobirl_user_token`). Password is set to unusable on creation.
-- `School` — imported education institutions used by the workshop request form. Stores the official identifier, display name, normalized accent-free name for search, and postal code. Populate it with `uv run python manage.py import_schools`; the command fetches `data.education.gouv.fr` using `HUWISE_API_KEY`, excludes schools, and upserts by identifier.
+- `School` — every établissement referenced by Onisep, secondary and higher-ed alike (~20 000). Identified by `onisep_id`; `uai` and `siret` are **not** unique in the source. Two independent flags (`secondary`, `higher_ed`) say which file(s) it came from — ~4 000 are in both — plus `training_ambassador_eligible` for the training ambassdor list. Search relies on the accent-free `name_normalized` / `acronym_normalized`.
+- `Formation` — a diploma or curriculum as referenced by Onisep (~5 900), independent of where it is taught. `exit_level` uses the shared `Level` enum.
+- `FormationAction` — the through model linking a `Formation` to a `School` (~70 700). Onisep gives each link its own id, and the same pair can carry several, so only `onisep_id` is unique.
+- `Level` (`models/level.py`) — the study levels shared by `TrainingExperience` and `Formation.exit_level`. `TrainingExperience.LEVELS` is the subset the beneficiary funnel offers; the extra members (CAP, bac +6 to +9) only describe imported formations.
 - `WorkshopRequest` — one row per workshop type requested by a `Pro`, with an optional shared remark. The workshop landing form can create multiple rows from one submission.
 
 **Relationships:**
 - `Pro` inherits from `User` (Django multi-table inheritance — one DB row per table).
 - `WorkshopRequest` belongs to `Pro` through `pro.workshop_requests`.
+- `Formation` and `School` are many-to-many through `FormationAction` (`formation.schools`, `school.formations`).
+- `TrainingExperience` points at a single `School` with `on_delete=SET_NULL`, so re-importing never destroys a user's parcours.
+
+**Onisep imports:** `import_schools_and_formations` is the master command — it chains the school, formation, action and ambassador-flag steps in that order, then remaps the parcours left by the school merge. It runs with `--if-empty --sample` in the Procfile `postdeploy` (so a fresh review app gets the committed samples, while already-populated staging/prod are a no-op), and monthly through `cron.json` (Scalingo scheduler) with `--async` — that pass is the real import.
+
+The work is split across three layers of services, and the commands own none of it:
+
+- `services/onisep_api/fetch_{schools,formations,formation_actions}.py` — the only code that hits the network. Each holds its own Onisep dataset ids and goes through `OnisepApiBaseService.request()` (`clients/onisep.py`, no API key).
+- `services/<domain>/import_*.py` — the only code that decides where records come from: a committed sample (`--sample`) or a download. Sample filenames are derived from the périmètre (`{prefix}_{scope}_sample.csv`), read through `utils/onisep.read_onisep_csv`. Sample headers are the Onisep JSON keys, so both paths run the same mapping code.
+- `services/<domain>/upsert_*.py` — mapping and `bulk_create(update_conflicts=True)`.
+
+`--sample` and `--async` are independent: the first says *which data*, the second says *where it runs*. With `--async` the master command enqueues a Celery `chain` of one task per step (`tasks/import_onisep_*.py`) rather than doing the work itself, so a transient Onisep failure is retried and a definitive one reaches Sentry through `CeleryIntegration`. `--if-empty` is rejected in that mode: the sub-commands are bypassed, so nobody carries the guard. On the synchronous path the commands log at ERROR before raising `CommandError`, which Django turns into `sys.exit()` — invisible to Sentry otherwise.
+
+The merge placeholders written by migration 0036 (`School.objects.legacy()`, `onisep_id` prefixed `legacy-`) do not count as an import: `--if-empty` tests `School.objects.imported()`, and `remap_training_experience_schools` only deletes the placeholders it managed to repoint, so an unresolved parcours keeps its établissement instead of losing it.
+
+The imports upsert on `onisep_id` through `bulk_create(update_conflicts=True)`, which bypasses `save()` — hence the `*_normalized` columns computed in the mapper — and each scope excludes the other's flags from `update_fields` so a school listed in both files keeps both.
 
 **Service objects:** Inherit from `BaseService` (`techpourtoutes/services/base.py`). Implement `perform(**kwargs)`; call `self.fail("message")` to signal failure. Check `result.success` / `result.failure` and `result.errors` at the call site.
+
+They are filed in two kinds of package: one per external API (`brevo_api/`, `jobirl_api/`, `n8n_api/`, `onisep_api/`) holding only the code that talks to it, and one per model or business domain (`school/`, `formation/`, `formation_action/`, `account/`, `pro/`, `contact/`) for everything else — including orchestrators that call an API service. Only `base.py` and `base_api.py` sit at the root.
+
+**`BaseApiService`** (`services/base_api.py`) extends `BaseService` for anything whose failure can come from an external API. It carries `status_code` / `network_error`, forwards another service's failure with `fail_with_errors(result)`, and answers `failed_with_transient_error()` — the single definition of "worth retrying" (no answer, 429, 5xx), which the Celery tasks call to choose between `TransientError` and `RuntimeError`. Both the API base services and the orchestrators that relay their failures (`ImportSchools`, `SyncBrevoContact`…) inherit from it.
 
 **Mailers:** `techpourtoutes/mailers.py` — class-based, no inheritance. Each mailer exposes `@classmethod` methods that call `send_mail` with rendered txt+html templates (`ProMailer`, `ConsortiumMailer`, `AuthMailer`, `AccountMailer`).
 
@@ -137,7 +160,9 @@ Django 6 + PostgreSQL project. Locale is French (fr-FR), timezone Europe/Paris.
 
 **Views:** Function-based views only.
 
-**Workshop request flow:** `workshops_landing` uses `WorkshopForm`, creates a `Pro` with the `workshops` engagement, persists one `WorkshopRequest` per selected workshop type, sends the welcome email, and enqueues the n8n notification task. `search_schools` returns an HTMX partial for the school autocomplete; search is token-based and accent-insensitive via `School.name_normalized`.
+**Workshop request flow:** `workshops_landing` uses `WorkshopForm`, creates a `Pro` with the `workshops` engagement, persists one `WorkshopRequest` per selected workshop type, sends the welcome email, and enqueues the n8n notification task. The chosen school's **UAI** is not stored on the `Pro`: it is a form-only field (`structure_uai`) handed to the task alongside the workshop types, and reaches Latitudes as `identifiant_etablissement`.
+
+**School autocomplete:** one endpoint, `search_schools`, parameterised by a `scope` query param. `views/search_views.py` holds the `SCOPES` registry, where each scope decides four things: which subset of `School` it searches, whether a numeric token matches the postal code, the ordering, and the template rendering one row of the dropdown. Adding a périmètre means adding an entry, not a view. The single cotton component is `ui/templates/cotton/components/form_fields/school_search.html`; its `key` var says whether the selected school's UUID or its UAI lands in the hidden id field.
 
 **Audit trail:** `django-simple-history` middleware is active — models that need history tracking should use `HistoricalRecords`.
 
@@ -159,7 +184,7 @@ Django 6 + PostgreSQL project. Locale is French (fr-FR), timezone Europe/Paris.
 - Service objects for procedural logic with success/failure states (sequential actions, external calls)
 - Keep models and views lean
 - Comments only for code that is truly difficult to understand (avoid unnecessary comments)
-- Docstrings are always written in English, even though the UI locale is French
+- Docstrings and comments are written in English. Only strings the user sees are in French: CLI output, argument `help`, validation messages, `verbose_name`, templates and emails
 - Do not reference AI tools (Claude, Cursor, etc.) in code, comments, or commits
 - Avoid unnecessary guard clauses and intermediate variable assignments
 - Prefer native framework solutions over custom implementations
@@ -180,7 +205,7 @@ A handful of tests have no single source file and stay at the root of `tests/`: 
 
 ### Fixtures
 
-- `techpourtoutes/tests/conftest.py` — available everywhere: `pro`, `beneficiary`, `school`, `higher_ed_school`, `experience`, `beneficiary_experience`, `inactive_user`, `valid_pro_model_data`, `valid_pro_data`, `mock_create_mentor`
+- `techpourtoutes/tests/conftest.py` — available everywhere: `pro`, `beneficiary`, `school`, `higher_ed_school`, `experience`, `beneficiary_experience`, `inactive_user`, `valid_pro_model_data`, `valid_pro_data`, `mock_create_mentor`, plus `school_record` / `formation_record` / `formation_action_record`, builders returning one Onisep row with its real keys
 - Directory-level `conftest.py` for fixtures shared within one directory only (`tests/admin/conftest.py`, `tests/services/brevo_api/conftest.py`). Don't promote a fixture to the root `conftest.py` until a second directory needs it
 - The root `conftest.py` (project root, not `tests/`) holds autouse fixtures for the whole suite: in-memory cache, simple static storage (no manifest), eager Celery, mocked Brevo SDK
 

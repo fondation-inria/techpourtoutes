@@ -1,7 +1,10 @@
 <c-vars
     name_field
     id_field
-    postal_field
+    scope="secondary"
+    key="id"
+    postal_field=""
+    group=""
     label=""
     description=""
     class=""
@@ -11,35 +14,46 @@
 <c-components.form-fields.base :field=name_field :errors=id_field.errors label=label description=description class=class>
     <div x-data="{
             open: false,
+            selected: '{{ name_field.value|default:""|escapejs }}' !== '',
             query: '{{ name_field.value|default:""|escapejs }}{% if name_field.value and postal_field.value %} ({{ postal_field.value|escapejs }}){% endif %}',
             structureName: '{{ name_field.value|default:""|escapejs }}',
             structureId: '{{ id_field.value|default:""|escapejs }}',
             postalCode: '{{ postal_field.value|default:""|escapejs }}',
-            select(id, name, postal) {
-                this.structureId = id;
+            select(id, uai, name, postal) {
+                this.structureId = '{{ key }}' === 'uai' ? uai : id;
                 this.structureName = name;
                 this.postalCode = postal;
-                this.query = name + ' (' + postal + ')';
+                this.query = name + (postal ? ' (' + postal + ')' : '');
+                this.selected = true;
                 this.open = false;
+                this.announce();
             },
             clear() {
                 this.structureId = '';
                 this.structureName = '';
                 this.postalCode = '';
                 this.query = '';
+                this.selected = false;
                 this.open = true;
+                this.announce();
                 this.$nextTick(() => this.$refs.searchInput.focus());
+            },
+            announce() {
+                this.$dispatch('school-change', {
+                    group: '{{ group|escapejs }}',
+                    schoolId: this.structureId,
+                });
             }
          }"
-         x-init="htmx.process($el)"
+         x-init="htmx.process($el); announce()"
          @click.outside="open = false"
          @keydown.escape="open = false"
          class="relative">
         <input type="hidden" name="{{ name_field.html_name }}" :value="structureName">
         <input type="hidden" name="{{ id_field.html_name }}" :value="structureId">
-        <input type="hidden" name="{{ postal_field.html_name }}" :value="postalCode">
+        {% if postal_field %}<input type="hidden" name="{{ postal_field.html_name }}" :value="postalCode">{% endif %}
         <input type="text"
-               x-show="!structureId"
+               x-show="!selected"
                x-cloak
                x-ref="searchInput"
                id="{{ name_field.id_for_label }}"
@@ -49,12 +63,12 @@
                name="q"
                autocomplete="off"
                placeholder="Rechercher un établissement…"
-               hx-get="{% url 'search_schools' %}"
+               hx-get="{% url 'search_schools' %}?scope={{ scope }}&unique_id={{ unique_id }}"
                hx-trigger="focus, input changed delay:300ms"
                hx-target="#school-results{% if unique_id %}-{{ unique_id }}{% endif %}"
                hx-swap="innerHTML"
                class="field-base {% if id_field.errors %}field-error{% else %}field-default{% endif %}" />
-        <div x-show="structureId" x-cloak
+        <div x-show="selected" x-cloak
              class="field-base field-default flex items-start justify-between gap-2">
             <span class="wrap-break-word" x-text="query"></span>
             <c-components.button type="button" @click="clear()"
@@ -64,7 +78,7 @@
                     class="shrink-0 text-primary-700 p-1 rounded-sm"
                     aria-label="Effacer la sélection" />
         </div>
-        <ul x-show="open && !structureId" x-cloak
+        <ul x-show="open && !selected" x-cloak
             id="school-results{% if unique_id %}-{{ unique_id }}{% endif %}"
             class="absolute z-10 mt-1 w-full bg-neutral-50 rounded shadow-thin-bottom shadow-primary-700 max-h-60 overflow-y-auto"
             role="listbox"></ul>
