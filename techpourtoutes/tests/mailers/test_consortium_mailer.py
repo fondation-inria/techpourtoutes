@@ -37,17 +37,19 @@ def test_new_pro_routes_to_engagement_recipient(pro, engagement, recipient):
     COALITION_TRAINING_AMBASSADOR_RECIPIENTS=["training@example.com"],
 )
 def test_new_training_ambassador_includes_experience_in_body(pro, higher_ed_school):
-    from techpourtoutes.models import TrainingExperience
+    from techpourtoutes.models import Formation, TrainingExperience
 
+    formation = Formation(onisep_id="9701", name="Master IA")
+    formation.save()
     experience = TrainingExperience.objects.create(
-        user=pro, higher_ed_school=higher_ed_school, course="Master IA"
+        user=pro, school=higher_ed_school, formation=formation
     )
     ConsortiumMailer.new_training_ambassador(pro=pro, training_experience=experience)
 
     message = mail.outbox[0]
     assert message.to == ["training@example.com"]
     assert "Master IA" in message.body
-    assert higher_ed_school.full_name in message.body
+    assert higher_ed_school.name in message.body
 
 
 @pytest.mark.django_db

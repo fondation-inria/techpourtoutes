@@ -4,7 +4,7 @@ from django.utils.translation import gettext_lazy as _
 
 from techpourtoutes.utils.dates import compute_age
 
-from ..models import HigherEdSchool, School
+from ..models import Formation, School
 
 
 def require_structure_when_working(form, cleaned_data):
@@ -15,20 +15,22 @@ def require_structure_when_working(form, cleaned_data):
         form.add_error("structure_name", _("Ce champ est obligatoire."))
 
 
-def resolve_higher_ed_school(pk):
-    """Resolve a higher-ed school by primary key, raising a form error if it is unknown."""
+def resolve_school(school_id, queryset=None):
+    """Resolve a school by primary key, raising a form error if it is unknown."""
+    schools = School.objects.all() if queryset is None else queryset
     try:
-        return HigherEdSchool.objects.get(pk=pk)
-    except HigherEdSchool.DoesNotExist, ValidationError, ValueError:
-        raise forms.ValidationError(_("Sélectionnez un établissement valide."))
-
-
-def resolve_school(identifier):
-    """Resolve a school by identifier, raising a form error if it is unknown."""
-    try:
-        return School.objects.get(identifier=identifier)
+        return schools.get(pk=school_id)
     except School.DoesNotExist, ValidationError, ValueError:
         raise forms.ValidationError(_("Sélectionnez un établissement valide."))
+
+
+def resolve_formation(formation_id, queryset=None):
+    """Resolve a formation by primary key, raising a form error if it is unknown."""
+    formations = Formation.objects.all() if queryset is None else queryset
+    try:
+        return formations.get(pk=formation_id)
+    except Formation.DoesNotExist, ValidationError, ValueError:
+        raise forms.ValidationError(_("Sélectionnez une formation valide."))
 
 
 def validate_birth_date(birth_date):

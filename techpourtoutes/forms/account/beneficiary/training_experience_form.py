@@ -10,7 +10,7 @@ from techpourtoutes.utils.school_year import (
 )
 
 from ....models import TrainingExperience
-from ...mixins import TrainingExperienceFormMixin
+from ...mixins import TrainingExperienceFormMixin, school_label_for
 
 
 class BeneficiaryTrainingExperienceForm(TrainingExperienceFormMixin, forms.Form):
@@ -21,14 +21,17 @@ class BeneficiaryTrainingExperienceForm(TrainingExperienceFormMixin, forms.Form)
     )
     level = forms.ChoiceField(
         label=_("Niveau*"),
-        choices=[("", _("Sélectionner une option")), *TrainingExperience.Level.choices],
+        choices=[
+            ("", _("Sélectionner une option")),
+            *[(level.value, level.label) for level in TrainingExperience.LEVELS],
+        ],
     )
-    course = forms.CharField(label=_("Filière*"))
-    school_name = forms.CharField(widget=forms.HiddenInput, required=False)
-    school_identifier = forms.CharField(widget=forms.HiddenInput, required=False)
-    school_postal_code = forms.CharField(widget=forms.HiddenInput, required=False)
-    higher_ed_school_id = forms.CharField(widget=forms.HiddenInput, required=False)
-    higher_ed_school_label = forms.CharField(widget=forms.HiddenInput, required=False)
+    school_label = forms.CharField(widget=forms.HiddenInput, required=False)
+    school_id = forms.CharField(widget=forms.HiddenInput, required=False)
+    formation_label = forms.CharField(
+        widget=forms.HiddenInput, required=False, label=_("Formation*")
+    )
+    formation_id = forms.CharField(widget=forms.HiddenInput, required=False)
 
     def __init__(self, *args, experience=None, beneficiary=None, current_year=False, **kwargs):
         self.current_year = current_year or (
@@ -50,7 +53,8 @@ class BeneficiaryTrainingExperienceForm(TrainingExperienceFormMixin, forms.Form)
         if period_label and self._has_duplicate_period_label(period_label):
             self.add_error("period_label", _("Vous avez déjà renseigné cette année."))
         if not cleaned_data.get("not_enrolled"):
-            self.resolve_establishment(cleaned_data.get("level"))
+            self.resolve_school(cleaned_data.get("level"))
+            self.resolve_formation()
         return cleaned_data
 
     def save(self, experience):
@@ -81,7 +85,6 @@ class BeneficiaryTrainingExperienceForm(TrainingExperienceFormMixin, forms.Form)
         self.fields["not_enrolled"].initial = self._experience is None
         if self.data.get("not_enrolled"):
             self.fields["level"].required = False
-            self.fields["course"].required = False
 
     def _has_duplicate_period_label(self, period_label):
         if self._beneficiary is None:
@@ -101,15 +104,12 @@ class BeneficiaryTrainingExperienceForm(TrainingExperienceFormMixin, forms.Form)
 
     @staticmethod
     def _initial_from_experience(experience):
-        school = experience.school
-        higher_ed_school = experience.higher_ed_school
+        school, formation = experience.school, experience.formation
         return {
             "period_label": experience.period_label,
             "level": experience.level,
-            "course": experience.course,
-            "school_name": school.name if school else "",
-            "school_identifier": school.identifier if school else "",
-            "school_postal_code": school.postal_code if school else "",
-            "higher_ed_school_id": str(higher_ed_school.pk) if higher_ed_school else "",
-            "higher_ed_school_label": higher_ed_school.display_label if higher_ed_school else "",
+            "school_id": str(school.pk) if school else "",
+            "school_label": school_label_for(experience.level, school),
+            "formation_id": str(formation.pk) if formation else "",
+            "formation_label": formation.name if formation else "",
         }

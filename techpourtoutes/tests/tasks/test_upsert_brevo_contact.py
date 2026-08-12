@@ -26,7 +26,7 @@ def test_upsert_brevo_contact_task_loads_subclass_and_runs_service(pro):
 def test_upsert_brevo_contact_task_raises_runtime_error_on_permanent_failure(pro):
     with patch("techpourtoutes.tasks.upsert_brevo_contact.SyncBrevoContact") as mock_service:
         mock_service.return_value = MagicMock(
-            success=False, failure=True, errors=["boom"], status_code=400
+            success=False, failure=True, errors=["boom"], failed_with_transient_error=lambda: False
         )
 
         with pytest.raises(RuntimeError, match="boom"):
@@ -38,7 +38,7 @@ def test_upsert_brevo_contact_task_raises_runtime_error_on_permanent_failure(pro
 def test_upsert_brevo_contact_task_raises_transient_error_on_transient_failure(pro):
     with patch("techpourtoutes.tasks.upsert_brevo_contact.SyncBrevoContact") as mock_service:
         mock_service.return_value = MagicMock(
-            success=False, failure=True, errors=["boom"], status_code=500
+            success=False, failure=True, errors=["boom"], failed_with_transient_error=lambda: True
         )
 
         with pytest.raises(TransientError, match="boom"):

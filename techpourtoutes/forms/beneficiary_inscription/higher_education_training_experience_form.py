@@ -10,10 +10,15 @@ class BeneficiaryHigherEducationTrainingExperienceForm(BaseTrainingExperienceFor
         label=_("Quel est ton niveau d'études actuel ?*"),
         choices=level_choices(TrainingExperience.HIGHER_ED_LEVELS),
     )
-    higher_ed_school_id = forms.CharField(
+    school_label = forms.CharField(
         widget=forms.HiddenInput,
         required=False,
         label=_("Dans quel établissement étudies-tu ?*"),
     )
-    higher_ed_school_label = forms.CharField(widget=forms.HiddenInput, required=False)
-    course = forms.CharField(max_length=255, label=_("Quelle est ta filière ?*"))
+    school_id = forms.CharField(widget=forms.HiddenInput, required=False)
+    formation_label = forms.CharField(
+        widget=forms.HiddenInput,
+        required=False,
+        label=_("Quelle est ta formation ?*"),
+    )
+    formation_id = forms.CharField(widget=forms.HiddenInput, required=False)

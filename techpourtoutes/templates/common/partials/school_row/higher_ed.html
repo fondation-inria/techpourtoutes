@@ -1,0 +1,5 @@
+<button type="button" role="option"
+    @click="select('{{ school.id|escapejs }}', '{{ school.uai|escapejs }}', '{{ school.display_label|escapejs }}', '')"
+    class="w-full text-left px-3 py-2 text-sm hover:bg-primary-50 text-neutral-950">
+    {{ school.display_label }}
+</button>

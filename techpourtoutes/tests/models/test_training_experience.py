@@ -3,11 +3,11 @@ from django.core.exceptions import ValidationError
 
 
 @pytest.mark.django_db
-def test_training_experience_links_pro_and_higher_ed_school(pro, higher_ed_school):
+def test_training_experience_links_pro_and_school(pro, higher_ed_school):
     from techpourtoutes.models import TrainingExperience
 
     experience = TrainingExperience(
-        user=pro, higher_ed_school=higher_ed_school, course="Master Informatique"
+        user=pro, school=higher_ed_school, course="Master Informatique"
     )
     experience.save()
 
@@ -19,12 +19,12 @@ def test_training_experience_links_pro_and_higher_ed_school(pro, higher_ed_schoo
 def test_training_experience_links_beneficiary_and_school(beneficiary, school):
     from datetime import date
 
-    from techpourtoutes.models import TrainingExperience
+    from techpourtoutes.models import Level, TrainingExperience
 
     experience = TrainingExperience(
         user=beneficiary,
         school=school,
-        level=TrainingExperience.Level.TERMINALE,
+        level=Level.TERMINALE,
         start_date=date(2024, 9, 1),
         end_date=date(2025, 8, 31),
         course="Spécialité mathématiques",
@@ -36,35 +36,15 @@ def test_training_experience_links_beneficiary_and_school(beneficiary, school):
 
 
 @pytest.mark.django_db
-def test_training_experience_links_beneficiary_and_higher_ed_school(beneficiary, higher_ed_school):
-    from datetime import date
-
-    from techpourtoutes.models import TrainingExperience
-
-    experience = TrainingExperience(
-        user=beneficiary,
-        higher_ed_school=higher_ed_school,
-        level=TrainingExperience.Level.BAC_1,
-        start_date=date(2024, 9, 1),
-        end_date=date(2025, 8, 31),
-        course="Licence informatique",
-    )
-    experience.save()
-
-    assert experience in beneficiary.training_experiences.all()
-    assert experience in higher_ed_school.training_experiences.all()
-
-
-@pytest.mark.django_db
 def test_training_experiences_are_ordered_reverse_chronologically(beneficiary, school):
     from datetime import date
 
-    from techpourtoutes.models import TrainingExperience
+    from techpourtoutes.models import Level, TrainingExperience
 
     TrainingExperience.objects.create(
         user=beneficiary,
         school=school,
-        level=TrainingExperience.Level.TERMINALE,
+        level=Level.TERMINALE,
         start_date=date(2024, 9, 1),
         end_date=date(2025, 8, 31),
         course="Terminale",
@@ -72,7 +52,7 @@ def test_training_experiences_are_ordered_reverse_chronologically(beneficiary, s
     TrainingExperience.objects.create(
         user=beneficiary,
         school=school,
-        level=TrainingExperience.Level.SECONDE,
+        level=Level.SECONDE,
         start_date=date(2022, 9, 1),
         end_date=date(2023, 8, 31),
         course="Seconde",
@@ -80,7 +60,7 @@ def test_training_experiences_are_ordered_reverse_chronologically(beneficiary, s
     TrainingExperience.objects.create(
         user=beneficiary,
         school=school,
-        level=TrainingExperience.Level.PREMIERE,
+        level=Level.PREMIERE,
         start_date=date(2023, 9, 1),
         end_date=date(2024, 8, 31),
         course="Première",
@@ -96,12 +76,12 @@ def test_training_experience_rejects_duplicate_period_label_for_same_beneficiary
 ):
     from datetime import date
 
-    from techpourtoutes.models import TrainingExperience
+    from techpourtoutes.models import Level, TrainingExperience
 
     TrainingExperience.objects.create(
         user=beneficiary,
         school=school,
-        level=TrainingExperience.Level.TERMINALE,
+        level=Level.TERMINALE,
         start_date=date(2024, 9, 1),
         end_date=date(2025, 8, 31),
         course="Terminale",
@@ -109,7 +89,7 @@ def test_training_experience_rejects_duplicate_period_label_for_same_beneficiary
     duplicate = TrainingExperience(
         user=beneficiary,
         school=school,
-        level=TrainingExperience.Level.PREMIERE,
+        level=Level.PREMIERE,
         start_date=date(2024, 9, 1),
         end_date=date(2025, 8, 31),
         course="Première",
@@ -132,12 +112,18 @@ def test_training_experience_is_current_school_year():
     assert not past.is_current_school_year
 
 
-def test_training_experience_secondary_and_higher_ed_levels_partition_all_levels():
-    from techpourtoutes.models import TrainingExperience
+def test_training_experience_secondary_and_higher_ed_levels_partition_the_offered_levels():
+    """Every level a beneficiary can declare must route to one périmètre of school search.
+
+    The shared enum is wider than that — it also grades the imported formations — so the
+    partition is over `LEVELS`, not over the whole `Level`.
+    """
+    from techpourtoutes.models import Level, TrainingExperience
 
     covered_levels = set(TrainingExperience.SECONDARY_LEVELS) | set(
         TrainingExperience.HIGHER_ED_LEVELS
     )
 
-    assert covered_levels == set(TrainingExperience.Level)
+    assert covered_levels == set(TrainingExperience.LEVELS)
     assert set(TrainingExperience.SECONDARY_LEVELS).isdisjoint(TrainingExperience.HIGHER_ED_LEVELS)
+    assert covered_levels <= set(Level)

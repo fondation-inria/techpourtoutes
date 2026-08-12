@@ -20,24 +20,28 @@ def test_training_experience_edit_get_prefills_form(client, pro, experience):
     client.force_login(pro)
     response = client.get(reverse("pro_training_experience_edit", args=[experience.pk]))
     assert response.status_code == 200
-    assert response.context["form"].initial["course"] == "Master Informatique"
+    assert response.context["form"].initial["formation_label"] == "Master Informatique"
     assert response.context["form"].initial["level"] == "bac_3"
 
 
 @pytest.mark.django_db
-def test_training_experience_edit_post_updates_experience(client, pro, experience):
+def test_training_experience_edit_post_updates_experience(client, pro, experience, formation):
     other = _another_school()
     client.force_login(pro)
 
     response = client.post(
         reverse("pro_training_experience_edit", args=[experience.pk]),
-        data={"higher_ed_school_id": str(other.id), "level": "bac_5", "course": "Doctorat"},
+        data={
+            "school_id": str(other.id),
+            "level": "bac_5",
+            "formation_id": str(formation.pk),
+        },
     )
 
     assert response.status_code == 200
     experience.refresh_from_db()
-    assert experience.course == "Doctorat"
-    assert experience.higher_ed_school == other
+    assert experience.formation == formation
+    assert experience.school == other
     assert experience.level == "bac_5"
 
 
@@ -62,9 +66,11 @@ def test_training_experience_cannot_be_edited_by_another_pro(client, experience)
 
 
 def _another_school():
-    from techpourtoutes.models import HigherEdSchool
+    from techpourtoutes.models import School
 
-    school = HigherEdSchool(full_name="École polytechnique", name="X", uai="0911568K")
+    school = School(
+        onisep_id="11", name="École polytechnique", acronym="X", uai="0911568K", higher_ed=True
+    )
     school.save()
     return school
 
@@ -81,15 +87,14 @@ def test_account_page_lists_a_card_per_beneficiary_training_experience(
 
 @pytest.mark.django_db
 def test_account_page_places_current_year_placeholder_after_future_experience(client, beneficiary):
-    from techpourtoutes.models import TrainingExperience
+    from techpourtoutes.models import Level, TrainingExperience
     from techpourtoutes.utils.school_year import next_school_year_start_date
 
     next_year = TrainingExperience.objects.create(
         user=beneficiary,
-        level=TrainingExperience.Level.BAC_1,
+        level=Level.BAC_1,
         start_date=next_school_year_start_date(),
         end_date=date(next_school_year_start_date().year + 1, 8, 31),
-        course="Prépa",
     )
     client.force_login(beneficiary)
 
@@ -109,7 +114,9 @@ def test_beneficiary_training_experience_add_get_returns_empty_form(client, bene
 
 
 @pytest.mark.django_db
-def test_beneficiary_training_experience_add_post_creates_experience(client, beneficiary, school):
+def test_beneficiary_training_experience_add_post_creates_experience(
+    client, beneficiary, school, formation
+):
     client.force_login(beneficiary)
 
     response = client.post(
@@ -117,9 +124,9 @@ def test_beneficiary_training_experience_add_post_creates_experience(client, ben
         data={
             "period_label": "2024-2025",
             "level": "seconde",
-            "course": "Tronc commun",
-            "school_identifier": school.identifier,
-            "school_name": school.name,
+            "formation_id": str(formation.pk),
+            "school_id": str(school.pk),
+            "school_label": school.location_label,
         },
     )
 
@@ -127,22 +134,21 @@ def test_beneficiary_training_experience_add_post_creates_experience(client, ben
     assert beneficiary.training_experiences.count() == 1
     created = beneficiary.training_experiences.get()
     assert created.school == school
-    assert created.course == "Tronc commun"
+    assert created.formation == formation
 
 
 @pytest.mark.django_db
 def test_beneficiary_training_experience_add_post_repositions_card_before_older_experience(
-    client, beneficiary, school
+    client, beneficiary, school, formation
 ):
-    from techpourtoutes.models import TrainingExperience
+    from techpourtoutes.models import Level, TrainingExperience
 
     older = TrainingExperience.objects.create(
         user=beneficiary,
         school=school,
-        level=TrainingExperience.Level.SECONDE,
+        level=Level.SECONDE,
         start_date=date(2020, 9, 1),
         end_date=date(2021, 8, 31),
-        course="Seconde",
     )
     client.force_login(beneficiary)
 
@@ -151,9 +157,9 @@ def test_beneficiary_training_experience_add_post_repositions_card_before_older_
         data={
             "period_label": "2022-2023",
             "level": "premiere",
-            "course": "Première",
-            "school_identifier": school.identifier,
-            "school_name": school.name,
+            "formation_id": str(formation.pk),
+            "school_id": str(school.pk),
+            "school_label": school.location_label,
         },
     )
 
@@ -171,7 +177,7 @@ def test_beneficiary_training_experience_add_post_repositions_card_before_older_
 
 @pytest.mark.django_db
 def test_beneficiary_training_experience_add_post_appends_when_it_is_the_earliest(
-    client, beneficiary, beneficiary_experience, school
+    client, beneficiary, beneficiary_experience, school, formation
 ):
     client.force_login(beneficiary)
 
@@ -180,9 +186,9 @@ def test_beneficiary_training_experience_add_post_appends_when_it_is_the_earlies
         data={
             "period_label": "2020-2021",
             "level": "seconde",
-            "course": "Seconde",
-            "school_identifier": school.identifier,
-            "school_name": school.name,
+            "formation_id": str(formation.pk),
+            "school_id": str(school.pk),
+            "school_label": school.location_label,
         },
     )
 
@@ -192,17 +198,16 @@ def test_beneficiary_training_experience_add_post_appends_when_it_is_the_earlies
 
 @pytest.mark.django_db
 def test_beneficiary_training_experience_edit_post_repositions_when_period_changes(
-    client, beneficiary, beneficiary_experience, school
+    client, beneficiary, beneficiary_experience, school, formation
 ):
-    from techpourtoutes.models import TrainingExperience
+    from techpourtoutes.models import Level, TrainingExperience
 
     older = TrainingExperience.objects.create(
         user=beneficiary,
         school=school,
-        level=TrainingExperience.Level.SECONDE,
+        level=Level.SECONDE,
         start_date=date(2020, 9, 1),
         end_date=date(2021, 8, 31),
-        course="Seconde",
     )
     client.force_login(beneficiary)
 
@@ -211,9 +216,9 @@ def test_beneficiary_training_experience_edit_post_repositions_when_period_chang
         data={
             "period_label": "2021-2022",
             "level": "premiere",
-            "course": "Première",
-            "school_identifier": school.identifier,
-            "school_name": school.name,
+            "formation_id": str(formation.pk),
+            "school_id": str(school.pk),
+            "school_label": school.location_label,
         },
     )
 
@@ -240,12 +245,12 @@ def test_beneficiary_training_experience_edit_get_prefills_form(
         reverse("beneficiary_training_experience_edit", args=[beneficiary_experience.pk])
     )
     assert response.status_code == 200
-    assert response.context["form"].initial["course"] == "Spécialité mathématiques"
+    assert response.context["form"].initial["formation_label"] == "Spécialité mathématiques"
 
 
 @pytest.mark.django_db
 def test_beneficiary_training_experience_edit_post_updates_experience(
-    client, beneficiary, beneficiary_experience, higher_ed_school
+    client, beneficiary, beneficiary_experience, higher_ed_school, higher_ed_formation
 ):
     client.force_login(beneficiary)
 
@@ -254,16 +259,15 @@ def test_beneficiary_training_experience_edit_post_updates_experience(
         data={
             "period_label": "2024-2025",
             "level": "bac_1",
-            "course": "Licence",
-            "higher_ed_school_id": str(higher_ed_school.id),
+            "formation_id": str(higher_ed_formation.pk),
+            "school_id": str(higher_ed_school.id),
         },
     )
 
     assert response.status_code == 200
     beneficiary_experience.refresh_from_db()
-    assert beneficiary_experience.course == "Licence"
-    assert beneficiary_experience.higher_ed_school == higher_ed_school
-    assert beneficiary_experience.school is None
+    assert beneficiary_experience.formation == higher_ed_formation
+    assert beneficiary_experience.school == higher_ed_school
 
 
 @pytest.mark.django_db
@@ -305,15 +309,14 @@ def test_beneficiary_training_experience_cannot_be_edited_by_a_pro(
 def test_beneficiary_training_experience_delete_removes_experience(
     client, beneficiary, beneficiary_experience
 ):
-    from techpourtoutes.models import TrainingExperience
+    from techpourtoutes.models import Level, TrainingExperience
     from techpourtoutes.utils.school_year import current_school_year_start_date
 
     TrainingExperience.objects.create(
         user=beneficiary,
-        level=TrainingExperience.Level.TERMINALE,
+        level=Level.TERMINALE,
         start_date=current_school_year_start_date(),
         end_date=date(current_school_year_start_date().year + 1, 8, 31),
-        course="Terminale",
     )
     client.force_login(beneficiary)
 
@@ -327,15 +330,14 @@ def test_beneficiary_training_experience_delete_removes_experience(
 
 @pytest.mark.django_db
 def test_beneficiary_training_experience_delete_rejects_current_school_year(client, beneficiary):
-    from techpourtoutes.models import TrainingExperience
+    from techpourtoutes.models import Level, TrainingExperience
     from techpourtoutes.utils.school_year import current_school_year_start_date
 
     current = TrainingExperience.objects.create(
         user=beneficiary,
-        level=TrainingExperience.Level.TERMINALE,
+        level=Level.TERMINALE,
         start_date=current_school_year_start_date(),
         end_date=date(current_school_year_start_date().year + 1, 8, 31),
-        course="Terminale",
     )
     client.force_login(beneficiary)
 
@@ -412,15 +414,14 @@ def test_beneficiary_training_experience_cannot_be_deleted_by_a_pro(
 def test_beneficiary_training_experience_edit_forms_have_unique_search_result_ids(
     client, beneficiary, beneficiary_experience, school
 ):
-    from techpourtoutes.models import TrainingExperience
+    from techpourtoutes.models import Level, TrainingExperience
 
     other = TrainingExperience.objects.create(
         user=beneficiary,
         school=school,
-        level=TrainingExperience.Level.SECONDE,
+        level=Level.SECONDE,
         start_date=date(2022, 9, 1),
         end_date=date(2023, 8, 31),
-        course="Tronc commun",
     )
     client.force_login(beneficiary)
 
@@ -433,6 +434,8 @@ def test_beneficiary_training_experience_edit_forms_have_unique_search_result_id
 
     assert f'id="school-results-{beneficiary_experience.pk}"' in first
     assert f'id="school-results-{other.pk}"' in second
+    assert f'id="formation-results-{beneficiary_experience.pk}"' in first
+    assert f'id="formation-results-{other.pk}"' in second
 
 
 @pytest.mark.django_db
@@ -464,15 +467,14 @@ def test_beneficiary_training_experience_add_get_current_year_returns_checked_fo
 
 @pytest.mark.django_db
 def test_account_page_does_not_duplicate_existing_current_year_experience(client, beneficiary):
-    from techpourtoutes.models import TrainingExperience
+    from techpourtoutes.models import Level, TrainingExperience
     from techpourtoutes.utils.school_year import current_school_year_start_date
 
     current = TrainingExperience.objects.create(
         user=beneficiary,
-        level=TrainingExperience.Level.TERMINALE,
+        level=Level.TERMINALE,
         start_date=current_school_year_start_date(),
         end_date=date(current_school_year_start_date().year + 1, 8, 31),
-        course="Terminale",
     )
     client.force_login(beneficiary)
 
@@ -502,7 +504,7 @@ def test_beneficiary_training_experience_add_post_current_year_not_enrolled_crea
 
 @pytest.mark.django_db
 def test_beneficiary_training_experience_add_post_current_year_creates_experience(
-    client, beneficiary, school
+    client, beneficiary, school, formation
 ):
     from techpourtoutes.utils.school_year import current_school_year_start_date
 
@@ -512,9 +514,9 @@ def test_beneficiary_training_experience_add_post_current_year_creates_experienc
         reverse("beneficiary_training_experience_add") + "?current_year=true",
         data={
             "level": "seconde",
-            "course": "Tronc commun",
-            "school_identifier": school.identifier,
-            "school_name": school.name,
+            "formation_id": str(formation.pk),
+            "school_id": str(school.pk),
+            "school_label": school.location_label,
         },
     )
 
@@ -529,15 +531,14 @@ def test_beneficiary_training_experience_add_post_current_year_creates_experienc
 def test_beneficiary_training_experience_edit_post_not_enrolled_deletes_current_year_experience(
     client, beneficiary, beneficiary_experience
 ):
-    from techpourtoutes.models import TrainingExperience
+    from techpourtoutes.models import Level, TrainingExperience
     from techpourtoutes.utils.school_year import current_school_year_start_date
 
     current = TrainingExperience.objects.create(
         user=beneficiary,
-        level=TrainingExperience.Level.TERMINALE,
+        level=Level.TERMINALE,
         start_date=current_school_year_start_date(),
         end_date=date(current_school_year_start_date().year + 1, 8, 31),
-        course="Terminale",
     )
     client.force_login(beneficiary)
 
@@ -655,15 +656,14 @@ def test_beneficiary_training_experience_add_invalid_post_keeps_current_year_for
 def test_beneficiary_training_experience_edit_forms_get_distinct_dom_ids(
     client, beneficiary, beneficiary_experience, school
 ):
-    from techpourtoutes.models import TrainingExperience
+    from techpourtoutes.models import Level, TrainingExperience
 
     other = TrainingExperience.objects.create(
         user=beneficiary,
         school=school,
-        level=TrainingExperience.Level.SECONDE,
+        level=Level.SECONDE,
         start_date=date(2022, 9, 1),
         end_date=date(2023, 8, 31),
-        course="Tronc commun",
     )
     client.force_login(beneficiary)
 
@@ -676,3 +676,26 @@ def test_beneficiary_training_experience_edit_forms_get_distinct_dom_ids(
 
     assert f'id="id_{beneficiary_experience.pk}_level"' in first
     assert f'id="id_{other.pk}_level"' in second
+
+
+@pytest.mark.django_db
+def test_a_parcours_the_backfill_could_not_match_still_shows_its_filiere(
+    client, beneficiary, school
+):
+    """Until `course` is dropped, an unmatched parcours keeps displaying its free text."""
+    from techpourtoutes.models import Level, TrainingExperience
+
+    TrainingExperience.objects.create(
+        user=beneficiary,
+        school=school,
+        formation=None,
+        course="Spécialité mathématiques",
+        level=Level.TERMINALE,
+        start_date=date(2023, 9, 1),
+        end_date=date(2024, 8, 31),
+    )
+    client.force_login(beneficiary)
+
+    content = client.get(reverse("account")).content.decode()
+
+    assert 'Formation : <span class="font-medium">Spécialité mathématiques</span>' in content

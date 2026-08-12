@@ -1,7 +1,8 @@
 from django.conf import settings
+from django.core.management import call_command
 from django.core.management.base import BaseCommand, CommandError
 
-from techpourtoutes.models import Pro, School, TrainingExperience
+from techpourtoutes.models import Formation, Level, Pro, School, TrainingExperience
 from techpourtoutes.models.beneficiary import Beneficiary
 from techpourtoutes.utils.school_year import (
     current_school_year_end_date,
@@ -18,8 +19,12 @@ class Command(BaseCommand):
                 "seed creates an account with a well-known-by-default password; it refuses "
                 "to run unless SEED_ENABLED is set."
             )
+        self._import_onisep_samples()
         self._create_admin_pro()
         self._create_beneficiary()
+
+    def _import_onisep_samples(self):
+        call_command("import_schools_and_formations", sample=True, if_empty=True)
 
     def _create_admin_pro(self):
         email = settings.SEED_ADMIN_EMAIL
@@ -64,16 +69,13 @@ class Command(BaseCommand):
         beneficiary.save()
         beneficiary.save(update_fields=["password"])
 
-        school, _ = School.objects.get_or_create(
-            identifier="seed-school",
-            defaults={"name": "Lycée TechPourToutes", "postal_code": "75001"},
-        )
+        school = School.objects.secondary().order_by("name").first()
         TrainingExperience.objects.create(
             user=beneficiary,
             school=school,
-            level=TrainingExperience.Level.TERMINALE,
+            formation=Formation.objects.taught_at(school).order_by("name").first(),
+            level=Level.TERMINALE,
             start_date=current_school_year_start_date(),
             end_date=current_school_year_end_date(),
-            course="Spécialité mathématiques",
         )
         self.stdout.write(self.style.SUCCESS(f"  Beneficiary created: {email}"))

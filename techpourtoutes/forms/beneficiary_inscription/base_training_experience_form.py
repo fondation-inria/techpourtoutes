@@ -33,7 +33,8 @@ class BaseTrainingExperienceForm(TrainingExperienceFormMixin, forms.Form):
 
     def clean(self):
         cleaned_data = super().clean()
-        self.resolve_establishment(cleaned_data.get("level"))
+        self.resolve_school(cleaned_data.get("level"))
+        self.resolve_formation()
         return cleaned_data
 
     def save(self, beneficiary):

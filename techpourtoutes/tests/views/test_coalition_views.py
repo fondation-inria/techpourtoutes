@@ -120,15 +120,15 @@ def test_work_ambassador_landing_post_invalid_rerenders_with_errors(client, vali
     assert len(messages) > 0
 
 
-def _training_ambassador_data(higher_ed_school_id, **overrides):
+def _training_ambassador_data(higher_ed_school_id, formation_pk, **overrides):
     return {
         "civility": "Madame",
         "first_name": "Manon",
         "last_name": "Desbordes",
         "email": "manon@example.com",
         "phone": "0612345678",
-        "higher_ed_school_id": str(higher_ed_school_id),
-        "course": "Master Informatique",
+        "school_id": str(higher_ed_school_id),
+        "formation_id": str(formation_pk),
         "terms_accepted": True,
         "manifeste_accepted": True,
         **overrides,
@@ -142,10 +142,12 @@ def test_training_ambassador_landing_get(client):
 
 @pytest.mark.django_db
 @override_settings(EMAIL_BACKEND="django.core.mail.backends.locmem.EmailBackend")
-def test_training_ambassador_landing_post_valid_redirects(client, higher_ed_school):
+def test_training_ambassador_landing_post_valid_redirects(
+    client, higher_ed_school, higher_ed_formation
+):
     response = client.post(
         reverse("training_ambassador_landing"),
-        data=_training_ambassador_data(higher_ed_school.id),
+        data=_training_ambassador_data(higher_ed_school.id, higher_ed_formation.pk),
     )
     assert response.status_code == 302
     assert response["Location"] == reverse("coalition_welcome")
@@ -154,13 +156,13 @@ def test_training_ambassador_landing_post_valid_redirects(client, higher_ed_scho
 @pytest.mark.django_db
 @override_settings(EMAIL_BACKEND="django.core.mail.backends.locmem.EmailBackend")
 def test_training_ambassador_landing_post_valid_persists_student_pro_and_experience(
-    client, higher_ed_school
+    client, higher_ed_school, higher_ed_formation
 ):
     from techpourtoutes.models import Pro
 
     client.post(
         reverse("training_ambassador_landing"),
-        data=_training_ambassador_data(higher_ed_school.id),
+        data=_training_ambassador_data(higher_ed_school.id, higher_ed_formation.pk),
     )
 
     pro = Pro.objects.get(email="manon@example.com")
@@ -168,14 +170,14 @@ def test_training_ambassador_landing_post_valid_persists_student_pro_and_experie
     assert pro.professional_situation == "student"
 
     experience = pro.training_experiences.get()
-    assert experience.higher_ed_school == higher_ed_school
-    assert experience.course == "Master Informatique"
+    assert experience.school == higher_ed_school
+    assert experience.formation == higher_ed_formation
 
 
 @pytest.mark.django_db
 @override_settings(EMAIL_BACKEND="django.core.mail.backends.locmem.EmailBackend")
 def test_training_ambassador_landing_post_authenticated_pro_updates_pro(
-    client, pro, higher_ed_school
+    client, pro, higher_ed_school, higher_ed_formation
 ):
     from techpourtoutes.models import Pro
 
@@ -183,7 +185,7 @@ def test_training_ambassador_landing_post_authenticated_pro_updates_pro(
     client.post(
         reverse("training_ambassador_landing"),
         data=_training_ambassador_data(
-            higher_ed_school.id, email=pro.email, first_name="Modifiée"
+            higher_ed_school.id, higher_ed_formation.pk, email=pro.email, first_name="Modifiée"
         ),
     )
 
@@ -191,7 +193,7 @@ def test_training_ambassador_landing_post_authenticated_pro_updates_pro(
     pro.refresh_from_db()
     assert pro.first_name == "Modifiée"
     assert "training_ambassador" in pro.engagements
-    assert pro.training_experiences.get().higher_ed_school == higher_ed_school
+    assert pro.training_experiences.get().school == higher_ed_school
 
 
 def _workshop_data(**overrides):
@@ -201,7 +203,7 @@ def _workshop_data(**overrides):
         "last_name": "Desbordes",
         "email": "manon@example.com",
         "job_title": "Enseignante",
-        "structure_id": "0750001A",
+        "structure_uai": "0750001A",
         "structure_name": "Lycée Voltaire",
         "postal_code": "75011",
         "remark": "",
@@ -229,10 +231,12 @@ def test_workshops_landing_post_valid_creates_pro_and_enqueues_task(client):
     assert response["Location"] == reverse("coalition_welcome")
 
     pro = Pro.objects.get(email="manon@example.com")
-    assert pro.structure_id == "0750001A"
     assert "workshops" in pro.engagements
     mock_task.delay.assert_called_once_with(
-        pro_pk=str(pro.pk), ateliers=["future_of_tech", "future_of_ia"], remark=""
+        pro_pk=str(pro.pk),
+        ateliers=["future_of_tech", "future_of_ia"],
+        remark="",
+        structure_uai="0750001A",
     )
 
 
@@ -512,6 +516,7 @@ def test_new_pro_receives_welcome_email(client, valid_pro_data, url_name):
 def test_training_ambassador_new_pro_receives_welcome_email(
     client,
     higher_ed_school,
+    higher_ed_formation,
 ):
     from techpourtoutes.mailers import ConsortiumMailer, ProMailer
 
@@ -533,6 +538,7 @@ def test_training_ambassador_new_pro_receives_welcome_email(
             reverse("training_ambassador_landing"),
             data=_training_ambassador_data(
                 higher_ed_school.id,
+                higher_ed_formation.pk,
             ),
         )
 
@@ -608,6 +614,7 @@ def test_training_ambassador_existing_pro_receives_new_engagement_email(
     client,
     pro,
     higher_ed_school,
+    higher_ed_formation,
 ):
     from techpourtoutes.mailers import ConsortiumMailer, ProMailer
 
@@ -631,6 +638,7 @@ def test_training_ambassador_existing_pro_receives_new_engagement_email(
             reverse("training_ambassador_landing"),
             data=_training_ambassador_data(
                 higher_ed_school.id,
+                higher_ed_formation.pk,
                 email=pro.email,
             ),
         )

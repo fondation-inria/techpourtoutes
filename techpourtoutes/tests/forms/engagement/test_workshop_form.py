@@ -8,7 +8,7 @@ def valid_data(**overrides):
         "last_name": "Desbordes",
         "email": "manon@example.com",
         "job_title": "Enseignante",
-        "structure_id": "0750001A",
+        "structure_uai": "0750001A",
         "structure_name": "Lycée Voltaire",
         "postal_code": "75011",
         "remark": "Une remarque",
@@ -41,7 +41,6 @@ def test_workshop_form_save_creates_pro_without_phone():
     assert saved.phone == ""
     assert saved.professional_situation == "working"
     assert saved.structure_name == "Lycée Voltaire"
-    assert saved.structure_id == "0750001A"
     assert saved.postal_code == "75011"
     assert saved.job_title == "Enseignante"
 
@@ -50,7 +49,7 @@ def test_workshop_form_save_creates_pro_without_phone():
 def test_workshop_form_requires_establishment():
     from techpourtoutes.forms import WorkshopForm
 
-    form = WorkshopForm(data=valid_data(structure_id="", structure_name="", postal_code=""))
+    form = WorkshopForm(data=valid_data(structure_uai="", structure_name="", postal_code=""))
     assert not form.is_valid()
     assert "structure_name" in form.errors
 
@@ -221,7 +220,7 @@ def test_workshop_form_with_pro_save_updates_in_place(pro):
         email=pro.email,
         first_name="Modifiée",
         structure_name="Nouveau lycée",
-        structure_id="0750002B",
+        structure_uai="0750002B",
         postal_code="69001",
     )
     form = WorkshopForm(data=data, pro=pro)
