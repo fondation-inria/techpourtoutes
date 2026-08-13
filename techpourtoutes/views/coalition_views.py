@@ -94,7 +94,9 @@ def workshops_landing(request):
                     pro=pro, type=atelier, remark=form.cleaned_data["remark"]
                 )
             notify_workshop_request_task.delay(
-                str(pro.pk), form.cleaned_data["ateliers"], form.cleaned_data["remark"]
+                pro_pk=str(pro.pk),
+                ateliers=form.cleaned_data["ateliers"],
+                remark=form.cleaned_data["remark"],
             )
             if already_exists:
                 ProMailer.new_engagement(pro=pro)

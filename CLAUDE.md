@@ -159,6 +159,7 @@ Django 6 + PostgreSQL project. Locale is French (fr-FR), timezone Europe/Paris.
 - Service objects for procedural logic with success/failure states (sequential actions, external calls)
 - Keep models and views lean
 - Comments only for code that is truly difficult to understand (avoid unnecessary comments)
+- Docstrings are always written in English, even though the UI locale is French
 - Do not reference AI tools (Claude, Cursor, etc.) in code, comments, or commits
 - Avoid unnecessary guard clauses and intermediate variable assignments
 - Prefer native framework solutions over custom implementations
@@ -168,5 +169,22 @@ Django 6 + PostgreSQL project. Locale is French (fr-FR), timezone Europe/Paris.
 - Use `pytest` with `@pytest.mark.django_db` for any test touching the database
 - Use Django's built-in `client` fixture for view tests; use `reverse()` for URLs
 - No factory_boy — use plain model instantiation or pytest fixtures
-- Shared fixtures for techpourtoutes app live in `techpourtoutes/tests/conftest.py`: `mentor`, `valid_pro_data`, `valid_pro_model_data`, `mock_register_mentor_on_jobirl`
-- The root `conftest.py` has an autouse fixture that swaps static file storage (no manifest required in tests)
+
+### Test layout
+
+`techpourtoutes/tests/` mirrors the app package, one directory per source directory:
+
+**One source file, one test file, matching name.** `services/brevo_api/upsert_contact.py` is tested by `tests/services/brevo_api/test_upsert_contact.py` — never a grab-bag `test_services.py`. When adding a test, put it in the file matching the source file under test.
+
+A handful of tests have no single source file and stay at the root of `tests/`: `test_seo.py` (meta/og tags in the base template), `test_site_mode.py` (routing between `urls_coalition` / `urls_beneficiary` / `urls_common`), `test_error_pages.py` (403/404 handlers).
+
+### Fixtures
+
+- `techpourtoutes/tests/conftest.py` — available everywhere: `pro`, `beneficiary`, `school`, `higher_ed_school`, `experience`, `beneficiary_experience`, `inactive_user`, `valid_pro_model_data`, `valid_pro_data`, `mock_create_mentor`
+- Directory-level `conftest.py` for fixtures shared within one directory only (`tests/admin/conftest.py`, `tests/services/brevo_api/conftest.py`). Don't promote a fixture to the root `conftest.py` until a second directory needs it
+- The root `conftest.py` (project root, not `tests/`) holds autouse fixtures for the whole suite: in-memory cache, simple static storage (no manifest), eager Celery, mocked Brevo SDK
+
+### End-to-end tests
+
+`tests/e2e/` drives a real browser via `pytest-playwright` against `live_server`. Browsers are not
+installed by `make install` — run `uv run playwright install chromium` once, otherwise those tests error out on a missing binary.

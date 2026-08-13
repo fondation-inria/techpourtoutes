@@ -17,7 +17,7 @@ def search_schools(request):
     items, next_page = _paginate(schools.order_by("identifier"), page)
     return render(
         request,
-        "coalition/partials/school_results.html",
+        "common/partials/school_results.html",
         {"schools": items, "q": q, "page": page, "next_page": next_page},
     )
 
@@ -33,7 +33,7 @@ def search_higher_ed_schools(request):
     items, next_page = _paginate(schools.order_by("full_name"), page)
     return render(
         request,
-        "coalition/partials/higher_ed_school_results.html",
+        "common/partials/higher_ed_school_results.html",
         {"schools": items, "q": q, "page": page, "next_page": next_page},
     )
 

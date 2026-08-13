@@ -14,7 +14,18 @@ DATASET_URL = (
 class Command(BaseCommand):
     help = "Import établissements (hors écoles) from data.education.gouv.fr into the School table"
 
+    def add_arguments(self, parser):
+        parser.add_argument(
+            "--if-empty",
+            action="store_true",
+            help="Skip the import when the School table already has rows.",
+        )
+
     def handle(self, *args, **options):
+        if options["if_empty"] and School.objects.exists():
+            self.stdout.write("  School déjà peuplée, import ignoré.")
+            return
+
         records = self._fetch_records()
         # The source can list an établissement more than once; de-duplicate by identifier
         # (keeping the last occurrence) so a single bulk insert never updates a row twice.

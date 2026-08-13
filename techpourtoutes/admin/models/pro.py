@@ -5,6 +5,7 @@ from techpourtoutes.models import Pro
 
 from ..filters import EngagementFilter
 from ..stats import pro_stats
+from .user import PERSONAL_FIELDS
 from .workshop_request import WorkshopRequestInline
 
 
@@ -25,12 +26,7 @@ class ProAdmin(admin.ModelAdmin):
             "Infos personnelles",
             {
                 "fields": (
-                    "civility",
-                    "first_name",
-                    "last_name",
-                    "email",
-                    "phone",
-                    "postal_code",
+                    *PERSONAL_FIELDS,
                     "professional_situation",
                     "structure_name",
                     "job_title",

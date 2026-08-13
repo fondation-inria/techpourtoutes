@@ -10,10 +10,10 @@ from techpourtoutes.utils.school_year import (
 )
 
 from ....models import TrainingExperience
-from ...validators import resolve_higher_ed_school, resolve_school
+from ...mixins import TrainingExperienceFormMixin
 
 
-class BeneficiaryTrainingExperienceForm(forms.Form):
+class BeneficiaryTrainingExperienceForm(TrainingExperienceFormMixin, forms.Form):
     period_label = forms.ChoiceField(label=_("Année*"))
     not_enrolled = forms.BooleanField(
         label=_("Je ne suis pas inscrite dans une formation."),
@@ -41,8 +41,6 @@ class BeneficiaryTrainingExperienceForm(forms.Form):
         super().__init__(*args, **kwargs)
         self._experience = experience
         self._beneficiary = beneficiary or (experience.user if experience else None)
-        self._school = None
-        self._higher_ed_school = None
         self._setup_period_label()
         self._setup_not_enrolled()
 
@@ -52,19 +50,14 @@ class BeneficiaryTrainingExperienceForm(forms.Form):
         if period_label and self._has_duplicate_period_label(period_label):
             self.add_error("period_label", _("Vous avez déjà renseigné cette année."))
         if not cleaned_data.get("not_enrolled"):
-            self._resolve_establishment(cleaned_data.get("level"))
+            self.resolve_establishment(cleaned_data.get("level"))
         return cleaned_data
 
     def save(self, experience):
         experience.start_date, experience.end_date = school_year_dates(
             self.cleaned_data["period_label"]
         )
-        experience.level = self.cleaned_data["level"]
-        experience.course = self.cleaned_data["course"]
-        experience.school = self._school
-        experience.higher_ed_school = self._higher_ed_school
-        experience.save()
-        return experience
+        return self.save_training(experience)
 
     def _setup_period_label(self):
         """The current school year owns a dedicated locked form; other years exclude it."""
@@ -98,18 +91,6 @@ class BeneficiaryTrainingExperienceForm(forms.Form):
         if self._experience is not None:
             duplicates = duplicates.exclude(pk=self._experience.pk)
         return duplicates.exists()
-
-    def _resolve_establishment(self, level):
-        if level in TrainingExperience.SECONDARY_LEVELS:
-            self._school = self._resolve("school_identifier", resolve_school)
-        elif level in TrainingExperience.HIGHER_ED_LEVELS:
-            self._higher_ed_school = self._resolve("higher_ed_school_id", resolve_higher_ed_school)
-
-    def _resolve(self, field, resolver):
-        try:
-            return resolver(self.cleaned_data[field])
-        except forms.ValidationError as error:
-            self.add_error(field, error)
 
     @staticmethod
     def _build_dom_id(experience, current_year):

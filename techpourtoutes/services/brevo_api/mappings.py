@@ -1,13 +1,18 @@
 from datetime import date, datetime
 
-from django.apps import apps
 from django.conf import settings
 from phonenumber_field.phonenumber import PhoneNumber
+
+from techpourtoutes.models import Beneficiary, Pro
 
 BREVO_MULTIPLE_CHOICE_FIELDS = {"civility", "professional_situation", "engagements"}
 
 BREVO_PRO_CONSTANT_ATTRIBUTES = {
     "TYPES_DE_CONTACT": ["Coalition TPT"],
+}
+
+BREVO_BENEFICIARY_CONSTANT_ATTRIBUTES = {
+    "TYPES_DE_CONTACT": ["Beneficiaire TPT"],
 }
 
 FIELD_TO_BREVO_ATTR = {
@@ -21,12 +26,12 @@ FIELD_TO_BREVO_ATTR = {
     "structure_name": "NOM_DE_LA_STRUCTURE",
     "postal_code": "CODE_POSTAL",
     "engagements": "ENGAGEMENTS",
+    "birth_date": "DATE_DE_NAISSANCE",
 }
 
 USER_FIELDS = ["email", "first_name", "last_name"]
 
 PRO_FIELDS = USER_FIELDS + [
-    "phone",
     "civility",
     "job_title",
     "professional_situation",
@@ -35,13 +40,16 @@ PRO_FIELDS = USER_FIELDS + [
     "engagements",
 ]
 
+BENEFICIARY_FIELDS = USER_FIELDS + ["civility", "birth_date"]
+
 
 def brevo_attributes_for(instance) -> dict | None:
     if _is_pro(instance):
         attrs = _attributes_from(instance, PRO_FIELDS)
-        if instance.phone:
-            attrs["TELEPHONE_RAW_NUMBER"] = instance.phone.as_e164.replace("+", "00")
-        return {**attrs, **BREVO_PRO_CONSTANT_ATTRIBUTES}
+        return {**attrs, **_phone_attributes(instance), **BREVO_PRO_CONSTANT_ATTRIBUTES}
+    if _is_beneficiary(instance):
+        attrs = _attributes_from(instance, BENEFICIARY_FIELDS)
+        return {**attrs, **_phone_attributes(instance), **BREVO_BENEFICIARY_CONSTANT_ATTRIBUTES}
     return None
 
 
@@ -60,6 +68,8 @@ def brevo_attributes_for_manifeste_signatory(
 def brevo_list_id_for(instance) -> int | None:
     if _is_pro(instance):
         return settings.BREVO_PRO_LIST_ID
+    if _is_beneficiary(instance):
+        return settings.BREVO_BENEFICIARY_LIST_ID
     return None
 
 
@@ -67,7 +77,20 @@ def brevo_list_id_for(instance) -> int | None:
 
 
 def _is_pro(instance) -> bool:
-    return isinstance(instance, apps.get_model("techpourtoutes", "Pro"))
+    return isinstance(instance, Pro)
+
+
+def _is_beneficiary(instance) -> bool:
+    return isinstance(instance, Beneficiary)
+
+
+def _phone_attributes(instance) -> dict:
+    if not instance.phone:
+        return {}
+    return {
+        FIELD_TO_BREVO_ATTR["phone"]: instance.phone.as_e164,
+        "TELEPHONE_RAW_NUMBER": instance.phone.as_e164.replace("+", "00"),
+    }
 
 
 def _attributes_from(instance, fields: list[str]) -> dict:

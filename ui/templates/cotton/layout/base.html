@@ -1,11 +1,11 @@
 <!DOCTYPE html>
-<c-vars title="TechPourToutes" description="" og_image="" variant="default" right="" back="" />
+<c-vars title="TechPourToutes" description="" og_image="" variant="default" right="" back="" footer=True head_js="" />
 
 <html lang="fr" data-theme="techpourtoutes">
-    <c-layout.partials.head title="{{ title }}" description="{{ description }}" og_image="{{ og_image }}" />
+    <c-layout.partials.head title="{{ title }}" description="{{ description }}" og_image="{{ og_image }}" head_js="{{ head_js }}" />
 
     {% if variant == "funnel" %}
-        <c-layout.partials.bodies.funnel_body back="{{ back }}">{{ slot }}</c-layout.partials.bodies.funnel_body>
+        <c-layout.partials.bodies.funnel_body back="{{ back }}" right="{{ right }}" :footer="footer">{{ slot }}</c-layout.partials.bodies.funnel_body>
     {% else %}
         <c-layout.partials.bodies.base_body right="{{ right }}">{{ slot }}</c-layout.partials.bodies.base_body>
     {% endif %}
