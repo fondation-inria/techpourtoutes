@@ -7,7 +7,7 @@ from techpourtoutes.utils.school_year import (
     current_school_year_start_date,
 )
 
-from ...models import Pro, School, TrainingExperience
+from ...models import Formation, Pro, School, TrainingExperience
 from ..mixins import TrainingExperienceFormMixin
 from .base_engagement_form import BaseEngagementForm
 
@@ -34,7 +34,7 @@ class TrainingAmbassadorForm(TrainingExperienceFormMixin, BaseEngagementForm):
     def clean(self):
         cleaned_data = super().clean()
         self.resolve_school(School.objects.training_ambassador())
-        self.resolve_formation()
+        self.resolve_formation(Formation.objects.higher_ed())
         self.validate_free_text()
         return cleaned_data
 

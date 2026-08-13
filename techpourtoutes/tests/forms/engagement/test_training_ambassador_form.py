@@ -99,7 +99,7 @@ def test_training_ambassador_form_resubmitting_same_school_updates_experience(
     from techpourtoutes.forms import TrainingAmbassadorForm
     from techpourtoutes.models import Formation, FormationAction, TrainingExperience
 
-    licence = Formation(onisep_id="9999", name="Licence informatique")
+    licence = Formation(onisep_id="9999", name="Licence informatique", higher_ed=True)
     licence.save()
     FormationAction(onisep_id="69397", formation=licence, school=higher_ed_school).save()
 
@@ -151,3 +151,25 @@ def test_a_missing_school_creates_the_experience_without_one(
 
     assert experience.school is None
     assert experience.formation == higher_ed_formation
+
+
+@pytest.mark.django_db
+def test_a_missing_school_falls_back_to_the_higher_ed_catalogue(higher_ed_school):
+    from techpourtoutes.forms import TrainingAmbassadorForm
+    from techpourtoutes.models import Formation
+
+    bac_pro = Formation(onisep_id="9999", name="Bac professionnel", secondary=True)
+    bac_pro.save()
+
+    form = TrainingAmbassadorForm(
+        data=valid_data(
+            higher_ed_school.id,
+            bac_pro.pk,
+            school_id="",
+            school_label="École du bout du monde",
+            school_not_found="on",
+        )
+    )
+
+    assert not form.is_valid()
+    assert "formation_id" in form.errors

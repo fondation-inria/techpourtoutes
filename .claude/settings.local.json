@@ -9,6 +9,8 @@
       "Bash(uv lock)",
       "Bash(uv pip list)",
       "Bash(uv run python manage.py check)",
+      "Bash(uv run pytest *)",
+      "Bash(uv run ruff *)",
       "Bash(uv run python manage.py showmigrations *)",
       "Bash(uv run python manage.py makemigrations *)",
       "Bash(uv run python manage.py migrate *)",

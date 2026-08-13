@@ -78,7 +78,7 @@ def beneficiary(db):
 def formation(school):
     from techpourtoutes.models import Formation, FormationAction
 
-    formation = Formation(onisep_id="7118", name="Spécialité mathématiques")
+    formation = Formation(onisep_id="7118", name="Spécialité mathématiques", secondary=True)
     formation.save()
     FormationAction(onisep_id="69395", formation=formation, school=school).save()
     return formation
@@ -88,7 +88,7 @@ def formation(school):
 def higher_ed_formation(higher_ed_school):
     from techpourtoutes.models import Formation, FormationAction
 
-    formation = Formation(onisep_id="9701", name="Master Informatique")
+    formation = Formation(onisep_id="9701", name="Master Informatique", higher_ed=True)
     formation.save()
     FormationAction(onisep_id="69396", formation=formation, school=higher_ed_school).save()
     return formation

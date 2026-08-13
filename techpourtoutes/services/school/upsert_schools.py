@@ -6,8 +6,6 @@ from techpourtoutes.utils.text import strip_accents
 
 UNKNOWN_SCOPE_MESSAGE = "Périmètre d'import inconnu : {scope}."
 
-# The flag each file owns. Importing one must never touch the other, nor the ambassador flag:
-# more than 4 000 établissements are listed in both files and would otherwise lose a flag.
 SCOPE_FLAGS = {"secondary": "secondary", "higher_ed": "higher_ed"}
 
 MAPPED_FIELDS = [

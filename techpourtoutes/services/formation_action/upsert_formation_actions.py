@@ -2,6 +2,10 @@ from techpourtoutes.models import Formation, FormationAction, School
 from techpourtoutes.services.base import BaseService
 from techpourtoutes.utils.onisep import onisep_id_from_url
 
+UNKNOWN_SCOPE_MESSAGE = "Périmètre d'import inconnu : {scope}."
+
+SCOPE_FLAGS = {"lycee": "secondary", "superieur": "higher_ed"}
+
 
 class UpsertFormationActions(BaseService):
     """Upsert the links between a formation and the schools that delivers it.
@@ -11,7 +15,12 @@ class UpsertFormationActions(BaseService):
     on the foreign key.
     """
 
-    def perform(self, *, records) -> None:
+    def perform(self, *, records, scope: str) -> None:
+        flag = SCOPE_FLAGS.get(scope)
+        if flag is None:
+            self.fail(UNKNOWN_SCOPE_MESSAGE.format(scope=scope))
+            return
+
         formation_pks = dict(Formation.objects.values_list("onisep_id", "pk"))
         school_pks = dict(School.objects.values_list("onisep_id", "pk"))
 
@@ -28,6 +37,10 @@ class UpsertFormationActions(BaseService):
             update_fields=["formation_id", "school_id"],
             batch_size=1000,
         )
+
+        Formation.objects.filter(
+            pk__in={action.formation_id for action in actions.values()}
+        ).update(**{flag: True})
 
     def _action(self, record, formation_pks, school_pks):
         onisep_id = onisep_id_from_url(record.get("action_de_formation_af_identifiant_onisep"))

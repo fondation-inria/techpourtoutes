@@ -26,8 +26,9 @@ def test_training_experience_edit_get_prefills_form(client, pro, experience):
 
 
 @pytest.mark.django_db
-def test_training_experience_edit_post_updates_experience(client, pro, experience, formation):
+def test_training_experience_edit_post_updates_experience(client, pro, experience):
     other = _another_school()
+    ingenieur = _another_formation()
     client.force_login(pro)
 
     response = client.post(
@@ -35,13 +36,13 @@ def test_training_experience_edit_post_updates_experience(client, pro, experienc
         data={
             "school_id": str(other.id),
             "level": "bac_5",
-            "formation_id": str(formation.pk),
+            "formation_id": str(ingenieur.pk),
         },
     )
 
     assert response.status_code == 200
     experience.refresh_from_db()
-    assert experience.formation == formation
+    assert experience.formation == ingenieur
     assert experience.school == other
     assert experience.level == "bac_5"
 
@@ -74,6 +75,14 @@ def _another_school():
     )
     school.save()
     return school
+
+
+def _another_formation():
+    from techpourtoutes.models import Formation
+
+    formation = Formation(onisep_id="12", name="Diplôme d'ingénieur", higher_ed=True)
+    formation.save()
+    return formation
 
 
 @pytest.mark.django_db

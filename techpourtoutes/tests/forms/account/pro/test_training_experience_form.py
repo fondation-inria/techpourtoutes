@@ -94,3 +94,25 @@ def test_a_missing_school_saves_the_experience_without_one(experience, higher_ed
     assert experience.school is None
     assert experience.formation == higher_ed_formation
     assert form.has_missing_record
+
+
+@pytest.mark.django_db
+def test_a_missing_school_falls_back_to_the_higher_ed_catalogue(db):
+    from techpourtoutes.forms import ProTrainingExperienceForm
+    from techpourtoutes.models import Formation
+
+    bac_pro = Formation(onisep_id="9999", name="Bac professionnel", secondary=True)
+    bac_pro.save()
+
+    form = ProTrainingExperienceForm(
+        data={
+            "school_id": "",
+            "school_label": "École du bout du monde",
+            "school_not_found": "on",
+            "level": "bac_5",
+            "formation_id": str(bac_pro.pk),
+        }
+    )
+
+    assert not form.is_valid()
+    assert "formation_id" in form.errors

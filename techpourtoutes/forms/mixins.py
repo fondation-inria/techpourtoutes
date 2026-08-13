@@ -62,24 +62,36 @@ class TrainingExperienceFormMixin(MissingRecordMixin):
     declared by the form using the mixin.
     """
 
+    _level = None
+
     def resolve_school(self, queryset):
         if self.school_not_found:
             return
         self._school = self._resolve_school(queryset)
 
     def resolve_school_for_level(self, level):
+        self._level = level
         if level in TrainingExperience.SECONDARY_LEVELS:
             self.resolve_school(School.objects.secondary())
         elif level in TrainingExperience.HIGHER_ED_LEVELS:
             self.resolve_school(School.objects.higher_ed())
 
-    def resolve_formation(self):
+    def resolve_formation(self, formations=None):
         if self.formation_not_found:
             return
+        if formations is None:
+            formations = self._formations_for_level()
         if self.school_not_found:
-            self._formation = self._resolve_formation(Formation.objects.all())
+            self._formation = self._resolve_formation(formations)
         elif self._school:
-            self._formation = self._resolve_formation(Formation.objects.taught_at(self._school))
+            self._formation = self._resolve_formation(formations.taught_at(self._school))
+
+    def _formations_for_level(self):
+        if self._level in TrainingExperience.SECONDARY_LEVELS:
+            return Formation.objects.secondary()
+        if self._level in TrainingExperience.HIGHER_ED_LEVELS:
+            return Formation.objects.higher_ed()
+        return Formation.objects.all()
 
     def save_training(self, experience):
         experience.level = self.cleaned_data["level"]

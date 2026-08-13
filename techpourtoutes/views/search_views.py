@@ -25,7 +25,7 @@ SCOPES = {
     "secondary": SearchScope(
         filters=Q(secondary=True),
         match_postal_code=True,
-        ordering="name",
+        ordering="postal_code",
         row_template="common/partials/school_row/secondary.html",
     ),
     # Same schools as `secondary`, but the workshop form stores the bare school name —
@@ -33,23 +33,28 @@ SCOPES = {
     "workshop": SearchScope(
         filters=Q(secondary=True),
         match_postal_code=True,
-        ordering="name",
+        ordering="postal_code",
         row_template="common/partials/school_row/workshop.html",
     ),
     "higher_ed": SearchScope(
         filters=Q(higher_ed=True),
         match_postal_code=False,
-        ordering="name",
+        ordering="postal_code",
         row_template="common/partials/school_row/higher_ed.html",
         disambiguate_homonyms=True,
     ),
     "training_ambassador": SearchScope(
         filters=Q(training_ambassador_eligible=True),
         match_postal_code=False,
-        ordering="name",
+        ordering="postal_code",
         row_template="common/partials/school_row/higher_ed.html",
         disambiguate_homonyms=True,
     ),
+}
+
+FORMATION_SCOPES = {
+    "secondary": Q(secondary=True),
+    "higher_ed": Q(higher_ed=True),
 }
 
 
@@ -82,14 +87,21 @@ def search_schools(request):
 
 
 def search_formations(request):
-    """No school means the user could not find hers: offer the whole catalogue."""
+    """No school means the user could not find hers: offer the whole (level-scoped) catalogue."""
+    scope_name = request.GET.get("scope", "")
+    scope_filter = FORMATION_SCOPES.get(scope_name)
+    if scope_filter is None:
+        return HttpResponseBadRequest("Périmètre de recherche inconnu.")
+
     school_id = request.GET.get("school_id", "")
     school = _school_or_none(school_id) if school_id else None
     if school_id and school is None:
         return HttpResponseBadRequest("Établissement inconnu.")
 
     q, page = _search_params(request)
-    formations = Formation.objects.taught_at(school) if school else Formation.objects.all()
+    formations = Formation.objects.filter(scope_filter)
+    if school:
+        formations = formations.taught_at(school)
     items, next_page = _paginate(formations.search(q).order_by("name"), page)
     return render(
         request,

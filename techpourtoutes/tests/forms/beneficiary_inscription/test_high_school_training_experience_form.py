@@ -115,7 +115,7 @@ def test_a_missing_school_still_resolves_a_formation_from_the_whole_catalogue(
 ):
     from techpourtoutes.models import Formation
 
-    elsewhere = Formation(onisep_id="9999", name="Diplôme d'ingénieur")
+    elsewhere = Formation(onisep_id="9999", name="Diplôme d'ingénieur", secondary=True)
     elsewhere.save()
 
     form = BeneficiaryHighSchoolTrainingExperienceForm(
@@ -136,6 +136,29 @@ def test_a_missing_school_still_resolves_a_formation_from_the_whole_catalogue(
     assert experience.school is None
     assert experience.formation == elsewhere
     assert experience.level == Level.TERMINALE
+
+
+@pytest.mark.django_db
+def test_a_missing_school_never_resolves_a_higher_ed_only_formation(beneficiary, school):
+    from techpourtoutes.models import Formation
+
+    higher_ed_only = Formation(onisep_id="9999", name="Master Informatique", higher_ed=True)
+    higher_ed_only.save()
+
+    form = BeneficiaryHighSchoolTrainingExperienceForm(
+        data=_valid_data(
+            school,
+            higher_ed_only,
+            school_id="",
+            school_label="Lycée du bout du monde",
+            school_not_found="on",
+            formation_id=str(higher_ed_only.pk),
+            formation_label=higher_ed_only.name,
+        )
+    )
+
+    assert not form.is_valid()
+    assert "formation_id" in form.errors
 
 
 @pytest.mark.django_db

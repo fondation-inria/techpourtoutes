@@ -8,8 +8,10 @@ def search_schools(client, scope, **params):
     return client.get(reverse("search_schools"), {"scope": scope, **params})
 
 
-def search_formations(client, school, **params):
-    return client.get(reverse("search_formations"), {"school_id": str(school.pk), **params})
+def search_formations(client, school, scope="secondary", **params):
+    return client.get(
+        reverse("search_formations"), {"school_id": str(school.pk), "scope": scope, **params}
+    )
 
 
 @pytest.fixture
@@ -264,20 +266,63 @@ def test_the_sentinel_observes_the_dropdown_it_belongs_to(client):
 
 
 @pytest.mark.django_db
-def test_search_formations_without_a_school_offers_the_whole_catalogue(client):
-    Formation(onisep_id="1", name="Bac professionnel").save()
-    Formation(onisep_id="2", name="Diplôme d'ingénieur").save()
+def test_search_formations_without_a_scope_is_rejected(client):
+    response = client.get(reverse("search_formations"), {"school_id": "", "q": "bac"})
 
-    content = client.get(reverse("search_formations"), {"school_id": ""}).content.decode()
+    assert response.status_code == 400
+
+
+@pytest.mark.django_db
+def test_search_formations_with_an_unknown_scope_is_rejected(client):
+    response = client.get(reverse("search_formations"), {"school_id": "", "scope": "inconnu"})
+
+    assert response.status_code == 400
+
+
+@pytest.mark.django_db
+def test_search_formations_without_a_school_offers_the_whole_scoped_catalogue(client):
+    Formation(onisep_id="1", name="Bac professionnel", secondary=True).save()
+    Formation(onisep_id="2", name="Diplôme d'ingénieur", secondary=True).save()
+
+    content = client.get(
+        reverse("search_formations"), {"school_id": "", "scope": "secondary"}
+    ).content.decode()
 
     assert "Bac professionnel" in content
     assert "ingénieur" in content
 
 
 @pytest.mark.django_db
+def test_search_formations_secondary_scope_excludes_higher_ed_formations(client):
+    Formation(onisep_id="1", name="Bac professionnel", secondary=True).save()
+    Formation(onisep_id="2", name="Diplôme d'ingénieur", higher_ed=True).save()
+
+    content = client.get(
+        reverse("search_formations"), {"school_id": "", "scope": "secondary"}
+    ).content.decode()
+
+    assert "Bac professionnel" in content
+    assert "ingénieur" not in content
+
+
+@pytest.mark.django_db
+def test_search_formations_higher_ed_scope_excludes_secondary_formations(client):
+    Formation(onisep_id="1", name="Bac professionnel", secondary=True).save()
+    Formation(onisep_id="2", name="Diplôme d'ingénieur", higher_ed=True).save()
+
+    content = client.get(
+        reverse("search_formations"), {"school_id": "", "scope": "higher_ed"}
+    ).content.decode()
+
+    assert "Bac professionnel" not in content
+    assert "ingénieur" in content
+
+
+@pytest.mark.django_db
 def test_search_formations_with_an_unknown_school_is_rejected(client):
     response = client.get(
-        reverse("search_formations"), {"school_id": "00000000-0000-0000-0000-000000000000"}
+        reverse("search_formations"),
+        {"school_id": "00000000-0000-0000-0000-000000000000", "scope": "secondary"},
     )
 
     assert response.status_code == 400
@@ -285,9 +330,9 @@ def test_search_formations_with_an_unknown_school_is_rejected(client):
 
 @pytest.mark.django_db
 def test_search_formations_only_offers_what_the_school_teaches(client, school):
-    taught = Formation(onisep_id="1", name="Bac professionnel")
+    taught = Formation(onisep_id="1", name="Bac professionnel", secondary=True)
     taught.save()
-    Formation(onisep_id="2", name="Diplôme d'ingénieur").save()
+    Formation(onisep_id="2", name="Diplôme d'ingénieur", secondary=True).save()
     FormationAction(onisep_id="69395", formation=taught, school=school).save()
 
     content = search_formations(client, school).content.decode()
@@ -305,19 +350,19 @@ def test_search_formations_offers_what_the_affiliated_schools_teach(client, high
         higher_ed=True,
     )
     affiliated.save()
-    formation = Formation(onisep_id="1", name="Diplôme d'ingénieur")
+    formation = Formation(onisep_id="1", name="Diplôme d'ingénieur", higher_ed=True)
     formation.save()
     FormationAction(onisep_id="69395", formation=formation, school=affiliated).save()
 
-    content = search_formations(client, higher_ed_school).content.decode()
+    content = search_formations(client, higher_ed_school, scope="higher_ed").content.decode()
 
     assert "ingénieur" in content
 
 
 @pytest.mark.django_db
 def test_search_formations_falls_back_to_the_whole_catalogue(client, school):
-    Formation(onisep_id="1", name="Bac professionnel").save()
-    Formation(onisep_id="2", name="Diplôme d'ingénieur").save()
+    Formation(onisep_id="1", name="Bac professionnel", secondary=True).save()
+    Formation(onisep_id="2", name="Diplôme d'ingénieur", secondary=True).save()
 
     content = search_formations(client, school).content.decode()
 
@@ -327,7 +372,7 @@ def test_search_formations_falls_back_to_the_whole_catalogue(client, school):
 
 @pytest.mark.django_db
 def test_search_formations_is_accent_insensitive(client, school):
-    Formation(onisep_id="1", name="Diplôme d'État d'infirmier").save()
+    Formation(onisep_id="1", name="Diplôme d'État d'infirmier", secondary=True).save()
 
     content = search_formations(client, school, q="diplome etat").content.decode()
 
@@ -336,9 +381,9 @@ def test_search_formations_is_accent_insensitive(client, school):
 
 @pytest.mark.django_db
 def test_search_formations_keeps_an_unmatched_query_empty(client, school):
-    taught = Formation(onisep_id="1", name="Bac professionnel")
+    taught = Formation(onisep_id="1", name="Bac professionnel", secondary=True)
     taught.save()
-    Formation(onisep_id="2", name="Diplôme d'ingénieur").save()
+    Formation(onisep_id="2", name="Diplôme d'ingénieur", secondary=True).save()
     FormationAction(onisep_id="69395", formation=taught, school=school).save()
 
     content = search_formations(client, school, q="ingénieur").content.decode()
@@ -350,7 +395,7 @@ def test_search_formations_keeps_an_unmatched_query_empty(client, school):
 @pytest.mark.django_db
 def test_search_formations_paginates_with_next_page_sentinel(client, school):
     for i in range(25):
-        Formation(onisep_id=str(i), name=f"Bac professionnel {i:02d}").save()
+        Formation(onisep_id=str(i), name=f"Bac professionnel {i:02d}", secondary=True).save()
 
     first = search_formations(client, school, q="bac").content.decode()
     assert first.count("hover:bg-primary-50") == 20
@@ -365,7 +410,7 @@ def test_search_formations_paginates_with_next_page_sentinel(client, school):
 @pytest.mark.django_db
 def test_the_formation_sentinel_observes_the_dropdown_it_belongs_to(client, school):
     for i in range(25):
-        Formation(onisep_id=str(i), name=f"Bac professionnel {i:02d}").save()
+        Formation(onisep_id=str(i), name=f"Bac professionnel {i:02d}", secondary=True).save()
 
     content = search_formations(client, school, q="bac", unique_id="abc123").content.decode()
 

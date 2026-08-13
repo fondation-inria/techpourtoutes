@@ -1,7 +1,7 @@
 from django import forms
 from django.utils.translation import gettext_lazy as _
 
-from ....models import School, TrainingExperience
+from ....models import Formation, School, TrainingExperience
 from ...mixins import TrainingExperienceFormMixin
 
 
@@ -42,7 +42,7 @@ class ProTrainingExperienceForm(TrainingExperienceFormMixin, forms.Form):
     def clean(self):
         cleaned_data = super().clean()
         self.resolve_school(School.objects.higher_ed())
-        self.resolve_formation()
+        self.resolve_formation(Formation.objects.higher_ed())
         self.validate_free_text()
         return cleaned_data
 

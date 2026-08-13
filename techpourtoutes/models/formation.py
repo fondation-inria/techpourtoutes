@@ -28,6 +28,12 @@ class FormationQuerySet(models.QuerySet):
             formations = formations.filter(name_normalized__icontains=strip_accents(token))
         return formations
 
+    def secondary(self):
+        return self.filter(secondary=True)
+
+    def higher_ed(self):
+        return self.filter(higher_ed=True)
+
 
 class Formation(BaseModel):
     """A diploma or curriculum as referenced by Onisep, independently of where it is taught."""
@@ -57,6 +63,8 @@ class Formation(BaseModel):
     certification_level_name = models.CharField(
         max_length=50, blank=True, verbose_name=_("libellé du niveau de certification")
     )
+    secondary = models.BooleanField(default=False, verbose_name=_("enseignement secondaire"))
+    higher_ed = models.BooleanField(default=False, verbose_name=_("enseignement supérieur"))
     schools = models.ManyToManyField(
         School,
         through="FormationAction",

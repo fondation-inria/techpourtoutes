@@ -3,6 +3,7 @@
     id_field
     not_found_field
     school_id_field
+    scope="secondary"
     group=""
     label=""
     description=""
@@ -81,7 +82,7 @@
                        @input="open = true"
                        name="q"
                        autocomplete="off"
-                       hx-get="{% url 'search_formations' %}?unique_id={{ unique_id }}"
+                       hx-get="{% url 'search_formations' %}?scope={{ scope }}&unique_id={{ unique_id }}"
                        :hx-vals="JSON.stringify({ school_id: schoolId })"
                        hx-trigger="focus, input changed delay:300ms"
                        hx-target="#formation-results{% if unique_id %}-{{ unique_id }}{% endif %}"
