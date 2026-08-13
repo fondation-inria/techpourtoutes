@@ -54,6 +54,7 @@ def merge_schools(apps, schema_editor):
     for index, higher_ed_school in enumerate(HigherEdSchool.objects.all()):
         school = School.objects.create(
             onisep_id=f"legacy-h-{index}",
+            identifier=f"legacy-h-{index}",
             uai=higher_ed_school.uai,
             siret=higher_ed_school.siret,
             name=higher_ed_school.full_name,
