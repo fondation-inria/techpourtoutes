@@ -1,9 +1,11 @@
 from datetime import date
+from unittest.mock import patch
 from urllib.parse import quote
 
 import pytest
 from django.core import mail
 from django.test import override_settings
+from django.urls import reverse
 from waffle.testutils import override_switch
 
 from techpourtoutes.models import Beneficiary, TrainingExperience, User
@@ -101,6 +103,45 @@ def _last_diploma_post(school, **overrides):
         course="Bac général",
     )
     return answers | overrides
+
+
+@pytest.mark.django_db
+def test_bientot_disponible_get_returns_200(client):
+    assert client.get(reverse("bientot_disponible")).status_code == 200
+
+
+@pytest.mark.django_db
+@override_settings(BREVO_SYNC_ENABLED=True)
+def test_bientot_disponible_post_valid_pushes_brevo_contact_and_redirects(client):
+    with patch(
+        "techpourtoutes.views.beneficiary_views.upsert_email_notification_task"
+    ) as mock_task:
+        response = client.post(reverse("bientot_disponible"), data={"email": "hedy@example.com"})
+
+    assert response.status_code == 302
+    assert response.url == reverse("bientot_disponible")
+    mock_task.delay.assert_called_once_with(email="hedy@example.com")
+
+
+@pytest.mark.django_db
+@override_settings(BREVO_SYNC_ENABLED=False)
+def test_bientot_disponible_post_skips_task_when_sync_disabled(client):
+    with patch(
+        "techpourtoutes.views.beneficiary_views.upsert_email_notification_task"
+    ) as mock_task:
+        response = client.post(reverse("bientot_disponible"), data={"email": "hedy@example.com"})
+
+    assert response.status_code == 302
+    mock_task.delay.assert_not_called()
+
+
+@pytest.mark.django_db
+def test_bientot_disponible_post_invalid_rerenders_with_errors(client):
+    response = client.post(reverse("bientot_disponible"), data={"email": "not-an-email"})
+    assert response.status_code == 200
+    assert response.context["form"].errors
+    messages = list(response.context["messages"])
+    assert len(messages) > 0
 
 
 @pytest.mark.django_db

@@ -1,6 +1,6 @@
 <c-components.nav-section label="S'orienter">
-    <c-components.nav-link label="Trouver la bonne formation" />
-    <c-components.nav-link label="Parler à une ambassadrice" />
+    <c-components.nav-link href="{% url "bientot_disponible" %}?feature=formation" label="Trouver la bonne formation" />
+    <c-components.nav-link href="{% url "bientot_disponible" %}?feature=ambassadrice" label="Parler à une ambassadrice" />
 </c-components.nav-section>
 
 <c-components.nav-section label="S'entourer">
@@ -9,6 +9,6 @@
 </c-components.nav-section>
 
 <c-components.nav-section label="Passer à l'action">
-    <c-components.nav-link label="Trouver un stage ou une alternance" />
-    <c-components.nav-link label="Participer à des évènements" />
+    <c-components.nav-link href="{% url "bientot_disponible" %}?feature=stage" label="Trouver un stage ou une alternance" />
+    <c-components.nav-link href="{% url "bientot_disponible" %}?feature=evenements" label="Participer à des évènements" />
 </c-components.nav-section>

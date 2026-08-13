@@ -79,4 +79,5 @@ urlpatterns = [
         name="pourquoi_nous_ecrivons_au_feminin",
     ),
     path("contact/", views.contact, name="contact"),
+    path("bientot-disponible/", views.bientot_disponible, name="bientot_disponible"),
 ]

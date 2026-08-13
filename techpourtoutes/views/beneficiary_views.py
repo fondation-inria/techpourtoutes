@@ -1,3 +1,4 @@
+from django.conf import settings
 from django.contrib import messages
 from django.contrib.auth import login
 from django.http import HttpResponse
@@ -12,13 +13,14 @@ from ..forms import (
     BeneficiaryIdentityForm,
     BeneficiaryLastDiplomaTrainingExperienceForm,
     BeneficiaryStudyStatusForm,
+    EmailNotificationForm,
     StudyStatus,
     VerificationCodeForm,
 )
 from ..mailers import AuthMailer
 from ..models import Beneficiary, User
 from ..ratelimit import rate_limit
-from ..tasks import send_beneficiary_welcome_email_task
+from ..tasks import send_beneficiary_welcome_email_task, upsert_email_notification_task
 from ..utils.dates import compute_age
 
 # Delay before the welcome email is sent, so it doesn't land before the login code.
@@ -43,6 +45,27 @@ _TRAINING_EXPERIENCE_FORMS = {
 
 def beneficiary_home(request):
     return render(request, "beneficiary/beneficiary_home.html", {})
+
+
+def bientot_disponible(request):
+    if request.method == "POST":
+        form = EmailNotificationForm(data=request.POST)
+        if form.is_valid():
+            if settings.BREVO_SYNC_ENABLED:
+                upsert_email_notification_task.delay(email=form.cleaned_data["email"])
+            messages.success(
+                request,
+                "Merci, nous te préviendrons dès que cette fonctionnalité sera disponible.",
+            )
+            return redirect("bientot_disponible")
+        messages.error(
+            request,
+            "Des erreurs empêchent la validation du formulaire, "
+            "merci de les corriger et de réessayer à nouveau.",
+        )
+    else:
+        form = EmailNotificationForm()
+    return render(request, "static/bientot_disponible.html", {"form": form})
 
 
 def inscription_funnel(request):
