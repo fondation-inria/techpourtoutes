@@ -2,7 +2,7 @@ from django.conf import settings
 from django.core.management import call_command
 from django.core.management.base import BaseCommand, CommandError
 
-from techpourtoutes.models import Formation, Level, Pro, School, TrainingExperience
+from techpourtoutes.models import Formation, Level, Pro, TrainingExperience
 from techpourtoutes.models.beneficiary import Beneficiary
 from techpourtoutes.utils.school_year import (
     current_school_year_end_date,
@@ -69,11 +69,11 @@ class Command(BaseCommand):
         beneficiary.save()
         beneficiary.save(update_fields=["password"])
 
-        school = School.objects.secondary().order_by("name").first()
+        formation = Formation.objects.secondary().order_by("name").first()
         TrainingExperience.objects.create(
             user=beneficiary,
-            school=school,
-            formation=Formation.objects.taught_at(school).order_by("name").first(),
+            school=formation.schools.order_by("name").first(),
+            formation=formation,
             level=Level.TERMINALE,
             start_date=current_school_year_start_date(),
             end_date=current_school_year_end_date(),

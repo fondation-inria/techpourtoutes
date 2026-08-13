@@ -7,21 +7,27 @@ class Command(BaseCommand):
     help = "Repoint the parcours left on the merged schools onto their Onisep counterpart"
 
     def handle(self, *args, **options):
-        remapped, unresolved = 0, 0
+        remapped, detached = 0, 0
         for school in School.objects.legacy():
             target = self._onisep_counterpart(school)
             if target is None:
-                unresolved += 1
-                continue
-            remapped += TrainingExperience.objects.filter(school=school).update(school=target)
-            # Only the placeholders we could repoint go away. Deleting the others would blank
-            # their parcours for good, where keeping them lets a later run resolve them.
+                detached += self._detach(school)
+            else:
+                remapped += TrainingExperience.objects.filter(school=school).update(school=target)
             school.delete()
 
         self.stdout.write(
             self.style.SUCCESS(
-                f"  {remapped} formations rattachées, {unresolved} établissements non retrouvés."
+                f"  {remapped} formations rattachées, {detached} détachées sur le nom de "
+                f"l'établissement."
             )
+        )
+
+    def _detach(self, school):
+        """No counterpart to point at: the name the parcours displayed becomes its free text,
+        which is what lets the placeholder go away without amputating anything."""
+        return TrainingExperience.objects.filter(school=school).update(
+            school=None, out_of_scope_school_name=school.display_label
         )
 
     def _onisep_counterpart(self, school):

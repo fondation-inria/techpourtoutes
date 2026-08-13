@@ -1,6 +1,5 @@
 from dataclasses import dataclass
 
-from django.core.exceptions import ValidationError
 from django.db.models import Count, Q
 from django.http import HttpResponseBadRequest
 from django.shortcuts import render
@@ -94,7 +93,7 @@ def search_formations(request):
         return HttpResponseBadRequest("Périmètre de recherche inconnu.")
 
     school_id = request.GET.get("school_id", "")
-    school = _school_or_none(school_id) if school_id else None
+    school = School.objects.find(school_id) if school_id else None
     if school_id and school is None:
         return HttpResponseBadRequest("Établissement inconnu.")
 
@@ -118,13 +117,6 @@ def search_formations(request):
 
 
 # ------------------- private -------------------
-
-
-def _school_or_none(school_id):
-    try:
-        return School.objects.get(pk=school_id)
-    except School.DoesNotExist, ValidationError, ValueError:
-        return None
 
 
 def _search_params(request):

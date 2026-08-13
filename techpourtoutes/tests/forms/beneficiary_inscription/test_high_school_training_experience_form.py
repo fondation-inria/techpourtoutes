@@ -162,7 +162,7 @@ def test_a_missing_school_never_resolves_a_higher_ed_only_formation(beneficiary,
 
 
 @pytest.mark.django_db
-def test_both_records_missing_saves_the_level_alone(beneficiary, school, formation):
+def test_both_records_missing_saves_the_level_and_the_typed_names(beneficiary, school, formation):
     form = BeneficiaryHighSchoolTrainingExperienceForm(
         data=_valid_data(
             school,
@@ -182,12 +182,27 @@ def test_both_records_missing_saves_the_level_alone(beneficiary, school, formati
     assert experience.school is None
     assert experience.formation is None
     assert experience.level == Level.TERMINALE
+    assert experience.out_of_scope_school_name == "Lycée du bout du monde"
+    assert experience.out_of_scope_formation_name == "Bac pro maréchalerie"
 
 
 @pytest.mark.django_db
 def test_a_missing_school_requires_its_free_text_name(school, formation):
     form = BeneficiaryHighSchoolTrainingExperienceForm(
         data=_valid_data(school, formation, school_id="", school_label="", school_not_found="on")
+    )
+
+    assert not form.is_valid()
+    assert "school_label" in form.errors
+
+
+@pytest.mark.django_db
+def test_a_free_text_name_longer_than_its_column_is_a_form_error(school, formation):
+    """The column would reject it on save, where the form can still say so under the field."""
+    form = BeneficiaryHighSchoolTrainingExperienceForm(
+        data=_valid_data(
+            school, formation, school_id="", school_label="L" * 351, school_not_found="on"
+        )
     )
 
     assert not form.is_valid()

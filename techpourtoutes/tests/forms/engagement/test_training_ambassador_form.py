@@ -150,6 +150,7 @@ def test_a_missing_school_creates_the_experience_without_one(
     experience = form.after_save(form.save())
 
     assert experience.school is None
+    assert experience.out_of_scope_school_name == "École du bout du monde"
     assert experience.formation == higher_ed_formation
 
 

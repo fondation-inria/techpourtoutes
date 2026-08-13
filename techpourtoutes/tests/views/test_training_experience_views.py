@@ -102,6 +102,8 @@ def test_account_page_places_current_year_placeholder_after_future_experience(cl
 
     next_year = TrainingExperience.objects.create(
         user=beneficiary,
+        out_of_scope_school_name="École du bout du monde",
+        out_of_scope_formation_name="Licence du bout du monde",
         level=Level.BAC_1,
         start_date=next_school_year_start_date(),
         end_date=date(next_school_year_start_date().year + 1, 8, 31),
@@ -149,7 +151,7 @@ def test_beneficiary_training_experience_add_post_creates_experience(
 
 @pytest.mark.django_db
 @override_settings(EMAIL_BACKEND="django.core.mail.backends.locmem.EmailBackend")
-def test_beneficiary_missing_formation_is_saved_partially_reported_and_flagged(
+def test_beneficiary_missing_formation_is_saved_reported_and_displayed(
     client, beneficiary, school
 ):
     from django.core import mail
@@ -173,10 +175,13 @@ def test_beneficiary_missing_formation_is_saved_partially_reported_and_flagged(
     created = beneficiary.training_experiences.get()
     assert created.school == school
     assert created.formation is None
+    assert created.out_of_scope_formation_name == "Bac pro maréchalerie"
 
     report = next(msg for msg in mail.outbox if msg.to == ["perfectible@techpourtoutes.io"])
     assert "Bac pro maréchalerie" in report.body
-    assert "transmises à l'équipe" in response.content.decode()
+    # The card shows what she typed instead of warning her that something is missing.
+    assert "Bac pro maréchalerie" in response.content.decode()
+    assert "transmises à l'équipe" not in response.content.decode()
 
 
 @pytest.mark.django_db
@@ -188,6 +193,7 @@ def test_beneficiary_training_experience_add_post_repositions_card_before_older_
     older = TrainingExperience.objects.create(
         user=beneficiary,
         school=school,
+        formation=formation,
         level=Level.SECONDE,
         start_date=date(2020, 9, 1),
         end_date=date(2021, 8, 31),
@@ -247,6 +253,7 @@ def test_beneficiary_training_experience_edit_post_repositions_when_period_chang
     older = TrainingExperience.objects.create(
         user=beneficiary,
         school=school,
+        formation=formation,
         level=Level.SECONDE,
         start_date=date(2020, 9, 1),
         end_date=date(2021, 8, 31),
@@ -356,6 +363,8 @@ def test_beneficiary_training_experience_delete_removes_experience(
 
     TrainingExperience.objects.create(
         user=beneficiary,
+        out_of_scope_school_name="Lycée du bout du monde",
+        out_of_scope_formation_name="Terminale générale",
         level=Level.TERMINALE,
         start_date=current_school_year_start_date(),
         end_date=date(current_school_year_start_date().year + 1, 8, 31),
@@ -377,6 +386,8 @@ def test_beneficiary_training_experience_delete_rejects_current_school_year(clie
 
     current = TrainingExperience.objects.create(
         user=beneficiary,
+        out_of_scope_school_name="Lycée du bout du monde",
+        out_of_scope_formation_name="Terminale générale",
         level=Level.TERMINALE,
         start_date=current_school_year_start_date(),
         end_date=date(current_school_year_start_date().year + 1, 8, 31),
@@ -461,6 +472,7 @@ def test_beneficiary_training_experience_edit_forms_have_unique_search_result_id
     other = TrainingExperience.objects.create(
         user=beneficiary,
         school=school,
+        out_of_scope_formation_name="Seconde générale",
         level=Level.SECONDE,
         start_date=date(2022, 9, 1),
         end_date=date(2023, 8, 31),
@@ -514,6 +526,8 @@ def test_account_page_does_not_duplicate_existing_current_year_experience(client
 
     current = TrainingExperience.objects.create(
         user=beneficiary,
+        out_of_scope_school_name="Lycée du bout du monde",
+        out_of_scope_formation_name="Terminale générale",
         level=Level.TERMINALE,
         start_date=current_school_year_start_date(),
         end_date=date(current_school_year_start_date().year + 1, 8, 31),
@@ -578,6 +592,8 @@ def test_beneficiary_training_experience_edit_post_not_enrolled_deletes_current_
 
     current = TrainingExperience.objects.create(
         user=beneficiary,
+        out_of_scope_school_name="Lycée du bout du monde",
+        out_of_scope_formation_name="Terminale générale",
         level=Level.TERMINALE,
         start_date=current_school_year_start_date(),
         end_date=date(current_school_year_start_date().year + 1, 8, 31),
@@ -703,6 +719,7 @@ def test_beneficiary_training_experience_edit_forms_get_distinct_dom_ids(
     other = TrainingExperience.objects.create(
         user=beneficiary,
         school=school,
+        out_of_scope_formation_name="Seconde générale",
         level=Level.SECONDE,
         start_date=date(2022, 9, 1),
         end_date=date(2023, 8, 31),
@@ -721,17 +738,39 @@ def test_beneficiary_training_experience_edit_forms_get_distinct_dom_ids(
 
 
 @pytest.mark.django_db
-def test_a_parcours_the_backfill_could_not_match_still_shows_its_filiere(
+def test_editing_an_out_of_scope_parcours_reopens_its_free_text_fields(client, pro):
+    """Both search components read their own state back, names typed included."""
+    from techpourtoutes.models import Level, TrainingExperience
+
+    experience = TrainingExperience.objects.create(
+        user=pro,
+        level=Level.BAC_5,
+        out_of_scope_school_name="École du bout du monde",
+        out_of_scope_formation_name="Master maréchalerie",
+    )
+    client.force_login(pro)
+
+    content = client.get(
+        reverse("pro_training_experience_edit", args=[experience.pk])
+    ).content.decode()
+
+    assert content.count("notFound: 'True' !== ''") == 2
+    assert "structureName: 'École du bout du monde'" in content
+    assert "formationName: 'Master maréchalerie'" in content
+
+
+@pytest.mark.django_db
+def test_a_parcours_without_a_linked_formation_shows_the_name_she_typed(
     client, beneficiary, school
 ):
-    """Until `course` is dropped, an unmatched parcours keeps displaying its free text."""
+    """A formation absent from the catalogue is displayed like any other."""
     from techpourtoutes.models import Level, TrainingExperience
 
     TrainingExperience.objects.create(
         user=beneficiary,
         school=school,
         formation=None,
-        course="Spécialité mathématiques",
+        out_of_scope_formation_name="Spécialité mathématiques",
         level=Level.TERMINALE,
         start_date=date(2023, 9, 1),
         end_date=date(2024, 8, 31),

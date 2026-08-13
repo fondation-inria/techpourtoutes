@@ -18,13 +18,16 @@ def test_form_prefills_from_experience_with_school(beneficiary_experience, schoo
 
 
 @pytest.mark.django_db
-def test_form_prefills_from_experience_with_higher_ed_school(beneficiary, higher_ed_school):
+def test_form_prefills_from_experience_with_higher_ed_school(
+    beneficiary, higher_ed_school, higher_ed_formation
+):
     from techpourtoutes.forms import BeneficiaryTrainingExperienceForm
     from techpourtoutes.models import Level, TrainingExperience
 
     experience = TrainingExperience.objects.create(
         user=beneficiary,
         school=higher_ed_school,
+        formation=higher_ed_formation,
         level=Level.BAC_1,
         start_date=date(2023, 9, 1),
         end_date=date(2024, 8, 31),
@@ -46,6 +49,7 @@ def test_form_locks_period_label_for_current_school_year_experience(
     current = TrainingExperience.objects.create(
         user=beneficiary,
         school=school,
+        formation=formation,
         level=Level.TERMINALE,
         start_date=current_school_year_start_date(),
         end_date=date(current_school_year_start_date().year + 1, 8, 31),
@@ -78,6 +82,7 @@ def test_form_rejects_duplicate_period_label_for_same_beneficiary(beneficiary, s
     TrainingExperience.objects.create(
         user=beneficiary,
         school=school,
+        formation=formation,
         level=Level.TERMINALE,
         start_date=date(2024, 9, 1),
         end_date=date(2025, 8, 31),
@@ -106,6 +111,7 @@ def test_form_allows_keeping_own_period_label_when_editing(beneficiary, school, 
     experience = TrainingExperience.objects.create(
         user=beneficiary,
         school=school,
+        formation=formation,
         level=Level.TERMINALE,
         start_date=date(2024, 9, 1),
         end_date=date(2025, 8, 31),
@@ -231,6 +237,63 @@ def test_a_missing_formation_keeps_the_school_and_saves_nothing_else(beneficiary
     assert experience.school == school
     assert experience.formation is None
     assert form.has_missing_record
+
+
+@pytest.mark.django_db
+def test_form_prefills_an_out_of_scope_experience_with_its_typed_names(beneficiary):
+    from techpourtoutes.forms import BeneficiaryTrainingExperienceForm
+    from techpourtoutes.models import Level, TrainingExperience
+
+    experience = TrainingExperience.objects.create(
+        user=beneficiary,
+        level=Level.TERMINALE,
+        start_date=date(2024, 9, 1),
+        end_date=date(2025, 8, 31),
+        out_of_scope_school_name="Lycée du bout du monde",
+        out_of_scope_formation_name="Bac pro maréchalerie",
+    )
+
+    form = BeneficiaryTrainingExperienceForm(experience=experience)
+
+    assert form.initial["school_label"] == "Lycée du bout du monde"
+    assert form.initial["school_not_found"] is True
+    assert form.initial["formation_label"] == "Bac pro maréchalerie"
+    assert form.initial["formation_not_found"] is True
+
+
+@pytest.mark.django_db
+def test_finding_the_school_again_erases_its_typed_name(beneficiary, school, formation):
+    from techpourtoutes.forms import BeneficiaryTrainingExperienceForm
+    from techpourtoutes.models import Level, TrainingExperience
+
+    experience = TrainingExperience.objects.create(
+        user=beneficiary,
+        level=Level.TERMINALE,
+        start_date=date(2024, 9, 1),
+        end_date=date(2025, 8, 31),
+        out_of_scope_school_name="Lycée du bout du monde",
+        out_of_scope_formation_name="Bac pro maréchalerie",
+    )
+
+    form = BeneficiaryTrainingExperienceForm(
+        experience=experience,
+        data={
+            "period_label": "2024-2025",
+            "level": "terminale",
+            "school_id": str(school.pk),
+            "school_label": school.location_label,
+            "formation_id": str(formation.pk),
+            "formation_label": formation.name,
+        },
+    )
+    assert form.is_valid(), form.errors
+
+    saved = form.save(experience)
+
+    assert saved.school == school
+    assert saved.out_of_scope_school_name == ""
+    assert saved.formation == formation
+    assert saved.out_of_scope_formation_name == ""
 
 
 @pytest.mark.django_db

@@ -13,6 +13,27 @@ def test_form_prefills_from_experience(experience, higher_ed_school, higher_ed_f
 
 
 @pytest.mark.django_db
+def test_form_prefills_an_out_of_scope_experience_with_its_typed_names(pro):
+    from techpourtoutes.forms import ProTrainingExperienceForm
+    from techpourtoutes.models import Level, TrainingExperience
+
+    experience = TrainingExperience.objects.create(
+        user=pro,
+        level=Level.BAC_5,
+        out_of_scope_school_name="École du bout du monde",
+        out_of_scope_formation_name="Master maréchalerie",
+    )
+
+    form = ProTrainingExperienceForm(experience=experience)
+
+    assert form.initial["school_id"] == ""
+    assert form.initial["school_label"] == "École du bout du monde"
+    assert form.initial["school_not_found"] is True
+    assert form.initial["formation_label"] == "Master maréchalerie"
+    assert form.initial["formation_not_found"] is True
+
+
+@pytest.mark.django_db
 def test_form_save_updates_experience(experience, higher_ed_school, higher_ed_formation):
     from techpourtoutes.forms import ProTrainingExperienceForm
 

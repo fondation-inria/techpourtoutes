@@ -1,7 +1,7 @@
 {% load phone_filters %}
 Bonjour,
 
-{{ pro.civility }} {{ pro.first_name }} {{ pro.last_name }}, qui étudie à {{ training_experience.school.name|default:"un établissement absent du catalogue" }} (formation : {{ training_experience.formation.name|default:"non renseignée" }}) souhaite devenir ambassadrice étudiante.
+{{ pro.civility }} {{ pro.first_name }} {{ pro.last_name }}, qui étudie à {{ training_experience.school_label }} (formation : {{ training_experience.formation_label }}) souhaite devenir ambassadrice étudiante.
 
 Peux-tu {% if pro.civility == "Madame" %}la{% else %}le{% endif %} recontacter ?
 - {{ pro.email }}

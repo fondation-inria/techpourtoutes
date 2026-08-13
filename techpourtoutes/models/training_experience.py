@@ -53,9 +53,12 @@ class TrainingExperience(BaseModel):
     )
     start_date = models.DateField(null=True, blank=True, verbose_name=_("date de début"))
     end_date = models.DateField(null=True, blank=True, verbose_name=_("date de fin"))
-    # Superseded by `formation`. Kept until `link_training_experience_formations` has run
-    # against a full Onisep catalogue; dropped by the migration that follows.
-    course = models.CharField(max_length=255, blank=True, verbose_name=_("filière"))
+    out_of_scope_school_name = models.CharField(
+        max_length=350, blank=True, verbose_name=_("nom de l'établissement hors catalogue")
+    )
+    out_of_scope_formation_name = models.CharField(
+        max_length=255, blank=True, verbose_name=_("nom de la formation hors catalogue")
+    )
 
     class Meta:
         verbose_name = _("formation suivie")
@@ -65,11 +68,30 @@ class TrainingExperience(BaseModel):
             models.UniqueConstraint(
                 fields=["user", "start_date"],
                 name="unique_user_start_date",
-            )
+            ),
+            models.CheckConstraint(
+                condition=models.Q(school__isnull=False) ^ ~models.Q(out_of_scope_school_name=""),
+                name="school_xor_out_of_scope_school_name",
+                violation_error_message=_("Renseignez soit un établissement, soit son nom."),
+            ),
+            models.CheckConstraint(
+                condition=models.Q(formation__isnull=False)
+                ^ ~models.Q(out_of_scope_formation_name=""),
+                name="formation_xor_out_of_scope_formation_name",
+                violation_error_message=_("Renseignez soit une formation, soit son nom."),
+            ),
         ]
 
     def __str__(self):
-        return f"{self.user.email} – {self.formation or ''}"
+        return f"{self.user.full_name} – {self.school_label} - {self.formation_label}"
+
+    @property
+    def school_label(self):
+        return self.school.display_label if self.school else self.out_of_scope_school_name
+
+    @property
+    def formation_label(self):
+        return self.formation.name if self.formation else self.out_of_scope_formation_name
 
     @property
     def is_current_school_year(self):

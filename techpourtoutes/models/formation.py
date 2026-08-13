@@ -4,12 +4,12 @@ from django.utils.translation import gettext_lazy as _
 
 from techpourtoutes.utils.text import strip_accents
 
-from .base import BaseModel
+from .base import BaseModel, BaseQuerySet
 from .level import Level
 from .school import School
 
 
-class FormationQuerySet(models.QuerySet):
+class FormationQuerySet(BaseQuerySet):
     def taught_at(self, school):
         """What the school teaches, its affiliated schools included — everything if none.
 

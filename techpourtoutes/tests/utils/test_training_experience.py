@@ -23,7 +23,7 @@ def test_training_experience_slots_places_current_year_placeholder_after_future_
         level=Level.BAC_1,
         start_date=next_school_year_start_date(),
         end_date=date(next_school_year_start_date().year + 1, 8, 31),
-        course="Prépa",
+        out_of_scope_formation_name="Prépa",
     )
 
     slots = training_experience_slots(beneficiary.training_experiences.all())
@@ -41,7 +41,7 @@ def test_training_experience_slots_omits_placeholder_when_current_year_experienc
         level=Level.TERMINALE,
         start_date=current_school_year_start_date(),
         end_date=date(current_school_year_start_date().year + 1, 8, 31),
-        course="Terminale",
+        out_of_scope_formation_name="Terminale",
     )
 
     slots = training_experience_slots(beneficiary.training_experiences.all())
@@ -59,7 +59,7 @@ def test_training_experience_insertion_anchor_targets_current_year_slot_for_a_fu
         level=Level.TERMINALE,
         start_date=current_school_year_start_date(),
         end_date=date(current_school_year_start_date().year + 1, 8, 31),
-        course="Terminale",
+        out_of_scope_formation_name="Terminale",
     )
 
     anchor = training_experience_insertion_anchor(beneficiary, next_school_year_start_date())
@@ -86,7 +86,7 @@ def test_training_experience_insertion_anchor_returns_none_for_the_earliest_expe
         level=Level.SECONDE,
         start_date=date(2022, 9, 1),
         end_date=date(2023, 8, 31),
-        course="Seconde",
+        out_of_scope_formation_name="Seconde",
     )
 
     anchor = training_experience_insertion_anchor(beneficiary, date(2018, 9, 1))
@@ -104,7 +104,7 @@ def test_training_experience_insertion_anchor_excludes_the_experience_being_edit
         level=Level.SECONDE,
         start_date=date(2022, 9, 1),
         end_date=date(2023, 8, 31),
-        course="Seconde",
+        out_of_scope_formation_name="Seconde",
     )
 
     anchor = training_experience_insertion_anchor(

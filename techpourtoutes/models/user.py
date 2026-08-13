@@ -120,6 +120,10 @@ class User(BaseModel, AbstractUser):
         instance._loaded_brevo_sync_enabled = instance.brevo_sync_enabled
         return instance
 
+    @property
+    def full_name(self):
+        return f"{self.first_name} {self.last_name.upper()}".strip()
+
     def issue_login_token(self) -> str:
         plaintext = secrets.token_urlsafe(32)
         self.login_token_hash = _hash_token(plaintext)

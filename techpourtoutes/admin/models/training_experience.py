@@ -5,7 +5,15 @@ from ..read_only import ReadOnlyTabularInline
 
 class TrainingExperienceInline(ReadOnlyTabularInline):
     model = TrainingExperience
-    fields = ("school", "formation", "level", "start_date", "end_date")
+    fields = (
+        "school",
+        "out_of_scope_school_name",
+        "formation",
+        "out_of_scope_formation_name",
+        "level",
+        "start_date",
+        "end_date",
+    )
     readonly_fields = fields
 
     def get_queryset(self, request):

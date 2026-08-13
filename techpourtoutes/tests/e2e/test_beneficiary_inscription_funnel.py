@@ -351,6 +351,7 @@ def test_a_missing_school_frees_the_field_and_opens_the_whole_catalogue(
         user=Beneficiary.objects.get(email="oceane@example.com")
     )
     assert experience.school is None
+    assert experience.out_of_scope_school_name == "Lycée du bout du monde"
     assert experience.formation == elsewhere
     assert experience.level == Level.TERMINALE
 
@@ -375,5 +376,7 @@ def test_both_records_missing_registers_on_free_text_alone(page, funnel_url, ben
         user=Beneficiary.objects.get(email="oceane@example.com")
     )
     assert experience.school is None
+    assert experience.out_of_scope_school_name == "Lycée du bout du monde"
     assert experience.formation is None
+    assert experience.out_of_scope_formation_name == "Bac pro maréchalerie"
     assert experience.level == Level.TERMINALE

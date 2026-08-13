@@ -21,7 +21,7 @@ def parcours(beneficiary, school, year=2023):
         level=Level.TERMINALE,
         start_date=date(year, 9, 1),
         end_date=date(year + 1, 8, 31),
-        course="Spécialité mathématiques",
+        out_of_scope_formation_name="Spécialité mathématiques",
     )
 
 
@@ -61,9 +61,8 @@ def test_an_empty_uai_falls_back_on_the_siret(beneficiary):
     assert experience.school == onisep
 
 
-def test_an_unmatched_parcours_keeps_its_placeholder(beneficiary):
-    """Deleting a placeholder we could not resolve would blank the parcours for good. It
-    survives instead, carrying the right school name, until a later run resolves it."""
+def test_an_unmatched_parcours_keeps_the_school_name_it_displayed(beneficiary):
+    """A placeholder we cannot resolve leaves its name on the parcours, then goes away."""
     placeholder = legacy(uai="0000000X")
     experience = parcours(beneficiary, placeholder)
     School(onisep_id="14008", uai="0750001A", name="Lycée Voltaire", secondary=True).save()
@@ -71,32 +70,20 @@ def test_an_unmatched_parcours_keeps_its_placeholder(beneficiary):
     call_command("remap_training_experience_schools")
 
     experience.refresh_from_db()
-    assert experience.school == placeholder
+    assert experience.school is None
+    assert experience.out_of_scope_school_name == "Lycée Voltaire"
     assert TrainingExperience.objects.count() == 1
+    assert School.objects.legacy().count() == 0
 
 
 def test_a_blank_uai_never_matches_a_school_without_one(beneficiary):
-    placeholder = legacy()
-    experience = parcours(beneficiary, placeholder)
+    experience = parcours(beneficiary, legacy())
     School(onisep_id="14008", uai="", siret="", name="Sans identifiant", secondary=True).save()
 
     call_command("remap_training_experience_schools")
 
     experience.refresh_from_db()
-    assert experience.school == placeholder
-
-
-def test_a_later_run_resolves_a_placeholder_left_behind(beneficiary):
-    experience = parcours(beneficiary, legacy(uai="0750001A"))
-    call_command("remap_training_experience_schools")
-    onisep = School(onisep_id="14008", uai="0750001A", name="Lycée Voltaire", secondary=True)
-    onisep.save()
-
-    call_command("remap_training_experience_schools")
-
-    experience.refresh_from_db()
-    assert experience.school == onisep
-    assert School.objects.legacy().count() == 0
+    assert experience.school is None
 
 
 def test_running_twice_is_a_no_op(beneficiary):

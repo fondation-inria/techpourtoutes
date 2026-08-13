@@ -9,6 +9,7 @@ from techpourtoutes.utils.school_year import (
 
 from ...models import Formation, Pro, School, TrainingExperience
 from ..mixins import TrainingExperienceFormMixin
+from ..validators import FORMATION_LABEL_MAX_LENGTH, SCHOOL_LABEL_MAX_LENGTH
 from .base_engagement_form import BaseEngagementForm
 
 
@@ -21,11 +22,17 @@ class TrainingAmbassadorForm(TrainingExperienceFormMixin, BaseEngagementForm):
 
     phone = PhoneNumberField(required=False, region="FR", label=_("Votre n° de téléphone"))
     school_label = forms.CharField(
-        widget=forms.HiddenInput, required=False, label=_("Votre établissement*")
+        widget=forms.HiddenInput,
+        required=False,
+        max_length=SCHOOL_LABEL_MAX_LENGTH,
+        label=_("Votre établissement*"),
     )
     school_id = forms.CharField(widget=forms.HiddenInput, required=False)
     formation_label = forms.CharField(
-        widget=forms.HiddenInput, required=False, label=_("Votre formation*")
+        widget=forms.HiddenInput,
+        required=False,
+        max_length=FORMATION_LABEL_MAX_LENGTH,
+        label=_("Votre formation*"),
     )
     formation_id = forms.CharField(widget=forms.HiddenInput, required=False)
     school_not_found = forms.BooleanField(widget=forms.HiddenInput, required=False)
@@ -44,6 +51,8 @@ class TrainingAmbassadorForm(TrainingExperienceFormMixin, BaseEngagementForm):
             school=self._school,
             defaults={
                 "formation": self._formation,
+                "out_of_scope_school_name": self.out_of_scope_school_name,
+                "out_of_scope_formation_name": self.out_of_scope_formation_name,
                 "start_date": current_school_year_start_date(),
                 "end_date": current_school_year_end_date(),
             },

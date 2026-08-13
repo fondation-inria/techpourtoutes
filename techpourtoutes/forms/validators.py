@@ -1,10 +1,14 @@
 from django import forms
-from django.core.exceptions import ValidationError
 from django.utils.translation import gettext_lazy as _
 
 from techpourtoutes.utils.dates import compute_age
 
-from ..models import Formation, School
+from ..models import TrainingExperience
+
+SCHOOL_LABEL_MAX_LENGTH = TrainingExperience._meta.get_field("out_of_scope_school_name").max_length
+FORMATION_LABEL_MAX_LENGTH = TrainingExperience._meta.get_field(
+    "out_of_scope_formation_name"
+).max_length
 
 
 def require_structure_when_working(form, cleaned_data):
@@ -15,22 +19,14 @@ def require_structure_when_working(form, cleaned_data):
         form.add_error("structure_name", _("Ce champ est obligatoire."))
 
 
-def resolve_school(school_id, queryset=None):
-    """Resolve a school by primary key, raising a form error if it is unknown."""
-    schools = School.objects.all() if queryset is None else queryset
-    try:
-        return schools.get(pk=school_id)
-    except School.DoesNotExist, ValidationError, ValueError:
-        raise forms.ValidationError(_("Sélectionnez un établissement valide."))
+def validate_selected_school(form, school):
+    if school is None:
+        form.add_error("school_id", _("Sélectionnez un établissement valide."))
 
 
-def resolve_formation(formation_id, queryset=None):
-    """Resolve a formation by primary key, raising a form error if it is unknown."""
-    formations = Formation.objects.all() if queryset is None else queryset
-    try:
-        return formations.get(pk=formation_id)
-    except Formation.DoesNotExist, ValidationError, ValueError:
-        raise forms.ValidationError(_("Sélectionnez une formation valide."))
+def validate_selected_formation(form, formation):
+    if formation is None:
+        form.add_error("formation_id", _("Sélectionnez une formation valide."))
 
 
 def validate_birth_date(birth_date):
