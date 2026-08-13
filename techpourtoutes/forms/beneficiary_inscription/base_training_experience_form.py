@@ -22,6 +22,9 @@ class BaseTrainingExperienceForm(TrainingExperienceFormMixin, forms.Form):
     search component, and the school year the training belongs to.
     """
 
+    school_not_found = forms.BooleanField(widget=forms.HiddenInput, required=False)
+    formation_not_found = forms.BooleanField(widget=forms.HiddenInput, required=False)
+
     def __init__(self, *args, **kwargs):
         self.dom_id = uuid4().hex
         kwargs.setdefault("auto_id", f"id_{self.dom_id}_%s")
@@ -33,8 +36,9 @@ class BaseTrainingExperienceForm(TrainingExperienceFormMixin, forms.Form):
 
     def clean(self):
         cleaned_data = super().clean()
-        self.resolve_school(cleaned_data.get("level"))
+        self.resolve_school_for_level(cleaned_data.get("level"))
         self.resolve_formation()
+        self.validate_free_text()
         return cleaned_data
 
     def save(self, beneficiary):

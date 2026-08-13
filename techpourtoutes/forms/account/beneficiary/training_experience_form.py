@@ -32,6 +32,8 @@ class BeneficiaryTrainingExperienceForm(TrainingExperienceFormMixin, forms.Form)
         widget=forms.HiddenInput, required=False, label=_("Formation*")
     )
     formation_id = forms.CharField(widget=forms.HiddenInput, required=False)
+    school_not_found = forms.BooleanField(widget=forms.HiddenInput, required=False)
+    formation_not_found = forms.BooleanField(widget=forms.HiddenInput, required=False)
 
     def __init__(self, *args, experience=None, beneficiary=None, current_year=False, **kwargs):
         self.current_year = current_year or (
@@ -53,8 +55,9 @@ class BeneficiaryTrainingExperienceForm(TrainingExperienceFormMixin, forms.Form)
         if period_label and self._has_duplicate_period_label(period_label):
             self.add_error("period_label", _("Vous avez déjà renseigné cette année."))
         if not cleaned_data.get("not_enrolled"):
-            self.resolve_school(cleaned_data.get("level"))
+            self.resolve_school_for_level(cleaned_data.get("level"))
             self.resolve_formation()
+            self.validate_free_text()
         return cleaned_data
 
     def save(self, experience):

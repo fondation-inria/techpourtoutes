@@ -2,7 +2,7 @@
 <c-layout.email>
   <p style="font-size:15px;color:#374151;">Bonjour,</p>
   <p style="font-size:15px;color:#374151;">
-    {{ pro.civility }} <strong>{{ pro.first_name }} {{ pro.last_name }}</strong>, qui étudie à <strong>{{ training_experience.school.name }}</strong> (formation : <strong>{{ training_experience.formation.name }}</strong>) souhaite devenir ambassadrice étudiante.
+    {{ pro.civility }} <strong>{{ pro.first_name }} {{ pro.last_name }}</strong>, qui étudie à <strong>{{ training_experience.school.name|default:"un établissement absent du catalogue" }}</strong> (formation : <strong>{{ training_experience.formation.name|default:"non renseignée" }}</strong>) souhaite devenir ambassadrice étudiante.
   </p>
   <br>
   <p style="font-size:15px;color:#374151;">

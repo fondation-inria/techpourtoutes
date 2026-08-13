@@ -24,6 +24,7 @@ from ..ratelimit import rate_limit
 from ..services.beneficiary.create_mentoree import CreateMentoree
 from ..tasks import send_beneficiary_welcome_email_task
 from ..utils.dates import compute_age
+from ..utils.missing_record import report_missing_record
 
 # Delay before the welcome email is sent, so it doesn't land before the login code.
 _WELCOME_EMAIL_DELAY_SECONDS = 5 * 60
@@ -138,6 +139,7 @@ def _create_beneficiary(request):
     )
     beneficiary.save()
     training_experience_form.save(beneficiary)
+    report_missing_record(training_experience_form, beneficiary, "Funnel d'inscription")
     AuthMailer.login_code(user=beneficiary, code=beneficiary.issue_login_code())
     send_beneficiary_welcome_email_task.apply_async(
         kwargs={"beneficiary_pk": str(beneficiary.pk)}, countdown=_WELCOME_EMAIL_DELAY_SECONDS

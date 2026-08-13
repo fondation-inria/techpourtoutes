@@ -2,6 +2,7 @@ import re
 from datetime import date
 
 import pytest
+from django.test import override_settings
 from django.urls import reverse
 
 
@@ -135,6 +136,38 @@ def test_beneficiary_training_experience_add_post_creates_experience(
     created = beneficiary.training_experiences.get()
     assert created.school == school
     assert created.formation == formation
+
+
+@pytest.mark.django_db
+@override_settings(EMAIL_BACKEND="django.core.mail.backends.locmem.EmailBackend")
+def test_beneficiary_missing_formation_is_saved_partially_reported_and_flagged(
+    client, beneficiary, school
+):
+    from django.core import mail
+
+    client.force_login(beneficiary)
+
+    response = client.post(
+        reverse("beneficiary_training_experience_add"),
+        data={
+            "period_label": "2024-2025",
+            "level": "seconde",
+            "school_id": str(school.pk),
+            "school_label": school.location_label,
+            "formation_id": "",
+            "formation_label": "Bac pro maréchalerie",
+            "formation_not_found": "on",
+        },
+    )
+
+    assert response.status_code == 200
+    created = beneficiary.training_experiences.get()
+    assert created.school == school
+    assert created.formation is None
+
+    report = next(msg for msg in mail.outbox if msg.to == ["perfectible@techpourtoutes.io"])
+    assert "Bac pro maréchalerie" in report.body
+    assert "transmises à l'équipe" in response.content.decode()
 
 
 @pytest.mark.django_db

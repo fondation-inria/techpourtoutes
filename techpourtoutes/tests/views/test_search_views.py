@@ -264,8 +264,14 @@ def test_the_sentinel_observes_the_dropdown_it_belongs_to(client):
 
 
 @pytest.mark.django_db
-def test_search_formations_without_a_school_is_rejected(client):
-    assert client.get(reverse("search_formations"), {"q": "bac"}).status_code == 400
+def test_search_formations_without_a_school_offers_the_whole_catalogue(client):
+    Formation(onisep_id="1", name="Bac professionnel").save()
+    Formation(onisep_id="2", name="Diplôme d'ingénieur").save()
+
+    content = client.get(reverse("search_formations"), {"school_id": ""}).content.decode()
+
+    assert "Bac professionnel" in content
+    assert "ingénieur" in content
 
 
 @pytest.mark.django_db
@@ -369,11 +375,11 @@ def test_the_formation_sentinel_observes_the_dropdown_it_belongs_to(client, scho
 
 @pytest.mark.django_db
 def test_school_search_escapes_reflected_value_for_js_context(client):
-    # On a failed POST the form re-renders with the submitted structure_name interpolated
+    # On a failed POST the form re-renders with the submitted school_label interpolated
     # into the Alpine x-data JS strings. escapejs emits ' for a single quote (safe in
     # the JS context); plain HTML autoescaping would emit &#x27; which the browser decodes
     # back to a real quote, breaking out of the string.
-    response = client.post(reverse("workshops_landing"), {"structure_name": "Test'X"})
+    response = client.post(reverse("workshops_landing"), {"school_label": "Test'X"})
 
     assert response.status_code == 200
     content = response.content.decode()

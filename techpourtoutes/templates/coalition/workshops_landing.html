@@ -108,8 +108,9 @@
                             <c-components.form_fields.input field=form.email autocomplete="email" variant="{% if pro %}disabled{% endif %}" />
                             <c-components.form_fields.select field=form.job_title />
                             <c-components.form_fields.school_search
-                                name_field=form.structure_name
+                                name_field=form.school_label
                                 id_field=form.structure_uai
+                                not_found_field=form.school_not_found
                                 postal_field=form.postal_code
                                 scope="workshop"
                                 key="uai"

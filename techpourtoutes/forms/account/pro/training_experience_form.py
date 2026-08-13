@@ -3,14 +3,15 @@ from django.utils.translation import gettext_lazy as _
 
 from ....models import School, TrainingExperience
 from ...mixins import TrainingExperienceFormMixin
-from ...validators import resolve_school
 
 
 class ProTrainingExperienceForm(TrainingExperienceFormMixin, forms.Form):
     school_label = forms.CharField(
         widget=forms.HiddenInput, required=False, label=_("Votre établissement*")
     )
-    school_id = forms.CharField(widget=forms.HiddenInput)
+    school_id = forms.CharField(widget=forms.HiddenInput, required=False)
+    school_not_found = forms.BooleanField(widget=forms.HiddenInput, required=False)
+    formation_not_found = forms.BooleanField(widget=forms.HiddenInput, required=False)
     level = forms.ChoiceField(
         label=_("Niveau*"),
         choices=[
@@ -38,15 +39,11 @@ class ProTrainingExperienceForm(TrainingExperienceFormMixin, forms.Form):
             )
         super().__init__(*args, **kwargs)
 
-    def clean_school_id(self):
-        school_id = self.cleaned_data["school_id"]
-        self._school = resolve_school(school_id, School.objects.higher_ed())
-        return school_id
-
     def clean(self):
-        """The formation resolves here, once every field clean has settled the school."""
         cleaned_data = super().clean()
+        self.resolve_school(School.objects.higher_ed())
         self.resolve_formation()
+        self.validate_free_text()
         return cleaned_data
 
     def save(self, experience):
