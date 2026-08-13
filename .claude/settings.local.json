@@ -33,7 +33,11 @@
       "Read(.env.example)",
       "WebFetch(domain:developers.brevo.com)",
       "WebFetch(domain:doc.scalingo.com)",
-      "WebFetch(domain:developers.scalingo.com)"
+      "WebFetch(domain:developers.scalingo.com)",
+      "Bash(git ls-tree *)",
+      "Bash(awk '{print $4}')",
+      "Bash(awk '{print $1, $3, $4}')",
+      "Bash(sort -k3)"
     ],
     "deny": [
       "Bash(uv run python manage.py flush *)",

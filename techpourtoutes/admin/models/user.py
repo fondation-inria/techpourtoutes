@@ -2,6 +2,8 @@ from django.contrib import admin
 
 from techpourtoutes.models import User
 
+PERSONAL_FIELDS = ("civility", "first_name", "last_name", "email", "phone", "postal_code")
+
 
 @admin.register(User)
 class UserAdmin(admin.ModelAdmin):
@@ -13,7 +15,7 @@ class UserAdmin(admin.ModelAdmin):
     fieldsets = (
         (
             "Infos personnelles",
-            {"fields": ("first_name", "last_name", "username", "email")},
+            {"fields": (*PERSONAL_FIELDS, "username")},
         ),
         (
             "Autres infos",

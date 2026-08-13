@@ -1,0 +1,55 @@
+<div id="funnel-step" class="w-full flex flex-col gap-y-6">
+    {% include "beneficiary/partials/inscription/progress.html" %}
+    <c-components.card nobg=True>
+        <c-patterns.form
+            hx-post="{% url 'inscription_funnel' %}"
+            hx-target="#funnel-step"
+            hx-swap="outerHTML">
+            <input type="hidden" name="action" value="training_experience">
+            <c-components.title title="Rejoins le club, {{ first_name }}" variant="h2-black" />
+            <p class="text-xs text-neutral-500">Tous les champs sont obligatoires</p>
+            {% if study_status == "high_school" %}
+                <c-components.form_fields.select field=form.level />
+                <c-components.form_fields.school_search
+                    name_field=form.school_name
+                    id_field=form.school_identifier
+                    postal_field=form.school_postal_code
+                    description="Recherche par nom et/ou code postal"
+                    unique_id="{{ form.dom_id }}" />
+            {% elif study_status == "higher_education" %}
+                <c-components.form_fields.select field=form.level />
+                <c-components.form_fields.higher_ed_school_search
+                    id_field=form.higher_ed_school_id
+                    label_field=form.higher_ed_school_label
+                    description="Recherche par nom"
+                    unique_id="{{ form.dom_id }}" />
+            {% else %}
+                <c-components.form_fields.select field=form.period_label />
+                <div x-data="{ level: '{{ form.level.value|default:'' }}' }"
+                     @select-change="level = $event.detail.value"
+                     class="flex flex-col gap-y-4">
+                    <c-components.form_fields.select field=form.level :watchable=True />
+                    <template x-if="level != '' && !level.startsWith('bac_')">
+                        <c-components.form_fields.school_search
+                            name_field=form.school_name
+                            id_field=form.school_identifier
+                            postal_field=form.school_postal_code
+                            description="Recherche par nom et/ou code postal"
+                            unique_id="{{ form.dom_id }}" />
+                    </template>
+                    <template x-if="level.startsWith('bac_')">
+                        <c-components.form_fields.higher_ed_school_search
+                            id_field=form.higher_ed_school_id
+                            label_field=form.higher_ed_school_label
+                            description="Recherche par nom"
+                            unique_id="{{ form.dom_id }}" />
+                    </template>
+                </div>
+            {% endif %}
+            <c-components.form_fields.input field=form.course />
+            <div class="flex justify-center">
+                <c-components.button type="submit" label="Rejoindre le club" />
+            </div>
+        </c-patterns.form>
+    </c-components.card>
+</div>

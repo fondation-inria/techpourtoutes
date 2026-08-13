@@ -61,10 +61,10 @@ def test_signature_manifeste_moves_under_coalition_prefix_when_switch_active(cli
 
 
 @pytest.mark.django_db
-def test_search_schools_moves_under_coalition_prefix_when_switch_active(client):
+def test_search_schools_stays_at_root_regardless_of_switch(client):
+    assert client.get(reverse("search_schools")).status_code == 200
     with override_switch("beneficiary_mode", active=True):
-        response = client.get("/coalition/organiser-un-atelier/recherche-etablissements/")
-        assert response.status_code == 200
+        assert client.get(reverse("search_schools")).status_code == 200
 
 
 @pytest.mark.django_db
