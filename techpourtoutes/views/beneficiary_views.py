@@ -239,6 +239,10 @@ def _validate_training_experience(request):
 
 def _validate_mentoring_signup(request, *, error=None):
     form = BeneficiaryMentoringSignUpForm(data=request.POST)
+    if form.is_valid() and _is_minor(request.POST):
+        for field in ("legal_representative_name", "legal_representative_email"):
+            if not form.cleaned_data[field]:
+                form.add_error(field, "Ce champ est obligatoire.")
     if not form.is_valid():
         raise _StepInterrupt(
             _render_step_with_error(request, "mentoring_signup", error, form=form)

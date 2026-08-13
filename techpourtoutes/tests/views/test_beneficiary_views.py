@@ -416,6 +416,27 @@ def test_mentoring_signup_step_persists_legal_representative_email_for_a_minor(
 
 
 @pytest.mark.django_db
+def test_mentoring_signup_step_blocks_a_minor_without_legal_representative_fields(
+    client, beneficiary_mode, higher_ed_school, higher_ed_formation
+):
+    response = client.post(
+        FUNNEL_URL,
+        _higher_education_post(
+            higher_ed_school,
+            higher_ed_formation,
+            action="mentoring_signup",
+            wants_mentor="true",
+            birth_date=_birth_date_for_age(16).isoformat(),
+            phone="0612345678",
+        ),
+    )
+
+    assert b"Saisis le code" not in response.content
+    assert b"Ce champ est obligatoire." in response.content
+    assert not Beneficiary.objects.exists()
+
+
+@pytest.mark.django_db
 def test_mentoring_signup_step_creates_an_adult_beneficiary_without_legal_representative_fields(
     client, beneficiary_mode, higher_ed_school, higher_ed_formation
 ):
