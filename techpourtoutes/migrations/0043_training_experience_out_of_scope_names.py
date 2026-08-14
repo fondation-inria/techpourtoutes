@@ -47,21 +47,4 @@ class Migration(migrations.Migration):
             ),
         ),
         migrations.RunPython(enforce_one_side_only, migrations.RunPython.noop),
-        migrations.AddConstraint(
-            model_name="trainingexperience",
-            constraint=models.CheckConstraint(
-                condition=models.Q(school__isnull=False) ^ ~models.Q(out_of_scope_school_name=""),
-                name="school_xor_out_of_scope_school_name",
-                violation_error_message="Renseignez soit un établissement, soit son nom.",
-            ),
-        ),
-        migrations.AddConstraint(
-            model_name="trainingexperience",
-            constraint=models.CheckConstraint(
-                condition=models.Q(formation__isnull=False)
-                ^ ~models.Q(out_of_scope_formation_name=""),
-                name="formation_xor_out_of_scope_formation_name",
-                violation_error_message="Renseignez soit une formation, soit son nom.",
-            ),
-        ),
     ]

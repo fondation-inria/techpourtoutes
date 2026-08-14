@@ -1,6 +1,5 @@
 from django import forms
 from django.utils.translation import gettext_lazy as _
-from phonenumber_field.formfields import PhoneNumberField
 
 from techpourtoutes.utils.school_year import (
     current_school_year_end_date,
@@ -8,6 +7,7 @@ from techpourtoutes.utils.school_year import (
 )
 
 from ...models import Formation, Pro, School, TrainingExperience
+from ..fields import PhoneNumberField
 from ..mixins import TrainingExperienceFormMixin
 from ..validators import FORMATION_LABEL_MAX_LENGTH, SCHOOL_LABEL_MAX_LENGTH
 from .base_engagement_form import BaseEngagementForm
