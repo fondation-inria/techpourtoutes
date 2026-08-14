@@ -8,8 +8,8 @@ def valid_data(**overrides):
         "last_name": "Desbordes",
         "email": "manon@example.com",
         "job_title": "Enseignante",
-        "structure_id": "0750001A",
-        "structure_name": "Lycée Voltaire",
+        "structure_uai": "0750001A",
+        "school_label": "Lycée Voltaire",
         "postal_code": "75011",
         "remark": "Une remarque",
         "ateliers": ["future_of_tech", "future_of_ia"],
@@ -41,7 +41,6 @@ def test_workshop_form_save_creates_pro_without_phone():
     assert saved.phone == ""
     assert saved.professional_situation == "working"
     assert saved.structure_name == "Lycée Voltaire"
-    assert saved.structure_id == "0750001A"
     assert saved.postal_code == "75011"
     assert saved.job_title == "Enseignante"
 
@@ -50,9 +49,41 @@ def test_workshop_form_save_creates_pro_without_phone():
 def test_workshop_form_requires_establishment():
     from techpourtoutes.forms import WorkshopForm
 
-    form = WorkshopForm(data=valid_data(structure_id="", structure_name="", postal_code=""))
+    form = WorkshopForm(data=valid_data(structure_uai="", school_label="", postal_code=""))
     assert not form.is_valid()
-    assert "structure_name" in form.errors
+    assert "school_label" in form.errors
+
+
+@pytest.mark.django_db
+def test_workshop_form_rejects_a_typed_establishment_without_the_fallback():
+    from techpourtoutes.forms import WorkshopForm
+
+    form = WorkshopForm(data=valid_data(structure_uai=""))
+
+    assert not form.is_valid()
+    assert "school_label" in form.errors
+
+
+@pytest.mark.django_db
+def test_a_missing_establishment_is_kept_as_free_text():
+    from techpourtoutes.forms import WorkshopForm
+    from techpourtoutes.models import Pro
+
+    form = WorkshopForm(
+        data=valid_data(
+            structure_uai="",
+            school_label="Lycée du bout du monde",
+            postal_code="",
+            school_not_found="on",
+        )
+    )
+    assert form.is_valid(), form.errors
+    assert form.has_missing_record
+    form.save()
+
+    saved = Pro.objects.get(email="manon@example.com")
+    assert saved.structure_name == "Lycée du bout du monde"
+    assert saved.postal_code == ""
 
 
 @pytest.mark.django_db
@@ -220,8 +251,8 @@ def test_workshop_form_with_pro_save_updates_in_place(pro):
     data = valid_data(
         email=pro.email,
         first_name="Modifiée",
-        structure_name="Nouveau lycée",
-        structure_id="0750002B",
+        school_label="Nouveau lycée",
+        structure_uai="0750002B",
         postal_code="69001",
     )
     form = WorkshopForm(data=data, pro=pro)

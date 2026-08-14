@@ -1,0 +1,827 @@
+onisep_id,name
+6,Université Jean Moulin - Lyon 3
+9,Université Paris Dauphine-PSL
+10,Université Paris Nanterre
+16,Université de Brest
+19,Université polytechnique Hauts-de-France
+31,Université Rennes 2
+34,Université de Rennes
+35,Université Versailles Saint-Quentin-en-Yvelines
+37,Université Toulouse Capitole
+41,Université de Pau et des Pays de l'Adour
+49,Nîmes Université
+50,Université Paris 8 - Vincennes Saint-Denis
+53,Université Jean Monnet Saint-Étienne
+61,Université de Toulouse
+71,Toulouse INP
+79,Université Sorbonne Nouvelle
+81,Université de Rouen Normandie
+84,Université Paris-Panthéon-Assas
+85,Institut national des langues et civilisations orientales
+93,Université Picardie Jules Verne
+101,Université de Corse
+106,Nantes université
+107,Université de Montpellier Paul-Valéry
+113,Université Toulouse - Jean Jaurès
+117,Université Gustave Eiffel
+148,Université Paris-Est Créteil Val de Marne
+155,Université Lumière - Lyon 2
+161,Université Paris Cité
+167,Université Savoie Mont Blanc
+176,Institut National Universitaire Jean-François Champollion
+177,Université Marie et Louis Pasteur
+181,Université Paris 1 - Panthéon-Sorbonne
+182,Université de Limoges
+185,Université de Toulon
+192,Université de Poitiers
+213,Université d'Orléans
+215,Université de Nouvelle Calédonie
+220,Université Sorbonne Paris Nord
+223,Conservatoire national des arts et métiers
+224,Université de la Polynésie française
+226,Université Côte d'Azur
+233,Université de Caen Normandie
+236,Université d'Artois
+257,Université Paris-Saclay
+259,Université Évry Paris Saclay
+266,Université de La Réunion
+272,Université Bourgogne Europe
+276,Institut polytechnique de Paris - établissement expérimental
+302,Université Bordeaux Montaigne
+303,Université des Antilles
+324,Le Mans université
+325,Université d'Angers
+341,Université de Perpignan Via Domitia
+348,Université Le Havre Normandie
+359,La Rochelle Université
+366,Université de Lille
+370,Université du Littoral Côte d'Opale
+374,Avignon Université
+376,Université de Bretagne Sud
+378,Université de Reims Champagne-Ardenne
+380,Université Claude Bernard - Lyon 1
+403,Centre universitaire de formation et de recherche de Mayotte
+412,Institut Polytechnique de Bordeaux
+417,Université de Guyane
+477,Université de Montpellier
+490,Université Grenoble Alpes
+527,Université Clermont Auvergne
+643,Aix-Marseille Université
+645,Université de Lorraine
+656,Sorbonne Université
+687,Institut catholique de Vendée
+724,Université de Bordeaux
+729,Université PSL
+862,École Centrale de Lille
+916,"École internationale du papier, de la communication imprimée et des biomatériaux - Grenoble INP-UGA"
+935,Centre de formation des psychologues de l'Éducation Nationale
+936,Institut supérieur d'agriculture Rhône-Alpes - campus d'Avignon
+1059,ENSCL - École Nationale Supérieure de Chimie de Lille
+1119,Kedge Business School
+1164,École nationale supérieure de police
+1206,Institut national des sciences appliquées Hauts-de-France
+1207,Institut national des techniques économiques et comptables
+1258,École supérieure des agricultures - campus d'Angers
+1434,EFREI Paris - campus de Villejuif
+1459,École nationale supérieure des industries chimiques
+1493,Isep - École d'ingénieurs du numérique - site de Paris
+1546,Isep - École d'ingénieurs du numérique - site Issy-les-Moulineaux
+1554,Service formation continue et alternance Université Rennes 2
+1586,École nationale supérieure de formation de l'enseignement agricole
+1609,Institut national du patrimoine (département des restaurateurs)
+1612,Écoles militaires de santé de Lyon Bron
+1621,Pôle Formation UIMM Lorraine - CFAI site de Yutz
+1722,Géodata Paris (ex ENSG-Géomatique)
+1728,École nationale supérieure d'ingénieurs du Mans
+1749,ESCP Business School
+1778,École nationale supérieure d'architecture de Nancy
+1813,École normale supérieure Paris-Saclay
+1820,Institut de formation en masso-kinésithérapie
+1829,Institut Français de la Mode
+1843,Institut national du patrimoine (département des conservateurs)
+1857,École des hautes études en santé publique
+1868,École supérieure de physique et de chimie industrielles de la ville de Paris
+1917,École nationale supérieure d'architecture de Paris Belleville
+1920,École Estienne
+1942,Institut supérieur de l'aéronautique et de l'espace
+1958,Conservatoire national des arts et métiers Hauts-de-France - centre d'Amiens
+1966,ISIT - Institut de management et de communication interculturels
+1967,École nationale supérieure d'arts et métiers - campus Arts et Métiers de Paris
+1971,Lycée polyvalent ESAA - École Boulle
+2015,École nationale supérieure Mines-Télécom Nord Europe - campus de Lille
+2097,ICN Business School
+2149,École supérieure des techniques aéronautiques et de construction automobile - Laval
+2227,École spéciale militaire de Saint-Cyr
+2229,CESI - campus d'Aix-en-Provence
+2260,École nationale supérieure des Arts Décoratifs - PSL
+2374,Institut catholique d'arts et métiers - site de Nantes
+2383,École nationale supérieure de techniques avancées - site de Brest
+2427,École nationale supérieure des mines de Paris - Campus de Paris
+2429,CFA Gobelins l'école de l'image - Campus Paris Saint-Marcel
+2540,Département Afrique et Océan Indien
+2544,The School of Advanced Management and Finance
+2547,École supérieure des arts appliqués Duperré
+2578,GEM - Alpine Business School
+2615,Centre régional associé au Conservatoire national des arts et métiers
+2653,École catholique d'arts et métiers de la Fondation ECAM LaSalle - site de Lyon
+2658,CESI école d'ingénieurs - campus de Strasbourg
+2684,École polytechnique universitaire de l'Institut national polytechnique Clermont Auvergne - Clermont Auvergne INP
+2707,École nationale des chartes - PSL
+2735,emlyon Business School
+2739,Institut de l'internet et du multimédia
+2839,Cnam Nouvelle-Aquitaine - site de Niort
+2889,ESTP - Grande école d'ingénieurs de la construction - campus de Troyes
+3063,JUNIA Institut supérieur de l'électronique et du numérique - campus de Lille
+3116,UFR Sciences et techniques - site de Saint-Martin
+3190,École nationale supérieure en génie des technologies industrielles
+3320,Département Universitaire de Maïeutique (Formation sage-femme) - Sorbonne Université
+3323,Formation traduction et interprétation
+3349,École nationale supérieure de création industrielle Les Ateliers
+3447,VetAgro Sup - campus agronomique de Clermont
+3484,Pôle Formation UIMM Lorraine - CFAI site d'Henriville
+3518,Institut supérieur d'études comptables
+3544,École nationale supérieure d'arts et métiers - campus Arts et Métiers de Lille
+3548,Gobelins Paris - Campus Saint-Marcel
+3616,École supérieure d'électronique de l'Ouest - site Dijon
+3632,Pôle Formation UIMM Lorraine - CFAI site de Bar-le-Duc
+3661,École des ingénieurs de la ville de Paris
+3666,École normale supérieure
+3697,EURECOM
+3722,IG2I - Institut de Génie Informatique et Industriel
+3797,École de management de Normandie
+3877,Institut d'optique théorique et appliquée - campus de Bordeaux
+3951,CESI école d'ingénieurs - campus de Bordeaux
+4137,Institut d'études politiques (Sciences Po Grenoble)
+4170,Institut Galilée
+4396,École nationale supérieure de mécanique et des microtechniques
+4442,SKEMA Business School
+4481,École nationale supérieure Mines-Télécom Nord Europe - Polyvia formation - campus d'Alençon
+4496,Institut de management des industries de la santé (groupe IGS)
+4509,IPAG Business School
+4574,Conservatoire national des arts et métiers Hauts de France - Centre de Valenciennes
+4628,École polytechnique universitaire de l'université d'Orléans - site d'Orléans
+4666,École supérieure d'agro-développement international
+4805,Institut national du service public
+4971,École nationale supérieure d'ingénieurs de Bretagne Sud - site de Vannes
+4983,École nationale supérieure des sciences appliquées et de technologie
+5017,École pour l'informatique et les techniques avancées - site du Kremlin-Bicêtre
+5209,INSEEC
+5249,Département études chinoises
+5250,Institut national des sciences appliquées de Rouen Normandie - site du Havre
+5257,Télécom Physique Strasbourg
+5262,Département Europe
+5329,ITECH Lyon
+5497,École nationale d'ingénieurs de Tarbes
+5567,École centrale de Nantes
+5579,"INSA Hauts-de-France - campus de Maubeuge, UPHF"
+5624,École normale supérieure de Rennes
+5638,École nationale supérieure Mines-Télécom Atlantique Bretagne Pays de la Loire - campus de Nantes
+5641,ESSCA School of Management
+5643,Institut national supérieur du professorat et de l'éducation de Bourgogne
+5674,emlyon Business School
+5705,Université de technologie de Compiègne
+5724,École nationale supérieure d'architecture de Versailles
+5744,ESSEC Business School
+5770,Condé Paris
+5816,École supérieure de design de Troyes - Groupe Y Schools
+5822,South Champagne Business School - Groupe Y Schools
+5833,École supérieure des techniques aéronautiques et de construction automobile - Paris-Saclay
+5882,CESI - campus de La Rochelle
+5884,Centre de préparation à l'administration générale - Sciences Po Grenoble
+5900,L'École de design Nantes Atlantique - site de Nantes
+5904,EDHEC Business School
+5924,École polytechnique universitaire de l'université d'Orléans - site de Chartres
+5948,Institut international du commerce et du développement - Igensia Education
+5992,Brest Business School
+6022,Cnam Cholet
+6064,ONIRIS VetAgroBio - Campus des sciences de l'alimentation
+6094,Éklore-ed School of Management
+6161,Université de technologie de Belfort-Montbéliard - campus de Belfort
+6203,"Institut culture, patrimoine, sociétés numériques - Campus Hannah Arendt"
+6268,École et observatoire des sciences de la Terre de Strasbourg
+6294,École nationale supérieure du pétrole et des moteurs
+6333,École nationale vétérinaire de Toulouse
+6339,Institut d'administration des entreprises Grenoble INP - site de Valence
+6478,Institut national supérieur du professorat et de l'éducation de Bourgogne - site de Nevers
+6556,CFA de l'Institut Français de la Mode
+6568,Institut supérieur de l'automobile et des transports - site de Nevers
+6682,ITEEM
+6686,Audencia Business School
+6715,Institut d'études politiques (Sciences Po Bordeaux)
+6721,The American Business School of Paris - groupe IGS
+6736,Département études coréennes
+6756,"CFA régional de l'enseignement supérieur en Languedoc Roussillon, Sud de France"
+6769,École supérieure du commerce extérieur
+6818,Centre de préparation à l'administration générale Aix-Marseille - IEP
+6827,École normale supérieure de Lyon
+6898,Filière commerce international
+7025,Institut national supérieur du professorat et de l'éducation de Bourgogne - site d'Auxerre
+7118,IPI Paris - École informatique du groupe IGENSIA Education
+7219,École nationale vétérinaire d'Alfort
+7358,ONIRIS VetAgroBio - Campus vétérinaire
+7368,INSEEC
+7407,ESSCA School of Management
+7418,"École supérieure de chimie, physique, électronique de Lyon"
+7463,Institut supérieur de l'électronique et du numérique Yncréa Ouest - campus de Nantes
+7479,3iL Ingénieurs - site de Limoges
+7508,CY Tech - campus de Cergy
+7550,ISTY UVSQ - campus de Mantes en Yvelines
+7646,Institut national des sciences appliquées de Rouen Normandie - site de Rouen
+7649,École nationale supérieure d'architecture de Normandie
+7774,École des hautes études en sciences sociales
+7791,"INSA Hauts-de-France - campus du Mont Houy, UPHF"
+7854,ESME - campus d'Ivry-sur-Seine
+7867,NEOMA Business School
+7967,École de biologie industrielle
+8046,JUNIA École des hautes études d'ingénieur - campus de Lille
+8047,Institut catholique d'arts et métiers - site de Lille
+8062,École polytechnique universitaire de Nantes Université
+8064,École nationale supérieure de techniques avancées site de Palaiseau
+8076,Rennes School of Business
+8089,École du personnel paramédical du service de santé des Armées
+8123,Institut catholique de Vendée
+8174,École d'ingénieurs de Purpan
+8262,Institut national des sciences appliquées de Rennes
+8334,École d'ingénieurs généralistes
+8340,Institut d'administration des entreprises - Grenoble INP
+8400,Cnam sécurité défense
+8496,École supérieure d'ingénieurs Léonard de Vinci - campus de Paris
+8518,Audencia SciencesCom
+8546,ECAM Louis de Broglie - campus de Rennes
+8578,École nationale supérieure d'architecture de Nantes
+8673,IUT de Saint-Pierre
+8757,École polytechnique universitaire de Nantes Université
+8774,École nationale supérieure de l'électronique et de ses applications
+8823,IESEG School of Management
+8838,Filière didactique des langues
+8853,Burgundy School of Business
+8949,École nationale supérieure de chimie de Rennes
+8969,École nationale supérieure des ingénieurs en arts chimiques et technologiques - Toulouse INP
+8991,École nationale supérieure d'architecture et de paysage de Bordeaux
+8995,Faculté de droit et science politique
+9005,Institut polytechnique des sciences avancées - campus de Lyon
+9011,Départements de formation et recherche
+9048,École nationale supérieure d'arts et métiers - campus Arts et Métiers de Cluny
+9068,La maison des langues
+9070,UFR Lettres et sciences humaines
+9179,ESME - campus de Lyon
+9238,École supérieure d'ingénieurs Réunion Océan Indien
+9354,CESI - campus d'Angoulême
+9359,Centre de préparation à l'administration générale
+9383,École nationale supérieure de mécanique et d'aérotechnique
+9409,Académie militaire de la gendarmerie nationale
+9410,École nationale supérieure d'architecture de la ville & des territoires Paris-Est
+9532,Centrale Lyon ENISE (École nationale d'ingénieurs de Saint-Étienne de l'École centrale de Lyon)
+9586,École nationale supérieure des mines de Saint-Étienne - campus de Saint-Étienne
+9607,École nationale supérieure d'architecture de Toulouse
+9610,École polytechnique universitaire de Bourgogne (ex ESIREM) - site de Dijon
+9688,École d'ingénieurs SIGMA Clermont - Clermont Auvergne INP
+9690,École pour l'informatique et les techniques avancées - site de Rennes
+9805,École des commissaires des armées
+9906,Pôle Formation UIMM Lorraine - CFAI site de Maxéville
+9941, Télécom Paris
+9942,EBS Paris
+9956,Excelia
+9971,École polytechnique universitaire de Savoie - site d'Annecy
+10013,Institut Mines - Télécom École de Management
+10072,École nationale des ponts et chaussées - site de Champs-sur-Marne
+10113,École supérieure d'ingénieurs des travaux de la construction de Metz
+10130,Institut supérieur de l'électronique et du numérique Yncréa Ouest - campus de Brest
+10147,École nationale supérieure d'arts et métiers - campus Arts et Métiers d'Angers
+10163,École supérieure du commerce extérieur
+10170,Cnam Grand Est - site de Reims
+10172,CESI école d'ingénieurs - campus de Dijon
+10298,École nationale d'ingénieurs de Brest - Bretagne INP
+10300,École navale
+10466,École supérieure d'informatique électronique automatique - campus de Paris
+10492,"FERRANDI Paris, l'école française de gastronomie et de management hôtelier"
+10502,IUT de Vélizy
+10564,CESI école d'ingénieurs - campus de Rouen
+10600,SKEMA Business School
+10652,Pôle licences
+10660,École polytechnique universitaire de l'université d'Aix-Marseille - site de Luminy
+10744,École nationale supérieure d'architecture de Strasbourg
+10745,École supérieure de biotechnologie de Strasbourg
+10761,École des hautes études en sciences de l'information et de la communication
+10764,IUT de Vélizy (antenne de Rambouillet)
+10793,IUT de Kourou (antenne de Cayenne)
+10818,Institut national des sciences et techniques nucléaires
+10835,École nationale supérieure des Mines d'Albi - IMT Mines Albi
+10841,"ENS d'électrotechnique, électronique, informatique, hydraulique, télécommunications - Toulouse INP"
+10897,AgroParisTech - Centre de Montpellier
+10905,Institut catholique d'arts et métiers - site de Vendée
+11024,École polytechnique universitaire de Bourgogne (ex ESIREM) - site du Creusot
+11041,Institut d'optique théorique et appliquée - campus de Palaiseau
+11071,ECAM-EPMI - site de Grasse
+11085,École nationale supérieure Mines-Télécom Nord Europe - campus de Douai
+11093,École polytechnique universitaire de Savoie - site de Chambery
+11121,UFR des sciences sociales
+11125,EDC Paris
+11155,Faculté de médecine
+11174,École nationale supérieure des mines de Saint-Étienne - Campus Provence
+11250,ENSIL-ENSCI - site de Limoges
+11390,École nationale supérieure des technologies et industries du bois
+11412,Institut polytechnique des sciences avancées - campus d'Ivry-sur-Seine
+11494,Institut supérieur du commerce de Paris
+11497,Centre de formation des journalistes
+11548,École nationale supérieure d'ingénieurs de Reims
+11570,Institut polytechnique UniLaSalle - campus de Rennes
+11576,CFA Gobelins l'école de l'image - Campus Paris Gambetta
+11594,École nationale supérieure d'architecture de Lyon
+11608,CFA Ferrandi Paris - site de Saint-Gratien
+11720,École supérieure d'informatique électronique automatique - campus de Laval
+11747,École nationale supérieure d'informatique pour l'industrie et l'entreprise
+11784,Service formation continue et alternance Université Rennes
+11786,INSEEC
+11919,École supérieure de chimie organique et minérale
+11922,Institut national des sciences et techniques nucléaires
+11930,Institut d'études politiques (Sciences Po Lyon)
+11946,École nationale de la météorologie
+11957,École de l'air et de l'espace
+11960,LP métiers de l'ameublement
+11998,Institut polytechnique UniLaSalle - campus de Rouen
+12043,Campus supérieur de Marseille- École pratique
+12060,"Faculté des arts, lettres, langues, sciences humaines - antenne d'Arles"
+12077,École nationale de la statistique et de l'analyse de l'information
+12127,École polytechnique universitaire de l'université Clermont Auvergne - Clermont Auvergne INP - site de Montluçon
+12128,ICN Business School
+12142,École nationale supérieure des Mines de Nancy - site de Nancy
+12264,École polytechnique universitaire de l'université de Montpellier - site de Montpellier
+12346,CFA CCIV-ESSEC (siège administratif)
+12352,Département études russes
+12431,Institut national des sciences appliquées de Strasbourg
+12523,Institut d'études politiques (Sciences Po Rennes)
+12533,École nationale supérieure d'arts et métiers - campus Arts et Métiers de Bordeaux Talence
+12559,UFR des sciences
+12635,AgroParisTech - Centre de Clermont-Ferrand
+12767,ACESTE-Conservatoire national des arts et métiers
+12823,Kedge Business School
+12854,École du Louvre
+12902,ISTEC Paris
+12915,Institut catholique d'arts et métiers - site de Bretagne
+12996,École nationale supérieure d'architecture de Saint-Étienne
+13094,Montpellier Business School
+13108,Pôle Formation UIMM Lorraine - CFAI site de Thaon-lès-Vosges
+13213,"École nationale supérieure de l'énergie, l'eau et l'environnement - Grenoble INP-UGA"
+13238,Institut supérieur d'ingénieurs de Franche-Comté
+13250,Institut national des sciences appliquées de Lyon - site de Lyon
+13277,École nationale supérieure de Chimie de Paris - PSL
+13282,Filière relations internationales
+13406,Campus Supérieur de Marseille - ISBA TP
+13458,Institut d'études politiques (Sciences Po Lille)
+13552,École nationale supérieure Mines-Télécom Nord Europe - InGHénia - campus de Valenciennes
+13607,AgroParisTech - Centre de Nancy
+13656,École nationale supérieure des Mines d'Alès - IMT Mines Alès
+13694,École supérieure des technologies industrielles avancées
+13745,"Sciences Po, campus de Poitiers"
+13843,Faculté d'économie et de gestion - Campus Aix - site Pauliane
+13973,École supérieure d'informatique électronique automatique - campus d'Ivry-sur-Seine
+14008,École nationale supérieure d'informatique et de mathématiques appliquées - Grenoble INP-UGA
+14043,UFR Santé
+14063,École d'ingénieurs des sciences aérospatiales - campus de Bordeaux
+14198,École polytechnique
+14251,Institut d'études politiques (Sciences Po Toulouse)
+14353,École nationale de la statistique et de l'administration économique
+14393,Département Asie du Sud Est et Pacifique
+14476,Centre d'études franco-américain de management
+14494,École nationale supérieure de chimie de Montpellier
+14524,Institut national des techniques économiques et comptables
+14534,ENTPE Lyon
+14564,Télécom Nancy - Lorraine INP
+14576,Clermont School of Business (ex ESC Clermont BS)
+14586,École nationale supérieure d'arts et métiers - campus Arts et Métiers d'Aix-en-Provence
+14587,CFA interconsulaire Méditerranée
+14604,CNAM Saint-Denis
+14692,École nationale supérieure d'ingénieurs Sud Alsace
+14715,École supérieure d'arts et médias de Caen - Cherbourg - site de Caen
+14720,École de management de Normandie
+14826,IGENSIA RH
+14862,CESI école d'ingénieurs - campus de Pau
+14891,Département de l'enseignement du Français à l'International
+14918,CESI école d'ingénieurs - campus de Paris Nanterre
+14955,CESI école d'ingénieurs - campus de Nancy
+14965,École pour l'informatique et les techniques avancées - site de Strasbourg
+15067,École nationale supérieure Mines-Télécom Atlantique Bretagne Pays de la Loire - campus de Brest
+15079,Institut supérieur des matériaux du Mans - ISMANS CESI Le Mans
+15081,École européenne d'ingénieurs en génie des matériaux
+15102,Direction de la formation continue et de l'apprentissage
+15130,INSEEC
+15181,École nationale supérieure des Mines de Nancy - Institut supérieur d'ingénierie de la conception - site de Saint-Dié-des-Vosges
+15191,Service formation continue et alternance de l'université de Besançon
+15211,Observatoire des sciences de l'Univers - Institut Pythéas
+15260,Cnam Laval
+15308,ESIGELEC - site de Rouen
+15310,"Sciences Po, campus de Menton"
+15311,"Sciences Po, campus de Nancy"
+15312,"Sciences Po Paris, campus de Dijon"
+15322,École d'ingénieurs de l'université de Toulon
+15394,EDHEC Business School
+15400,École européenne de chimie polymères et matériaux
+15411,Audencia Business School
+15415,Cnam Grenoble
+15517,"Sciences Po, campus du Havre"
+15521,Service Formation Continue Apprentissage de l'INU Champollion
+15525,École de management Léonard de Vinci
+15526,École nationale supérieure en systèmes avancés et réseaux - Grenoble INP-UGA
+15530,École nationale supérieure d'agronomie et des industries alimentaires
+15535,École nationale supérieure de géologie
+15580,ESSCA School of Management
+15613,CESI école d'ingénieurs - campus de Pau - site d'Assat
+15638,École nationale supérieure d'ingénieurs de Bretagne Sud - site de Lorient
+15653,École supérieure de fonderie et de forge
+15687,École nationale supérieure d'architecture Paris La Villette
+15730,SKEMA Business School
+15731,EDHEC Business School
+15744,École de management de Normandie
+15747,NEOMA Business School
+15763,École pratique des hautes études - PSL
+15764,Filière communication interculturelle et internationale
+15804,CESI école d'ingénieurs - campus du Mans
+15837,CFA SupOptique (siège administratif)
+15862,Institut d'études politiques (Sciences Po Aix)
+15911,Centre de préparation à l'administration générale de Lyon - Sciences Po Lyon
+15927,École nationale supérieure d'arts et métiers - campus Arts et Métiers de Châlons-en-Champagne
+15929,Institut polytechnique UniLaSalle - campus d'Amiens
+15933,CESI école d'ingénieurs - campus de Saint-Nazaire
+15935,ESME - campus de Paris
+15938,TBS Education
+15981,École polytechnique universitaire de l'université de Tours
+16003,École centrale d'électronique - Groupe ECE - campus de Paris
+16021,École nationale supérieure des arts appliqués et des métiers d'art
+16027,CESI - campus d'Orléans
+16049,HEC Paris
+16070,École d'ingénieurs du littoral Côte d'Opale - site de Dunkerque
+16089,CFA universitaire Alsace
+16163,EPF école d'ingénieurs généralistes - site de Paris-Cachan
+16186,École universitaire de kinésithérapie Centre-Val de Loire
+16208,Igensia RH (ex IGS - RH)
+16228,Institut national supérieur du professorat et de l'éducation de Bourgogne - site de Dijon
+16356,"Département études indiennes, sud-asiatiques et tibétaines"
+16361,École nationale supérieure d'architecture Paris-Val de Seine
+16368,ISTY UVSQ - campus de Vélizy-Villacoublay
+16414,École supérieure du bois - campus de Nantes
+16423,CentraleSupélec - campus de Rennes
+16434,CentraleSupélec - campus de Paris-Saclay
+16435,EICnam Hauts-de-France - site d'Amiens
+16487,CFA de l'Université du Havre
+16526,École nationale de l'aviation civile - campus de Montpellier
+16550,CESI école d'ingénieurs - campus de Reims
+16552,Institut polytechnique des sciences avancées - campus de Toulouse
+16553,ICAM - pôle de formation professionnelle
+16558,CESI - campus d'Arras
+16559,Campus de Saint-Étienne de l'Institut d'Études Politiques de Lyon
+16567,École polytechnique universitaire de l'université Lille
+16584,EICnam Nouvelle-Aquitaine - site de Limoges
+16605,CESI - campus de Caen
+16609,Cnam Saint-Nazaire
+16610,EPF école d'ingénieurs généralistes - site de Troyes
+16620,CESI - campus de Montpellier
+16645,École polytechnique universitaire de l'université d'Aix-Marseille - site de Château Gombert
+16658,Cnam Angers
+16666,ECAM-EPMI - site de Cergy
+16681,Institut supérieur de l'automobile et des transports - site d'Auxerre
+16697,Institut national des sciences appliquées Centre-Val de Loire - site de Bourges
+16699,Institut Lyfe (ex Institut Paul Bocuse)
+16700,École d'ingénieur de l'université de Caen - site de Caen
+16725,ENS pour la performance industrielle et la maintenance aéronautique
+16727,ESTP - Grande école d'ingénieurs de la construction - campus de Dijon
+16732,Cnam Bretagne
+16747,Université de Caen Normandie - SUFCA
+16752,Département études japonaises
+16756,Institut de gestion sociale - École des ressources humaines
+16767,"Sciences Po, campus de Paris"
+16821,École nationale supérieure agronomique de Toulouse - Toulouse INP
+16823,CESI école d'ingénieurs - campus de Caen
+16843,Département Universitaire de Maïeutique - Université Paris Cité - site Necker
+16880,École supérieure d'ingénieurs des travaux de la construction de Paris
+16881,École nationale de l'aviation civile - campus de Toulouse
+16882,École nationale supérieure des sciences agronomiques de Bordeaux Aquitaine
+16883,Institut d'administration des entreprises de La Réunion
+16951,CESI école d'ingénieurs - campus d'Arras
+16975,Université Paris Sciences et Lettres
+16982,CESI école d'ingénieurs - campus de Lille
+17017,CESI - campus de Brest
+17020,École nationale supérieure Mines-Télécom Nord Europe - campus de Dunkerque
+17022,École d'ingénieurs du littoral Côte d'Opale - site de Saint-Omer Longuenesse
+17024,École supérieure d'informatique électronique automatique - campus d'Agen
+17051,Cnam Régional Grand Est
+17055,École d'ingénieurs en énergies renouvelables
+17072,Télécom Saint-Étienne - site de Saint-Étienne
+17074,Institut national des sciences appliquées de Toulouse - site de Toulouse
+17143,JUNIA École des hautes études d'ingénieur - campus de Châteauroux
+17155,ESME - campus de Lille
+17173,CESI école d'ingénieurs - campus d'Aix-en-Provence
+17183,Institut polytechnique UniLaSalle - campus de Beauvais
+17192,Institut national supérieur du professorat et de l'éducation de Bourgogne - site de Mâcon
+17202,Kedge Business School
+17210,Institut supérieur d'informatique de modélisation et de leurs applications - Clermont Auvergne INP
+17222,NEOMA Business School
+17240,INSEEC
+17281,Builders École d'ingénieurs - site de Caen (ex ESITC Caen)
+17287,Institut supérieur de biotechnologies de Paris - campus de Villejuif
+17292,Cnam Nouvelle-Aquitaine - site de Poitiers
+17294,École nationale supérieure de chimie de Mulhouse
+17348,Institut supérieur d'agriculture Rhône-Alpes - campus de Lyon
+17359,Cnam Lyon Métropole
+17396,Pôle Formation UIMM Lorraine - CFAI site de Saint-Dié
+17397,Paris School of Business
+17411,ISCPA Paris - Institut Supérieur des Médias
+17504,Campus Valrose Sciences et Ingénierie
+17543,Burgundy School of Business
+17563,Conservatoire national des arts et métiers Bourgogne-Franche-Comté - Chalon-sur-Saône
+17573,Cnam Nouvelle-Aquitaine - site de Limoges
+17598,ESTP - Grande école d'ingénieurs de la construction - campus de Cachan
+17604,École polytechnique universitaire de l'université de Montpellier - site de Nîmes
+17612,European School of Administration and Management
+17614,Institut national des transports internationaux et des ports
+17627,Excelia
+17638,Institut supérieur de l'électronique et du numérique Yncréa Méditerranée - campus de Marseille
+17687,EICnam Grand Est - site de Reims
+17691,3iL Ingénieurs - site de Rodez
+17693,Institut d'optique théorique et appliquée - campus de Saint-Étienne
+17720,École nationale du génie de l'eau et de l'environnement de Strasbourg
+17721,Institut Agro Rennes-Angers - campus d'Angers
+17761,École supérieure angevine d'informatique et de productique - site d'Aix-en-Provence
+17767,Télécom SudParis - site de Palaiseau
+17775,Médiat Rhône-Alpes - Centre régional de formation aux métiers des bibliothèques - site de Villeurbanne
+17797,EICnam PACA - site d'Avignon - Académie Vaucluse Provence
+17814,Cnam - École nationale du jeu et des médias interactifs numériques
+17828,École polytechnique universitaire de l'université d'Angers
+17836,FORMASUP Méditerranée
+17847,École nationale supérieure Mines-Télécom Atlantique Bretagne Pays de la Loire - campus de Rennes
+17857,École Supérieure de Tourisme - Groupe Y Schools
+17864,École pour l'informatique et les techniques avancées - site de Lyon
+17876,CESI école d'ingénieurs - campus de Toulouse
+17889,JUNIA Institut supérieur d'agriculture
+17898,École nationale supérieure d'architecture Paris Malaquais - PSL
+17912,Département de la formation et des Etudes Doctorales (DFED) de Institut de physique du globe de Paris
+17914,Muséum national d'histoire naturelle
+17924,ISCPA Lyon - Institut supérieur des médias
+17949,École nationale supérieure d'arts et métiers - campus Arts et Métiers de Chalon-sur-Saône
+17958,Institut catholique d'arts et métiers - site de Grand Paris Sud
+17975,"École nationale supérieure d'électronique, informatique, télécommunications, mathématiques et mécanique de Bordeaux"
+17981,École spéciale d'architecture
+17997,ESDES Business School
+18003,Département Eurasie
+18004,Département études hébraïques et juives
+18005,Département études arabes
+18061,Institut national des sciences appliquées Centre-Val de Loire - site de Blois
+18081,Institut international du commerce et du développement - Igensia Education
+18192,École supérieure d'ingénieurs de Rennes - campus de Rennes
+18195,CESI école d'ingénieurs - campus d'Orléans
+18248,UFR Santé
+18333,Cnam Nouvelle-Aquitaine - site de Bordeaux
+18336,Institut catholique d'arts et métiers - site de Strasbourg-Europe
+18345,Conservatoire national des arts et métiers de la Guadeloupe
+18359,INSEEC
+18360,École Supérieure de Tourisme - Groupe Y Schools
+18366,TBS Education
+18369,École supérieure angevine d'informatique et de productique - site d'Angers
+18379,Institut supérieur du commerce de Paris
+18386,Institut du Management des Services Immobiliers
+18401,Excelia
+18402,Gobelins Paris - Campus Gambetta
+18450,Institut littoral urbain durable intelligent
+18454,Kedge Business School
+18464,CY Tech - campus de Pau
+18486,École nationale supérieure d'ingénieurs de Caen et centre de recherche
+18499,Télécom SudParis - site d'Évry
+18515,Sciences Po Saint-Germain-en-Laye
+18528,École d'ingénieurs des sciences aérospatiales - campus de Saint-Quentin
+18577,UFR des sciences et techniques
+18581,École nationale supérieure en génie des systèmes et de l'innovation
+18587,École d'ingénieurs du littoral Côte d'Opale - site de Calais
+18591,ESSCA School of Management
+18654,EICnam Pays-de-la-Loire - site de La Roche-sur-Yon
+18673,École d'ingénieurs de l'université de Caen - site de Cherbourg-en-Cotentin
+18674,Institut Agro Rennes-Angers - campus de Rennes
+18679,Institut Agro Dijon
+18681,École nationale d'ingénieurs de Metz
+18688,CESI école d'ingénieurs - campus de Lyon
+18712,CESI école d'ingénieurs - campus de Nice
+18742,CESI école d'ingénieurs - campus de La Rochelle
+18776,EICnam Grand Est - site de Strasbourg
+18777,EICnam Grand Est - site de Nancy
+18778,EICnam Paris et Ile-de-France - campus de Paris
+18780,Institut catholique d'arts et métiers - site de Toulouse
+18789,Cnam Pays-de-la-Loire
+18796,Filière traitement automatique des langues
+18804,École polytechnique universitaire de l'Université de Lorraine - Polytech Nancy
+18903,CentraleSupélec - campus de Metz
+18921,Conservatoire national des arts et métiers de la Martinique
+18978,Kedge Business School
+18979,Kedge Business School
+18998,Campus de Caen de l'Institut d'études politiques de Rennes
+19007,EICnam Nouvelle-Aquitaine - site de Niort
+19024,Institut Confucius
+19047,CESI - campus de Grenoble
+19049,École centrale d'électronique - Groupe ECE - campus de Lyon
+19054,CESI - campus de Strasbourg
+19061,AgroParisTech - Centre de Paris-Saclay
+19083,"Université de Toulouse, sciences, ingénierie et technologie"
+19104,"École nationale supérieure de physique, électronique, matériaux - Grenoble INP-UGA"
+19112,École nationale supérieure d'arts et métiers - campus d'Angers
+19117,EICnam Nouvelle-Aquitaine - site de Poitiers
+19123,EICnam Grand Est - site de Metz
+19132,"Faculté des arts, lettres, langues et sciences humaines - Site Schuman - Aix-en-Provence"
+19169,École polytechnique universitaire Grenoble INP-UGA
+19195,IESEG School of Management
+19197,ESIEE Paris
+19204,Institut supérieur de mécanique de Paris
+19231,CESI école d'ingénieurs - campus d'Angoulême
+19242,CESI école d'ingénieurs - campus de Brest
+19249,Conservatoire national des arts et métiers Hauts de France - Centre de Lille
+19290,GEM - Alpine Business School
+19293,École polytechnique universitaire de Paris Saclay
+19296,École centrale de Lyon
+19342,VetAgro Sup - campus vétérinaire de Lyon
+19356,École nationale supérieure d'arts et métiers - campus Arts et Métiers de Metz
+19364,Conservatoire national des arts et métiers Bourgogne-Franche-Comté - Belfort
+19366,CFA Ferrandi Paris - site de Paris
+19372,EICnam Normandie - ITII Normandie
+19376,École nationale supérieure de Génie industriel - Grenoble INP-UGA
+19431,CESI - campus Paris Nanterre
+19435,Institut supérieur de l'électronique et du numérique Yncréa Méditerranée - campus de Toulon
+19453,École supérieure d'électronique de l'Ouest - site Angers
+19476,Cnam Grand Est - site de Strasbourg
+19518,CFA Université Bordeaux Montaigne
+19524,"Sciences Po, campus de Reims"
+19593,Institut supérieur de l'électronique et du numérique Yncréa Ouest - campus de Rennes
+19613,ESSCA School of Management
+19627,Excelia
+19656,École nationale supérieure d'arts et métiers - campus Arts et Métiers de Chambéry
+19672,Université de technologie de Troyes - site de Troyes
+19675,Centrale Méditerranée - campus de Marseille
+19681,École pour l'informatique et les techniques avancées - site de Toulouse
+19683,EPF école d'ingénieurs généralistes - site de Montpellier
+19706,EICnam Nouvelle-Aquitaine - site d'Angoulême
+19740,École nationale supérieure des arts et industries textiles
+19741,CFA de l'enseignement supérieur de Champagne-Ardenne
+19782,ESME - campus de Bordeaux
+21661,École supérieure des agricultures - Paris - St Quentin
+21696,Institut national des sciences appliquées de Lyon - site Oyonnax
+21703,Institut supérieur de biotechnologies de Paris - campus de Lyon
+21707,École supérieure d'électronique de l'Ouest - site Paris-Vélizy
+21734,CFA ISARA-ISEMA
+21738,Université de technologie de Troyes - site de Nogent
+21754,École polytechnique universitaire de l'université d'Aix-Marseille - site de Saint-Jérôme
+21822,Conservatoire national des arts et métiers PACA
+21852,La prépa des INP de Clermont-Ferrand
+21859,École universitaire de recherche en sciences du Vivant et de la Santé - Campus Valrose
+21861,École universitaire de recherche en sciences fondamentales et Ingénierie - Campus Valrose
+21862,École universitaire de recherche en sciences de la société et de l'environnement - Campus Valrose
+21916,Builders École d'ingénieurs - site de Lyon (exESITC Lyon)
+21938,JUNIA Institut supérieur de l'électronique et du numérique - campus de Bordeaux
+21951,Cnam Nouvelle-Aquitaine - site de Dax
+21957,EFREI Paris - campus de Bordeaux
+21960,CESI école d'ingénieurs - campus de Montpellier
+21973,Institut supérieur de l'électronique et du numérique Yncréa Ouest - campus de Caen
+21991,ESIEE-IT - École d'ingénieurs - CCI Paris Ile de France Éducation - site de Pontoise
+22046,CESI - campus de Nice
+22062,CESI - campus de Toulouse
+22065,Cnam Saint-Étienne
+22117,CESI - campus de Bordeaux
+22118,CESI - campus de Pau
+22119,CESI - campus de Rouen - Rouen Madrillet Innovation
+22123,CESI - campus de Nancy
+22176,Cnam Montélimar
+22183,Cnam ARA
+22186,Cnam Montbrison
+22199,Clermont Auvergne INP
+22201,École d'ingénieurs du littoral Côte d'Opale - site de Boulogne-sur-Mer
+22221,IDEX d'Université Côte d'Azur (MSc internationaux)
+22244,Kedge Business School
+22248,CY École de design
+22259,ENSIL-ENSCI - site d'Egletons
+22267,Institut national de l'éducation artistique et culturelle du Conservatoire national des arts et métiers
+22288,École supérieure des techniques aéronautiques et de construction automobile - Bordeaux
+22391,EICnam PACA - site de Toulon
+22392,EICnam Nouvelle Aquitaine - site de Châtellerault
+22393,EICnam Hauts-de-France - PROMEO - site de Beauvais
+22400,Rennes School of Business
+22409,IPAG Business School
+22424,INSEEC
+22427,Cnam Roanne
+22487,CESI - campus de Lyon
+22488,CESI - campus de Lille
+22489,CESI - campus de Reims
+22490,CESI - campus de Dijon
+22555,AgroParisTech - Centre d'Orléans
+22599,CESI - campus de Nantes
+22615,Cnam Occitanie - site de Montpellier
+22621,Cnam Occitanie - site de Toulouse
+22622,ESSCA School of Management
+22643,EICnam Paris et Ile-de-France - campus de Mantes-la-Jolie
+22644,EICnam Paris et Ile-de-France - campus de Saint-Denis
+22774,Cnam La Roche-sur-Yon
+22775,Cnam Le Mans
+22795,École Ferrandi Paris - campus de Rennes
+22799,École supérieure d'ingénieurs Léonard de Vinci - campus de Nantes
+22803,Service formation professionnelle et alternance
+22813,Cnam Nouvelle-Aquitaine - site de Marmande
+22815,CNAM de Mayotte
+22939,TBS Education
+22963,ECAM-EPMI - site de Cachan
+22965,Centrale Méditerranée - Campus de Nice
+22976,EICnam Bourgogne Franche-Comté - site de Chalon-sur-Saône
+22977,Centrale Lille Institut
+22978,École Ferrandi Paris - campus de Bordeaux
+22979,ESTP - Grande école d'ingénieurs de la construction - campus d'Orléans
+23057,École des hautes études en santé publique - site de Paris-Nord
+23068,ISIT - Institut de management et de communication interculturels
+23074,Conservatoire national des arts et métiers PACA - site de Toulon
+23115,UPEC CFA
+23132,École centrale d'électronique - Groupe ECE - campus de Bordeaux
+23142,Excelia
+23147,Institut national supérieur du professorat et de l'éducation de Versailles - site d'Évry
+23177,ESIEE-IT - CCI Paris Ile de France Éducation - campus de Pontoise
+23251,Section langues et cultures des Amériques
+23254,Formation sciences du langage
+23341,Institut supérieur de l'électronique et du numérique Yncréa Ouest - campus de Paris - Antony
+23348,Conservatoire national des arts et métiers Hauts-de-France - centre d'Amiens - antenne de Saint-Quentin
+23443,ENSIL-ENSCI - site de Brive
+23462,Audencia Business School
+23480,EPF école d'ingénieurs généralistes - site de Saint-Nazaire
+23499,École supérieure d'ingénieurs Léonard de Vinci - campus cyber
+23524,3iL Ingénieurs - site de Nantes
+23621,Conservatoire national des arts et métiers Hauts de France - Centre de Lille - antenne de Maubeuge
+23697,DUNEO - CFA de l'ULCO
+23723,Département de formation et recherche lettres et sciences humaines
+23733,Département de formation et recherche sciences et technologies
+23735,Département de formation et recherche sciences juridiques et économiques
+23740,Département de formation et recherche santé
+23795,École d'ingénieurs Jules Verne - site d'Amiens
+23797,École d'ingénieurs Jules Verne - site de Saint-Quentin
+23802,ESIGELEC - site de Poitiers
+23946,INSA Martinique Caraïbe
+23994,INSEEC
+24003,Kedge Business School
+24012,École nationale supérieure d'arts et métiers - campus Arts et Métiers de Saint-Étienne - ISTP
+24013,CFA AMTalents
+24032,École supérieure du bois - campus de Lyon
+24063,Cnam Grand Est - site de Verdun
+24064,Cnam Grand Est - site de Metz
+24074,Cnam Grand Est - site d'Épinal
+24076,Cnam Grand Est - site de Sedan
+24082,Cnam Grand Est - site de Chaumont
+24084,Cnam Grand Est - site de Saint-Dizier
+24090,Conservatoire national des arts et métiers PACA - site de Nice
+24095,Cnam Grand Est - site de Mulhouse
+24097,Université de technologie de Belfort-Montbéliard - campus de Montbéliard
+24098,Université de technologie de Belfort-Montbéliard - campus de Sevenans
+24189,South Champagne Business School - Groupe Y Schools
+24198,Conservatoire national des arts et métiers - site de Paris
+24211,Université de technologie de Tarbes Occitanie Pyrénées
+24221,ESCP Business School
+24274,L'École de design Nantes Atlantique - site de Laval
+24279,CESI - campus de Saint-Nazaire
+24363,CNAM Centre Val de Loire
+24491,Institut polytechnique de Paris
+24536,École nationale supérieure d'arts et métiers - antenne de Niort
+24538,École nationale supérieure d'arts et métiers - antenne de Dax
+24542,Centre de formation aux carrières des bibliothèques Bretagne - Pays de la Loire
+24549,Institut du Management des Services Immobiliers
+24552,EICnam Grand Est - site de Saint-Dié-des-Vosges
+24553,EICnam Grand Est - UIMM Alsace - site d'Eckbolsheim
+24555,CESI - campus du Mans
+24658,Isep - École d'ingénieurs du numérique - site de Bordeaux
+24764,Bretagne INP
+24822,Institut national des sciences appliquées - Martinique Caraïbe
+24827,Service d'accompagnement à la réussite
+24835,Conservatoire national des arts et métiers PACA - site d'Aix-en-Provence
+24916,CESI école d'ingénieurs - campus d'Orléans - site de Tours
+24918,CESI école d'ingénieurs - campus de Grenoble
+24922,Audencia Business School
+24925,CESI école d'ingénieurs - campus de Nantes
+24941,École supérieure d'ingénieurs Léonard de Vinci - campus de Montpellier
+24959,Cnam Nouvelle-Aquitaine - site d'Angoulême
+25009,"Institut des Transversalités, des Sports et de la Santé - UPHF,  campus du Mont Houy"
+25133,EICnam Paris et Ile-de-France - campus de Mantes-la-Ville
+25239,École nationale supérieure d'arts et métiers - antenne de Bergerac
+25251,Conservatoire national des arts et métiers Hauts-de-France - centre d'Amiens - antenne de Soissons
+25253,Conservatoire national des arts et métiers Hauts-de-France - centre d'Amiens - antenne de Compiègne
+25262,ESTP - Grande école d'ingénieurs de la construction - ECIR - campus d'Aix-en-Provence
+25352,Conservatoire national des arts et métiers Bourgogne-Franche-Comté - Besançon
+25353,INSEEC
+25355,INSEEC
+25360,INSEEC
+25391,EICnam Bretagne - Institut Boussingault
+25411,INSEEC
+25412,INSEEC
+25420,ECAM Louis de Broglie - campus de Cherbourg-en-Cotentin
+25491,École catholique d'arts et métiers de la Fondation ECAM LaSalle - Lycée La Nativité - site d'Aix-en-Provence
+25519,Montpellier Business School
+25547,Institut international du commerce et du développement - Igensia Education
+25568,IPAG Business School
+25585,École de management Léonard de Vinci
+25586,École de management Léonard de Vinci
+25588,École centrale d'électronique - Groupe ECE - campus de Rennes
+25589,École centrale d'électronique - Groupe ECE - campus de Marseille
+25620,École polytechnique universitaire de l'université de Montpellier - site de Béziers
+25631,École supérieure du bois - campus de Versailles
+25649,Télécom Saint-Étienne - site de Roanne
+25650,ESIEE-IT - École d'ingénieurs - CCI Paris Ile-de-France Éducation - site de Paris
+25688,Institut d'études françaises pour étrangers
+25706,Observatoire de Paris - PSL
+25723,"GRETA de la Création, du Design et Métiers d'Art"
+25750,Campus Versailles patrimoine et artisanat d’excellence

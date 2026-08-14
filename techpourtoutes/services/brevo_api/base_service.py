@@ -1,12 +1,12 @@
 from brevo.core.api_error import ApiError
 
 from techpourtoutes.clients.brevo import BrevoClient
-from techpourtoutes.services.base import BaseService
+from techpourtoutes.services.base_api import BaseApiService
 
 HTTP_ERROR_MESSAGE = "L'appel à Brevo a échoué (code {code}). Détails : {detail}"
 
 
-class BrevoApiBaseService(BaseService):
+class BrevoApiBaseService(BaseApiService):
     """Base class for Brevo contacts-API service objects.
 
     Subclasses implement `perform(**kwargs)` and call `self.request(method=..., **kwargs)`.

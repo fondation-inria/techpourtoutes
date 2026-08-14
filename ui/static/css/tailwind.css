@@ -58,7 +58,6 @@
     --radius-md: 8px;
     --radius-lg: 12px;
     --radius-2xl: 1rem;
-    --radius-3xl: 1.5rem;
     --ease-out: cubic-bezier(0, 0, 0.2, 1);
     --default-transition-duration: 150ms;
     --default-transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
@@ -1058,6 +1057,122 @@
     .tab:is(.tabs > .tab)[disabled] {
       pointer-events: none;
       opacity: 40%;
+    }
+    .dropdown {
+      position: relative;
+      display: inline-block;
+      position-area: var(--anchor-v, bottom) var(--anchor-h, span-right);
+    }
+    .dropdown > :not(:has( ~ [class*="dropdown-content"])):focus {
+      --tw-outline-style: none;
+      outline-style: none;
+    }
+    @media (forced-colors: active) {
+      .dropdown > :not(:has( ~ [class*="dropdown-content"])):focus {
+        outline: 2px solid transparent;
+        outline-offset: 2px;
+      }
+    }
+    .dropdown .dropdown-content {
+      position: absolute;
+    }
+    .dropdown.dropdown-close .dropdown-content {
+      display: none;
+      transform-origin: top;
+      opacity: 0%;
+      scale: 95%;
+    }
+    .dropdown:not(details, .dropdown-open, .dropdown-hover:hover, :focus-within) .dropdown-content {
+      display: none;
+      transform-origin: top;
+      opacity: 0%;
+      scale: 95%;
+    }
+    .dropdown.dropdown-hover:not(:hover) [tabindex]:first-child:focus:not(:focus-visible) ~ .dropdown-content {
+      display: none;
+      transform-origin: top;
+      opacity: 0%;
+      scale: 95%;
+    }
+    .dropdown[popover] {
+      z-index: 999;
+    }
+    @media (prefers-reduced-motion: no-preference) {
+      .dropdown[popover] {
+        animation: dropdown 0.2s;
+        transition-property: opacity, scale, display, overlay;
+        transition-behavior: allow-discrete;
+        transition-duration: 0.2s;
+        transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+      }
+    }
+    @starting-style {
+      .dropdown[popover] {
+        scale: 95%;
+        opacity: 0;
+      }
+    }
+    .dropdown .dropdown-content {
+      z-index: 999;
+    }
+    @media (prefers-reduced-motion: no-preference) {
+      .dropdown .dropdown-content {
+        animation: dropdown 0.2s;
+        transition-property: opacity, scale, display, overlay;
+        transition-behavior: allow-discrete;
+        transition-duration: 0.2s;
+        transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+      }
+    }
+    @starting-style {
+      .dropdown .dropdown-content {
+        scale: 95%;
+        opacity: 0;
+      }
+    }
+    :is(.dropdown:not(.dropdown-close).dropdown-open, .dropdown:not(.dropdown-close):not(.dropdown-hover):focus, .dropdown:not(.dropdown-close):focus-within) > [tabindex]:first-child {
+      pointer-events: none;
+    }
+    :is(.dropdown:not(.dropdown-close).dropdown-open, .dropdown:not(.dropdown-close):not(.dropdown-hover):focus, .dropdown:not(.dropdown-close):focus-within) .dropdown-content {
+      opacity: 100%;
+      scale: 100%;
+    }
+    .dropdown:not(.dropdown-close).dropdown-hover:hover .dropdown-content {
+      opacity: 100%;
+      scale: 100%;
+    }
+    .dropdown:is(details) {
+      overflow: revert-layer;
+    }
+    .dropdown:is(details) summary::-webkit-details-marker {
+      display: none;
+    }
+    .dropdown:where([popover]) {
+      background: #0000;
+    }
+    .dropdown[popover] {
+      position: fixed;
+      color: inherit;
+    }
+    @supports not (position-area: bottom) {
+      .dropdown[popover] {
+        margin: auto;
+      }
+      .dropdown[popover].dropdown-close, .dropdown[popover].dropdown-open:not(:popover-open) {
+        display: none;
+        transform-origin: top;
+        opacity: 0%;
+        scale: 95%;
+      }
+      .dropdown[popover]::backdrop {
+        background-color: color-mix(in oklab, #000 30%, #0000);
+      }
+    }
+    .dropdown[popover].dropdown-close, .dropdown[popover]:not(.dropdown-open, :popover-open) {
+      display: none;
+      transform-origin: top;
+      opacity: 0%;
+      scale: 95%;
     }
     .loading {
       pointer-events: none;
@@ -3725,6 +3840,12 @@
   .origin-top {
     transform-origin: top;
   }
+  @layer daisyui.l1.l2.l3 {
+    .menu .dropdown:focus-within .menu-dropdown-toggle:after {
+      rotate: 45deg;
+      translate: 0 1px;
+    }
+  }
   .scale-y-20 {
     --tw-scale-y: 20%;
     scale: var(--tw-scale-x) var(--tw-scale-y);
@@ -3897,9 +4018,6 @@
   }
   .rounded-2xl {
     border-radius: var(--radius-2xl);
-  }
-  .rounded-3xl {
-    border-radius: var(--radius-3xl);
   }
   .rounded-full {
     border-radius: calc(infinity * 1px);
@@ -4282,6 +4400,9 @@
   }
   .text-white {
     color: var(--color-white);
+  }
+  .capitalize {
+    text-transform: capitalize;
   }
   .italic {
     font-style: italic;
@@ -5265,6 +5386,7 @@
     --color-secondary-content: var(--color-info-50);
     --color-success: var(--color-success-500);
     --color-warning: var(--color-warning-500);
+    --color-info: var(--color-info-50);
     --color-error: var(--color-error-500);
   }
 }

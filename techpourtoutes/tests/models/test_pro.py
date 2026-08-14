@@ -99,23 +99,12 @@ def test_pro_phone_is_optional(valid_pro_model_data):
 
 
 @pytest.mark.django_db
-def test_pro_stores_structure_id(valid_pro_model_data):
-    from techpourtoutes.models import Pro
-
-    Pro(
-        username="marie.dupont@example.com", structure_id="0123456A", **valid_pro_model_data
-    ).save()
-    assert Pro.objects.get(email="marie.dupont@example.com").structure_id == "0123456A"
-
-
-@pytest.mark.django_db
 def test_soft_delete_anonymizes_expected_fields(pro):
     original_pk = pro.pk
     original_professional_situation = pro.professional_situation
     original_engagements = pro.engagements
     original_postal_code = pro.postal_code
     original_structure_name = pro.structure_name
-    original_structure_id = pro.structure_id
     original_civility = pro.civility
     original_job_title = pro.job_title
 
@@ -141,6 +130,5 @@ def test_soft_delete_anonymizes_expected_fields(pro):
     assert pro.engagements == original_engagements
     assert pro.postal_code == original_postal_code
     assert pro.structure_name == original_structure_name
-    assert pro.structure_id == original_structure_id
     assert pro.civility == original_civility
     assert pro.job_title == original_job_title

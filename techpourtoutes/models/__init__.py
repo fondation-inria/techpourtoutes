@@ -1,5 +1,7 @@
 from .beneficiary import Beneficiary
-from .higher_ed_school import HigherEdSchool
+from .formation import Formation
+from .formation_action import FormationAction
+from .level import Level
 from .pro import Pro
 from .school import School
 from .training_experience import TrainingExperience
@@ -8,7 +10,9 @@ from .workshop_request import WorkshopRequest
 
 __all__ = [
     "Beneficiary",
-    "HigherEdSchool",
+    "Formation",
+    "FormationAction",
+    "Level",
     "Pro",
     "School",
     "TrainingExperience",

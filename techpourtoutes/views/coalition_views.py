@@ -5,8 +5,9 @@ from django.shortcuts import redirect, render
 from ..forms import EngagementForm, ManifesteSignatureForm, TrainingAmbassadorForm, WorkshopForm
 from ..mailers import ConsortiumMailer, ProMailer
 from ..models import Pro, WorkshopRequest
-from ..services.create_mentor import CreateMentor
+from ..services.pro.create_mentor import CreateMentor
 from ..tasks import notify_workshop_request_task, upsert_manifeste_signatory_task
+from ..utils.missing_record import report_missing_record
 
 
 def coalition_home(request):
@@ -53,6 +54,7 @@ def training_ambassador_landing(request):
             ConsortiumMailer.new_training_ambassador(
                 pro=pro, training_experience=training_experience
             )
+            report_missing_record(form, pro, "Ambassadrice étudiante")
             if already_exists:
                 ProMailer.new_engagement(pro=pro)
             else:
@@ -98,7 +100,9 @@ def workshops_landing(request):
                 pro_pk=str(pro.pk),
                 ateliers=form.cleaned_data["ateliers"],
                 remark=form.cleaned_data["remark"],
+                structure_uai=form.cleaned_data["structure_uai"],
             )
+            report_missing_record(form, pro, "Demande d'atelier")
             if already_exists:
                 ProMailer.new_engagement(pro=pro)
             else:

@@ -5,7 +5,7 @@ from django.http import HttpResponse
 from django.shortcuts import redirect, render
 from django.views.decorators.http import require_POST
 
-from techpourtoutes.services.soft_delete_account import SoftDeleteAccount
+from techpourtoutes.services.account.soft_delete_account import SoftDeleteAccount
 
 from ..forms import (
     BeneficiaryEditAccountForm,
@@ -17,7 +17,7 @@ from ..forms import (
 )
 from ..mailers import AuthMailer
 from ..ratelimit import rate_limit
-from ..services.verify_email_change_code import VerifyEmailChangeCode
+from ..services.account.verify_email_change_code import VerifyEmailChangeCode
 from ..utils.text import mask_email
 from ..utils.training_experience import training_experience_slots
 

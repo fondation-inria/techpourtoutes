@@ -1,4 +1,4 @@
-<div id="funnel-step" class="w-full flex flex-col gap-y-6">
+<div id="funnel-step" class="w-full flex flex-col">
     {% include "beneficiary/partials/inscription/progress.html" %}
     <c-components.card nobg=True>
         <c-patterns.form
@@ -11,17 +11,40 @@
             {% if study_status == "high_school" %}
                 <c-components.form_fields.select field=form.level />
                 <c-components.form_fields.school_search
-                    name_field=form.school_name
-                    id_field=form.school_identifier
-                    postal_field=form.school_postal_code
+                    name_field=form.school_label
+                    id_field=form.school_id
+                    not_found_field=form.school_not_found
+                    scope="secondary"
                     description="Recherche par nom et/ou code postal"
+                    group="{{ form.dom_id }}"
+                    unique_id="{{ form.dom_id }}" />
+                <c-components.form_fields.formation_search
+                    name_field=form.formation_label
+                    id_field=form.formation_id
+                    not_found_field=form.formation_not_found
+                    school_id_field=form.school_id
+                    scope="secondary"
+                    description="Recherche par nom"
+                    group="{{ form.dom_id }}"
                     unique_id="{{ form.dom_id }}" />
             {% elif study_status == "higher_education" %}
                 <c-components.form_fields.select field=form.level />
-                <c-components.form_fields.higher_ed_school_search
-                    id_field=form.higher_ed_school_id
-                    label_field=form.higher_ed_school_label
+                <c-components.form_fields.school_search
+                    name_field=form.school_label
+                    id_field=form.school_id
+                    not_found_field=form.school_not_found
+                    scope="higher_ed"
                     description="Recherche par nom"
+                    group="{{ form.dom_id }}"
+                    unique_id="{{ form.dom_id }}" />
+                <c-components.form_fields.formation_search
+                    name_field=form.formation_label
+                    id_field=form.formation_id
+                    not_found_field=form.formation_not_found
+                    school_id_field=form.school_id
+                    scope="higher_ed"
+                    description="Recherche par nom"
+                    group="{{ form.dom_id }}"
                     unique_id="{{ form.dom_id }}" />
             {% else %}
                 <c-components.form_fields.select field=form.period_label />
@@ -30,23 +53,49 @@
                      class="flex flex-col gap-y-4">
                     <c-components.form_fields.select field=form.level :watchable=True />
                     <template x-if="level != '' && !level.startsWith('bac_')">
-                        <c-components.form_fields.school_search
-                            name_field=form.school_name
-                            id_field=form.school_identifier
-                            postal_field=form.school_postal_code
-                            description="Recherche par nom et/ou code postal"
-                            unique_id="{{ form.dom_id }}" />
+                        <div class="flex flex-col gap-y-4">
+                            <c-components.form_fields.school_search
+                                name_field=form.school_label
+                                id_field=form.school_id
+                                not_found_field=form.school_not_found
+                                scope="secondary"
+                                description="Recherche par nom et/ou code postal"
+                                group="{{ form.dom_id }}"
+                                unique_id="{{ form.dom_id }}" />
+                            <c-components.form_fields.formation_search
+                                name_field=form.formation_label
+                                id_field=form.formation_id
+                                not_found_field=form.formation_not_found
+                                school_id_field=form.school_id
+                                scope="secondary"
+                                description="Recherche par nom"
+                                group="{{ form.dom_id }}"
+                                unique_id="{{ form.dom_id }}" />
+                        </div>
                     </template>
                     <template x-if="level.startsWith('bac_')">
-                        <c-components.form_fields.higher_ed_school_search
-                            id_field=form.higher_ed_school_id
-                            label_field=form.higher_ed_school_label
-                            description="Recherche par nom"
-                            unique_id="{{ form.dom_id }}" />
+                        <div class="flex flex-col gap-y-4">
+                            <c-components.form_fields.school_search
+                                name_field=form.school_label
+                                id_field=form.school_id
+                                not_found_field=form.school_not_found
+                                scope="higher_ed"
+                                description="Recherche par nom"
+                                group="{{ form.dom_id }}"
+                                unique_id="{{ form.dom_id }}-sup" />
+                            <c-components.form_fields.formation_search
+                                name_field=form.formation_label
+                                id_field=form.formation_id
+                                not_found_field=form.formation_not_found
+                                school_id_field=form.school_id
+                                scope="higher_ed"
+                                description="Recherche par nom"
+                                group="{{ form.dom_id }}"
+                                unique_id="{{ form.dom_id }}-sup" />
+                        </div>
                     </template>
                 </div>
             {% endif %}
-            <c-components.form_fields.input field=form.course />
             <div class="flex justify-center">
                 <c-components.button type="submit" label="Rejoindre le club" />
             </div>

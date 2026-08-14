@@ -3,6 +3,7 @@ from django.utils.translation import gettext_lazy as _
 
 from ...models import TrainingExperience
 from ...utils.school_year import school_year_choices, school_year_dates
+from ..validators import FORMATION_LABEL_MAX_LENGTH, SCHOOL_LABEL_MAX_LENGTH
 from .base_training_experience_form import BaseTrainingExperienceForm, level_choices
 
 _ESTABLISHMENT_LABEL = _("Dans quel établissement as-tu obtenu ce diplôme ?*")
@@ -21,18 +22,22 @@ class BeneficiaryLastDiplomaTrainingExperienceForm(BaseTrainingExperienceForm):
     )
     level = forms.ChoiceField(
         label=_("Quel est le niveau de ton diplôme ?*"),
-        choices=level_choices(TrainingExperience.Level),
+        choices=level_choices(TrainingExperience.LEVELS),
     )
-    school_name = forms.CharField(
-        widget=forms.HiddenInput, required=False, label=_ESTABLISHMENT_LABEL
+    school_label = forms.CharField(
+        widget=forms.HiddenInput,
+        required=False,
+        max_length=SCHOOL_LABEL_MAX_LENGTH,
+        label=_ESTABLISHMENT_LABEL,
     )
-    school_identifier = forms.CharField(widget=forms.HiddenInput, required=False)
-    school_postal_code = forms.CharField(widget=forms.HiddenInput, required=False)
-    higher_ed_school_id = forms.CharField(
-        widget=forms.HiddenInput, required=False, label=_ESTABLISHMENT_LABEL
+    school_id = forms.CharField(widget=forms.HiddenInput, required=False)
+    formation_label = forms.CharField(
+        widget=forms.HiddenInput,
+        required=False,
+        max_length=FORMATION_LABEL_MAX_LENGTH,
+        label=_("De quelle formation es-tu diplômée ?*"),
     )
-    higher_ed_school_label = forms.CharField(widget=forms.HiddenInput, required=False)
-    course = forms.CharField(max_length=255, label=_("De quelle filière es-tu diplômée ?*"))
+    formation_id = forms.CharField(widget=forms.HiddenInput, required=False)
 
     def training_dates(self):
         return school_year_dates(self.cleaned_data["period_label"])

@@ -1,18 +1,19 @@
 from django import forms
 from django.utils.translation import gettext_lazy as _
-from phonenumber_field.formfields import PhoneNumberField
 
 from techpourtoutes.utils.school_year import (
     current_school_year_end_date,
     current_school_year_start_date,
 )
 
-from ...models import Pro, TrainingExperience
-from ..validators import resolve_higher_ed_school
+from ...models import Formation, Pro, School, TrainingExperience
+from ..fields import PhoneNumberField
+from ..mixins import TrainingExperienceFormMixin
+from ..validators import FORMATION_LABEL_MAX_LENGTH, SCHOOL_LABEL_MAX_LENGTH
 from .base_engagement_form import BaseEngagementForm
 
 
-class TrainingAmbassadorForm(BaseEngagementForm):
+class TrainingAmbassadorForm(TrainingExperienceFormMixin, BaseEngagementForm):
     pro_fields = ("phone",)
     prefill_fields = ("phone",)
     pro_constants = {
@@ -20,23 +21,38 @@ class TrainingAmbassadorForm(BaseEngagementForm):
     }
 
     phone = PhoneNumberField(required=False, region="FR", label=_("Votre n° de téléphone"))
-    higher_ed_school_id = forms.CharField(
-        widget=forms.HiddenInput, label=_("Votre établissement*")
+    school_label = forms.CharField(
+        widget=forms.HiddenInput,
+        required=False,
+        max_length=SCHOOL_LABEL_MAX_LENGTH,
+        label=_("Votre établissement*"),
     )
-    higher_ed_school_label = forms.CharField(widget=forms.HiddenInput, required=False)
-    course = forms.CharField(label=_("Votre filière*"))
+    school_id = forms.CharField(widget=forms.HiddenInput, required=False)
+    formation_label = forms.CharField(
+        widget=forms.HiddenInput,
+        required=False,
+        max_length=FORMATION_LABEL_MAX_LENGTH,
+        label=_("Votre formation*"),
+    )
+    formation_id = forms.CharField(widget=forms.HiddenInput, required=False)
+    school_not_found = forms.BooleanField(widget=forms.HiddenInput, required=False)
+    formation_not_found = forms.BooleanField(widget=forms.HiddenInput, required=False)
 
-    def clean_higher_ed_school_id(self):
-        pk = self.cleaned_data["higher_ed_school_id"]
-        self._higher_ed_school = resolve_higher_ed_school(pk)
-        return pk
+    def clean(self):
+        cleaned_data = super().clean()
+        self.resolve_school(School.objects.training_ambassador())
+        self.resolve_formation(Formation.objects.higher_ed())
+        self.validate_free_text()
+        return cleaned_data
 
     def after_save(self, pro):
         training_experience, _created = TrainingExperience.objects.update_or_create(
             user=pro,
-            higher_ed_school=self._higher_ed_school,
+            school=self._school,
             defaults={
-                "course": self.cleaned_data["course"],
+                "formation": self._formation,
+                "out_of_scope_school_name": self.out_of_scope_school_name,
+                "out_of_scope_formation_name": self.out_of_scope_formation_name,
                 "start_date": current_school_year_start_date(),
                 "end_date": current_school_year_end_date(),
             },

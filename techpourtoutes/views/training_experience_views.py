@@ -7,6 +7,7 @@ from django.views.decorators.http import require_POST
 
 from ..forms import BeneficiaryTrainingExperienceForm, ProTrainingExperienceForm
 from ..models import TrainingExperience
+from ..utils.missing_record import report_missing_record
 from ..utils.training_experience import training_experience_insertion_anchor
 
 
@@ -27,6 +28,7 @@ def pro_training_experience_edit(request, pk):
         form = ProTrainingExperienceForm(data=request.POST)
         if form.is_valid():
             form.save(experience)
+            report_missing_record(form, experience.user, "Compte pro")
             return render(
                 request,
                 "account/partials/pro_training_experience_card.html",
@@ -133,6 +135,7 @@ def _submit_beneficiary_training_experience_form(request, form, beneficiary, exp
             experience.delete()
         return _render_beneficiary_training_experience_item(request, experience=None)
     saved = form.save(experience or TrainingExperience(user=beneficiary))
+    report_missing_record(form, saved.user, "Compte bénéficiaire")
     return _render_beneficiary_training_experience_item(
         request, saved, oob_swap=_training_experience_oob_swap(saved)
     )

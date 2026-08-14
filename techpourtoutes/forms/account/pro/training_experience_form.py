@@ -1,15 +1,21 @@
 from django import forms
 from django.utils.translation import gettext_lazy as _
 
-from ....models import TrainingExperience
-from ...validators import resolve_higher_ed_school
+from ....models import Formation, School, TrainingExperience
+from ...mixins import TrainingExperienceFormMixin
+from ...validators import FORMATION_LABEL_MAX_LENGTH, SCHOOL_LABEL_MAX_LENGTH
 
 
-class ProTrainingExperienceForm(forms.Form):
-    higher_ed_school_id = forms.CharField(
-        widget=forms.HiddenInput, label=_("Votre établissement*")
+class ProTrainingExperienceForm(TrainingExperienceFormMixin, forms.Form):
+    school_label = forms.CharField(
+        widget=forms.HiddenInput,
+        required=False,
+        max_length=SCHOOL_LABEL_MAX_LENGTH,
+        label=_("Votre établissement*"),
     )
-    higher_ed_school_label = forms.CharField(widget=forms.HiddenInput, required=False)
+    school_id = forms.CharField(widget=forms.HiddenInput, required=False)
+    school_not_found = forms.BooleanField(widget=forms.HiddenInput, required=False)
+    formation_not_found = forms.BooleanField(widget=forms.HiddenInput, required=False)
     level = forms.ChoiceField(
         label=_("Niveau*"),
         choices=[
@@ -17,29 +23,38 @@ class ProTrainingExperienceForm(forms.Form):
             *[(level.value, level.label) for level in TrainingExperience.HIGHER_ED_LEVELS],
         ],
     )
-    course = forms.CharField(label=_("Votre filière*"))
+    formation_label = forms.CharField(
+        widget=forms.HiddenInput,
+        required=False,
+        max_length=FORMATION_LABEL_MAX_LENGTH,
+        label=_("Votre formation*"),
+    )
+    formation_id = forms.CharField(widget=forms.HiddenInput, required=False)
 
     def __init__(self, *args, experience=None, **kwargs):
         if experience is not None:
-            kwargs.setdefault(
-                "initial",
-                {
-                    "higher_ed_school_id": str(experience.higher_ed_school_id),
-                    "higher_ed_school_label": experience.higher_ed_school.display_label,
-                    "level": experience.level,
-                    "course": experience.course,
-                },
-            )
+            kwargs.setdefault("initial", self._initial_from_experience(experience))
         super().__init__(*args, **kwargs)
 
-    def clean_higher_ed_school_id(self):
-        pk = self.cleaned_data["higher_ed_school_id"]
-        self._higher_ed_school = resolve_higher_ed_school(pk)
-        return pk
+    def clean(self):
+        cleaned_data = super().clean()
+        self.resolve_school(School.objects.higher_ed())
+        self.resolve_formation(Formation.objects.higher_ed())
+        self.validate_free_text()
+        return cleaned_data
 
     def save(self, experience):
-        experience.higher_ed_school = self._higher_ed_school
-        experience.level = self.cleaned_data["level"]
-        experience.course = self.cleaned_data["course"]
-        experience.save()
-        return experience
+        return self.save_training(experience)
+
+    @staticmethod
+    def _initial_from_experience(experience):
+        school, formation = experience.school, experience.formation
+        return {
+            "school_id": str(school.pk) if school else "",
+            "school_label": experience.school_label,
+            "school_not_found": school is None,
+            "level": experience.level,
+            "formation_id": str(formation.pk) if formation else "",
+            "formation_label": experience.formation_label,
+            "formation_not_found": formation is None,
+        }
