@@ -27,10 +27,6 @@ from ..utils.dates import compute_age
 # The funnel steps in order — the single source of truth navigation is derived from.
 _STEPS = ("email", "identity", "study_status", "training_experience", "mentoring_signup")
 
-# Progress bar percentage per step. We actually start the % at the identity step
-# (hence no + 1 after index and len(_STEPS))
-_STEP_PROGRESS = {step: round(100 * (index) / (len(_STEPS))) for index, step in enumerate(_STEPS)}
-
 _TRAINING_EXPERIENCE_FORMS = {
     StudyStatus.HIGH_SCHOOL: BeneficiaryHighSchoolTrainingExperienceForm,
     StudyStatus.HIGHER_EDUCATION: BeneficiaryHigherEducationTrainingExperienceForm,
@@ -48,7 +44,11 @@ def find_mentor_landing(request):
 
 
 def mentoring_signup_skip_modal(request):
-    return render(request, "beneficiary/partials/inscription/skip_mentoring_signup_modal.html", {})
+    return render(
+        request,
+        "beneficiary/partials/inscription/skip_mentoring_signup_modal.html",
+        {"action": _previous_step("mentoring_signup")},
+    )
 
 
 def inscription_funnel(request):
@@ -59,10 +59,10 @@ def inscription_funnel(request):
     # sessionStorage (Alpine) and travel with every POST. GET only renders the shell, which
     # asks the server for the right step through a "resume" POST once Alpine has hydrated.
     if request.method != "POST":
-        from_url = request.GET.get("from")
-        wants_mentor = from_url and "trouver-une-mentore" in from_url
         return render(
-            request, "beneficiary/inscription_funnel.html", {"wants_mentor": wants_mentor}
+            request,
+            "beneficiary/inscription_funnel.html",
+            {"wants_mentor": request.GET.get("wants_mentor") == "1"},
         )
 
     handlers = {
@@ -70,9 +70,8 @@ def inscription_funnel(request):
         "back": _handle_back,
         "code": _handle_code,
         "resend": _handle_resend,
-        "skip": _create_beneficiary,
         # The one step that doesn't move forward: submitting the last one creates the account.
-        _last_step(request): _create_beneficiary,
+        _last_step(request.POST): _create_beneficiary,
     }
     handler = handlers.get(request.POST.get("action"), _advance)
     return handler(request)
@@ -94,7 +93,7 @@ def _advance(request):
         _STEP_VALIDATORS[step](request)
     except _StepInterrupt as interrupt:
         return interrupt.response
-    return _render_step(request, _next_step(step))
+    return _render_step(request, _next_step(step, request.POST))
 
 
 def _handle_back(request):
@@ -252,8 +251,13 @@ _STEP_FORMS = {
 }
 
 
-def _next_step(step):
-    return _STEPS[_STEPS.index(step) + 1]
+def _steps(data):
+    return _STEPS if _wants_mentor(data) else _STEPS[:-1]
+
+
+def _next_step(step, data):
+    steps = _steps(data)
+    return steps[steps.index(step) + 1]
 
 
 def _previous_step(step):
@@ -262,13 +266,24 @@ def _previous_step(step):
     return _STEPS[max(_STEPS.index(step) - 1, 0)]
 
 
-def _last_step(request):
-    return "mentoring_signup" if _wants_mentor(request.POST) else "training_experience"
+def _last_step(data):
+    return _steps(data)[-1]
+
+
+# The email screen carries no bar, so it takes no share. The "+ 1" reserves a final segment for
+# the success screen, which shows none either, so the last form step stops short of 100%.
+def _progress(step, data):
+    steps = _steps(data)[1:]
+    if step not in steps:
+        return None
+    return round(100 * (steps.index(step) + 1) / (len(steps) + 1))
 
 
 # Furthest step the client can resume to, based on which answers it already carries.
 def _resume_step(data):
-    for step in _STEPS[:3]:
+    for step in _STEPS:
+        if step not in _STEP_FORMS:
+            break
         if not _has_answer_for(_STEP_FORMS[step], data):
             return step
     return _resume_last_step(data)
@@ -340,7 +355,7 @@ def _step_context(request, step, form=None, **extra):
     data = request.POST
     context = {
         "step": step,
-        "progress": _STEP_PROGRESS.get(step),
+        "progress": _progress(step, data),
         "first_name": data.get("first_name"),
         "is_minor": _is_minor(data),
         "wants_mentor": _wants_mentor(data),
