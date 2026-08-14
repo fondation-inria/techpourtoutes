@@ -1,6 +1,6 @@
-<c-vars back="" />
+<c-vars back="" right="" footer=True />
 {% load home_url %}
-<body class="min-h-screen font-sans bg-blue-background text-neutral-900">
+<body class="min-h-screen font-sans {% if right %}bg-neutral-0{% else %}bg-blue-background{% endif %} text-neutral-900">
     <c-components.button
         variant="icon"
         href="{% if back %}{{ back }}{% else %}{% home_url %}{% endif %}"
@@ -8,14 +8,18 @@
         icon_size_class="w-5 h-5"
         class="absolute top-3 right-3 md:top-10 md:right-20 z-50 p-1 rounded-sm text-primary-700"
         aria-label="Fermer"
+        data-funnel-close
     />
     <div class="flex min-h-screen flex-col">
         <c-layout.partials.messages wrapper_class="w-full max-w-xl mx-auto px-8 pt-4 flex flex-col gap-y-2" />
-        <main class="flex flex-1 items-center justify-center px-4">
-            <div class="w-full max-w-xl flex justify-center">
-                {{ slot }}
-            </div>
-        </main>
-        <c-layout.partials.footer />
+            <main class="flex flex-1 px-4 {% if not right %}items-center justify-center{% endif %}">
+                <div class="w-full flex {% if right %}max-w-6xl mx-auto flex-col md:flex-row gap-8 items-stretch{% else %}max-w-xl justify-center{% endif %}">
+                    {{ slot }}
+                    {{ right }}
+                </div>
+            </main>
+        {% if footer %}
+            <c-layout.partials.footer />
+        {% endif %}
     </div>
 </body>

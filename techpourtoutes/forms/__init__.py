@@ -1,19 +1,36 @@
-from .account.beneficiary.edit_account_form import BeneficiaryEditAccountForm
-from .account.beneficiary.training_experience_form import BeneficiaryTrainingExperienceForm
-from .account.communication_form import CommunicationForm
-from .account.delete_account_form import DeleteAccountForm
-from .account.email_change_form import EmailChangeForm
-from .account.pro.edit_account_form import ProEditAccountForm
-from .account.pro.training_experience_form import ProTrainingExperienceForm
-from .engagement_forms import EngagementForm, TrainingAmbassadorForm, WorkshopForm
-from .login_request_form import LoginRequestForm
+from .account import (
+    BeneficiaryEditAccountForm,
+    BeneficiaryTrainingExperienceForm,
+    CommunicationForm,
+    DeleteAccountForm,
+    EmailChangeForm,
+    ProEditAccountForm,
+    ProTrainingExperienceForm,
+)
+from .auth import LoginRequestForm, VerificationCodeForm
+from .beneficiary_inscription import (
+    BeneficiaryEmailForm,
+    BeneficiaryHigherEducationTrainingExperienceForm,
+    BeneficiaryHighSchoolTrainingExperienceForm,
+    BeneficiaryIdentityForm,
+    BeneficiaryLastDiplomaTrainingExperienceForm,
+    BeneficiaryStudyStatusForm,
+    StudyStatus,
+)
+from .engagement import EngagementForm, TrainingAmbassadorForm, WorkshopForm
 from .manifeste_signature_form import ManifesteSignatureForm
-from .verification_code_form import VerificationCodeForm
 
 __all__ = [
+    "BeneficiaryEmailForm",
+    "BeneficiaryHigherEducationTrainingExperienceForm",
+    "BeneficiaryHighSchoolTrainingExperienceForm",
+    "BeneficiaryIdentityForm",
+    "BeneficiaryLastDiplomaTrainingExperienceForm",
+    "BeneficiaryStudyStatusForm",
     "BeneficiaryEditAccountForm",
     "BeneficiaryTrainingExperienceForm",
     "CommunicationForm",
+    "StudyStatus",
     "DeleteAccountForm",
     "EmailChangeForm",
     "EngagementForm",

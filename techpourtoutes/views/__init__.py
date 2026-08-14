@@ -4,16 +4,11 @@ from .account_views import (
     account_edit,
     account_email,
     account_info,
-    beneficiary_training_experience_delete,
-    beneficiary_training_experience_form,
-    beneficiary_training_experience_info,
     delete_account,
     delete_account_modal,
     email_change,
     email_change_resend,
     email_change_verify,
-    pro_training_experience_edit,
-    pro_training_experience_info,
 )
 from .auth_views import (
     login_code,
@@ -22,7 +17,10 @@ from .auth_views import (
     login_verify,
     logout_view,
 )
-from .beneficiary_views import beneficiary_home
+from .beneficiary_views import (
+    beneficiary_home,
+    inscription_funnel,
+)
 from .coalition_views import (
     coalition_home,
     coalition_welcome,
@@ -48,6 +46,13 @@ from .static_views import (
     schema_pluriannuel,
     signature_manifeste,
 )
+from .training_experience_views import (
+    beneficiary_training_experience_delete,
+    beneficiary_training_experience_form,
+    beneficiary_training_experience_info,
+    pro_training_experience_edit,
+    pro_training_experience_info,
+)
 
 __all__ = [
     "a_propos",
@@ -71,6 +76,7 @@ __all__ = [
     "email_change",
     "email_change_resend",
     "email_change_verify",
+    "inscription_funnel",
     "internships_landing",
     "login_code",
     "login_request",
