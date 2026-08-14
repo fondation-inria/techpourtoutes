@@ -57,6 +57,7 @@ def training_ambassador_landing(request):
                 ProMailer.new_engagement(pro=pro)
             else:
                 ProMailer.welcome(pro=pro, token=pro.issue_login_token())
+            ProMailer.welcome_training_ambassador(pro=pro)
             return redirect("coalition_welcome")
         else:
             _render_errors(request, form)
