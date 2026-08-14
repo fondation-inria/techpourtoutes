@@ -25,3 +25,12 @@ class ProMailer(BaseMailer):
             context={"pro": pro, "login_url": login_url},
             tags=["utilisateur", "coalition", "mail de bienvenue"],
         )
+
+    @classmethod
+    def welcome_training_ambassador(cls, *, pro):
+        cls.send_mail(
+            subject="Une dernière étape pour devenir ambassadrice étudiante",
+            recipient_list=[pro.email],
+            context={"pro": pro},
+            tags=["utilisateur", "coalition", "ambassadrice étudiante", "mail de bienvenue"],
+        )

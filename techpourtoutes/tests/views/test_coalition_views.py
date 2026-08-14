@@ -592,6 +592,10 @@ def test_training_ambassador_new_pro_receives_welcome_email(
         ) as new_engagement,
         patch.object(
             ProMailer,
+            "welcome_training_ambassador",
+        ) as welcome_training_ambassador,
+        patch.object(
+            ProMailer,
             "welcome",
         ) as welcome,
     ):
@@ -607,6 +611,7 @@ def test_training_ambassador_new_pro_receives_welcome_email(
 
     new_training_ambassador.assert_called_once()
     new_engagement.assert_not_called()
+    welcome_training_ambassador.assert_called_once()
     welcome.assert_called_once()
 
 
