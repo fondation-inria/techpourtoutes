@@ -4,12 +4,12 @@ from django.utils.translation import gettext_lazy as _
 
 from techpourtoutes.utils.text import strip_accents
 
-from .base import BaseModel
+from .base import BaseModel, BaseQuerySet
 from .level import Level
 from .school import School
 
 
-class FormationQuerySet(models.QuerySet):
+class FormationQuerySet(BaseQuerySet):
     def taught_at(self, school):
         """What the school teaches, its affiliated schools included — everything if none.
 
@@ -27,6 +27,12 @@ class FormationQuerySet(models.QuerySet):
         for token in query.split():
             formations = formations.filter(name_normalized__icontains=strip_accents(token))
         return formations
+
+    def secondary(self):
+        return self.filter(secondary=True)
+
+    def higher_ed(self):
+        return self.filter(higher_ed=True)
 
 
 class Formation(BaseModel):
@@ -57,6 +63,8 @@ class Formation(BaseModel):
     certification_level_name = models.CharField(
         max_length=50, blank=True, verbose_name=_("libellé du niveau de certification")
     )
+    secondary = models.BooleanField(default=False, verbose_name=_("enseignement secondaire"))
+    higher_ed = models.BooleanField(default=False, verbose_name=_("enseignement supérieur"))
     schools = models.ManyToManyField(
         School,
         through="FormationAction",

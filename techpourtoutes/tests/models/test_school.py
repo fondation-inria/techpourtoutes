@@ -98,6 +98,16 @@ def test_school_queryset_scopes():
 
 
 @pytest.mark.django_db
+def test_school_find_answers_none_to_anything_but_a_known_id(school, higher_ed_school):
+    """The id travels through a hidden field, so it can be absent, unknown or malformed."""
+    assert School.objects.find(school.pk) == school
+    assert School.objects.secondary().find(higher_ed_school.pk) is None
+    assert School.objects.find("2b7f4f4a-0000-0000-0000-000000000000") is None
+    assert School.objects.find("pas-un-uuid") is None
+    assert School.objects.find("") is None
+
+
+@pytest.mark.django_db
 def test_school_search_ignores_accents_and_matches_every_token():
     voltaire = School(onisep_id="1", name="Lycée Voltaire", postal_code="75011")
     zay = School(onisep_id="2", name="Lycée Jean Zay", postal_code="75012")

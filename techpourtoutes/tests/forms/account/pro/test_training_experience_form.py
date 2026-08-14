@@ -13,6 +13,27 @@ def test_form_prefills_from_experience(experience, higher_ed_school, higher_ed_f
 
 
 @pytest.mark.django_db
+def test_form_prefills_an_out_of_scope_experience_with_its_typed_names(pro):
+    from techpourtoutes.forms import ProTrainingExperienceForm
+    from techpourtoutes.models import Level, TrainingExperience
+
+    experience = TrainingExperience.objects.create(
+        user=pro,
+        level=Level.BAC_5,
+        out_of_scope_school_name="École du bout du monde",
+        out_of_scope_formation_name="Master maréchalerie",
+    )
+
+    form = ProTrainingExperienceForm(experience=experience)
+
+    assert form.initial["school_id"] == ""
+    assert form.initial["school_label"] == "École du bout du monde"
+    assert form.initial["school_not_found"] is True
+    assert form.initial["formation_label"] == "Master maréchalerie"
+    assert form.initial["formation_not_found"] is True
+
+
+@pytest.mark.django_db
 def test_form_save_updates_experience(experience, higher_ed_school, higher_ed_formation):
     from techpourtoutes.forms import ProTrainingExperienceForm
 
@@ -94,3 +115,25 @@ def test_a_missing_school_saves_the_experience_without_one(experience, higher_ed
     assert experience.school is None
     assert experience.formation == higher_ed_formation
     assert form.has_missing_record
+
+
+@pytest.mark.django_db
+def test_a_missing_school_falls_back_to_the_higher_ed_catalogue(db):
+    from techpourtoutes.forms import ProTrainingExperienceForm
+    from techpourtoutes.models import Formation
+
+    bac_pro = Formation(onisep_id="9999", name="Bac professionnel", secondary=True)
+    bac_pro.save()
+
+    form = ProTrainingExperienceForm(
+        data={
+            "school_id": "",
+            "school_label": "École du bout du monde",
+            "school_not_found": "on",
+            "level": "bac_5",
+            "formation_id": str(bac_pro.pk),
+        }
+    )
+
+    assert not form.is_valid()
+    assert "formation_id" in form.errors

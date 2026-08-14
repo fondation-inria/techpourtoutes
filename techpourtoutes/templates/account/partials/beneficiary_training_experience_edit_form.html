@@ -31,40 +31,57 @@
                     <c-components.form_fields.select field=form.level :watchable=True />
                     <br>
                     <template x-if="level != '' && !level.startsWith('bac_')">
-                        <c-components.form_fields.school_search
-                            name_field=form.school_label
-                            id_field=form.school_id
-                            not_found_field=form.school_not_found
-                            scope="secondary"
-                            label="Votre établissement*"
-                            description="Recherchez par nom et/ou code postal"
-                            group="{{ form.dom_id }}"
-                            unique_id="{{ form.dom_id }}"
-                        />
+                        <div>
+                            <c-components.form_fields.school_search
+                                name_field=form.school_label
+                                id_field=form.school_id
+                                not_found_field=form.school_not_found
+                                scope="secondary"
+                                label="Votre établissement*"
+                                description="Recherchez par nom et/ou code postal"
+                                group="{{ form.dom_id }}"
+                                unique_id="{{ form.dom_id }}"
+                            />
+                            <br>
+                            <c-components.form_fields.formation_search
+                                name_field=form.formation_label
+                                id_field=form.formation_id
+                                not_found_field=form.formation_not_found
+                                school_id_field=form.school_id
+                                scope="secondary"
+                                label="Votre formation*"
+                                description="Recherchez par nom"
+                                group="{{ form.dom_id }}"
+                                unique_id="{{ form.dom_id }}"
+                            />
+                        </div>
                     </template>
                     <template x-if="level.startsWith('bac_')">
-                        <c-components.form_fields.school_search
-                            name_field=form.school_label
-                            id_field=form.school_id
-                            not_found_field=form.school_not_found
-                            scope="higher_ed"
-                            label="Votre établissement*"
-                            description="Recherchez par nom"
-                            group="{{ form.dom_id }}"
-                            unique_id="{{ form.dom_id }}-sup"
-                        />
+                        <div>
+                            <c-components.form_fields.school_search
+                                name_field=form.school_label
+                                id_field=form.school_id
+                                not_found_field=form.school_not_found
+                                scope="higher_ed"
+                                label="Votre établissement*"
+                                description="Recherchez par nom"
+                                group="{{ form.dom_id }}"
+                                unique_id="{{ form.dom_id }}-sup"
+                            />
+                            <br>
+                            <c-components.form_fields.formation_search
+                                name_field=form.formation_label
+                                id_field=form.formation_id
+                                not_found_field=form.formation_not_found
+                                school_id_field=form.school_id
+                                scope="higher_ed"
+                                label="Votre formation*"
+                                description="Recherchez par nom"
+                                group="{{ form.dom_id }}"
+                                unique_id="{{ form.dom_id }}-sup"
+                            />
+                        </div>
                     </template>
-                    <br>
-                    <c-components.form_fields.formation_search
-                        name_field=form.formation_label
-                        id_field=form.formation_id
-                        not_found_field=form.formation_not_found
-                        school_id_field=form.school_id
-                        label="Votre formation*"
-                        description="Recherchez par nom"
-                        group="{{ form.dom_id }}"
-                        unique_id="{{ form.dom_id }}"
-                    />
                 </div>
             </template>
         </div>

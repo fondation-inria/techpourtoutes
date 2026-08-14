@@ -1,10 +1,10 @@
 from django import forms
 from django.utils.translation import gettext_lazy as _
-from phonenumber_field.formfields import PhoneNumberField
 
 from techpourtoutes.validators import POSTAL_CODE_VALIDATOR
 
 from ....models import Pro
+from ...fields import PhoneNumberField
 from ...validators import require_structure_when_working
 
 

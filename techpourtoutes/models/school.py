@@ -5,14 +5,14 @@ from phonenumber_field.modelfields import PhoneNumberField
 
 from techpourtoutes.utils.text import strip_accents
 
-from .base import BaseModel
+from .base import BaseModel, BaseQuerySet
 
 # Written by migration 0036, which folded HigherEdSchool into School before the Onisep rows
 # existed. These placeholders only live until the first import has been remapped.
 LEGACY_PREFIX = "legacy-"
 
 
-class SchoolQuerySet(models.QuerySet):
+class SchoolQuerySet(BaseQuerySet):
     def secondary(self):
         return self.filter(secondary=True)
 

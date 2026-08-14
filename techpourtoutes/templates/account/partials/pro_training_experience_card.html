@@ -5,17 +5,12 @@
             <span class="font-medium">{{ experience.period_label_display }}</span>
         {% endif %}
         <c-components.text class="font-light">
-            Établissement : <span class="font-medium">{{ experience.school.display_label }}</span>
+            Établissement : <span class="font-medium">{{ experience.school_label }}</span>
 
             Niveau : <span class="font-medium">{{ experience.get_level_display }}</span>
 
-            Formation : <span class="font-medium">{{ experience.formation.name|default:experience.course }}</span>
+            Formation : <span class="font-medium">{{ experience.formation_label }}</span>
         </c-components.text>
-        {% if not experience.school or not experience.formation %}
-            <div role="status" class="alert alert-warning mt-2 text-xs">
-                Les informations manquantes ont été transmises à l'équipe TechPourToutes.
-            </div>
-        {% endif %}
         <div class="flex mt-3 justify-end">
             <c-components.button label="Modifier" variant="secondary"
                 hx-get="{% url 'pro_training_experience_edit' experience.pk %}"

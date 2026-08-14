@@ -10,7 +10,8 @@ from techpourtoutes.utils.school_year import (
 )
 
 from ....models import TrainingExperience
-from ...mixins import TrainingExperienceFormMixin, school_label_for
+from ...mixins import TrainingExperienceFormMixin
+from ...validators import FORMATION_LABEL_MAX_LENGTH, SCHOOL_LABEL_MAX_LENGTH
 
 
 class BeneficiaryTrainingExperienceForm(TrainingExperienceFormMixin, forms.Form):
@@ -26,10 +27,15 @@ class BeneficiaryTrainingExperienceForm(TrainingExperienceFormMixin, forms.Form)
             *[(level.value, level.label) for level in TrainingExperience.LEVELS],
         ],
     )
-    school_label = forms.CharField(widget=forms.HiddenInput, required=False)
+    school_label = forms.CharField(
+        widget=forms.HiddenInput, required=False, max_length=SCHOOL_LABEL_MAX_LENGTH
+    )
     school_id = forms.CharField(widget=forms.HiddenInput, required=False)
     formation_label = forms.CharField(
-        widget=forms.HiddenInput, required=False, label=_("Formation*")
+        widget=forms.HiddenInput,
+        required=False,
+        max_length=FORMATION_LABEL_MAX_LENGTH,
+        label=_("Formation*"),
     )
     formation_id = forms.CharField(widget=forms.HiddenInput, required=False)
     school_not_found = forms.BooleanField(widget=forms.HiddenInput, required=False)
@@ -105,14 +111,16 @@ class BeneficiaryTrainingExperienceForm(TrainingExperienceFormMixin, forms.Form)
             return str(experience.pk)
         return "current-year" if current_year else uuid4().hex
 
-    @staticmethod
-    def _initial_from_experience(experience):
+    def _initial_from_experience(self, experience):
         school, formation = experience.school, experience.formation
         return {
             "period_label": experience.period_label,
             "level": experience.level,
             "school_id": str(school.pk) if school else "",
-            "school_label": school_label_for(experience.level, school),
+            "school_label": self.school_label_for(experience.level, school)
+            or experience.out_of_scope_school_name,
+            "school_not_found": school is None,
             "formation_id": str(formation.pk) if formation else "",
-            "formation_label": formation.name if formation else "",
+            "formation_label": experience.formation_label,
+            "formation_not_found": formation is None,
         }

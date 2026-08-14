@@ -32,11 +32,9 @@ _WELCOME_EMAIL_DELAY_SECONDS = 5 * 60
 # The funnel steps in order — the single source of truth navigation is derived from.
 _STEPS = ("email", "identity", "study_status", "training_experience", "mentoring_signup")
 
-# Progress bar percentage per step. The "+ 1" reserves a final segment for the success screen,
-# which shows no bar, so the last form step stops short of 100%.
-_STEP_PROGRESS = {
-    step: round(100 * (index + 1) / (len(_STEPS) + 1)) for index, step in enumerate(_STEPS)
-}
+# Progress bar percentage per step. We actually start the % at the identity step
+# (hence no + 1 after index and len(_STEPS))
+_STEP_PROGRESS = {step: round(100 * (index) / (len(_STEPS))) for index, step in enumerate(_STEPS)}
 
 _TRAINING_EXPERIENCE_FORMS = {
     StudyStatus.HIGH_SCHOOL: BeneficiaryHighSchoolTrainingExperienceForm,

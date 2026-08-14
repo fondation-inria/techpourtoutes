@@ -86,7 +86,7 @@ def _voltaire_teaching(formation_name):
         secondary=True,
     )
     school.save()
-    formation = Formation(onisep_id="7118", name=formation_name)
+    formation = Formation(onisep_id="7118", name=formation_name, secondary=True)
     formation.save()
     FormationAction(onisep_id="69395", formation=formation, school=school).save()
     return school, formation
@@ -330,7 +330,7 @@ def test_a_missing_school_frees_the_field_and_opens_the_whole_catalogue(
     page, funnel_url, beneficiary_mode
 ):
     _voltaire_teaching("Spécialité mathématiques")
-    elsewhere = Formation(onisep_id="9999", name="Bac pro maréchalerie")
+    elsewhere = Formation(onisep_id="9999", name="Bac pro maréchalerie", secondary=True)
     elsewhere.save()
 
     page.goto(funnel_url)
@@ -351,6 +351,7 @@ def test_a_missing_school_frees_the_field_and_opens_the_whole_catalogue(
         user=Beneficiary.objects.get(email="oceane@example.com")
     )
     assert experience.school is None
+    assert experience.out_of_scope_school_name == "Lycée du bout du monde"
     assert experience.formation == elsewhere
     assert experience.level == Level.TERMINALE
 
@@ -375,5 +376,7 @@ def test_both_records_missing_registers_on_free_text_alone(page, funnel_url, ben
         user=Beneficiary.objects.get(email="oceane@example.com")
     )
     assert experience.school is None
+    assert experience.out_of_scope_school_name == "Lycée du bout du monde"
     assert experience.formation is None
+    assert experience.out_of_scope_formation_name == "Bac pro maréchalerie"
     assert experience.level == Level.TERMINALE

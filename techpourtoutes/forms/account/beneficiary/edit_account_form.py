@@ -1,7 +1,7 @@
 from django import forms
 from django.utils.translation import gettext_lazy as _
-from phonenumber_field.formfields import PhoneNumberField
 
+from techpourtoutes.forms.fields import PhoneNumberField
 from techpourtoutes.forms.validators import validate_birth_date
 from techpourtoutes.validators import POSTAL_CODE_VALIDATOR
 

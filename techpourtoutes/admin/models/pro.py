@@ -65,8 +65,3 @@ class ProAdmin(admin.ModelAdmin):
     def changelist_view(self, request, extra_context=None):
         extra_context = {**(extra_context or {}), "stats": pro_stats()}
         return super().changelist_view(request, extra_context=extra_context)
-
-    # def get_inlines(self, _request, obj):
-    #     if obj and obj.workshop_requests.exists():
-    #         return [*self.inlines, WorkshopRequestInline]
-    #     return self.inlines

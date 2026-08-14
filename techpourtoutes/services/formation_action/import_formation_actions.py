@@ -18,7 +18,7 @@ class ImportFormationActions(BaseApiService):
         active_onisep_ids = set()
         for single_scope in self._scopes_covered_by(scope):
             records = self._records_for(scope=single_scope, sample=sample)
-            UpsertFormationActions(records=records)
+            UpsertFormationActions(records=records, scope=single_scope)
             active_onisep_ids |= self._onisep_ids_in(records)
         if self._prunes(scope=scope, sample=sample):
             PruneFormationActions(active_onisep_ids=active_onisep_ids)

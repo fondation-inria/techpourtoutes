@@ -10,8 +10,7 @@ from techpourtoutes.tasks import (
 )
 
 # Order matters: the actions need both of their ends in place, and the ambassadrice flag needs
-# the schools. The remapping closes the merge for the databases that predate it, and the
-# formation linking needs the catalogue the steps above have just refreshed.
+# the schools. The remapping closes the merge for the databases that predate it.
 STEPS = [
     "import_onisep_schools",
     "import_onisep_formations",
@@ -56,8 +55,6 @@ class Command(BaseCommand):
             call_command(step, **self._options_for(step, options))
         self.stdout.write("remap_training_experience_schools…")
         call_command("remap_training_experience_schools")
-        self.stdout.write("link_training_experience_formations…")
-        call_command("link_training_experience_formations")
 
     def _enqueue(self, *, sample):
         """A chain, not a group: every step needs the previous one, and retrying one step

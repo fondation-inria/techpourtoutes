@@ -49,6 +49,14 @@ def test_a_single_scope_imports_half_of_them(both_ends):
     assert FormationAction.objects.count() == 100
 
 
+def test_a_single_scope_flags_the_linked_formations(both_ends):
+    ImportFormationActions(scope="lycee", sample=True)
+
+    linked_formations = Formation.objects.filter(actions__isnull=False).distinct()
+    assert linked_formations.exists()
+    assert not linked_formations.filter(secondary=False).exists()
+
+
 def test_without_a_sample_each_scope_is_downloaded(both_ends, formation_action_record):
     with patch(FETCH) as fetch:
         fetch.return_value = MagicMock(failure=False, onisep_records=[])
