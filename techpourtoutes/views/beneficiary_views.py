@@ -22,6 +22,7 @@ from ..models import Beneficiary, User
 from ..ratelimit import rate_limit
 from ..tasks import send_beneficiary_welcome_email_task, upsert_email_notification_task
 from ..utils.dates import compute_age
+from ..utils.missing_record import report_missing_record
 
 # Delay before the welcome email is sent, so it doesn't land before the login code.
 _WELCOME_EMAIL_DELAY_SECONDS = 5 * 60
@@ -29,11 +30,9 @@ _WELCOME_EMAIL_DELAY_SECONDS = 5 * 60
 # The funnel steps in order — the single source of truth navigation is derived from.
 _STEPS = ("email", "identity", "study_status", "training_experience")
 
-# Progress bar percentage per step. The "+ 1" reserves a final segment for the success screen,
-# which shows no bar, so the last form step stops short of 100%.
-_STEP_PROGRESS = {
-    step: round(100 * (index + 1) / (len(_STEPS) + 1)) for index, step in enumerate(_STEPS)
-}
+# Progress bar percentage per step. We actually start the % at the identity step
+# (hence no + 1 after index and len(_STEPS))
+_STEP_PROGRESS = {step: round(100 * (index) / (len(_STEPS))) for index, step in enumerate(_STEPS)}
 
 _TRAINING_EXPERIENCE_FORMS = {
     StudyStatus.HIGH_SCHOOL: BeneficiaryHighSchoolTrainingExperienceForm,
@@ -134,6 +133,7 @@ def _create_beneficiary(request):
     )
     beneficiary.save()
     training_experience_form.save(beneficiary)
+    report_missing_record(training_experience_form, beneficiary, "Funnel d'inscription")
     AuthMailer.login_code(user=beneficiary, code=beneficiary.issue_login_code())
     send_beneficiary_welcome_email_task.apply_async(
         kwargs={"beneficiary_pk": str(beneficiary.pk)}, countdown=_WELCOME_EMAIL_DELAY_SECONDS

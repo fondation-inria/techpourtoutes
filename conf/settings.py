@@ -135,6 +135,11 @@ LOGGING = {
             "level": "DEBUG" if DEBUG else "INFO",
             "propagate": False,
         },
+        "techpourtoutes.management": {
+            "handlers": ["console"],
+            "level": "INFO",
+            "propagate": False,
+        },
     },
 }
 
@@ -190,9 +195,6 @@ else:
 # Jobirl API
 JOBIRL_API_KEY = env("JOBIRL_API_KEY", default="")
 JOBIRL_URL = env("JOBIRL_URL", default="")
-
-# Schools import (data.education.gouv.fr)
-HUWISE_API_KEY = env("HUWISE_API_KEY", default="")
 
 # n8n webhooks
 N8N_WORKSHOP_WEBHOOK_URL = env(

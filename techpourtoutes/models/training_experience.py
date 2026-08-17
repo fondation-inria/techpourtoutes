@@ -8,24 +8,13 @@ from techpourtoutes.utils.school_year import (
 )
 
 from .base import BaseModel
-from .higher_ed_school import HigherEdSchool
+from .formation import Formation
+from .level import Level
 from .school import School
 from .user import User
 
 
 class TrainingExperience(BaseModel):
-    class Level(models.TextChoices):
-        TROISIEME = "troisieme", _("Troisième")
-        SECONDE = "seconde", _("Seconde")
-        PREMIERE = "premiere", _("Première")
-        TERMINALE = "terminale", _("Terminale")
-        BAC_1 = "bac_1", _("Bac +1")
-        BAC_2 = "bac_2", _("Bac +2")
-        BAC_3 = "bac_3", _("Bac +3")
-        BAC_4 = "bac_4", _("Bac +4")
-        BAC_5 = "bac_5", _("Bac +5")
-        BAC_5_PLUS = "bac_5_plus", _("Au-delà de bac +5")
-
     SECONDARY_LEVELS = [Level.TROISIEME, Level.SECONDE, Level.PREMIERE, Level.TERMINALE]
     HIGHER_ED_LEVELS = [
         Level.BAC_1,
@@ -35,6 +24,7 @@ class TrainingExperience(BaseModel):
         Level.BAC_5,
         Level.BAC_5_PLUS,
     ]
+    LEVELS = SECONDARY_LEVELS + HIGHER_ED_LEVELS
 
     user = models.ForeignKey(
         User,
@@ -42,42 +32,66 @@ class TrainingExperience(BaseModel):
         related_name="training_experiences",
         verbose_name=_("utilisateur"),
     )
-    higher_ed_school = models.ForeignKey(
-        HigherEdSchool,
-        null=True,
-        blank=True,
-        on_delete=models.CASCADE,
-        related_name="training_experiences",
-        verbose_name=_("établissement d'enseignement supérieur"),
-    )
     school = models.ForeignKey(
         School,
         null=True,
         blank=True,
-        on_delete=models.CASCADE,
+        on_delete=models.SET_NULL,
         related_name="training_experiences",
         verbose_name=_("établissement"),
     )
     level = models.CharField(
         max_length=20, choices=Level.choices, blank=True, verbose_name=_("niveau")
     )
+    formation = models.ForeignKey(
+        Formation,
+        null=True,
+        blank=True,
+        on_delete=models.SET_NULL,
+        related_name="training_experiences",
+        verbose_name=_("formation"),
+    )
     start_date = models.DateField(null=True, blank=True, verbose_name=_("date de début"))
     end_date = models.DateField(null=True, blank=True, verbose_name=_("date de fin"))
-    course = models.CharField(max_length=255, verbose_name=_("filière"))
+    out_of_scope_school_name = models.CharField(
+        max_length=350, blank=True, verbose_name=_("nom de l'établissement hors catalogue")
+    )
+    out_of_scope_formation_name = models.CharField(
+        max_length=255, blank=True, verbose_name=_("nom de la formation hors catalogue")
+    )
 
     class Meta:
-        verbose_name = _("formation")
-        verbose_name_plural = _("formations")
+        verbose_name = _("formation suivie")
+        verbose_name_plural = _("formations suivies")
         ordering = ["-start_date"]
         constraints = [
             models.UniqueConstraint(
                 fields=["user", "start_date"],
                 name="unique_user_start_date",
-            )
+            ),
+            models.CheckConstraint(
+                condition=models.Q(school__isnull=False) ^ ~models.Q(out_of_scope_school_name=""),
+                name="school_xor_out_of_scope_school_name",
+                violation_error_message=_("Renseignez soit un établissement, soit son nom."),
+            ),
+            models.CheckConstraint(
+                condition=models.Q(formation__isnull=False)
+                ^ ~models.Q(out_of_scope_formation_name=""),
+                name="formation_xor_out_of_scope_formation_name",
+                violation_error_message=_("Renseignez soit une formation, soit son nom."),
+            ),
         ]
 
     def __str__(self):
-        return f"{self.user.email} – {self.course}"
+        return f"{self.user.full_name} – {self.school_label} - {self.formation_label}"
+
+    @property
+    def school_label(self):
+        return self.school.display_label if self.school else self.out_of_scope_school_name
+
+    @property
+    def formation_label(self):
+        return self.formation.name if self.formation else self.out_of_scope_formation_name
 
     @property
     def is_current_school_year(self):

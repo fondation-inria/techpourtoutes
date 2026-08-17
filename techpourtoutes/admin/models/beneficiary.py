@@ -2,6 +2,7 @@ from django.contrib import admin
 
 from techpourtoutes.models import Beneficiary
 
+from .training_experience import TrainingExperienceInline
 from .user import PERSONAL_FIELDS
 
 
@@ -35,3 +36,4 @@ class BeneficiaryAdmin(admin.ModelAdmin):
     list_display_links = list_display
     search_fields = ("first_name", "last_name", "email")
     list_filter = (("created_at", admin.DateFieldListFilter),)
+    inlines = [TrainingExperienceInline]

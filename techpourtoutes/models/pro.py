@@ -28,9 +28,6 @@ class Pro(User):
     structure_name = models.CharField(
         max_length=255, blank=True, verbose_name=_("nom de la structure")
     )
-    structure_id = models.CharField(
-        max_length=20, blank=True, verbose_name=_("identifiant de la structure")
-    )
     job_title = models.CharField(max_length=255, blank=True, verbose_name=_("métier"))
     faveod_id = models.IntegerField(
         null=True, blank=True, unique=True, verbose_name=_("identifiant faveod")

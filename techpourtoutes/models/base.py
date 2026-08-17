@@ -1,7 +1,17 @@
 import uuid
 
+from django.core.exceptions import ValidationError
 from django.db import models
 from django.utils.translation import gettext_lazy as _
+
+
+class BaseQuerySet(models.QuerySet):
+    def find(self, pk):
+        """The record designated by user input: an unknown or malformed id matches nothing."""
+        try:
+            return self.get(pk=pk)
+        except self.model.DoesNotExist, ValidationError, ValueError:
+            return None
 
 
 class BaseModel(models.Model):

@@ -29,7 +29,6 @@ def pro(db):
         professional_situation=Pro.ProfessionalSituation.WORKING,
         job_title="Enseignante",
         structure_name="Lycée Voltaire",
-        structure_id="0750001A",
         postal_code="75011",
     )
     pro.save()
@@ -43,7 +42,10 @@ def test_notify_workshop_request_posts_expected_payload(pro):
         mock_client = MockClient.return_value
         mock_client.notify_workshop_request.return_value = _response(200)
         result = NotifyWorkshopRequest(
-            pro=pro, ateliers=["future_of_tech", "future_of_ia"], remark="Merci !"
+            pro=pro,
+            ateliers=["future_of_tech", "future_of_ia"],
+            remark="Merci !",
+            structure_uai="0750001A",
         )
 
     assert result.success
@@ -66,10 +68,12 @@ def test_notify_workshop_request_posts_expected_payload(pro):
 def test_notify_workshop_request_fails_on_server_error_marked_transient(pro):
     with patch("techpourtoutes.services.n8n_api.base_service.LatitudesN8nClient") as MockClient:
         MockClient.return_value.notify_workshop_request.return_value = _response(503)
-        result = NotifyWorkshopRequest(pro=pro, ateliers=["future_of_tech"], remark="")
+        result = NotifyWorkshopRequest(
+            pro=pro, ateliers=["future_of_tech"], remark="", structure_uai="0750001A"
+        )
 
     assert result.failure
-    assert result.is_transient_failure
+    assert result.failed_with_transient_error()
 
 
 @pytest.mark.django_db
@@ -77,10 +81,12 @@ def test_notify_workshop_request_fails_on_server_error_marked_transient(pro):
 def test_notify_workshop_request_client_error_not_transient(pro):
     with patch("techpourtoutes.services.n8n_api.base_service.LatitudesN8nClient") as MockClient:
         MockClient.return_value.notify_workshop_request.return_value = _response(400)
-        result = NotifyWorkshopRequest(pro=pro, ateliers=["future_of_tech"], remark="")
+        result = NotifyWorkshopRequest(
+            pro=pro, ateliers=["future_of_tech"], remark="", structure_uai="0750001A"
+        )
 
     assert result.failure
-    assert not result.is_transient_failure
+    assert not result.failed_with_transient_error()
 
 
 @pytest.mark.django_db
@@ -88,7 +94,9 @@ def test_notify_workshop_request_client_error_not_transient(pro):
 def test_notify_workshop_request_network_error_marked_transient(pro):
     with patch("techpourtoutes.services.n8n_api.base_service.LatitudesN8nClient") as MockClient:
         MockClient.return_value.notify_workshop_request.side_effect = httpx.ConnectError("boom")
-        result = NotifyWorkshopRequest(pro=pro, ateliers=["future_of_tech"], remark="")
+        result = NotifyWorkshopRequest(
+            pro=pro, ateliers=["future_of_tech"], remark="", structure_uai="0750001A"
+        )
 
     assert result.failure
-    assert result.is_transient_failure
+    assert result.failed_with_transient_error()

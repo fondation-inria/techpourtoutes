@@ -1,0 +1,8 @@
+{
+  "jobs": [
+    {
+      "command": "0 3 1 * * python manage.py import_schools_and_formations --async",
+      "size": "L"
+    }
+  ]
+}

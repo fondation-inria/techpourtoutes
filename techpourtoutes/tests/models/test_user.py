@@ -19,6 +19,14 @@ def test_user_has_uuid_pk():
     assert isinstance(user.pk, uuid.UUID)
 
 
+def test_user_full_name_shouts_the_last_name():
+    from techpourtoutes.models import User
+
+    user = User(first_name="Ada", last_name="Lovelace")
+
+    assert user.full_name == "Ada LOVELACE"
+
+
 @pytest.mark.django_db
 def test_issue_login_token_returns_plaintext_and_stores_hash(pro):
     plaintext = pro.issue_login_token()

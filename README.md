@@ -189,19 +189,51 @@ uv run celery -A conf worker --loglevel=info
 
 En tests, les tâches sont forcées en mode eager et le SDK Brevo est mocké (cf. `conftest.py`) — aucun appel réseau n'est effectué.
 
-## Import des établissements
+## Import des établissements et des formations
 
-Le formulaire de demande d'atelier utilise la table `School` pour proposer une recherche d'établissement par nom ou code postal.
+Les tables `School`, `Formation` et `FormationAction` sont alimentées par l'open data Onisep (aucune clé d'API nécessaire) :
 
-Les établissements sont importés depuis le jeu de données `fr-en-annuaire-education` de `data.education.gouv.fr`, en excluant les écoles. L'import est idempotent : relancer la commande met à jour les établissements existants à partir de leur identifiant unique.
+| jeu de données | table | lignes |
+| --- | --- | --- |
+| Structures d'enseignement secondaire | `School` (`secondary=True`) | ~ 15 000 |
+| Structures d'enseignement supérieur | `School` (`higher_ed=True`) | ~ 9 000 |
+| Formations initiales en France | `Formation` | ~ 6 000 |
+| Actions de formation (lycée + supérieur) | `FormationAction` | ~ 70 000 |
+
+Une seule commande enchaîne tout, dans l'ordre imposé par les dépendances (les actions ont besoin de leurs deux extrémités) :
 
 ```bash
-uv run python manage.py import_schools
+uv run python manage.py import_schools_and_formations
 ```
 
-La commande utilise la variable d'environnement `HUWISE_API_KEY` pour appeler l'API. En local, renseigner cette clé dans `.env` avant de lancer l'import.
+L'import est idempotent : l'unicité porte sur l'identifiant Onisep (`onisep_id`), et relancer la commande met à jour les lignes existantes sans jamais supprimer celles qui disparaissent de la source. Les étapes existent aussi séparément (`import_onisep_schools`, `import_onisep_formations`, `import_onisep_formation_actions`, `flag_training_ambassador_schools`).
 
-Les noms d'établissements sont aussi stockés dans une version normalisée sans accents (`name_normalized`) afin de permettre une recherche accent-insensitive dans le formulaire.
+`--sample` importe les échantillons de 100 lignes commités dans `data/onisep/`, cohérents entre eux, au lieu de télécharger les fichiers complets. Leurs en-têtes sont les clés JSON de l'Onisep, donc le code de mapping est le même dans les deux cas :
+
+```bash
+uv run python manage.py import_schools_and_formations --sample
+```
+
+C'est ce que fait la seed, et aussi le déploiement (`--if-empty --sample` dans le Procfile) : une review app repart ainsi d'une base cohérente en quelques secondes. `--if-empty` protège les bases déjà peuplées, donc staging et production ne voient jamais les échantillons.
+
+Les deux drapeaux sont indépendants : `--sample` dit **quelles données** importer, `--async` dit **où ça s'exécute**. Avec `--async`, la commande enfile une chaîne Celery sur le worker au lieu de travailler elle-même ; chaque étape réseau est alors rejouée automatiquement si Onisep ne répond pas (backoff jusqu'à 1 h, 48 tentatives, soit environ deux jours d'indisponibilité absorbés), et un échec définitif remonte dans Sentry. C'est ce que fait le scheduler Scalingo le 1er de chaque mois (`cron.json`).
+
+L'import réel peut aussi se lancer à la main, en synchrone pour voir défiler les compteurs :
+
+```bash
+scalingo --app <app> run python manage.py import_schools_and_formations
+```
+
+**Première mise en production de la fusion des tables établissements.** La migration `0036` transforme les établissements existants en placeholders `legacy-*`, que `remap_training_experience_schools` rattache ensuite à leur ligne Onisep par UAI puis SIRET. Le `postdeploy` n'important que les 188 établissements d'échantillon, presque aucun placeholder n'y trouvera sa contrepartie — ils survivent alors, et les parcours continuent d'afficher le bon nom d'établissement. Le rattachement définitif se fait une fois, après le premier import réel :
+
+```bash
+scalingo --app <app> run python manage.py import_schools_and_formations
+scalingo --app <app> run python manage.py remap_training_experience_schools
+```
+
+**Établissements « ambassadrice de formation »** — `data/onisep/training_ambassador_school_onisep_ids.csv` est la source de vérité : 609 identifiants Onisep. Un identifiant retiré du fichier perd son drapeau au prochain passage.
+
+Les noms d'établissements sont aussi stockés dans une version normalisée sans accents (`name_normalized`, `acronym_normalized`) afin de permettre une recherche accent-insensitive dans les formulaires.
 
 ## Déploiement (Scalingo)
 

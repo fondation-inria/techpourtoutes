@@ -21,7 +21,7 @@ def test_delete_brevo_contact_task_runs_service():
 def test_delete_brevo_contact_task_raises_runtime_error_on_permanent_failure():
     with patch("techpourtoutes.tasks.delete_brevo_contact.DeleteBrevoContact") as mock_service:
         mock_service.return_value = MagicMock(
-            success=False, failure=True, errors=["nope"], status_code=400
+            success=False, failure=True, errors=["nope"], failed_with_transient_error=lambda: False
         )
 
         with pytest.raises(RuntimeError, match="nope"):
@@ -32,7 +32,7 @@ def test_delete_brevo_contact_task_raises_runtime_error_on_permanent_failure():
 def test_delete_brevo_contact_task_raises_transient_error_on_transient_failure():
     with patch("techpourtoutes.tasks.delete_brevo_contact.DeleteBrevoContact") as mock_service:
         mock_service.return_value = MagicMock(
-            success=False, failure=True, errors=["nope"], status_code=500
+            success=False, failure=True, errors=["nope"], failed_with_transient_error=lambda: True
         )
 
         with pytest.raises(TransientError, match="nope"):

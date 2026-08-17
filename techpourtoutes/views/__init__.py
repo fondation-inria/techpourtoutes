@@ -33,7 +33,7 @@ from .coalition_views import (
     work_ambassador_landing,
     workshops_landing,
 )
-from .search_views import search_higher_ed_schools, search_schools
+from .search_views import search_formations, search_schools
 from .static_views import (
     a_propos,
     accessibilite,
@@ -93,7 +93,7 @@ __all__ = [
     "pro_training_experience_info",
     "qui_sommes_nous",
     "schema_pluriannuel",
-    "search_higher_ed_schools",
+    "search_formations",
     "search_schools",
     "signature_manifeste",
     "signer_manifeste",

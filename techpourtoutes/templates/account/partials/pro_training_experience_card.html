@@ -5,11 +5,11 @@
             <span class="font-medium">{{ experience.period_label_display }}</span>
         {% endif %}
         <c-components.text class="font-light">
-            Établissement : <span class="font-medium">{{ experience.higher_ed_school.display_label }}</span>
+            Établissement : <span class="font-medium">{{ experience.school_label }}</span>
 
             Niveau : <span class="font-medium">{{ experience.get_level_display }}</span>
 
-            Filière : <span class="font-medium">{{ experience.course }}</span>
+            Formation : <span class="font-medium">{{ experience.formation_label }}</span>
         </c-components.text>
         <div class="flex mt-3 justify-end">
             <c-components.button label="Modifier" variant="secondary"

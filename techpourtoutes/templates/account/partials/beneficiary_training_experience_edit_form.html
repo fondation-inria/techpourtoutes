@@ -31,26 +31,57 @@
                     <c-components.form_fields.select field=form.level :watchable=True />
                     <br>
                     <template x-if="level != '' && !level.startsWith('bac_')">
-                        <c-components.form_fields.school_search
-                            name_field=form.school_name
-                            id_field=form.school_identifier
-                            postal_field=form.school_postal_code
-                            label="Votre établissement*"
-                            description="Recherchez par nom et/ou code postal"
-                            unique_id="{{ form.dom_id }}"
-                        />
+                        <div>
+                            <c-components.form_fields.school_search
+                                name_field=form.school_label
+                                id_field=form.school_id
+                                not_found_field=form.school_not_found
+                                scope="secondary"
+                                label="Votre établissement*"
+                                description="Recherchez par nom et/ou code postal"
+                                group="{{ form.dom_id }}"
+                                unique_id="{{ form.dom_id }}"
+                            />
+                            <br>
+                            <c-components.form_fields.formation_search
+                                name_field=form.formation_label
+                                id_field=form.formation_id
+                                not_found_field=form.formation_not_found
+                                school_id_field=form.school_id
+                                scope="secondary"
+                                label="Votre formation*"
+                                description="Recherchez par nom"
+                                group="{{ form.dom_id }}"
+                                unique_id="{{ form.dom_id }}"
+                            />
+                        </div>
                     </template>
                     <template x-if="level.startsWith('bac_')">
-                        <c-components.form_fields.higher_ed_school_search
-                            id_field=form.higher_ed_school_id
-                            label_field=form.higher_ed_school_label
-                            label="Votre établissement*"
-                            description="Recherchez par nom"
-                            unique_id="{{ form.dom_id }}"
-                        />
+                        <div>
+                            <c-components.form_fields.school_search
+                                name_field=form.school_label
+                                id_field=form.school_id
+                                not_found_field=form.school_not_found
+                                scope="higher_ed"
+                                label="Votre établissement*"
+                                description="Recherchez par nom"
+                                group="{{ form.dom_id }}"
+                                unique_id="{{ form.dom_id }}-sup"
+                            />
+                            <br>
+                            <c-components.form_fields.formation_search
+                                name_field=form.formation_label
+                                id_field=form.formation_id
+                                not_found_field=form.formation_not_found
+                                school_id_field=form.school_id
+                                scope="higher_ed"
+                                label="Votre formation*"
+                                description="Recherchez par nom"
+                                group="{{ form.dom_id }}"
+                                unique_id="{{ form.dom_id }}-sup"
+                            />
+                        </div>
                     </template>
-                    <br>
-                    <c-components.form_fields.input field=form.course />
                 </div>
             </template>
         </div>

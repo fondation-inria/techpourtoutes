@@ -5,11 +5,11 @@
         <c-components.text class="font-light pr-8">
             <span class="font-medium">{{ experience.period_label_display }}</span>
 
-            Établissement : <span class="font-medium">{% if experience.school %}{{ experience.school.name }} ({{ experience.school.postal_code }}){% else %}{{ experience.higher_ed_school.display_label }}{% endif %}</span>
+            Établissement : <span class="font-medium">{{ experience.school_label }}</span>
 
             Niveau : <span class="font-medium">{{ experience.get_level_display }}</span>
 
-            Filière : <span class="font-medium">{{ experience.course }}</span>
+            Formation : <span class="font-medium">{{ experience.formation_label }}</span>
         </c-components.text>
     {% else %}
         <c-components.text class="font-light pr-8"><span class="font-medium">Année scolaire en cours</span>

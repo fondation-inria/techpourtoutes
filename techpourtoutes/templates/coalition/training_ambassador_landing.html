@@ -125,13 +125,23 @@
                             <c-components.form_fields.input field=form.last_name autocomplete="family-name" />
                             <c-components.form_fields.input field=form.email autocomplete="email" variant="{% if pro %}disabled{% endif %}" />
                             <c-components.form_fields.input field=form.phone autocomplete="tel" />
-                            <c-components.form_fields.higher_ed_school_search
-                                id_field=form.higher_ed_school_id
-                                label_field=form.higher_ed_school_label
+                            <c-components.form_fields.school_search
+                                name_field=form.school_label
+                                id_field=form.school_id
+                                not_found_field=form.school_not_found
+                                scope="training_ambassador"
                                 label="Établissement*"
                                 description="Recherchez par nom"
                             />
-                            <c-components.form_fields.input field=form.course />
+                            <c-components.form_fields.formation_search
+                                name_field=form.formation_label
+                                id_field=form.formation_id
+                                not_found_field=form.formation_not_found
+                                school_id_field=form.school_id
+                                scope="higher_ed"
+                                label="Formation*"
+                                description="Recherchez par nom"
+                            />
                             {% if not pro %}
                                 <c-components.form_fields.checkbox field=form.terms_accepted />
                                 <c-components.form_fields.checkbox field=form.manifeste_accepted />
