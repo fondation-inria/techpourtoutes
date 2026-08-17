@@ -209,6 +209,10 @@
   /* New DA colors */
   --color-yellow-500: #fad207;
   --color-green-500: #00a25e;
+  --color-purple-500: #BD76FF;
+  --color-red-500: #b82f4f;
+  --color-blue-500: #0E6DC7;
+  --color-orange-500: #FF713D;
 
   /* Named backgrounds */
   --color-blue-background: #f4f4ff;
@@ -230,6 +234,23 @@
   /* Typography sizes (Global.json) */
   --text-xxs: 0.625rem;
   --text-xl: 1.375rem;
+}
+
+/* Declared outside @theme: these are read from inline style attributes, which
+   Tailwind cannot see, so theme variable tree-shaking would drop them. */
+:root {
+  --grid-cell: 60px;
+  --grid-line: 0.5px;
+  /* A Codex glyph is 7 cells wide (viewBox 827 / 118.11) */
+  --codex-glyph: calc(7 * var(--grid-cell));
+}
+
+@utility bg-grid {
+  background-color: var(--color-neutral-0);
+  background-image:
+    linear-gradient(to right, black var(--grid-line), transparent var(--grid-line)),
+    linear-gradient(to bottom, black var(--grid-line), transparent var(--grid-line));
+  background-size: var(--grid-cell) var(--grid-cell);
 }
 
 @layer components {

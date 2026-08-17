@@ -7,8 +7,11 @@
     "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
     --font-serif: "Newsreader", ui-serif, Georgia, Cambria, "Times New Roman", Times, serif;
     --font-mono: "Noto Sans Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
+    --color-orange-500: #FF713D;
     --color-yellow-500: #fad207;
     --color-green-500: #00a25e;
+    --color-blue-500: #0E6DC7;
+    --color-purple-500: #BD76FF;
     --color-neutral-50: #f8fafc;
     --color-neutral-100: #f1f5f9;
     --color-neutral-200: #e2e8f0;
@@ -3116,6 +3119,9 @@
   .isolate {
     isolation: isolate;
   }
+  .-z-10 {
+    z-index: calc(10 * -1);
+  }
   .z-10 {
     z-index: 10;
   }
@@ -4070,6 +4076,12 @@
   .border-accent-500 {
     border-color: var(--color-accent-500);
   }
+  .border-blue-500 {
+    border-color: var(--color-blue-500);
+  }
+  .border-blue-500\! {
+    border-color: var(--color-blue-500) !important;
+  }
   .border-blue-background {
     border-color: var(--color-blue-background);
   }
@@ -4081,6 +4093,11 @@
   }
   .border-primary-700 {
     border-color: var(--color-primary-700);
+  }
+  .bg-grid {
+    background-color: var(--color-neutral-0);
+    background-image: linear-gradient(to right, black var(--grid-line), transparent var(--grid-line)), linear-gradient(to bottom, black var(--grid-line), transparent var(--grid-line));
+    background-size: var(--grid-cell) var(--grid-cell);
   }
   @layer daisyui.l1.l2 {
     :is(.tabs-lift :checked, .tabs-lift label:has(:checked), .tabs-lift :is(:is(.tab-active), [aria-selected="true"], [aria-current="true"], [aria-current="page"])) + .tab-content:nth-child(1) {
@@ -4115,6 +4132,9 @@
   }
   .bg-accent-50 {
     background-color: var(--color-accent-50);
+  }
+  .bg-blue-500 {
+    background-color: var(--color-blue-500);
   }
   .bg-blue-background {
     background-color: var(--color-blue-background);
@@ -4365,11 +4385,23 @@
   .text-black {
     color: var(--color-black);
   }
+  .text-black\! {
+    color: var(--color-black) !important;
+  }
+  .text-blue-500 {
+    color: var(--color-blue-500);
+  }
+  .text-blue-500\! {
+    color: var(--color-blue-500) !important;
+  }
   .text-error-500 {
     color: var(--color-error-500);
   }
   .text-error-700 {
     color: var(--color-error-700);
+  }
+  .text-green-500 {
+    color: var(--color-green-500);
   }
   .text-neutral-0 {
     color: var(--color-neutral-0);
@@ -4392,14 +4424,26 @@
   .text-neutral-950 {
     color: var(--color-neutral-950);
   }
+  .text-orange-500 {
+    color: var(--color-orange-500);
+  }
   .text-primary {
     color: var(--color-primary);
+  }
+  .text-primary-500 {
+    color: var(--color-primary-500);
   }
   .text-primary-700 {
     color: var(--color-primary-700);
   }
+  .text-purple-500 {
+    color: var(--color-purple-500);
+  }
   .text-white {
     color: var(--color-white);
+  }
+  .text-yellow-500 {
+    color: var(--color-yellow-500);
   }
   .capitalize {
     text-transform: capitalize;
@@ -4509,8 +4553,8 @@
     -webkit-user-select: none;
     user-select: none;
   }
-  .\[--tab-border-color\:primary-700\] {
-    --tab-border-color: primary-700;
+  .\[--tab-border-color\:blue-500\] {
+    --tab-border-color: blue-500;
   }
   @layer daisyui.l1.l2.l3 {
     .aura:has( > .card,  > .alert) {
@@ -4959,6 +5003,11 @@
   font-display: swap;
   src: url("../fonts/newsreader/newsreader-latin-800-italic.woff2") format("woff2");
 }
+:root {
+  --grid-cell: 60px;
+  --grid-line: 0.5px;
+  --codex-glyph: calc(7 * var(--grid-cell));
+}
 @layer components {
   .text-disabled {
     color: var(--color-neutral-500);
@@ -5239,40 +5288,6 @@
     --noise: 0;
   }
   :root {
-    --page-scroll-lock: initial;
-    --page-overflow: var(--page-scroll-lock) hidden;
-  }
-  :root:not(span) {
-    overflow: var(--page-overflow);
-  }
-  :root {
-    --fx-noise: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 200 200'%3E%3Cfilter id='a'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='1.34' numOctaves='4' stitchTiles='stitch'%3E%3C/feTurbulence%3E%3C/filter%3E%3Crect width='200' height='200' filter='url(%23a)' opacity='0.2'%3E%3C/rect%3E%3C/svg%3E");
-  }
-  :root, [data-theme] {
-    background-color: var(--root-bg);
-    color: var(--color-base-content);
-  }
-  :root {
-    background-color: var(--page-scroll-bg, var(--root-bg));
-  }
-  :where(:root, [data-theme]) {
-    --root-bg: var(--color-base-100);
-  }
-  @property --radialprogress {
-    syntax: "<percentage>";
-    inherits: true;
-    initial-value: 0%;
-  }
-  @property --aura-angle {
-    syntax: "<angle>";
-    inherits: false;
-    initial-value: 0deg;
-  }
-  :root {
-    scrollbar-color: currentColor #0000;
-    @supports (color: color-mix(in lab, red, red)) {
-      scrollbar-color: color-mix(in oklch, currentColor 35%, #0000) #0000;
-    }
     --page-has-backdrop: var(--page-scroll-lock) 1;
     --page-scroll-bg: var(--page-scroll-lock)
     var(--root-bg, #0000);
@@ -5292,10 +5307,51 @@
       --page-has-scroll:  ;
     }
   }
+  :root {
+    --fx-noise: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 200 200'%3E%3Cfilter id='a'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='1.34' numOctaves='4' stitchTiles='stitch'%3E%3C/feTurbulence%3E%3C/filter%3E%3Crect width='200' height='200' filter='url(%23a)' opacity='0.2'%3E%3C/rect%3E%3C/svg%3E");
+  }
+  :root, [data-theme] {
+    background-color: var(--root-bg);
+    color: var(--color-base-content);
+  }
+  :root {
+    background-color: var(--page-scroll-bg, var(--root-bg));
+  }
+  :where(:root, [data-theme]) {
+    --root-bg: var(--color-base-100);
+  }
+  :root {
+    --page-scroll-lock: initial;
+    --page-overflow: var(--page-scroll-lock) hidden;
+  }
+  :root:not(span) {
+    overflow: var(--page-overflow);
+  }
+  :root {
+    scrollbar-color: currentColor #0000;
+    @supports (color: color-mix(in lab, red, red)) {
+      scrollbar-color: color-mix(in oklch, currentColor 35%, #0000) #0000;
+    }
+  }
+  @property --radialprogress {
+    syntax: "<percentage>";
+    inherits: true;
+    initial-value: 0%;
+  }
+  @property --aura-angle {
+    syntax: "<angle>";
+    inherits: false;
+    initial-value: 0deg;
+  }
 }
-@keyframes dropdown {
+@keyframes toast {
   0% {
+    scale: 0.9;
     opacity: 0;
+  }
+  100% {
+    scale: 1;
+    opacity: 1;
   }
 }
 @keyframes aura {
@@ -5324,9 +5380,22 @@
     filter: blur(1.5rem);
   }
 }
+@keyframes radio {
+  0% {
+    padding: 5px;
+  }
+  50% {
+    padding: 3px;
+  }
+}
 @keyframes progress {
   50% {
     background-position-x: -115%;
+  }
+}
+@keyframes menu {
+  0% {
+    opacity: 0;
   }
 }
 @keyframes skeleton {
@@ -5343,21 +5412,6 @@
     filter: brightness(1.05) contrast(1.05);
   }
 }
-@keyframes menu {
-  0% {
-    opacity: 0;
-  }
-}
-@keyframes toast {
-  0% {
-    scale: 0.9;
-    opacity: 0;
-  }
-  100% {
-    scale: 1;
-    opacity: 1;
-  }
-}
 @keyframes rotator {
   89.9999%, 100% {
     --first-item-position: 0 0%;
@@ -5369,12 +5423,9 @@
     translate: 0 -100%;
   }
 }
-@keyframes radio {
+@keyframes dropdown {
   0% {
-    padding: 5px;
-  }
-  50% {
-    padding: 3px;
+    opacity: 0;
   }
 }
 @layer base {
