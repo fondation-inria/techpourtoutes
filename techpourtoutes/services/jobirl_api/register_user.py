@@ -57,18 +57,22 @@ class RegisterUserOnJobirl(JobirlApiBaseService):
         experience = user.training_experiences.first()
         is_secondary = experience.level in TrainingExperience.SECONDARY_LEVELS
         level_field = "classe" if is_secondary else "niveau_etudes"
+        school_uai = experience.school.uai if experience.school else "Inconnu"
+        formation_code_onisep = (
+            experience.formation.onisep_id if experience.formation else "Inconnu"
+        )
         data = {
             "jobirl_profil": "jeune",
             "mentorat_profil": "aide",
             "bdate": user.birth_date.isoformat(),
             "profil_jeune": "lyceenne" if is_secondary else "etudiante",
             # We never ask a beneficiary for her own postal code, so we use her school's instead
-            "cp": experience.school.postal_code,
+            "cp": experience.school.postal_code if experience.school else "00000",
             "filiere": BENEFICIARY_FILIERE,
-            "etablissement": experience.school.name,
-            "etablissement_code_uai_onisep": experience.school.uai,
-            "formation": experience.formation.name,
-            "formation_code_onisep": experience.formation.onisep_id,
+            "etablissement": experience.school_label,
+            "etablissement_code_uai_onisep": school_uai,
+            "formation": experience.formation_label,
+            "formation_code_onisep": formation_code_onisep,
             level_field: experience.get_level_display(),
         }
         if user.legal_representative_email:

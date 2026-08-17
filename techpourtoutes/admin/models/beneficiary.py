@@ -19,7 +19,9 @@ class BeneficiaryAdmin(admin.ModelAdmin):
         "last_login",
         "created_at",
         "updated_at",
+        "legal_representative_email",
         "jobirl_user_id",
+        "mentoring_validation_action",
     )
     fieldsets = (
         (
@@ -28,7 +30,13 @@ class BeneficiaryAdmin(admin.ModelAdmin):
         ),
         (
             "Mentorat",
-            {"fields": ("legal_representative_email", "jobirl_user_id")},
+            {
+                "fields": (
+                    "legal_representative_email",
+                    "jobirl_user_id",
+                    "mentoring_validation_action",
+                )
+            },
         ),
         (
             "Autres infos",
@@ -77,13 +85,14 @@ class BeneficiaryAdmin(admin.ModelAdmin):
             messages.success(request, f"{beneficiary.email} a été inscrite à Jobirl.")
         return redirect(reverse("admin:techpourtoutes_beneficiary_changelist"))
 
-    @admin.display(description=_("mentorat"))
+    @admin.display(description=_("demande de mentorat"))
     def mentoring_validation_action(self, obj):
         if obj.jobirl_user_id or not obj.legal_representative_email:
             return "—"
         url = reverse("admin:beneficiary_validate_mentoring", args=[obj.pk])
         return format_html(
-            '<button type="submit" formaction="{}" class="button">'
+            '<button type="submit" formaction="{}" class="button" '
+            "onclick=\"return confirm('Confirmer la validation du mentorat ?');\">"
             "Valider et envoyer à Jobirl</button>",
             url,
         )
