@@ -18,16 +18,11 @@ from ..forms import (
     StudyStatus,
     VerificationCodeForm,
 )
-from ..mailers import AuthMailer, ConsortiumMailer
-from ..models import Beneficiary, User
+from ..mailers import AuthMailer
+from ..models import User
 from ..ratelimit import rate_limit
-from ..services.beneficiary.create_mentoree import CreateMentoree
-from ..tasks import send_beneficiary_welcome_email_task
+from ..services.beneficiary.create_beneficiary import CreateBeneficiary
 from ..utils.dates import compute_age
-from ..utils.missing_record import report_missing_record
-
-# Delay before the welcome email is sent, so it doesn't land before the login code.
-_WELCOME_EMAIL_DELAY_SECONDS = 5 * 60
 
 # The funnel steps in order — the single source of truth navigation is derived from.
 _STEPS = ("email", "identity", "study_status", "training_experience", "mentoring_signup")
@@ -120,39 +115,19 @@ def _create_beneficiary(request):
     except _StepInterrupt as interrupt:
         return interrupt.response
 
-    is_minor = compute_age(identity["birth_date"]) < 18
-    beneficiary = Beneficiary(
-        username=email["email"],
+    result = CreateBeneficiary(
         email=email["email"],
         first_name=identity["first_name"],
         last_name=identity["last_name"],
         birth_date=identity["birth_date"],
-        brevo_sync_enabled=identity["newsletter_consent"],
-        phone=mentoring_signup_data["phone"] if wants_mentor else "",
-        legal_representative_email=(
-            mentoring_signup_data["legal_representative_email"]
-            if wants_mentor and is_minor
-            else ""
-        ),
+        newsletter_consent=identity["newsletter_consent"],
+        training_experience_form=training_experience_form,
+        wants_mentor=wants_mentor,
+        mentoring_signup_data=mentoring_signup_data if wants_mentor else None,
     )
-    beneficiary.save()
-    training_experience_form.save(beneficiary)
-    report_missing_record(training_experience_form, beneficiary, "Funnel d'inscription")
-    AuthMailer.login_code(user=beneficiary, code=beneficiary.issue_login_code())
-    send_beneficiary_welcome_email_task.apply_async(
-        kwargs={"beneficiary_pk": str(beneficiary.pk)}, countdown=_WELCOME_EMAIL_DELAY_SECONDS
-    )
-    if wants_mentor:
-        if is_minor:
-            ConsortiumMailer.new_mentoring_signup(
-                beneficiary=beneficiary, mentoring_signup_data=mentoring_signup_data
-            )
-        else:
-            result = CreateMentoree(beneficiary=beneficiary)
-            if result.failure:
-                for error in result.errors:
-                    messages.error(request, error)
-    response = _render_step(request, "code", email=beneficiary.email)
+    for error in result.mentoring_errors:
+        messages.error(request, error)
+    response = _render_step(request, "code", email=result.beneficiary.email)
     response["HX-Trigger"] = "funnelReset"
     return response
 

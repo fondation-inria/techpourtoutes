@@ -412,6 +412,7 @@ def test_mentoring_signup_step_persists_legal_representative_email_for_a_minor(
 
     assert b"Saisis le code" in response.content
     beneficiary = Beneficiary.objects.get(email="oceane@example.com")
+    assert beneficiary.legal_representative_name == "Parent Test"
     assert beneficiary.legal_representative_email == "parent@example.com"
 
 
@@ -443,7 +444,10 @@ def test_mentoring_signup_step_creates_an_adult_beneficiary_without_legal_repres
     # The template never shows the legal-representative fields to an adult, so the form must
     # accept a submission carrying only the phone number.
     instance = MagicMock(success=True, failure=False, errors=[])
-    with patch("techpourtoutes.views.beneficiary_views.CreateMentoree", return_value=instance):
+    with patch(
+        "techpourtoutes.services.beneficiary.create_beneficiary.CreateMentoree",
+        return_value=instance,
+    ):
         response = client.post(
             FUNNEL_URL,
             _higher_education_post(
@@ -457,6 +461,7 @@ def test_mentoring_signup_step_creates_an_adult_beneficiary_without_legal_repres
 
     assert b"Saisis le code" in response.content
     beneficiary = Beneficiary.objects.get(email="oceane@example.com")
+    assert beneficiary.legal_representative_name == ""
     assert beneficiary.legal_representative_email == ""
 
 
