@@ -15,11 +15,11 @@
                 <p>Pour valider ton inscription au programme de mentorat, nous avons besoin de ton numéro de téléphone.</p>
             {% endif %}
             <p class="text-xs text-neutral-500">Tous les champs sont obligatoires</p>
+            <c-components.form_fields.input field=form.phone />
             {% if is_minor %}
                 <c-components.form_fields.input field=form.legal_representative_name autocomplete="name" description="exemple : Hedy Lamarr" />
                 <c-components.form_fields.input field=form.legal_representative_email autocomplete="email" />
             {% endif %}
-            <c-components.form_fields.input field=form.phone />
             <div class="flex justify-center">
                 <c-components.button type="submit" label="Rejoindre le club" />
             </div>
