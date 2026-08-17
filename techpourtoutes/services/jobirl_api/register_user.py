@@ -15,8 +15,7 @@ BENEFICIARY_FILIERE = "Générale"
 
 
 class RegisterUserOnJobirl(JobirlApiBaseService):
-    def perform(self, *, user) -> None:
-        is_pro = hasattr(user, "pro")
+    def perform(self, *, user, is_pro=False) -> None:
         data = self._common_data(user)
         data.update(self._pro_data(user) if is_pro else self._beneficiary_data(user))
 

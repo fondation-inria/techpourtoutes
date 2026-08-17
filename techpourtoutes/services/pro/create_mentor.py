@@ -5,7 +5,7 @@ from ..jobirl_api.register_user import RegisterUserOnJobirl
 
 class CreateMentor(BaseService):
     def perform(self, *, pro):
-        result = RegisterUserOnJobirl(user=pro)
+        result = RegisterUserOnJobirl(user=pro, is_pro=True)
         if result.failure:
             self.errors.extend(result.errors)
             return
