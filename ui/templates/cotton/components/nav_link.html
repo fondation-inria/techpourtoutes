@@ -1,21 +1,21 @@
-<c-vars href="#" icon="" icon_active="" label="" disabled="" class="" active="" />
+<c-vars href="#" icon="" label="" disabled="" class="" active="" icon_class="w-5 h-5" />
 
 <li>
     {% if disabled %}
         <span class="flex items-center gap-3 px-3 py-2 rounded-md text-sm font-medium text-disabled opacity-60 cursor-not-allowed select-none">
-            {% if icon %}<c-components.icon name="{{ icon }}" class="w-5 h-5" />{% endif %}
+            {% if icon %}<c-components.icon name="{{ icon }}" class="{{ icon_class }}" />{% endif %}
             <span>{{ label }}</span>
         </span>
     {% else %}
         <a href="{{ href }}"
-           class="flex items-center gap-3 px-3 py-2 rounded-md text-sm font-medium text-neutral-900 transition-colors hover:bg-blue-background active:bg-primary-100 focus-visible:outline-none focus-visible:bg-neutral-0 focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-primary-700{% if request.path == href or active %} font-semibold bg-primary-100{% endif %} {{ class }}">
+           class="group flex items-center gap-3 px-3 py-2 text-neutral-900 transition-colors hover:ring-2 hover:ring-inset hover:ring-yellow-500 hover:rounded-xl focus-visible:outline-none focus-visible:bg-neutral-0 focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-primary-700{% if request.path == href or active %} font-serif font-bold italic bg-yellow-500 rounded-xl text-base{% else %} font-medium rounded-md text-sm{% endif %} {{ class }}">
             {% if icon %}
                 <c-components.icon
-                    name="{% if request.path == href and icon_active or active and icon_active %}{{ icon_active }}{% else %}{{ icon }}{% endif %}"
-                    class="w-5 h-5"
+                    name="{{ icon }}"
+                    class="{{ icon_class }}"
                 />
             {% endif %}
-            <span>{{ label }}</span>
+            <span class="transition-transform group-hover:font-serif group-hover:italic group-hover:font-medium group-hover:scale-110">{{ label }}</span>
         </a>
     {% endif %}
 </li>

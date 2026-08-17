@@ -209,6 +209,8 @@
   /* New DA colors */
   --color-yellow-500: #fad207;
   --color-green-500: #00a25e;
+  --color-orange-500: #ff713d;
+  --color-purple-500: #bd76ff;
 
   /* Named backgrounds */
   --color-blue-background: #f4f4ff;
@@ -224,6 +226,7 @@
 
   /* Shadows */
   --shadow-bottom-and-right: 4px 4px 0 0 var(--color-primary-700);
+  --shadow-bottom-and-right-lg: 6px 6px 0 0 var(--color-primary-700);
   --shadow-right: 4px 0 0 0 var(--color-primary-700);
   --shadow-thin-bottom: 0 1px 0 0;
 

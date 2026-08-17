@@ -15,6 +15,7 @@ def _namespace_ids(content: str, slug: str) -> str:
         escaped = re.escape(id_val)
         content = re.sub(rf'\bid="{escaped}"', f'id="{slug}-{id_val}"', content)
         content = re.sub(rf"url\(#{escaped}\)", f"url(#{slug}-{id_val})", content)
+        content = re.sub(rf"url\('#{escaped}'\)", f"url('#{slug}-{id_val}')", content)
         content = re.sub(rf'href="#{escaped}"', f'href="#{slug}-{id_val}"', content)
         content = re.sub(rf"href='#{escaped}'", f"href='#{slug}-{id_val}'", content)
     return content
