@@ -15,7 +15,7 @@ def test_create_mentoree_calls_jobirl_with_user_and_saves_result(beneficiary):
     ) as MockRegister:
         result = CreateMentoree(beneficiary=beneficiary)
 
-    MockRegister.assert_called_once_with(user=beneficiary)
+    MockRegister.assert_called_once_with(user=beneficiary, is_pro=False)
     assert result.success is True
     beneficiary.refresh_from_db()
     assert beneficiary.jobirl_user_id == 287565
