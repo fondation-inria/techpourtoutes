@@ -63,7 +63,7 @@
             Latitudes, une communauté d'acteurs et d'actrices de la tech qui agissent pour créer une technologie engagée et responsable.
 
         </c-components.text>
-        <c-components.button href="{% url "qui_sommes_nous" %}" label="Découvrir tous les membres du consortium TechPourToutes" variant="quaternary" />
+        <c-components.button href="{% url "qui_sommes_nous" %}" label="Découvrir tous les membres du consortium TechPourToutes" variant="tertiary" />
     </c-components.accordion>
 
     <c-components.card title="2. Les ateliers Chiche&nbsp;! avec Inria">
@@ -77,7 +77,7 @@
             Inria, l'Institut national de recherche en sciences et technologies du numérique.
 
         </c-components.text>
-        <c-components.button href="{% url "qui_sommes_nous" %}" label="Découvrir tous les membres du consortium TechPourToutes" variant="quaternary" />
+        <c-components.button href="{% url "qui_sommes_nous" %}" label="Découvrir tous les membres du consortium TechPourToutes" variant="tertiary" />
     </c-components.accordion>
 
     <c-slot name="decorations">
@@ -86,10 +86,10 @@
 
 
     <c-slot name="right">
-        <div class="flex flex-col items-center px-4 md:mt-[65px] md:self-start"
+        <div class="flex flex-col items-center px-4 md:mt-[100px] md:self-start"
              x-data="{ showForm: {{ form.is_bound|yesno:'true,false' }} }"
              :class="{ 'md:sticky md:top-14 xl:top-8': !showForm }">
-            <c-components.title title="Demandez un atelier&nbsp;!" class="justify-center text-center w-[250px] h-16" variant="h3" />
+            <c-components.starburst-title title="Demandez un atelier&nbsp;!" class="mb-8" />
 
             <div id="latitudes-form">
                 <div x-show="!showForm" @click.prevent="showForm = true; $nextTick(() => { $refs.formCard.scrollIntoView({ behavior: 'smooth', block: 'start' }) })" class="cursor-pointer">
@@ -103,7 +103,6 @@
                     x-transition:enter-end="scale-y-100"
                 />
                     <c-components.card-shadow id="latitudes-form-card" class="w-[320px] my-5 p-5 relative">
-                        <c-components.icon name="badge-coeur" class="shrink-0 w-15 h-15 absolute -top-5 -right-5" />
                         <c-patterns.form url="{% url 'workshops_landing' %}">
                             <c-components.title title="Organiser un atelier Latitudes" variant="h3" />
                             <p class="description-text-xxs">Les champs suivis d'un astérisque (*) sont obligatoires.</p>

@@ -49,12 +49,12 @@
         </c-components.card-shadow>
     </div>
 
-    <c-components.accordion title="Mécène, une antonomase&nbsp;?" variant="green">
+    <c-components.accordion title="Mécène, une antonomase&nbsp;?">
         <c-components.text>
             Oui, comme pour mentor, mais Mécène a bien existé, lui. Caius Maecenas était un homme politique romain qui vécut lors de la deuxième moitié du 1er siècle avant notre ère. Il fut célèbre pour avoir consacré une partie de sa fortune et de son influence à la promotion des arts et des lettres. Faîtes comme lui et participez à la promotion d'une tech plus mixte&nbsp;!
 
         </c-components.text>
-        <c-components.button href="https://fr.wikipedia.org/wiki/M%C3%A9c%C3%A8ne" label="Source&nbsp;: Wikipedia" icon="external-link" variant="quaternary" target="_blank" />
+        <c-components.button href="https://fr.wikipedia.org/wiki/M%C3%A9c%C3%A8ne" label="Source&nbsp;: Wikipedia" icon="external-link" variant="tertiary" target="_blank" />
     </c-components.accordion>
 
     <c-components.accordion title="Cette action est menée par">
@@ -62,7 +62,7 @@
             la Fondation Inria, pilote du programme TechPourToutes.
 
         </c-components.text>
-        <c-components.button href="{% url "qui_sommes_nous" %}" label="Découvrir tous les membres du consortium TechPourToutes" variant="quaternary" />
+        <c-components.button href="{% url "qui_sommes_nous" %}" label="Découvrir tous les membres du consortium TechPourToutes" variant="tertiary" />
     </c-components.accordion>
 
     <c-slot name="decorations">
@@ -70,15 +70,14 @@
     </c-slot>
 
     <c-slot name="right">
-        <div class="flex flex-col items-center px-4 md:mt-[65px] md:self-start"
+        <div class="flex flex-col items-center px-4 md:mt-[100px] md:self-start"
              x-data="{ showForm: {{ form.is_bound|yesno:'true,false' }} }"
              :class="{ 'md:sticky md:top-14 xl:top-8': !showForm }">
-            <c-components.title title="Rejoignez la coalition&nbsp;!" class="justify-center w-[300px] h-16" variant="h3" />
+            <c-components.starburst-title title="Rejoignez la coalition&nbsp;!" />
             <div id="sponsor-card">
                 <div x-show="!showForm" {% if not pro or "sponsor" not in pro.engagements %}@click.prevent="showForm = true; $nextTick(() => { $refs.formCard.scrollIntoView({ behavior: 'smooth', block: 'start' }) })" class="cursor-pointer"{% endif %}>
                     <c-components.card-shadow id="sponsor-member-card" class="w-[320px] my-5">
                         <div class="flex gap-5">
-                            <c-components.icon name="badge-coeur" class="shrink-0 w-15 h-15" />
                             <div>
                                 {% if pro %}
                                     <p class="font-medium pb-3">{{ pro.first_name }}</p>
@@ -103,7 +102,6 @@
                     x-transition:enter-end="scale-y-100"
                 />
                     <c-components.card-shadow id="sponsor-form-card" class="w-[320px] my-5 p-5 relative">
-                        <c-components.icon name="badge-coeur" class="shrink-0 w-15 h-15 absolute -top-5 -right-5" />
                         <c-patterns.form url="{% url 'sponsor_landing' %}">
                             <c-components.title title="Engagement mécène" variant="h3" />
                             <p class="description-text-xxs">Les champs suivis d'un astérisque (*) sont obligatoires.</p>
