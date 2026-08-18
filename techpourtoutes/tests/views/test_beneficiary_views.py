@@ -250,7 +250,7 @@ def test_existing_pro_email_redirects_to_login_with_coalition_back(client, benef
 
 
 @pytest.mark.django_db
-def test_existing_registered_beneficiary_email_with_wants_mentor_redirects_to_account_back(
+def test_existing_registered_beneficiary_email_with_wants_mentor_logs_in_to_account(
     client, beneficiary_mode, beneficiary
 ):
     beneficiary.jobirl_user_id = 42
@@ -261,12 +261,12 @@ def test_existing_registered_beneficiary_email_with_wants_mentor_redirects_to_ac
     )
 
     assert "se-connecter" in response["HX-Redirect"]
-    assert f"back={quote(reverse('account'), safe='')}" in response["HX-Redirect"]
+    assert f"back={quote('/', safe='')}" in response["HX-Redirect"]
     assert f"next={quote(reverse('account'), safe='')}" in response["HX-Redirect"]
 
 
 @pytest.mark.django_db
-def test_existing_unregistered_beneficiary_email_with_wants_mentor_redirects_to_add_mentoring_back(
+def test_existing_unregistered_beneficiary_email_with_wants_mentor_logs_in_to_add_mentoring(
     client, beneficiary_mode, beneficiary
 ):
     response = client.post(
@@ -274,7 +274,7 @@ def test_existing_unregistered_beneficiary_email_with_wants_mentor_redirects_to_
     )
 
     assert "se-connecter" in response["HX-Redirect"]
-    assert f"back={quote('/devenir-mentoree/', safe='')}" in response["HX-Redirect"]
+    assert f"back={quote('/', safe='')}" in response["HX-Redirect"]
     assert f"next={quote('/devenir-mentoree/', safe='')}" in response["HX-Redirect"]
 
 

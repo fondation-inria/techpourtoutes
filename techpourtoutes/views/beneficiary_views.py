@@ -311,12 +311,13 @@ def _login_redirect_for_existing_email(request, email):
     if user is None:
         return None
     messages.error(request, "Un compte existe déjà avec cet email.")
-    back_url = reverse(_back_view_for_existing_user(user, request.POST))
-    login_url = f"{reverse('login_request')}?{urlencode({'back': back_url, 'next': back_url})}"
+    back_url = reverse("coalition_home" if hasattr(user, "pro") else "home")
+    next_url = reverse(_destination_view_for_existing_user(user, request.POST))
+    login_url = f"{reverse('login_request')}?{urlencode({'back': back_url, 'next': next_url})}"
     return HttpResponse(headers={"HX-Redirect": login_url, "HX-Trigger": "funnelReset"})
 
 
-def _back_view_for_existing_user(user, data):
+def _destination_view_for_existing_user(user, data):
     if hasattr(user, "pro"):
         return "coalition_home"
     if _wants_mentor(data) and hasattr(user, "beneficiary"):
