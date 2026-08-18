@@ -5288,9 +5288,25 @@
     border-style: var(--tw-border-style);
     border-width: 1px;
   }
-  .border-2 {
+  .border-0 {
     border-style: var(--tw-border-style);
-    border-width: 2px;
+    border-width: 0px;
+  }
+  .border-1 {
+    border-style: var(--tw-border-style);
+    border-width: 1px;
+  }
+  .border-\[0\.5\] {
+    border-style: var(--tw-border-style);
+    border-width: 0.5;
+  }
+  .border-\[0\.5px\] {
+    border-style: var(--tw-border-style);
+    border-width: 0.5px;
+  }
+  .border-\[0\] {
+    border-style: var(--tw-border-style);
+    border-width: 0;
   }
   .border-t {
     border-top-style: var(--tw-border-style);
@@ -5303,6 +5319,12 @@
   .border-b-0 {
     border-bottom-style: var(--tw-border-style);
     border-bottom-width: 0px;
+  }
+  .border-\[0\.5p\] {
+    border-color: 0.5p;
+  }
+  .border-\[0\.\] {
+    border-color: 0.;
   }
   .border-accent-100 {
     border-color: var(--color-accent-100);
@@ -6214,9 +6236,6 @@
     }
     .md\:max-w-xl {
       max-width: var(--container-xl);
-    }
-    .md\:min-w-140 {
-      min-width: calc(var(--spacing) * 140);
     }
     .md\:min-w-\[560px\] {
       min-width: 560px;
