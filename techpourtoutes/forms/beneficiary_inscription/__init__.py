@@ -7,6 +7,7 @@ from .identity_form import BeneficiaryIdentityForm
 from .last_diploma_training_experience_form import (
     BeneficiaryLastDiplomaTrainingExperienceForm,
 )
+from .mentoring_signup_form import BeneficiaryMentoringSignUpForm
 from .study_status_form import BeneficiaryStudyStatusForm, StudyStatus
 
 __all__ = [
@@ -15,6 +16,7 @@ __all__ = [
     "BeneficiaryHighSchoolTrainingExperienceForm",
     "BeneficiaryIdentityForm",
     "BeneficiaryLastDiplomaTrainingExperienceForm",
+    "BeneficiaryMentoringSignUpForm",
     "BeneficiaryStudyStatusForm",
     "StudyStatus",
 ]

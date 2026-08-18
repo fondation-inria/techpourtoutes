@@ -1,4 +1,5 @@
 from datetime import date
+from unittest.mock import MagicMock, patch
 from urllib.parse import quote
 
 import pytest
@@ -7,6 +8,7 @@ from django.test import override_settings
 from waffle.testutils import override_switch
 
 from techpourtoutes.models import Beneficiary, Level, User
+from techpourtoutes.services.base import ErrorKind
 from techpourtoutes.utils.school_year import (
     current_school_year_label,
     current_school_year_start_date,
@@ -15,6 +17,7 @@ from techpourtoutes.utils.school_year import (
 )
 
 FUNNEL_URL = "/inscription/"
+SKIP_MODAL_URL = "/inscription/passer-mentorat/"
 
 
 @pytest.fixture
@@ -112,6 +115,22 @@ def test_get_renders_funnel_shell(client, beneficiary_mode):
     assert b'id="funnel-step"' in response.content
     assert b'x-data="beneficiaryFunnel"' in response.content
     assert b'"action": "resume"' in response.content
+
+
+@pytest.mark.django_db
+def test_get_without_the_mentor_parameter_starts_a_funnel_without_the_mentoring_screen(
+    client, beneficiary_mode
+):
+    response = client.get(FUNNEL_URL)
+    assert b'"wants_mentor": false' in response.content
+
+
+@pytest.mark.django_db
+def test_get_with_the_mentor_parameter_starts_a_funnel_with_the_mentoring_screen(
+    client, beneficiary_mode
+):
+    response = client.get(f"{FUNNEL_URL}?wants_mentor=1")
+    assert b'"wants_mentor": true' in response.content
 
 
 @pytest.mark.django_db
@@ -373,6 +392,142 @@ def test_training_experience_step_sends_login_code_and_welcome_emails(
 
 
 @pytest.mark.django_db
+@override_settings(EMAIL_BACKEND="django.core.mail.backends.locmem.EmailBackend")
+def test_skipping_the_mentoring_screen_creates_beneficiary_without_mentoring_signup(
+    client, beneficiary_mode, higher_ed_school, higher_ed_formation
+):
+    response = client.post(
+        FUNNEL_URL,
+        _higher_education_post(
+            higher_ed_school,
+            higher_ed_formation,
+            action="training_experience",
+            wants_mentor="false",
+        ),
+    )
+
+    assert b"Saisis le code" in response.content
+    beneficiary = Beneficiary.objects.get(email="oceane@example.com")
+    assert beneficiary.phone == ""
+    subjects = {message.subject for message in mail.outbox}
+    assert "Nouvelle attestation à envoyer" not in subjects
+
+
+@pytest.mark.django_db
+def test_skip_modal_submits_the_step_preceding_the_mentoring_screen(client, beneficiary_mode):
+    response = client.get(SKIP_MODAL_URL)
+
+    # Skipping makes the step before the mentoring screen the last one, and it is already filled.
+    assert b'name="action" value="training_experience"' in response.content
+    assert b'name="wants_mentor" value="false"' in response.content
+
+
+@pytest.mark.django_db
+def test_mentoring_signup_step_persists_legal_representative_email_for_a_minor(
+    client, beneficiary_mode, higher_ed_school, higher_ed_formation
+):
+    response = client.post(
+        FUNNEL_URL,
+        _higher_education_post(
+            higher_ed_school,
+            higher_ed_formation,
+            action="mentoring_signup",
+            wants_mentor="true",
+            birth_date=_birth_date_for_age(16).isoformat(),
+            legal_representative_name="Parent Test",
+            legal_representative_email="parent@example.com",
+            phone="0612345678",
+        ),
+    )
+
+    assert b"Saisis le code" in response.content
+    beneficiary = Beneficiary.objects.get(email="oceane@example.com")
+    assert beneficiary.legal_representative_name == "Parent Test"
+    assert beneficiary.legal_representative_email == "parent@example.com"
+
+
+@pytest.mark.django_db
+def test_mentoring_signup_step_blocks_a_minor_without_legal_representative_fields(
+    client, beneficiary_mode, higher_ed_school, higher_ed_formation
+):
+    response = client.post(
+        FUNNEL_URL,
+        _higher_education_post(
+            higher_ed_school,
+            higher_ed_formation,
+            action="mentoring_signup",
+            wants_mentor="true",
+            birth_date=_birth_date_for_age(16).isoformat(),
+            phone="0612345678",
+        ),
+    )
+
+    assert b"Saisis le code" not in response.content
+    assert b"Ce champ est obligatoire." in response.content
+    assert not Beneficiary.objects.exists()
+
+
+@pytest.mark.django_db
+def test_mentoring_signup_step_creates_an_adult_beneficiary_without_legal_representative_fields(
+    client, beneficiary_mode, higher_ed_school, higher_ed_formation
+):
+    # The template never shows the legal-representative fields to an adult, so the form must
+    # accept a submission carrying only the phone number.
+    instance = MagicMock(success=True, failure=False, errors=[])
+    with patch(
+        "techpourtoutes.services.beneficiary.sign_up_for_mentoring.CreateMentoree",
+        return_value=instance,
+    ):
+        response = client.post(
+            FUNNEL_URL,
+            _higher_education_post(
+                higher_ed_school,
+                higher_ed_formation,
+                action="mentoring_signup",
+                wants_mentor="true",
+                phone="0612345678",
+            ),
+        )
+
+    assert b"Saisis le code" in response.content
+    beneficiary = Beneficiary.objects.get(email="oceane@example.com")
+    assert beneficiary.legal_representative_name == ""
+    assert beneficiary.legal_representative_email == ""
+
+
+@pytest.mark.django_db
+def test_a_mentoring_sign_up_jobirl_refuses_sends_her_back_with_no_account(
+    client, beneficiary_mode, higher_ed_school, higher_ed_formation
+):
+    refused = MagicMock(
+        success=False,
+        failure=True,
+        errors=["EMAIL ALREADY EXISTS"],
+        failed_with_transient_error=False,
+        error_kind=ErrorKind.PERMANENT,
+    )
+    with patch(
+        "techpourtoutes.services.beneficiary.sign_up_for_mentoring.CreateMentoree",
+        return_value=refused,
+    ):
+        response = client.post(
+            FUNNEL_URL,
+            _higher_education_post(
+                higher_ed_school,
+                higher_ed_formation,
+                action="mentoring_signup",
+                wants_mentor="true",
+                phone="0612345678",
+            ),
+        )
+
+    assert b"Saisis le code" not in response.content
+    assert "EMAIL ALREADY EXISTS" in response.content.decode()
+    assert "HX-Trigger" not in response
+    assert not Beneficiary.objects.exists()
+
+
+@pytest.mark.django_db
 def test_funnel_redirects_authenticated_user_to_account(client, beneficiary_mode):
     beneficiary = Beneficiary.objects.create(
         username="oceane@example.com",
@@ -487,6 +642,35 @@ def test_training_experience_step_does_not_create_when_email_is_missing(
     assert b'name="action" value="email"' in response.content
     assert b"Ton adresse mail n" in response.content
     assert not Beneficiary.objects.exists()
+
+
+@pytest.mark.django_db
+def test_progress_ignores_the_mentoring_screen_when_it_is_not_part_of_the_funnel(
+    client, beneficiary_mode
+):
+    response = client.post(
+        FUNNEL_URL,
+        {**_valid_identity_post(), "action": "study_status", "study_status": "higher_education"},
+    )
+
+    # Three counted steps — the email screen takes no share — plus the final segment reserved
+    # for the success screen.
+    assert b"width: 75%" in response.content
+
+
+@pytest.mark.django_db
+def test_progress_counts_the_mentoring_screen_when_a_mentor_is_wanted(client, beneficiary_mode):
+    response = client.post(
+        FUNNEL_URL,
+        {
+            **_valid_identity_post(),
+            "action": "study_status",
+            "study_status": "higher_education",
+            "wants_mentor": "true",
+        },
+    )
+
+    assert b"width: 60%" in response.content
 
 
 @pytest.mark.django_db

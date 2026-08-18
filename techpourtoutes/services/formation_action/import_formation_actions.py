@@ -1,12 +1,12 @@
 from techpourtoutes.utils.onisep import onisep_id_from_url, read_onisep_csv
 
-from ..base_api import BaseApiService
+from ..base import BaseService
 from ..onisep_api.fetch_formation_actions import FetchOnisepFormationActions
 from .prune_formation_actions import PruneFormationActions
 from .upsert_formation_actions import UpsertFormationActions
 
 
-class ImportFormationActions(BaseApiService):
+class ImportFormationActions(BaseService):
     """Feed the FormationAction table, from the committed samples or from the Onisep open data.
     Both ends must already be imported: an action whose formation or établissement is unknown
     is dropped by the upsert."""

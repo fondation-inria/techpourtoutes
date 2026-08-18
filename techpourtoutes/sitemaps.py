@@ -22,6 +22,7 @@ COALITION_PAGE_NAMES = [
 
 BENEFICIARY_PAGE_NAMES = [
     "home",
+    "find_mentor_landing",
 ]
 
 

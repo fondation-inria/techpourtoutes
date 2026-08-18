@@ -55,6 +55,628 @@
   <symbol id="close" viewBox="5 5 10 10" fill="none">
     <path stroke="currentColor" stroke-width="0.6" stroke-linecap="round" stroke-linejoin="round" d="M6 6l8 8M14 6l-8 8" />
   </symbol>
+  <symbol id="codex-A" viewBox="0 0 827 827" fill="currentColor">
+    <rect id="codex-A-TPT_Codex-A" x="0" y="0" width="826.772" height="826.772" style="fill:none;"/>
+    <clipPath id="codex-A-_clip1">
+        <rect id="codex-A-TPT_Codex-A1" x="0" y="0" width="826.772" height="826.772"/>
+    </clipPath>
+    <g clip-path="url(#codex-A-_clip1)">
+        <g transform="matrix(1,0,0,1,-236.220472,-118.110236)">
+            <rect x="472.441" y="590.551" width="118.11" height="354.331"/>
+        </g>
+        <g transform="matrix(0,1,-0.666667,0,1102.362205,-354.330709)">
+            <rect x="472.441" y="590.551" width="118.11" height="354.331"/>
+        </g>
+        <g transform="matrix(1,0,0,1,-354.330709,118.110236)">
+            <rect x="826.772" y="354.331" width="118.11" height="118.11"/>
+            <g transform="matrix(1,0,0,1,118.110236,118.110236)">
+                <rect x="826.772" y="354.331" width="118.11" height="118.11"/>
+            </g>
+        </g>
+        <g transform="matrix(0,1,-0.666667,0,629.92126,-472.440945)">
+            <rect x="472.441" y="590.551" width="118.11" height="354.331"/>
+        </g>
+        <g transform="matrix(0,1,-1,0,885.104987,-295.275591)">
+            <path d="M649.606,530.774L649.606,648.885C519.631,648.885 414.108,543.361 414.108,413.386C414.108,283.411 519.631,176.444 649.606,176.444L649.606,294.554C584.021,294.554 530.774,347.801 530.774,413.386C530.774,478.971 584.021,530.774 649.606,530.774Z"/>
+        </g>
+    </g>
+  </symbol>
+  <symbol id="codex-B" viewBox="0 0 827 827" fill="currentColor">
+    <g transform="matrix(1,0,0,1,-1062,0)">
+        <g id="codex-B-TPT_Codex-B" transform="matrix(1,0,0,1,-0.992126,0)">
+            <rect x="1062.992" y="0" width="826.772" height="826.772" style="fill:none;"/>
+            <clipPath id="codex-B-_clip1">
+                <rect x="1062.992" y="0" width="826.772" height="826.772"/>
+            </clipPath>
+            <g clip-path="url(#codex-B-_clip1)">
+                <g transform="matrix(1,0,0,1,1063.984252,-472.440945)">
+                    <rect x="472.441" y="590.551" width="118.11" height="354.331"/>
+                </g>
+                <g transform="matrix(1,0,0,1,827.76378,236.220472)">
+                    <rect x="826.772" y="354.331" width="118.11" height="118.11"/>
+                    <g transform="matrix(1,0,0,1,118.110236,118.110236)">
+                        <rect x="826.772" y="354.331" width="118.11" height="118.11"/>
+                    </g>
+                </g>
+                <g transform="matrix(-1,0,0,1,1831.430446,-176.44357)">
+                    <path d="M649.606,530.774L649.606,648.885C519.631,648.885 414.108,543.361 414.108,413.386C414.108,283.411 519.631,176.444 649.606,176.444L649.606,294.554C584.021,294.554 530.774,347.801 530.774,413.386C530.774,478.971 584.021,530.774 649.606,530.774Z"/>
+                </g>
+                <g transform="matrix(-1,0,0,1,1831.430446,177.887139)">
+                    <path d="M649.606,530.774L649.606,648.885C519.631,648.885 414.108,543.361 414.108,413.386C414.108,283.411 519.631,176.444 649.606,176.444L649.606,294.554C584.021,294.554 530.774,347.801 530.774,413.386C530.774,478.971 584.021,530.774 649.606,530.774Z"/>
+                </g>
+            </g>
+        </g>
+    </g>
+  </symbol>
+  <symbol id="codex-C" viewBox="0 0 827 827" fill="currentColor">
+    <g transform="matrix(1,0,0,1,-2124,0)">
+        <g id="codex-C-TPT_Codex-C" transform="matrix(1,0,0,1,-0.992126,0)">
+            <rect x="2124.992" y="0" width="826.772" height="826.772" style="fill:none;"/>
+            <clipPath id="codex-C-_clip1">
+                <rect x="2124.992" y="0" width="826.772" height="826.772"/>
+            </clipPath>
+            <g clip-path="url(#codex-C-_clip1)">
+                <g transform="matrix(1,0,0,1,1829.716535,-58.333333)">
+                    <path d="M649.606,530.774L649.606,648.885C519.631,648.885 414.108,543.361 414.108,413.386C414.108,283.411 519.631,176.444 649.606,176.444L649.606,294.554C584.021,294.554 530.774,347.801 530.774,413.386C530.774,478.971 584.021,530.774 649.606,530.774Z"/>
+                </g>
+                <g transform="matrix(1,0,0,1,1652.551181,118.110236)">
+                    <rect x="826.772" y="354.331" width="118.11" height="118.11"/>
+                    <g transform="matrix(1,0,0,1,118.110236,118.110236)">
+                        <rect x="826.772" y="354.331" width="118.11" height="118.11"/>
+                    </g>
+                </g>
+                <g transform="matrix(1,0,0,1,1298.220472,236.220472)">
+                    <rect x="826.772" y="354.331" width="118.11" height="118.11"/>
+                    <g transform="matrix(1,0,0,1,118.110236,118.110236)">
+                        <rect x="826.772" y="354.331" width="118.11" height="118.11"/>
+                    </g>
+                </g>
+                <g transform="matrix(0,1,-0.666667,0,3227.354331,-354.330709)">
+                    <rect x="472.441" y="590.551" width="118.11" height="354.331"/>
+                </g>
+            </g>
+        </g>
+    </g>
+  </symbol>
+  <symbol id="codex-D" viewBox="0 0 827 827" fill="currentColor">
+    <g transform="matrix(1,0,0,1,-3186,0)">
+        <g id="codex-D-TPT_Codex-D" transform="matrix(1,0,0,1,-0.992126,0)">
+            <rect x="3186.992" y="0" width="826.772" height="826.772" style="fill:none;"/>
+            <g transform="matrix(-1,0,0,1,4427.149606,-58.333333)">
+                <path d="M649.606,530.774L649.606,648.885C519.631,648.885 414.108,543.361 414.108,413.386C414.108,283.411 519.631,176.444 649.606,176.444L649.606,294.554C584.021,294.554 530.774,347.801 530.774,413.386C530.774,478.971 584.021,530.774 649.606,530.774Z"/>
+            </g>
+            <g transform="matrix(1,0,0,1,2714.551181,-118.110236)">
+                <rect x="826.772" y="354.331" width="118.11" height="118.11"/>
+                <g transform="matrix(1,0,0,1,118.110236,118.110236)">
+                    <rect x="826.772" y="354.331" width="118.11" height="118.11"/>
+                </g>
+            </g>
+            <g transform="matrix(0,1,-0.666667,0,3935.023622,-472.440945)">
+                <rect x="472.441" y="590.551" width="118.11" height="354.331"/>
+            </g>
+            <g transform="matrix(1,0,0,1,2835.637795,-236.220472)">
+                <rect x="472.441" y="590.551" width="118.11" height="354.331"/>
+            </g>
+        </g>
+    </g>
+  </symbol>
+  <symbol id="codex-E" viewBox="0 0 827 827" fill="currentColor">
+    <g transform="matrix(1,0,0,1,-4248,0)">
+        <g id="codex-E-TPT_Codex-E" transform="matrix(1,0,0,1,-0.992126,0)">
+            <rect x="4248.992" y="0" width="826.772" height="826.772" style="fill:none;"/>
+            <g transform="matrix(1,0,0,1,3894.661417,-236.220472)">
+                <rect x="826.772" y="354.331" width="118.11" height="118.11"/>
+                <g transform="matrix(1,0,0,1,118.110236,118.110236)">
+                    <rect x="826.772" y="354.331" width="118.11" height="118.11"/>
+                </g>
+            </g>
+            <g transform="matrix(0,1,-0.666667,0,4997.023622,-354.330709)">
+                <rect x="472.441" y="590.551" width="118.11" height="354.331"/>
+            </g>
+            <g transform="matrix(0,1,-0.666667,0,4997.023622,-118.110236)">
+                <rect x="472.441" y="590.551" width="118.11" height="354.331"/>
+            </g>
+            <g transform="matrix(0,1,-0.666667,0,4997.023622,118.110236)">
+                <rect x="472.441" y="590.551" width="118.11" height="354.331"/>
+            </g>
+        </g>
+    </g>
+  </symbol>
+  <symbol id="codex-F" viewBox="0 0 827 827" fill="currentColor">
+    <g transform="matrix(1,0,0,1,0,-1062)">
+        <g id="codex-F-TPT_Codex-F" transform="matrix(1,0,0,1,0,-0.992126)">
+            <rect x="0" y="1062.992" width="826.772" height="826.772" style="fill:none;"/>
+            <clipPath id="codex-F-_clip1">
+                <rect x="0" y="1062.992" width="826.772" height="826.772"/>
+            </clipPath>
+            <g clip-path="url(#codex-F-_clip1)">
+                <g transform="matrix(0,1,-0.666667,0,866.141732,708.661417)">
+                    <rect x="472.441" y="590.551" width="118.11" height="354.331"/>
+                </g>
+                <g transform="matrix(0,1,-0.666667,0,866.141732,944.88189)">
+                    <rect x="472.441" y="590.551" width="118.11" height="354.331"/>
+                </g>
+                <g transform="matrix(1,0,0,1,-354.330709,944.88189)">
+                    <rect x="472.441" y="590.551" width="118.11" height="354.331"/>
+                </g>
+                <g transform="matrix(1,0,0,1,-472.440945,1299.212598)">
+                    <rect x="826.772" y="354.331" width="118.11" height="118.11"/>
+                    <g transform="matrix(1,0,0,1,118.110236,118.110236)">
+                        <rect x="826.772" y="354.331" width="118.11" height="118.11"/>
+                    </g>
+                </g>
+                <g transform="matrix(1,0,0,1,-236.220472,1299.212598)">
+                    <rect x="826.772" y="354.331" width="118.11" height="118.11"/>
+                    <g transform="matrix(1,0,0,1,118.110236,118.110236)">
+                        <rect x="826.772" y="354.331" width="118.11" height="118.11"/>
+                    </g>
+                </g>
+            </g>
+        </g>
+    </g>
+  </symbol>
+  <symbol id="codex-G" viewBox="0 0 827 827" fill="currentColor">
+    <g transform="matrix(1,0,0,1,-1062,-1062)">
+        <g id="codex-G-TPT_Codex-G" transform="matrix(1,0,0,1,0,-0.992126)">
+            <rect x="1062" y="1062.992" width="826.772" height="826.772" style="fill:none;"/>
+            <g transform="matrix(0,1,-1,0,1710.884514,648.884514)">
+                <path d="M649.606,530.774L649.606,648.885C519.631,648.885 414.108,543.361 414.108,413.386C414.108,283.411 519.631,176.444 649.606,176.444L649.606,294.554C584.021,294.554 530.774,347.801 530.774,413.386C530.774,478.971 584.021,530.774 649.606,530.774Z"/>
+            </g>
+            <g transform="matrix(0,-1,-1,-0,1828.994751,2303.149606)">
+                <path d="M649.606,530.774L649.606,648.885C519.631,648.885 414.108,543.361 414.108,413.386C414.108,283.411 519.631,176.444 649.606,176.444L649.606,294.554C584.021,294.554 530.774,347.801 530.774,413.386C530.774,478.971 584.021,530.774 649.606,530.774Z"/>
+            </g>
+            <g transform="matrix(1,0,0,1,589.559055,1062.270341)">
+                <rect x="826.772" y="354.331" width="118.11" height="118.11"/>
+                <g transform="matrix(1,0,0,1,118.110236,118.110236)">
+                    <rect x="826.772" y="354.331" width="118.11" height="118.11"/>
+                </g>
+            </g>
+            <g transform="matrix(0,1,-0.666667,0,1810.031496,944.88189)">
+                <rect x="472.441" y="590.551" width="118.11" height="354.331"/>
+            </g>
+        </g>
+    </g>
+  </symbol>
+  <symbol id="codex-H" viewBox="0 0 827 827" fill="currentColor">
+    <g transform="matrix(1,0,0,1,-2124,-1062)">
+        <g id="codex-H-TPT_Codex-H" transform="matrix(1,0,0,1,0,-0.992126)">
+            <rect x="2124" y="1062.992" width="826.772" height="826.772" style="fill:none;"/>
+            <clipPath id="codex-H-_clip1">
+                <rect x="2124" y="1062.992" width="826.772" height="826.772"/>
+            </clipPath>
+            <g clip-path="url(#codex-H-_clip1)">
+                <g transform="matrix(1,0,0,1,1769.669291,590.551181)">
+                    <rect x="472.441" y="590.551" width="118.11" height="354.331"/>
+                </g>
+                <g transform="matrix(1,0,0,1,2360.220472,944.88189)">
+                    <rect x="472.441" y="590.551" width="118.11" height="354.331"/>
+                </g>
+                <g transform="matrix(1,0,0,1,1651.559055,1062.992126)">
+                    <rect x="826.772" y="354.331" width="118.11" height="118.11"/>
+                    <g transform="matrix(1,0,0,1,118.110236,118.110236)">
+                        <rect x="826.772" y="354.331" width="118.11" height="118.11"/>
+                    </g>
+                </g>
+                <g transform="matrix(0,-1,-1,-0,3127.215223,1713.32021)">
+                    <path d="M649.606,530.774L649.606,648.885C519.631,648.885 414.108,543.361 414.108,413.386C414.108,283.411 519.631,176.444 649.606,176.444L649.606,294.554C584.021,294.554 530.774,347.801 530.774,413.386C530.774,478.971 584.021,530.774 649.606,530.774Z"/>
+                </g>
+            </g>
+        </g>
+    </g>
+  </symbol>
+  <symbol id="codex-I" viewBox="0 0 827 827" fill="currentColor">
+    <g transform="matrix(1,0,0,1,-3186,-1062)">
+        <g id="codex-I-TPT_Codex-I" transform="matrix(1,0,0,1,0,-0.992126)">
+            <rect x="3186" y="1062.992" width="826.772" height="826.772" style="fill:none;"/>
+            <g transform="matrix(1,0,0,1,3067.889764,944.88189)">
+                <rect x="472.441" y="590.551" width="118.11" height="354.331"/>
+            </g>
+            <g transform="matrix(1,0,0,1,2595.448819,826.771654)">
+                <rect x="826.772" y="354.331" width="118.11" height="118.11"/>
+                <g transform="matrix(1,0,0,1,118.110236,118.110236)">
+                    <rect x="826.772" y="354.331" width="118.11" height="118.11"/>
+                </g>
+            </g>
+        </g>
+    </g>
+  </symbol>
+  <symbol id="codex-J" viewBox="0 0 827 827" fill="currentColor">
+    <g transform="matrix(1,0,0,1,-4248,-1062)">
+        <g id="codex-J-TPT_Codex-J" transform="matrix(1,0,0,1,0,-0.992126)">
+            <rect x="4248" y="1062.992" width="826.772" height="826.772" style="fill:none;"/>
+            <clipPath id="codex-J-_clip1">
+                <rect x="4248" y="1062.992" width="826.772" height="826.772"/>
+            </clipPath>
+            <g clip-path="url(#codex-J-_clip1)">
+                <g transform="matrix(1,0,0,1,4248,590.551181)">
+                    <rect x="472.441" y="590.551" width="118.11" height="354.331"/>
+                </g>
+                <g transform="matrix(-0,-1,-1,0,5014.994751,2303.871391)">
+                    <path d="M649.606,530.774L649.606,648.885C519.631,648.885 414.108,543.361 414.108,413.386C414.108,283.411 519.631,176.444 649.606,176.444L649.606,294.554C584.021,294.554 530.774,347.801 530.774,413.386C530.774,478.971 584.021,530.774 649.606,530.774Z"/>
+                </g>
+                <g transform="matrix(1,0,0,1,3539.338583,826.771654)">
+                    <rect x="826.772" y="354.331" width="118.11" height="118.11"/>
+                    <g transform="matrix(1,0,0,1,118.110236,118.110236)">
+                        <rect x="826.772" y="354.331" width="118.11" height="118.11"/>
+                    </g>
+                </g>
+                <g transform="matrix(0,1,-0.666667,0,5350.362205,590.551181)">
+                    <rect x="472.441" y="590.551" width="118.11" height="354.331"/>
+                </g>
+            </g>
+        </g>
+    </g>
+  </symbol>
+  <symbol id="codex-K" viewBox="0 0 827 827" fill="currentColor">
+    <g transform="matrix(1,0,0,1,0,-2124)">
+        <g id="codex-K-TPT_Codex-K" transform="matrix(1,0,0,1,0,-0.992126)">
+            <rect x="0" y="2124.992" width="826.772" height="826.772" style="fill:none;"/>
+            <g transform="matrix(1,0,0,1,-354.330709,1770.661417)">
+                <rect x="472.441" y="590.551" width="118.11" height="354.331"/>
+            </g>
+            <g transform="matrix(-1,0,0,1,1417.322835,1888.771654)">
+                <rect x="826.772" y="354.331" width="118.11" height="118.11"/>
+                <g transform="matrix(1,0,0,1,118.110236,118.110236)">
+                    <rect x="826.772" y="354.331" width="118.11" height="118.11"/>
+                </g>
+            </g>
+            <g transform="matrix(1,0,0,1,-472.440945,2243.102362)">
+                <rect x="826.772" y="354.331" width="118.11" height="118.11"/>
+                <g transform="matrix(1,0,0,1,118.110236,118.110236)">
+                    <rect x="826.772" y="354.331" width="118.11" height="118.11"/>
+                </g>
+            </g>
+        </g>
+    </g>
+  </symbol>
+  <symbol id="codex-L" viewBox="0 0 827 827" fill="currentColor">
+    <g transform="matrix(1,0,0,1,-1062,-2124)">
+        <g id="codex-L-TPT_Codex-L" transform="matrix(1,0,0,1,0,-0.992126)">
+            <rect x="1062" y="2124.992" width="826.772" height="826.772" style="fill:none;"/>
+            <g transform="matrix(1,0,0,1,707.669291,1652.551181)">
+                <rect x="472.441" y="590.551" width="118.11" height="354.331"/>
+            </g>
+            <g transform="matrix(0,1,-0.666667,0,2164.362205,2243.102362)">
+                <rect x="472.441" y="590.551" width="118.11" height="354.331"/>
+            </g>
+            <g transform="matrix(0,1,-0.666667,0,1928.141732,2243.102362)">
+                <rect x="472.441" y="590.551" width="118.11" height="354.331"/>
+            </g>
+        </g>
+    </g>
+  </symbol>
+  <symbol id="codex-M" viewBox="0 0 827 827" fill="currentColor">
+    <g transform="matrix(1,0,0,1,-2124,-2124)">
+        <g id="codex-M-TPT_Codex-M" transform="matrix(1,0,0,1,0,-0.992126)">
+            <rect x="2124" y="2124.992" width="826.772" height="826.772" style="fill:none;"/>
+            <g transform="matrix(0,1,-1,0,2772.884514,1828.994751)">
+                <path d="M649.606,530.774L649.606,648.885C519.631,648.885 414.108,543.361 414.108,413.386C414.108,283.411 519.631,176.444 649.606,176.444L649.606,294.554C584.021,294.554 530.774,347.801 530.774,413.386C530.774,478.971 584.021,530.774 649.606,530.774Z"/>
+            </g>
+            <g transform="matrix(0,1,-1,0,3127.215223,1828.994751)">
+                <path d="M649.606,530.774L649.606,648.885C519.631,648.885 414.108,543.361 414.108,413.386C414.108,283.411 519.631,176.444 649.606,176.444L649.606,294.554C584.021,294.554 530.774,347.801 530.774,413.386C530.774,478.971 584.021,530.774 649.606,530.774Z"/>
+            </g>
+            <g transform="matrix(1,0,0,1,2005.889764,2006.88189)">
+                <rect x="472.441" y="590.551" width="118.11" height="354.331"/>
+            </g>
+        </g>
+    </g>
+  </symbol>
+  <symbol id="codex-N" viewBox="0 0 827 827" fill="currentColor">
+    <g transform="matrix(1,0,0,1,-3186,-2124)">
+        <g id="codex-N-TPT_Codex-N" transform="matrix(1,0,0,1,0,-0.992126)">
+            <rect x="3186" y="2124.992" width="826.772" height="826.772" style="fill:none;"/>
+            <g transform="matrix(1,0,0,1,2831.669291,2006.88189)">
+                <rect x="472.441" y="590.551" width="118.11" height="354.331"/>
+            </g>
+            <g transform="matrix(1,0,0,1,3304.110236,1534.440945)">
+                <rect x="472.441" y="590.551" width="118.11" height="354.331"/>
+            </g>
+            <g transform="matrix(1,0,0,1,2595.448819,2006.88189)">
+                <rect x="826.772" y="354.331" width="118.11" height="118.11"/>
+                <g transform="matrix(1,0,0,1,118.110236,118.110236)">
+                    <rect x="826.772" y="354.331" width="118.11" height="118.11"/>
+                </g>
+            </g>
+            <g transform="matrix(1,0,0,1,2831.669291,2243.102362)">
+                <rect x="826.772" y="354.331" width="118.11" height="118.11"/>
+                <g transform="matrix(1,0,0,1,118.110236,118.110236)">
+                    <rect x="826.772" y="354.331" width="118.11" height="118.11"/>
+                </g>
+            </g>
+        </g>
+    </g>
+  </symbol>
+  <symbol id="codex-O" viewBox="0 0 827 827" fill="currentColor">
+    <g transform="matrix(1,0,0,1,-4248,-2124)">
+        <g id="codex-O-TPT_Codex-O" transform="matrix(1,0,0,1,0,-0.992126)">
+            <rect x="4248" y="2124.992" width="826.772" height="826.772" style="fill:none;"/>
+            <g transform="matrix(-0,-1,-1,0,5133.104987,3247.03937)">
+                <path d="M649.606,530.774L649.606,648.885C519.631,648.885 414.108,543.361 414.108,413.386C414.108,283.411 519.631,176.444 649.606,176.444L649.606,294.554C584.021,294.554 530.774,347.801 530.774,413.386C530.774,478.971 584.021,530.774 649.606,530.774Z"/>
+            </g>
+            <g transform="matrix(-0,1,-1,-0,5133.104987,1947.104987)">
+                <path d="M649.606,530.774L649.606,648.885C519.631,648.885 414.108,543.361 414.108,413.386C414.108,283.411 519.631,176.444 649.606,176.444L649.606,294.554C584.021,294.554 530.774,347.801 530.774,413.386C530.774,478.971 584.021,530.774 649.606,530.774Z"/>
+            </g>
+            <g transform="matrix(0,1,-0.666667,0,4877.92126,2360.490814)">
+                <rect x="472.441" y="590.551" width="118.11" height="354.331"/>
+            </g>
+            <g transform="matrix(-1,0,0,1,5429.102362,1770.661417)">
+                <rect x="826.772" y="354.331" width="118.11" height="118.11"/>
+                <g transform="matrix(1,0,0,1,118.110236,118.110236)">
+                    <rect x="826.772" y="354.331" width="118.11" height="118.11"/>
+                </g>
+            </g>
+        </g>
+    </g>
+  </symbol>
+  <symbol id="codex-P" viewBox="0 0 827 827" fill="currentColor">
+    <g transform="matrix(1,0,0,1,0,-3186)">
+        <g id="codex-P-TPT_Codex-P" transform="matrix(1,0,0,1,0,-0.992126)">
+            <rect x="0" y="3186.992" width="826.772" height="826.772" style="fill:none;"/>
+            <g transform="matrix(1,0,0,1,-354.330709,2950.771654)">
+                <rect x="472.441" y="590.551" width="118.11" height="354.331"/>
+            </g>
+            <g transform="matrix(-1,0,0,1,1004.658793,3010.548556)">
+                <path d="M649.606,530.774L649.606,648.885C519.631,648.885 414.108,543.361 414.108,413.386C414.108,283.411 519.631,176.444 649.606,176.444L649.606,294.554C584.021,294.554 530.774,347.801 530.774,413.386C530.774,478.971 584.021,530.774 649.606,530.774Z"/>
+            </g>
+            <g transform="matrix(0,1,-0.666667,0,1102.362205,3305.102362)">
+                <rect x="472.441" y="590.551" width="118.11" height="354.331"/>
+            </g>
+        </g>
+    </g>
+  </symbol>
+  <symbol id="codex-Q" viewBox="0 0 827 827" fill="currentColor">
+    <g transform="matrix(1,0,0,1,-1062,-3186)">
+        <g id="codex-Q-TPT_Codex-Q" transform="matrix(1,0,0,1,0,-0.992126)">
+            <rect x="1062" y="3186.992" width="826.772" height="826.772" style="fill:none;"/>
+            <clipPath id="codex-Q-_clip1">
+                <rect x="1062" y="3186.992" width="826.772" height="826.772"/>
+            </clipPath>
+            <g clip-path="url(#codex-Q-_clip1)">
+                <g transform="matrix(-0,-1,-1,0,1828.994751,4190.929134)">
+                    <path d="M649.606,530.774L649.606,648.885C519.631,648.885 414.108,543.361 414.108,413.386C414.108,283.411 519.631,176.444 649.606,176.444L649.606,294.554C584.021,294.554 530.774,347.801 530.774,413.386C530.774,478.971 584.021,530.774 649.606,530.774Z"/>
+                </g>
+                <g transform="matrix(-0,1,-1,-0,1710.884514,2773.606299)">
+                    <path d="M649.606,530.774L649.606,648.885C519.631,648.885 414.108,543.361 414.108,413.386C414.108,283.411 519.631,176.444 649.606,176.444L649.606,294.554C584.021,294.554 530.774,347.801 530.774,413.386C530.774,478.971 584.021,530.774 649.606,530.774Z"/>
+                </g>
+                <g transform="matrix(1,0,0,1,825.779528,3423.212598)">
+                    <rect x="826.772" y="354.331" width="118.11" height="118.11"/>
+                    <g transform="matrix(1,0,0,1,118.110236,118.110236)">
+                        <rect x="826.772" y="354.331" width="118.11" height="118.11"/>
+                    </g>
+                </g>
+            </g>
+        </g>
+    </g>
+  </symbol>
+  <symbol id="codex-R" viewBox="0 0 827 827" fill="currentColor">
+    <g transform="matrix(1,0,0,1,-2124,-3186)">
+        <g id="codex-R-TPT_Codex-R" transform="matrix(1,0,0,1,0,-0.992126)">
+            <rect x="2124" y="3186.992" width="826.772" height="826.772" style="fill:none;"/>
+            <clipPath id="codex-R-_clip1">
+                <rect x="2124" y="3186.992" width="826.772" height="826.772"/>
+            </clipPath>
+            <g clip-path="url(#codex-R-_clip1)">
+                <g transform="matrix(1,0,0,1,1769.669291,3068.520997)">
+                    <rect x="472.441" y="590.551" width="118.11" height="354.331"/>
+                </g>
+                <g transform="matrix(-1,0,0,1,3246.047244,3011.270341)">
+                    <path d="M649.606,530.774L649.606,648.885C519.631,648.885 414.108,543.361 414.108,413.386C414.108,283.411 519.631,176.444 649.606,176.444L649.606,294.554C584.021,294.554 530.774,347.801 530.774,413.386C530.774,478.971 584.021,530.774 649.606,530.774Z"/>
+                </g>
+                <g transform="matrix(1,0,0,1,1651.559055,3305.824147)">
+                    <rect x="826.772" y="354.331" width="118.11" height="118.11"/>
+                    <g transform="matrix(1,0,0,1,118.110236,118.110236)">
+                        <rect x="826.772" y="354.331" width="118.11" height="118.11"/>
+                    </g>
+                </g>
+                <g transform="matrix(1,0,0,1,1887.779528,3423.934383)">
+                    <rect x="826.772" y="354.331" width="118.11" height="118.11"/>
+                    <g transform="matrix(1,0,0,1,118.110236,118.110236)">
+                        <rect x="826.772" y="354.331" width="118.11" height="118.11"/>
+                    </g>
+                </g>
+            </g>
+        </g>
+    </g>
+  </symbol>
+  <symbol id="codex-S" viewBox="0 0 827 827" fill="currentColor">
+    <g transform="matrix(1,0,0,1,-3186,-3186)">
+        <g id="codex-S-TPT_Codex-S" transform="matrix(1,0,0,1,0,-0.992126)">
+            <rect x="3186" y="3186.992" width="826.772" height="826.772" style="fill:none;"/>
+            <clipPath id="codex-S-_clip1">
+                <rect x="3186" y="3186.992" width="826.772" height="826.772"/>
+            </clipPath>
+            <g clip-path="url(#codex-S-_clip1)">
+                <g transform="matrix(-1,0,0,1,4071.104987,3365.60105)">
+                    <path d="M649.606,530.774L649.606,648.885C519.631,648.885 414.108,543.361 414.108,413.386C414.108,283.411 519.631,176.444 649.606,176.444L649.606,294.554C584.021,294.554 530.774,347.801 530.774,413.386C530.774,478.971 584.021,530.774 649.606,530.774Z"/>
+                </g>
+                <g transform="matrix(1,0,0,1,2771.892388,3011.270341)">
+                    <path d="M649.606,530.774L649.606,648.885C519.631,648.885 414.108,543.361 414.108,413.386C414.108,283.411 519.631,176.444 649.606,176.444L649.606,294.554C584.021,294.554 530.774,347.801 530.774,413.386C530.774,478.971 584.021,530.774 649.606,530.774Z"/>
+                </g>
+                <g transform="matrix(1,0,0,1,2713.559055,2951.493438)">
+                    <rect x="826.772" y="354.331" width="118.11" height="118.11"/>
+                    <g transform="matrix(1,0,0,1,118.110236,118.110236)">
+                        <rect x="826.772" y="354.331" width="118.11" height="118.11"/>
+                    </g>
+                </g>
+                <g transform="matrix(0,1,-0.666667,0,4406.472441,3423.212598)">
+                    <rect x="472.441" y="590.551" width="118.11" height="354.331"/>
+                </g>
+            </g>
+        </g>
+    </g>
+  </symbol>
+  <symbol id="codex-T" viewBox="0 0 827 827" fill="currentColor">
+    <g transform="matrix(1,0,0,1,-4248,-3186)">
+        <g id="codex-T-TPT_Codex-T" transform="matrix(1,0,0,1,0,-0.992126)">
+            <rect x="4248" y="3186.992" width="826.772" height="826.772" style="fill:none;"/>
+            <g transform="matrix(1,0,0,1,4129.889764,2714.551181)">
+                <rect x="472.441" y="590.551" width="118.11" height="354.331"/>
+            </g>
+            <g transform="matrix(1,0,0,1,3893.669291,2833.383202)">
+                <rect x="826.772" y="354.331" width="118.11" height="118.11"/>
+                <g transform="matrix(1,0,0,1,118.110236,118.110236)">
+                    <rect x="826.772" y="354.331" width="118.11" height="118.11"/>
+                </g>
+            </g>
+            <g transform="matrix(1,0,0,-1,3539.338583,3779.878604)">
+                <rect x="826.772" y="354.331" width="118.11" height="118.11"/>
+                <g transform="matrix(1,0,0,1,118.110236,118.110236)">
+                    <rect x="826.772" y="354.331" width="118.11" height="118.11"/>
+                </g>
+            </g>
+            <g transform="matrix(1,0,0,1,4248,3068.88189)">
+                <rect x="472.441" y="590.551" width="118.11" height="354.331"/>
+            </g>
+        </g>
+    </g>
+  </symbol>
+  <symbol id="codex-U" viewBox="0 0 827 827" fill="currentColor">
+    <g transform="matrix(1,0,0,1,0,-4248)">
+        <g id="codex-U-TPT_Codex-U" transform="matrix(1,0,0,1,0,-0.992126)">
+            <rect x="0" y="4248.992" width="826.772" height="826.772" style="fill:none;"/>
+            <g transform="matrix(-0,-1,-1,0,885.104987,5489.149606)">
+                <path d="M649.606,530.774L649.606,648.885C519.631,648.885 414.108,543.361 414.108,413.386C414.108,283.411 519.631,176.444 649.606,176.444L649.606,294.554C584.021,294.554 530.774,347.801 530.774,413.386C530.774,478.971 584.021,530.774 649.606,530.774Z"/>
+            </g>
+            <g transform="matrix(1,0,0,1,-354.330709,3776.551181)">
+                <rect x="472.441" y="590.551" width="118.11" height="354.331"/>
+            </g>
+            <g transform="matrix(1,0,0,1,0,3776.551181)">
+                <rect x="472.441" y="590.551" width="118.11" height="354.331"/>
+            </g>
+        </g>
+    </g>
+  </symbol>
+  <symbol id="codex-V" viewBox="0 0 827 827" fill="currentColor">
+    <g transform="matrix(1,0,0,1,-1062,-4248)">
+        <g id="codex-V-TPT_Codex-V" transform="matrix(1,0,0,1,-0.992126,0)">
+            <rect x="1062.992" y="4248" width="826.772" height="826.772" style="fill:none;"/>
+            <g transform="matrix(1,0,0,1,236.220472,4129.528871)">
+                <rect x="826.772" y="354.331" width="118.11" height="118.11"/>
+                <g transform="matrix(1,0,0,1,118.110236,118.110236)">
+                    <rect x="826.772" y="354.331" width="118.11" height="118.11"/>
+                </g>
+            </g>
+            <g transform="matrix(-1,0,0,1,2480.314961,4129.528871)">
+                <rect x="826.772" y="354.331" width="118.11" height="118.11"/>
+                <g transform="matrix(1,0,0,1,118.110236,118.110236)">
+                    <rect x="826.772" y="354.331" width="118.11" height="118.11"/>
+                </g>
+            </g>
+            <g transform="matrix(1,0,0,1,472.440945,4365.749344)">
+                <rect x="826.772" y="354.331" width="118.11" height="118.11"/>
+                <g transform="matrix(1,0,0,1,118.110236,118.110236)">
+                    <rect x="826.772" y="354.331" width="118.11" height="118.11"/>
+                </g>
+            </g>
+            <g transform="matrix(0,1,-0.666667,0,2283.464567,4011.779528)">
+                <rect x="472.441" y="590.551" width="118.11" height="354.331"/>
+            </g>
+        </g>
+    </g>
+  </symbol>
+  <symbol id="codex-W" viewBox="0 0 827 827" fill="currentColor">
+    <g transform="matrix(1,0,0,1,-2124,-4248)">
+        <g id="codex-W-TPT_Codex-W" transform="matrix(1,0,0,1,-0.992126,0)">
+            <rect x="2124.992" y="4248" width="826.772" height="826.772" style="fill:none;"/>
+            <g transform="matrix(1,0,0,1,1652.551181,3893.669291)">
+                <rect x="472.441" y="590.551" width="118.11" height="354.331"/>
+            </g>
+            <g transform="matrix(1,0,0,1,2243.102362,3775.559055)">
+                <rect x="472.441" y="590.551" width="118.11" height="354.331"/>
+            </g>
+            <g transform="matrix(-1,0,0,1,3306.094488,4248)">
+                <rect x="826.772" y="354.331" width="118.11" height="118.11"/>
+                <g transform="matrix(1,0,0,1,118.110236,118.110236)">
+                    <rect x="826.772" y="354.331" width="118.11" height="118.11"/>
+                </g>
+            </g>
+            <g transform="matrix(1,0,0,1,1652.551181,4247.639108)">
+                <rect x="826.772" y="354.331" width="118.11" height="118.11"/>
+                <g transform="matrix(1,0,0,1,118.110236,118.110236)">
+                    <rect x="826.772" y="354.331" width="118.11" height="118.11"/>
+                </g>
+            </g>
+        </g>
+    </g>
+  </symbol>
+  <symbol id="codex-X" viewBox="0 0 827 827" fill="currentColor">
+    <g transform="matrix(1,0,0,1,-3186,-4248)">
+        <g id="codex-X-TPT_Codex-X" transform="matrix(1,0,0,1,-0.992126,0)">
+            <rect x="3186.992" y="4248" width="826.772" height="826.772" style="fill:none;"/>
+            <g transform="matrix(1,0,0,1,2478.330709,4129.528871)">
+                <rect x="826.772" y="354.331" width="118.11" height="118.11"/>
+                <g transform="matrix(1,0,0,1,118.110236,118.110236)">
+                    <rect x="826.772" y="354.331" width="118.11" height="118.11"/>
+                </g>
+            </g>
+            <g transform="matrix(1,0,0,1,2714.551181,4366.110236)">
+                <rect x="826.772" y="354.331" width="118.11" height="118.11"/>
+                <g transform="matrix(1,0,0,1,118.110236,118.110236)">
+                    <rect x="826.772" y="354.331" width="118.11" height="118.11"/>
+                </g>
+            </g>
+            <g transform="matrix(-1,0,0,1,4722.425197,4011.418635)">
+                <rect x="826.772" y="354.331" width="118.11" height="118.11"/>
+                <g transform="matrix(1,0,0,1,118.110236,118.110236)">
+                    <rect x="826.772" y="354.331" width="118.11" height="118.11"/>
+                </g>
+            </g>
+            <g transform="matrix(-1,0,0,1,4368.094488,4366.110236)">
+                <rect x="826.772" y="354.331" width="118.11" height="118.11"/>
+                <g transform="matrix(1,0,0,1,118.110236,118.110236)">
+                    <rect x="826.772" y="354.331" width="118.11" height="118.11"/>
+                </g>
+            </g>
+        </g>
+    </g>
+  </symbol>
+  <symbol id="codex-Y" viewBox="0 0 827 827" fill="currentColor">
+    <g transform="matrix(1,0,0,1,-4248,-4248)">
+        <g id="codex-Y-TPT_Codex-Y" transform="matrix(1,0,0,1,-0.992126,0)">
+            <rect x="4248.992" y="4248" width="826.772" height="826.772" style="fill:none;"/>
+            <g transform="matrix(1,0,0,1,3540.330709,4011.779528)">
+                <rect x="826.772" y="354.331" width="118.11" height="118.11"/>
+                <g transform="matrix(1,0,0,1,118.110236,118.110236)">
+                    <rect x="826.772" y="354.331" width="118.11" height="118.11"/>
+                </g>
+            </g>
+            <g transform="matrix(-1,0,0,1,5784.425197,4129.528871)">
+                <rect x="826.772" y="354.331" width="118.11" height="118.11"/>
+                <g transform="matrix(1,0,0,1,118.110236,118.110236)">
+                    <rect x="826.772" y="354.331" width="118.11" height="118.11"/>
+                </g>
+            </g>
+            <g transform="matrix(1,0,0,1,4130.88189,4129.528871)">
+                <rect x="472.441" y="590.551" width="118.11" height="354.331"/>
+            </g>
+        </g>
+    </g>
+  </symbol>
+  <symbol id="codex-Z" viewBox="0 0 827 827" fill="currentColor">
+    <g transform="matrix(1,0,0,1,0,-5310)">
+        <g id="codex-Z-TPT_Codex-Z" transform="matrix(1,0,0,1,0,-0.992126)">
+            <rect x="0" y="5310.992" width="826.772" height="826.772" style="fill:none;"/>
+            <g transform="matrix(0,1,-0.666667,0,866.141732,4956.661417)">
+                <rect x="472.441" y="590.551" width="118.11" height="354.331"/>
+            </g>
+            <g transform="matrix(0,1,-0.666667,0,1102.362205,5429.102362)">
+                <rect x="472.441" y="590.551" width="118.11" height="354.331"/>
+            </g>
+            <g transform="matrix(-1,0,0,1,1417.322835,5192.88189)">
+                <rect x="826.772" y="354.331" width="118.11" height="118.11"/>
+                <g transform="matrix(1,0,0,1,118.110236,118.110236)">
+                    <rect x="826.772" y="354.331" width="118.11" height="118.11"/>
+                </g>
+            </g>
+            <g transform="matrix(-1,0,0,1,1181.102362,5429.102362)">
+                <rect x="826.772" y="354.331" width="118.11" height="118.11"/>
+                <g transform="matrix(1,0,0,1,118.110236,118.110236)">
+                    <rect x="826.772" y="354.331" width="118.11" height="118.11"/>
+                </g>
+            </g>
+        </g>
+    </g>
+  </symbol>
   <symbol id="connexion-bold" viewBox="0 0 256 256" fill="none">
     <defs>
     <linearGradient id="connexion-bold-gradient1">
@@ -128,9 +750,9 @@
   </defs>
   <rect id="instagram-bold-backgr" width="256" height="256" fill="none" rx="70"></rect>
   <g id="instagram-bold-group" transform="translate(0,0) scale(1)">
-    <path d="M181.333 32.000H74.667C51.103 32.000 32.000 51.103 32.000 74.667V181.333C32.000 204.897 51.103 224.000 74.667 224.000H181.333C204.897 224.000 224.000 204.897 224.000 181.333V74.667C224.000 51.103 204.897 32.000 181.333 32.000Z" stroke="#1616dd" stroke-width="10" stroke-linecap="round" stroke-linejoin="round" id="instagram-bold-primary"></path>
-    <path d="M160.000 128.000C160.000 145.674 145.674 160.000 128.000 160.000C110.326 160.000 96.000 145.674 96.000 128.000C96.000 110.326 110.326 96.000 128.000 96.000C145.674 96.000 160.000 110.326 160.000 128.000Z" stroke="#ff00ff" stroke-width="10" stroke-linecap="round" stroke-linejoin="round" id="instagram-bold-secondary"></path>
-    <path d="M192.000 74.667C192.000 80.558 187.225 85.333 181.333 85.333C175.442 85.333 170.667 80.558 170.667 74.667C170.667 68.776 175.442 64.000 181.333 64.000C187.225 64.000 192.000 68.776 192.000 74.667Z" stroke="#ff00ff" stroke-width="10" stroke-linecap="round" stroke-linejoin="round" id="instagram-bold-secondary"></path>
+    <path d="M181.333 32.000H74.667C51.103 32.000 32.000 51.103 32.000 74.667V181.333C32.000 204.897 51.103 224.000 74.667 224.000H181.333C204.897 224.000 224.000 204.897 224.000 181.333V74.667C224.000 51.103 204.897 32.000 181.333 32.000Z" stroke="currentColor" stroke-width="10" stroke-linecap="round" stroke-linejoin="round" id="instagram-bold-primary"></path>
+    <path d="M160.000 128.000C160.000 145.674 145.674 160.000 128.000 160.000C110.326 160.000 96.000 145.674 96.000 128.000C96.000 110.326 110.326 96.000 128.000 96.000C145.674 96.000 160.000 110.326 160.000 128.000Z" stroke="currentColor" stroke-width="10" stroke-linecap="round" stroke-linejoin="round" id="instagram-bold-secondary"></path>
+    <path d="M192.000 74.667C192.000 80.558 187.225 85.333 181.333 85.333C175.442 85.333 170.667 80.558 170.667 74.667C170.667 68.776 175.442 64.000 181.333 64.000C187.225 64.000 192.000 68.776 192.000 74.667Z" stroke="currentColor" stroke-width="10" stroke-linecap="round" stroke-linejoin="round" id="instagram-bold-secondary"></path>
   </g>
   </symbol>
   <symbol id="instagram-light" viewBox="0 0 256 256" fill="none">
@@ -169,8 +791,8 @@
   </defs>
   <rect id="linkedin-bold-backgr" width="256" height="256" fill="none" rx="70"></rect>
   <g id="linkedin-bold-group" transform="translate(0,0) scale(1)">
-    <path d="M224.000 32.000H32.000V224.000H224.000V32.000Z" stroke="#1616dd" stroke-width="10" stroke-linecap="round" stroke-linejoin="round" id="linkedin-bold-primary"></path>
-    <path d="M117.333 144.000C117.333 129.273 129.273 117.333 144.000 117.333C158.727 117.333 170.667 129.273 170.667 144.000V181.333M85.333 181.333L85.333 117.333M117.333 181.333L117.333 117.333M85.333 85.333L85.333 74.667" stroke="#ff00ff" stroke-width="10" stroke-linecap="round" stroke-linejoin="round" id="linkedin-bold-secondary"></path>
+    <path d="M224.000 32.000H32.000V224.000H224.000V32.000Z" stroke="currentColor" stroke-width="10" stroke-linecap="round" stroke-linejoin="round" id="linkedin-bold-primary"></path>
+    <path d="M117.333 144.000C117.333 129.273 129.273 117.333 144.000 117.333C158.727 117.333 170.667 129.273 170.667 144.000V181.333M85.333 181.333L85.333 117.333M117.333 181.333L117.333 117.333M85.333 85.333L85.333 74.667" stroke="currentColor" stroke-width="10" stroke-linecap="round" stroke-linejoin="round" id="linkedin-bold-secondary"></path>
   </g>
   </symbol>
   <symbol id="linkedin-light" viewBox="0 0 256 256" fill="none">

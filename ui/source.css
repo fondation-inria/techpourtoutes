@@ -209,8 +209,10 @@
   /* New DA colors */
   --color-yellow-500: #fad207;
   --color-green-500: #00a25e;
-  --color-orange-500: #ff713d;
-  --color-purple-500: #bd76ff;
+  --color-purple-500: #BD76FF;
+  --color-red-500: #b82f4f;
+  --color-blue-500: #0E6DC7;
+  --color-orange-500: #FF713D;
 
   /* Named backgrounds */
   --color-blue-background: #f4f4ff;
@@ -233,6 +235,40 @@
   /* Typography sizes (Global.json) */
   --text-xxs: 0.625rem;
   --text-xl: 1.375rem;
+}
+
+/* Declared outside @theme: these are read from inline style attributes, which
+   Tailwind cannot see, so theme variable tree-shaking would drop them. */
+:root {
+  --grid-cell: 60px;
+  --grid-line: 0.5px;
+  /* The grid starts inside a cell rather than on a line: the first row and the
+     first column are shorter than the others */
+  --grid-offset-x: -1px;
+  --grid-offset-y: 32px;
+  /* A Codex glyph is 7 cells wide (viewBox 827 / 118.11) */
+  --codex-glyph: calc(7 * var(--grid-cell));
+}
+
+/* A 0.5px line is half a device pixel here, and the browser drops it rather than
+   antialiasing it. 1px is the thinnest that still renders as a single pixel. */
+@media (resolution <= 1x) {
+  :root {
+    --grid-line: 1px;
+  }
+}
+
+@utility bg-grid {
+  background-color: var(--color-neutral-0);
+  background-image:
+    linear-gradient(to right, black var(--grid-line), transparent var(--grid-line)),
+    linear-gradient(to bottom, black var(--grid-line), transparent var(--grid-line));
+  background-size:
+    var(--grid-cell) 100%,
+    100% var(--grid-cell);
+  background-position:
+    var(--grid-offset-x) 0,
+    0 var(--grid-offset-y);
 }
 
 @layer components {

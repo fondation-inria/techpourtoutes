@@ -1,6 +1,6 @@
 import pytest
 
-from techpourtoutes.models import Pro
+from techpourtoutes.models import Beneficiary, Pro
 
 
 @pytest.fixture
@@ -54,5 +54,29 @@ def pros(db):
         ),
         "ambassador": _make_pro_with_engagements(
             "carol@example.com", "Carol", "Moreau", [Pro.Engagement.WORK_AMBASSADOR]
+        ),
+    }
+
+
+def _make_beneficiary(email, first_name, **overrides):
+    beneficiary = Beneficiary(
+        username=email, first_name=first_name, last_name="Test", email=email, **overrides
+    )
+    beneficiary.save()
+    return beneficiary
+
+
+@pytest.fixture
+def beneficiaries_by_mentoring_status(db):
+    return {
+        "not_concerned": _make_beneficiary("diane@example.com", "Diane"),
+        "pending": _make_beneficiary(
+            "elise@example.com", "Elise", legal_representative_email="parent@example.com"
+        ),
+        "registered": _make_beneficiary(
+            "fanny@example.com",
+            "Fanny",
+            legal_representative_email="parent2@example.com",
+            jobirl_user_id=42,
         ),
     }

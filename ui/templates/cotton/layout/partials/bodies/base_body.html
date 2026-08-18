@@ -1,6 +1,9 @@
-<c-vars right="" />
+<c-vars right="" decorations="" />
 
-<body class="min-h-screen font-sans bg-blue-background text-neutral-900 drawer xl:drawer-open">
+<body class="min-h-screen font-sans text-neutral-900 drawer xl:drawer-open">
+    {% if decorations %}
+        <div class="pointer-events-none absolute inset-0 -z-10 overflow-hidden" aria-hidden="true">{{ decorations }}</div>
+    {% endif %}
     <input id="sidebar-drawer" type="checkbox" class="drawer-toggle" />
     <div class="drawer-content flex flex-col min-h-screen">
         <header class="xl:hidden flex items-center justify-between px-4 py-3 bg-neutral-0 z-100">
