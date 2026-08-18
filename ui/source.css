@@ -285,19 +285,19 @@
 
   /* Boxed form controls: input, select */
   .field-base {
-    @apply w-full px-3 py-2 text-sm rounded focus:ring text-neutral-950 bg-neutral-50 shadow-thin-bottom;
+    @apply w-full px-3 py-2 text-sm rounded focus:outline-none focus:ring text-neutral-950 bg-purple-500/10 border border-neutral-950;
   }
   .field-default {
-    @apply shadow-primary-700 focus:ring-primary-700;
+    @apply focus:ring-neutral-950;
   }
   .field-error {
-    @apply shadow-error-500 focus:ring-error-500;
+    @apply shadow-red-500 focus:ring-red-500;
   }
   .field-valid {
-    @apply shadow-success-500 focus:ring-success-500;
+    @apply shadow-green-500 focus:ring-green-500;
   }
   .field-disabled {
-    @apply text-neutral-500 bg-neutral-100 cursor-not-allowed;
+    @apply text-neutral-500 bg-neutral-100 cursor-not-allowed border-none;
   }
 
   /* Tick controls: visual span sibling of a peer input (radio, checkbox) */

@@ -41,6 +41,7 @@ SITEMAP_EXCLUDED_URL_NAMES = {
     "accessibilite",
     "schema_pluriannuel",
     "a_propos",
+    "bientot_disponible",
 }
 
 

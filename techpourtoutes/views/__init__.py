@@ -20,6 +20,7 @@ from .auth_views import (
 from .beneficiary_views import (
     add_mentoring,
     beneficiary_home,
+    bientot_disponible,
     find_mentor_landing,
     inscription_funnel,
     mentoring_signup_skip_modal,
@@ -70,6 +71,7 @@ __all__ = [
     "beneficiary_training_experience_delete",
     "beneficiary_training_experience_form",
     "beneficiary_training_experience_info",
+    "bientot_disponible",
     "coalition_home",
     "coalition_welcome",
     "conditions_generales",

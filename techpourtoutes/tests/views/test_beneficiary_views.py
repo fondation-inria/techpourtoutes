@@ -19,6 +19,7 @@ from techpourtoutes.utils.school_year import (
 
 FUNNEL_URL = "/inscription/"
 SKIP_MODAL_URL = "/inscription/passer-mentorat/"
+BIENTOT_DISPONIBLE_URL = "/bientot-disponible/"
 
 
 @pytest.fixture
@@ -106,6 +107,47 @@ def _last_diploma_post(school, formation, **overrides):
         formation_label=formation.name,
     )
     return answers | overrides
+
+
+@pytest.mark.django_db
+def test_bientot_disponible_get_returns_200(client, beneficiary_mode):
+    assert client.get(BIENTOT_DISPONIBLE_URL).status_code == 200
+
+
+@pytest.mark.django_db
+@override_settings(BREVO_SYNC_ENABLED=True)
+def test_bientot_disponible_post_valid_pushes_brevo_contact_and_redirects(
+    client, beneficiary_mode
+):
+    with patch(
+        "techpourtoutes.views.beneficiary_views.upsert_email_notification_task"
+    ) as mock_task:
+        response = client.post(BIENTOT_DISPONIBLE_URL, data={"email": "hedy@example.com"})
+
+    assert response.status_code == 302
+    assert response.url == BIENTOT_DISPONIBLE_URL
+    mock_task.delay.assert_called_once_with(email="hedy@example.com")
+
+
+@pytest.mark.django_db
+@override_settings(BREVO_SYNC_ENABLED=False)
+def test_bientot_disponible_post_skips_task_when_sync_disabled(client, beneficiary_mode):
+    with patch(
+        "techpourtoutes.views.beneficiary_views.upsert_email_notification_task"
+    ) as mock_task:
+        response = client.post(BIENTOT_DISPONIBLE_URL, data={"email": "hedy@example.com"})
+
+    assert response.status_code == 302
+    mock_task.delay.assert_not_called()
+
+
+@pytest.mark.django_db
+def test_bientot_disponible_post_invalid_rerenders_with_errors(client, beneficiary_mode):
+    response = client.post(BIENTOT_DISPONIBLE_URL, data={"email": "not-an-email"})
+    assert response.status_code == 200
+    assert response.context["form"].errors
+    messages = list(response.context["messages"])
+    assert len(messages) > 0
 
 
 @pytest.mark.django_db

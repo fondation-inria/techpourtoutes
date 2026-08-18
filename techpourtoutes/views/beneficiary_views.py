@@ -1,5 +1,6 @@
 from datetime import date
 
+from django.conf import settings
 from django.contrib import messages
 from django.contrib.auth import login
 from django.contrib.auth.decorators import login_required
@@ -16,6 +17,7 @@ from ..forms import (
     BeneficiaryLastDiplomaTrainingExperienceForm,
     BeneficiaryMentoringSignUpForm,
     BeneficiaryStudyStatusForm,
+    EmailNotificationForm,
     StudyStatus,
     VerificationCodeForm,
 )
@@ -24,6 +26,7 @@ from ..models import User
 from ..ratelimit import rate_limit
 from ..services.beneficiary.add_mentoring import AddMentoring
 from ..services.beneficiary.create_beneficiary import CreateBeneficiary
+from ..tasks import upsert_email_notification_task
 from ..utils.dates import compute_age
 
 # The funnel steps in order — the single source of truth navigation is derived from.
@@ -39,6 +42,27 @@ _TRAINING_EXPERIENCE_FORMS = {
 
 def beneficiary_home(request):
     return render(request, "beneficiary/beneficiary_home.html", {})
+
+
+def bientot_disponible(request):
+    if request.method == "POST":
+        form = EmailNotificationForm(data=request.POST)
+        if form.is_valid():
+            if settings.BREVO_SYNC_ENABLED:
+                upsert_email_notification_task.delay(email=form.cleaned_data["email"])
+            messages.success(
+                request,
+                "Merci, nous te préviendrons dès que cette fonctionnalité sera disponible.",
+            )
+            return redirect("bientot_disponible")
+        messages.error(
+            request,
+            "Des erreurs empêchent la validation du formulaire, "
+            "merci de les corriger et de réessayer à nouveau.",
+        )
+    else:
+        form = EmailNotificationForm()
+    return render(request, "beneficiary/bientot_disponible.html", {"form": form})
 
 
 def find_mentor_landing(request):
