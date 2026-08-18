@@ -4313,8 +4313,17 @@
   .py-3 {
     padding-block: calc(var(--spacing) * 3);
   }
+  .py-4 {
+    padding-block: calc(var(--spacing) * 4);
+  }
+  .py-7 {
+    padding-block: calc(var(--spacing) * 7);
+  }
   .py-8 {
     padding-block: calc(var(--spacing) * 8);
+  }
+  .py-9 {
+    padding-block: calc(var(--spacing) * 9);
   }
   .pt-4 {
     padding-top: calc(var(--spacing) * 4);
@@ -4359,6 +4368,10 @@
   .text-3xl {
     font-size: var(--text-3xl);
     line-height: var(--tw-leading, var(--text-3xl--line-height));
+  }
+  .text-4xl {
+    font-size: var(--text-4xl);
+    line-height: var(--tw-leading, var(--text-4xl--line-height));
   }
   .text-6xl {
     font-size: var(--text-6xl);
@@ -4811,6 +4824,12 @@
     .sm\:hidden {
       display: none;
     }
+    .sm\:py-2 {
+      padding-block: calc(var(--spacing) * 2);
+    }
+    .sm\:py-4 {
+      padding-block: calc(var(--spacing) * 4);
+    }
     .sm\:text-2xl {
       font-size: var(--text-2xl);
       line-height: var(--tw-leading, var(--text-2xl--line-height));
@@ -4905,6 +4924,9 @@
     .md\:px-32 {
       padding-inline: calc(var(--spacing) * 32);
     }
+    .md\:py-8 {
+      padding-block: calc(var(--spacing) * 8);
+    }
   }
   @media (width >= 64rem) {
     .lg\:gap-10 {
@@ -4912,6 +4934,9 @@
     }
     .lg\:gap-15 {
       gap: calc(var(--spacing) * 15);
+    }
+    .lg\:py-8 {
+      padding-block: calc(var(--spacing) * 8);
     }
   }
   @media (width >= 80rem) {
@@ -4964,6 +4989,9 @@
     }
     .xl\:inline {
       display: inline;
+    }
+    .xl\:py-8 {
+      padding-block: calc(var(--spacing) * 8);
     }
     .xl\:pt-3 {
       padding-top: calc(var(--spacing) * 3);
