@@ -194,6 +194,7 @@ def test_existing_email_redirects_to_login(client, beneficiary_mode):
     response = client.post(FUNNEL_URL, {"action": "email", "email": "taken@example.com"})
     assert "se-connecter" in response["HX-Redirect"]
     assert f"back={quote('/', safe='')}" in response["HX-Redirect"]
+    assert f"next={quote('/', safe='')}" in response["HX-Redirect"]
     # A dead-end too: the client must not keep answers it can never submit.
     assert "funnelReset" in response["HX-Trigger"]
 
@@ -203,6 +204,7 @@ def test_existing_pro_email_redirects_to_login_with_coalition_back(client, benef
     response = client.post(FUNNEL_URL, {"action": "email", "email": pro.email})
     assert "se-connecter" in response["HX-Redirect"]
     assert f"back={quote('/coalition/', safe='')}" in response["HX-Redirect"]
+    assert f"next={quote('/coalition/', safe='')}" in response["HX-Redirect"]
 
 
 @pytest.mark.django_db
@@ -218,6 +220,7 @@ def test_existing_registered_beneficiary_email_with_wants_mentor_redirects_to_ac
 
     assert "se-connecter" in response["HX-Redirect"]
     assert f"back={quote(reverse('account'), safe='')}" in response["HX-Redirect"]
+    assert f"next={quote(reverse('account'), safe='')}" in response["HX-Redirect"]
 
 
 @pytest.mark.django_db
@@ -230,6 +233,7 @@ def test_existing_unregistered_beneficiary_email_with_wants_mentor_redirects_to_
 
     assert "se-connecter" in response["HX-Redirect"]
     assert f"back={quote('/devenir-mentoree/', safe='')}" in response["HX-Redirect"]
+    assert f"next={quote('/devenir-mentoree/', safe='')}" in response["HX-Redirect"]
 
 
 @pytest.mark.django_db
@@ -240,6 +244,7 @@ def test_existing_beneficiary_email_without_wants_mentor_redirects_to_home_back(
 
     assert "se-connecter" in response["HX-Redirect"]
     assert f"back={quote('/', safe='')}" in response["HX-Redirect"]
+    assert f"next={quote('/', safe='')}" in response["HX-Redirect"]
 
 
 @pytest.mark.django_db

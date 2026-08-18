@@ -288,7 +288,7 @@ def _login_redirect_for_existing_email(request, email):
         return None
     messages.error(request, "Un compte existe déjà avec cet email.")
     back_url = reverse(_back_view_for_existing_user(user, request.POST))
-    login_url = f"{reverse('login_request')}?{urlencode({'back': back_url})}"
+    login_url = f"{reverse('login_request')}?{urlencode({'back': back_url, 'next': back_url})}"
     return HttpResponse(headers={"HX-Redirect": login_url, "HX-Trigger": "funnelReset"})
 
 

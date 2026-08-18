@@ -117,7 +117,7 @@ def login_verify(request, token):
 def login_to_jobirl(request):
     account = getattr(request.user, "pro", None) or getattr(request.user, "beneficiary", None)
     if account is None:
-        messages.error(request, "Vous n'avez pas de compte mentor sur JobIRL")
+        messages.error(request, "Vous n'avez pas de compte sur JobIRL")
         form = CommunicationForm(user=request.user)
         return render(request, "account/account.html", {"form": form})
 

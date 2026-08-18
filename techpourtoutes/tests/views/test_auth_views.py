@@ -486,7 +486,7 @@ def test_login_to_jobirl_for_non_mentor_renders_error(client, db):
 
     assert response.status_code == 200
     stored = [str(m) for m in get_messages(response.wsgi_request)]
-    assert any("mentor" in m.lower() for m in stored)
+    assert any("compte sur jobirl" in m.lower() for m in stored)
 
 
 @pytest.mark.django_db
