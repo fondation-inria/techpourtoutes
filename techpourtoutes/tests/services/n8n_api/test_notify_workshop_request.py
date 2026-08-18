@@ -4,6 +4,7 @@ import httpx
 import pytest
 from django.test import override_settings
 
+from techpourtoutes.services.base import ErrorKind
 from techpourtoutes.services.n8n_api.notify_workshop_request import NotifyWorkshopRequest
 
 WEBHOOK_URL = "https://n8n.example.test/webhook/atelier"
@@ -73,7 +74,7 @@ def test_notify_workshop_request_fails_on_server_error_marked_transient(pro):
         )
 
     assert result.failure
-    assert result.failed_with_transient_error()
+    assert result.error_kind is ErrorKind.TRANSIENT
 
 
 @pytest.mark.django_db
@@ -86,7 +87,7 @@ def test_notify_workshop_request_client_error_not_transient(pro):
         )
 
     assert result.failure
-    assert not result.failed_with_transient_error()
+    assert result.error_kind is ErrorKind.PERMANENT
 
 
 @pytest.mark.django_db
@@ -99,4 +100,4 @@ def test_notify_workshop_request_network_error_marked_transient(pro):
         )
 
     assert result.failure
-    assert result.failed_with_transient_error()
+    assert result.error_kind is ErrorKind.TRANSIENT

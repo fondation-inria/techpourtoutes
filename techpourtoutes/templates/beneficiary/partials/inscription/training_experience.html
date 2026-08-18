@@ -97,7 +97,7 @@
                 </div>
             {% endif %}
             <div class="flex justify-center">
-                <c-components.button type="submit" label="Rejoindre le club" />
+                <c-components.button type="submit" label="{% if wants_mentor %}Continuer{% else %}Rejoindre le club{% endif %}" />
             </div>
         </c-patterns.form>
     </c-components.card>

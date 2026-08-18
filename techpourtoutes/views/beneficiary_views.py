@@ -1,3 +1,5 @@
+from datetime import date
+
 from django.contrib import messages
 from django.contrib.auth import login
 from django.http import HttpResponse
@@ -11,26 +13,19 @@ from ..forms import (
     BeneficiaryHighSchoolTrainingExperienceForm,
     BeneficiaryIdentityForm,
     BeneficiaryLastDiplomaTrainingExperienceForm,
+    BeneficiaryMentoringSignUpForm,
     BeneficiaryStudyStatusForm,
     StudyStatus,
     VerificationCodeForm,
 )
 from ..mailers import AuthMailer
-from ..models import Beneficiary, User
+from ..models import User
 from ..ratelimit import rate_limit
-from ..tasks import send_beneficiary_welcome_email_task
+from ..services.beneficiary.create_beneficiary import CreateBeneficiary
 from ..utils.dates import compute_age
-from ..utils.missing_record import report_missing_record
-
-# Delay before the welcome email is sent, so it doesn't land before the login code.
-_WELCOME_EMAIL_DELAY_SECONDS = 5 * 60
 
 # The funnel steps in order — the single source of truth navigation is derived from.
-_STEPS = ("email", "identity", "study_status", "training_experience")
-
-# Progress bar percentage per step. We actually start the % at the identity step
-# (hence no + 1 after index and len(_STEPS))
-_STEP_PROGRESS = {step: round(100 * (index) / (len(_STEPS))) for index, step in enumerate(_STEPS)}
+_STEPS = ("email", "identity", "study_status", "training_experience", "mentoring_signup")
 
 _TRAINING_EXPERIENCE_FORMS = {
     StudyStatus.HIGH_SCHOOL: BeneficiaryHighSchoolTrainingExperienceForm,
@@ -44,6 +39,18 @@ def beneficiary_home(request):
     return render(request, "beneficiary/beneficiary_home.html", {})
 
 
+def find_mentor_landing(request):
+    return render(request, "beneficiary/find_mentor_landing.html", {})
+
+
+def mentoring_signup_skip_modal(request):
+    return render(
+        request,
+        "beneficiary/partials/inscription/skip_mentoring_signup_modal.html",
+        {"action": _previous_step("mentoring_signup")},
+    )
+
+
 def inscription_funnel(request):
     if request.user.is_authenticated:
         return redirect(reverse("account"))
@@ -52,7 +59,11 @@ def inscription_funnel(request):
     # sessionStorage (Alpine) and travel with every POST. GET only renders the shell, which
     # asks the server for the right step through a "resume" POST once Alpine has hydrated.
     if request.method != "POST":
-        return render(request, "beneficiary/inscription_funnel.html", {})
+        return render(
+            request,
+            "beneficiary/inscription_funnel.html",
+            {"wants_mentor": request.GET.get("wants_mentor") == "1"},
+        )
 
     handlers = {
         "resume": _handle_resume,
@@ -60,7 +71,7 @@ def inscription_funnel(request):
         "code": _handle_code,
         "resend": _handle_resend,
         # The one step that doesn't move forward: submitting the last one creates the account.
-        _STEPS[-1]: _create_beneficiary,
+        _last_step(request.POST): _create_beneficiary,
     }
     handler = handlers.get(request.POST.get("action"), _advance)
     return handler(request)
@@ -82,7 +93,7 @@ def _advance(request):
         _STEP_VALIDATORS[step](request)
     except _StepInterrupt as interrupt:
         return interrupt.response
-    return _render_step(request, _next_step(step))
+    return _render_step(request, _next_step(step, request.POST))
 
 
 def _handle_back(request):
@@ -92,30 +103,32 @@ def _handle_back(request):
 def _create_beneficiary(request):
     # The client can't be trusted, so the whole payload is re-validated here, reusing each step's
     # validator. On the first failure the user is sent back to that screen with an error banner.
+    wants_mentor = _wants_mentor(request.POST)
     try:
         email = _validate_email(request, error=_EMAIL_ERROR)
         identity = _validate_identity(request, error=_IDENTITY_ERROR)
         _validate_study(request, error=_STUDY_ERROR)
         training_experience_form = _validate_training_experience(request)
+        if wants_mentor:
+            mentoring_signup_data = _validate_mentoring_signup(request)
     except _StepInterrupt as interrupt:
         return interrupt.response
 
-    beneficiary = Beneficiary(
-        username=email["email"],
+    result = CreateBeneficiary(
         email=email["email"],
         first_name=identity["first_name"],
         last_name=identity["last_name"],
         birth_date=identity["birth_date"],
-        brevo_sync_enabled=identity["newsletter_consent"],
+        newsletter_consent=identity["newsletter_consent"],
+        training_experience_form=training_experience_form,
+        wants_mentor=wants_mentor,
+        mentoring_signup_data=mentoring_signup_data if wants_mentor else None,
     )
-    beneficiary.save()
-    training_experience_form.save(beneficiary)
-    report_missing_record(training_experience_form, beneficiary, "Funnel d'inscription")
-    AuthMailer.login_code(user=beneficiary, code=beneficiary.issue_login_code())
-    send_beneficiary_welcome_email_task.apply_async(
-        kwargs={"beneficiary_pk": str(beneficiary.pk)}, countdown=_WELCOME_EMAIL_DELAY_SECONDS
-    )
-    response = _render_step(request, "code", email=beneficiary.email)
+    if result.failure:
+        for error in result.errors:
+            messages.error(request, error)
+        return _render_step(request, "mentoring_signup")
+    response = _render_step(request, "code", email=result.beneficiary.email)
     response["HX-Trigger"] = "funnelReset"
     return response
 
@@ -198,6 +211,19 @@ def _validate_training_experience(request):
     return form
 
 
+def _validate_mentoring_signup(request, *, error=None):
+    form = BeneficiaryMentoringSignUpForm(data=request.POST)
+    if form.is_valid() and _is_minor(request.POST):
+        for field in ("legal_representative_name", "legal_representative_email"):
+            if not form.cleaned_data[field]:
+                form.add_error(field, "Ce champ est obligatoire.")
+    if not form.is_valid():
+        raise _StepInterrupt(
+            _render_step_with_error(request, "mentoring_signup", error, form=form)
+        )
+    return form.cleaned_data
+
+
 def _login_redirect_for_existing_email(request, email):
     user = User.objects.filter(email=email).first()
     if user is None:
@@ -212,6 +238,8 @@ _STEP_VALIDATORS = {
     "email": _validate_email,
     "identity": _validate_identity,
     "study_status": _validate_study,
+    "training_experience": _validate_training_experience,
+    "mentoring_signup": _validate_mentoring_signup,
 }
 
 
@@ -221,11 +249,17 @@ _STEP_FORMS = {
     "email": BeneficiaryEmailForm,
     "identity": BeneficiaryIdentityForm,
     "study_status": BeneficiaryStudyStatusForm,
+    "mentoring_signup": BeneficiaryMentoringSignUpForm,
 }
 
 
-def _next_step(step):
-    return _STEPS[_STEPS.index(step) + 1]
+def _steps(data):
+    return _STEPS if _wants_mentor(data) else _STEPS[:-1]
+
+
+def _next_step(step, data):
+    steps = _steps(data)
+    return steps[steps.index(step) + 1]
 
 
 def _previous_step(step):
@@ -234,13 +268,41 @@ def _previous_step(step):
     return _STEPS[max(_STEPS.index(step) - 1, 0)]
 
 
+def _last_step(data):
+    return _steps(data)[-1]
+
+
+# The email screen carries no bar, so it takes no share. The "+ 1" reserves a final segment for
+# the success screen, which shows none either, so the last form step stops short of 100%.
+def _progress(step, data):
+    steps = _steps(data)[1:]
+    if step not in steps:
+        return None
+    return round(100 * (steps.index(step) + 1) / (len(steps) + 1))
+
+
+# Furthest step the client can resume to, based on which answers it already carries.
 def _resume_step(data):
-    for step in _STEPS[:-1]:
+    for step in _STEPS:
+        if step not in _STEP_FORMS:
+            break
         if not _has_answer_for(_STEP_FORMS[step], data):
             return step
-    if data.get("study_status") not in _TRAINING_EXPERIENCE_FORMS:
+    return _resume_last_step(data)
+
+
+def _resume_last_step(data):
+    # The training experience screen is picked from the study status, so an unknown one resumes
+    # on that question.
+    study_status = data.get("study_status")
+    if study_status not in _TRAINING_EXPERIENCE_FORMS:
         return "study_status"
-    return _STEPS[-1]
+    has_filled_training_experience = _has_answer_for(
+        _TRAINING_EXPERIENCE_FORMS[study_status], data
+    )
+    if _wants_mentor(data) and has_filled_training_experience:
+        return "mentoring_signup"
+    return "training_experience"
 
 
 def _has_answer_for(form_class, data):
@@ -255,7 +317,23 @@ _FORM_BUILDERS = {
     "study_status": lambda data: BeneficiaryStudyStatusForm(
         initial={"study_status": data.get("study_status")}
     ),
+    "mentoring_signup": lambda data: BeneficiaryMentoringSignUpForm(initial=data),
 }
+
+
+def _wants_mentor(data):
+    return data.get("wants_mentor") == "true"
+
+
+def _is_minor(data):
+    birth_date_str = data.get("birth_date")
+    if not birth_date_str:
+        return False
+    try:
+        birth_date = date.fromisoformat(birth_date_str)
+    except ValueError:
+        return False
+    return compute_age(birth_date) < 18
 
 
 def _render_step(request, step, *, form=None, **extra):
@@ -279,8 +357,10 @@ def _step_context(request, step, form=None, **extra):
     data = request.POST
     context = {
         "step": step,
-        "progress": _STEP_PROGRESS.get(step),
+        "progress": _progress(step, data),
         "first_name": data.get("first_name"),
+        "is_minor": _is_minor(data),
+        "wants_mentor": _wants_mentor(data),
         **extra,
     }
     if step in _FORM_BUILDERS:

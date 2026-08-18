@@ -1,9 +1,9 @@
-from techpourtoutes.services.base_api import BaseApiService
+from techpourtoutes.services.base import BaseService
 from techpourtoutes.services.brevo_api.mappings import brevo_attributes_for, brevo_list_id_for
 from techpourtoutes.services.brevo_api.upsert_contact import UpsertBrevoContact
 
 
-class SyncBrevoContact(BaseApiService):
+class SyncBrevoContact(BaseService):
     def perform(self, *, instance) -> None:
         list_id = brevo_list_id_for(instance)
         attributes = brevo_attributes_for(instance)

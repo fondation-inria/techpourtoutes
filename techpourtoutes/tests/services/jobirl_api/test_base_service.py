@@ -2,6 +2,7 @@ from unittest.mock import MagicMock, patch
 
 import httpx
 
+from techpourtoutes.services.base import ErrorKind
 from techpourtoutes.services.jobirl_api.base_service import (
     NETWORK_ERROR_MESSAGE,
     JobirlApiBaseService,
@@ -49,6 +50,7 @@ def test_jobirl_api_http_error_sets_failure():
 
     assert result.failure is True
     assert "500" in result.errors[0]
+    assert result.error_kind is ErrorKind.TRANSIENT
 
 
 def test_jobirl_api_4xx_includes_detail_from_response():
@@ -62,6 +64,8 @@ def test_jobirl_api_4xx_includes_detail_from_response():
     joined = " ".join(result.errors)
     assert "400" in joined
     assert "EMAIL ALREADY EXISTS" in joined
+    # An email Jobirl already knows is never going to free itself up: nothing to retry.
+    assert result.error_kind is ErrorKind.PERMANENT
 
 
 def test_jobirl_api_4xx_without_detail_omits_detail_suffix():
@@ -82,3 +86,4 @@ def test_jobirl_api_network_error_sets_failure():
 
     assert result.failure is True
     assert result.errors[0] == NETWORK_ERROR_MESSAGE
+    assert result.error_kind is ErrorKind.TRANSIENT

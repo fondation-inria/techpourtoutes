@@ -14,6 +14,7 @@ from .beneficiary_inscription import (
     BeneficiaryHighSchoolTrainingExperienceForm,
     BeneficiaryIdentityForm,
     BeneficiaryLastDiplomaTrainingExperienceForm,
+    BeneficiaryMentoringSignUpForm,
     BeneficiaryStudyStatusForm,
     StudyStatus,
 )
@@ -26,6 +27,7 @@ __all__ = [
     "BeneficiaryHighSchoolTrainingExperienceForm",
     "BeneficiaryIdentityForm",
     "BeneficiaryLastDiplomaTrainingExperienceForm",
+    "BeneficiaryMentoringSignUpForm",
     "BeneficiaryStudyStatusForm",
     "BeneficiaryEditAccountForm",
     "BeneficiaryTrainingExperienceForm",

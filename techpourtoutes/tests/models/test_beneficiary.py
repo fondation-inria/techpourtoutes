@@ -103,6 +103,9 @@ def test_soft_delete_anonymizes_expected_fields_for_beneficiary(beneficiary):
 
     original_pk = beneficiary.pk
     original_postal_code = beneficiary.postal_code
+    beneficiary.legal_representative_name = "Parent Test"
+    beneficiary.legal_representative_email = "parent@example.com"
+    beneficiary.save()
 
     beneficiary.soft_delete()
     beneficiary.refresh_from_db()
@@ -124,3 +127,5 @@ def test_soft_delete_anonymizes_expected_fields_for_beneficiary(beneficiary):
     assert isinstance(beneficiary, Beneficiary)
     assert beneficiary.birth_date is None
     assert beneficiary.postal_code == original_postal_code
+    assert beneficiary.legal_representative_name == ""
+    assert beneficiary.legal_representative_email == ""
