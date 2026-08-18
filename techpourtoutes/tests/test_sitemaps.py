@@ -29,6 +29,7 @@ SITEMAP_EXCLUDED_URL_NAMES = {
     "beneficiary_training_experience_add",
     "delete_account_modal",
     "delete_account",
+    "add_mentoring",
     # Funnel steps (not landing pages)
     "signature_manifeste",
     "coalition_welcome",

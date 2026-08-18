@@ -4104,11 +4104,11 @@
   .border-neutral-200 {
     border-color: var(--color-neutral-200);
   }
-  .border-primary {
-    border-color: var(--color-primary);
-  }
   .border-primary-700 {
     border-color: var(--color-primary-700);
+  }
+  .border-y-neutral-950 {
+    border-block-color: var(--color-neutral-950);
   }
   .bg-grid {
     background-color: var(--color-neutral-0);
@@ -4501,6 +4501,10 @@
   .opacity-60 {
     opacity: 60%;
   }
+  .shadow-\[2px_2px_20px_rgba\(0\,0\,0\,0\.1\)\] {
+    --tw-shadow: 2px 2px 20px var(--tw-shadow-color, rgba(0,0,0,0.1));
+    box-shadow: var(--tw-inset-shadow), var(--tw-inset-ring-shadow), var(--tw-ring-offset-shadow), var(--tw-ring-shadow), var(--tw-shadow);
+  }
   .shadow-bottom-and-right {
     --tw-shadow: 4px 4px 0 0 var(--tw-shadow-color, var(--color-primary-700));
     box-shadow: var(--tw-inset-shadow), var(--tw-inset-ring-shadow), var(--tw-ring-offset-shadow), var(--tw-ring-shadow), var(--tw-shadow);
@@ -4562,20 +4566,6 @@
   .ease-out {
     --tw-ease: var(--ease-out);
     transition-timing-function: var(--ease-out);
-  }
-  @layer daisyui.l1.l2 {
-    .steps .step-secondary + .step-secondary:before {
-      --step-bg: var(--color-secondary);
-      --step-fg: var(--color-secondary-content);
-    }
-    .steps .step-secondary:after {
-      --step-bg: var(--color-secondary);
-      --step-fg: var(--color-secondary-content);
-    }
-    .steps .step-secondary > .step-icon {
-      --step-bg: var(--color-secondary);
-      --step-fg: var(--color-secondary-content);
-    }
   }
   .select-none {
     -webkit-user-select: none;
@@ -4841,6 +4831,9 @@
     }
     .md\:px-32 {
       padding-inline: calc(var(--spacing) * 32);
+    }
+    .md\:whitespace-nowrap {
+      white-space: nowrap;
     }
   }
   @media (width >= 64rem) {
@@ -5227,6 +5220,13 @@
 }
 [x-cloak] {
   display: none !important;
+}
+.steps-vertical .step:before {
+  --step-bg: var(--color-yellow-500);
+}
+.steps-vertical .step:after {
+  --step-bg: var(--color-green-500);
+  --step-fg: black;
 }
 @layer base {
   :where(:root),:root:has(input.theme-controller[value=light]:checked),[data-theme=light] {

@@ -18,6 +18,7 @@ from .auth_views import (
     logout_view,
 )
 from .beneficiary_views import (
+    add_mentoring,
     beneficiary_home,
     find_mentor_landing,
     inscription_funnel,
@@ -60,6 +61,7 @@ __all__ = [
     "a_propos",
     "accessibilite",
     "account",
+    "add_mentoring",
     "account_communication",
     "account_edit",
     "account_email",

@@ -115,12 +115,13 @@ def login_verify(request, token):
 
 @login_required
 def login_to_jobirl(request):
-    if not hasattr(request.user, "pro"):
+    account = getattr(request.user, "pro", None) or getattr(request.user, "beneficiary", None)
+    if account is None:
         messages.error(request, "Vous n'avez pas de compte mentor sur JobIRL")
         form = CommunicationForm(user=request.user)
         return render(request, "account/account.html", {"form": form})
 
-    result = RefreshAccessToken(pro=request.user.pro)
+    result = RefreshAccessToken(pro=account)
     if result.failure:
         messages.error(request, result.errors[0])
         return redirect(reverse("account"))

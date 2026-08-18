@@ -518,3 +518,18 @@ def test_login_to_jobirl_shows_error_on_service_failure(client, pro):
     assert any("Erreur de connexion à Jobirl" in m for m in stored)
     assert response.status_code == 302
     assert response["Location"] == reverse("account")
+
+
+@pytest.mark.django_db
+@override_settings(JOBIRL_URL="https://jobirl.test")
+def test_login_to_jobirl_redirects_to_jobirl_url_for_beneficiary(client, beneficiary):
+    with patch("techpourtoutes.views.auth_views.RefreshAccessToken") as MockRefresh:
+        MockRefresh.return_value.success = True
+        MockRefresh.return_value.failure = False
+        MockRefresh.return_value.token = "new-token-xyz"
+        client.force_login(beneficiary)
+
+        response = client.get(reverse("login_to_jobirl"))
+
+    assert response.status_code == 302
+    assert response["Location"] == "https://jobirl.test/techpourtoutes/auth/new-token-xyz"

@@ -341,3 +341,11 @@
 [x-cloak] {
   display: none !important;
 }
+
+.steps-vertical .step:before {
+  --step-bg: var(--color-yellow-500);
+}
+.steps-vertical .step:after {
+  --step-bg: var(--color-green-500);
+  --step-fg: black;
+}

@@ -129,3 +129,22 @@ def test_soft_delete_anonymizes_expected_fields_for_beneficiary(beneficiary):
     assert beneficiary.postal_code == original_postal_code
     assert beneficiary.legal_representative_name == ""
     assert beneficiary.legal_representative_email == ""
+
+
+@pytest.mark.django_db
+def test_is_registered_for_mentoring_false_by_default(beneficiary):
+    assert beneficiary.is_registered_for_mentoring is False
+
+
+@pytest.mark.django_db
+def test_is_registered_for_mentoring_true_for_an_adult_with_a_jobirl_account(beneficiary):
+    beneficiary.jobirl_user_id = 42
+
+    assert beneficiary.is_registered_for_mentoring is True
+
+
+@pytest.mark.django_db
+def test_is_registered_for_mentoring_true_for_a_minor_with_a_legal_representative(beneficiary):
+    beneficiary.legal_representative_name = "Parent Test"
+
+    assert beneficiary.is_registered_for_mentoring is True
