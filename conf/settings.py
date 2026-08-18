@@ -235,6 +235,10 @@ LATITUDE_ACCOUNT_DELETION_RECIPIENTS = env.list(
     "LATITUDE_ACCOUNT_DELETION_RECIPIENTS", default=["bonjour@techpourtoutes.io"]
 )
 
+NEW_MENTORING_SIGNUP_RECIPIENTS = env.list(
+    "NEW_MENTORING_SIGNUP_RECIPIENTS", default=["bonjour@techpourtoutes.io"]
+)
+
 # Celery
 CELERY_BROKER_URL = env("REDIS_URL", default="redis://localhost:6379/0")
 CELERY_TASK_ALWAYS_EAGER = env.bool("CELERY_TASK_ALWAYS_EAGER", default=False)

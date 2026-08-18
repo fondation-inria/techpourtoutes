@@ -1,11 +1,11 @@
 from techpourtoutes.utils.onisep import read_onisep_csv
 
-from ..base_api import BaseApiService
+from ..base import BaseService
 from ..onisep_api.fetch_schools import FetchOnisepSchools
 from .upsert_schools import UpsertSchools
 
 
-class ImportSchools(BaseApiService):
+class ImportSchools(BaseService):
     SCOPES = ("secondary", "higher_ed")
     SAMPLE_PREFIX = "schools"
 

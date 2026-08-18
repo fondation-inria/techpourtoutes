@@ -1,5 +1,15 @@
+from enum import StrEnum
+
+
 class FailedServiceError(Exception):
     pass
+
+
+class ErrorKind(StrEnum):
+    """What kind of failure a service hit, so its caller knows whether to try again."""
+
+    PERMANENT = "permanent"
+    TRANSIENT = "transient"
 
 
 class BaseService:
@@ -22,6 +32,8 @@ class BaseService:
     `self.errors`; `self.success` is then False and `self.failure` is True.
     """
 
+    error_kind: ErrorKind = ErrorKind.PERMANENT
+
     def __init__(self, **kwargs):
         self.errors: list[str] = []
         try:
@@ -34,5 +46,15 @@ class BaseService:
     def perform(self, **kwargs) -> None:
         raise NotImplementedError
 
-    def fail(self, error_message: str | None = None) -> None:
+    @property
+    def failed_with_transient_error(self) -> bool:
+        """Whether trying the very same thing again could succeed."""
+        return self.error_kind is ErrorKind.TRANSIENT
+
+    def fail(self, error_message: str | None = None, *, kind=ErrorKind.PERMANENT) -> None:
+        self.error_kind = kind
         raise FailedServiceError(error_message or "")
+
+    def fail_with_errors(self, result: BaseService) -> None:
+        """Adopt another service's failure: its messages, and what kind of failure it was."""
+        self.fail(", ".join(result.errors), kind=result.error_kind)

@@ -20,7 +20,9 @@ from .auth_views import (
 from .beneficiary_views import (
     beneficiary_home,
     bientot_disponible,
+    find_mentor_landing,
     inscription_funnel,
+    mentoring_signup_skip_modal,
 )
 from .coalition_views import (
     coalition_home,
@@ -78,6 +80,7 @@ __all__ = [
     "email_change",
     "email_change_resend",
     "email_change_verify",
+    "find_mentor_landing",
     "inscription_funnel",
     "internships_landing",
     "login_code",
@@ -87,6 +90,7 @@ __all__ = [
     "logout_view",
     "mentions_legales",
     "mentor_landing",
+    "mentoring_signup_skip_modal",
     "notre_manifeste",
     "pourquoi_nous_ecrivons_au_feminin",
     "pro_training_experience_edit",

@@ -3,6 +3,7 @@ from unittest.mock import MagicMock, patch
 import pytest
 
 from techpourtoutes.models import Formation, FormationAction, School
+from techpourtoutes.services.base import ErrorKind
 from techpourtoutes.services.formation.import_formations import ImportFormations
 from techpourtoutes.services.formation_action.import_formation_actions import (
     ImportFormationActions,
@@ -128,7 +129,7 @@ def test_a_link_the_upsert_could_not_resolve_is_not_pruned(both_ends, formation_
 def test_a_failed_download_carries_its_message_up(both_ends):
     with patch(FETCH) as fetch:
         fetch.return_value = MagicMock(
-            failure=True, errors=["Onisep injoignable"], status_code=None, network_error=True
+            failure=True, errors=["Onisep injoignable"], error_kind=ErrorKind.TRANSIENT
         )
         result = ImportFormationActions(scope="lycee")
 
@@ -141,18 +142,18 @@ def test_a_transient_download_failure_stays_transient_one_layer_up(both_ends):
     """The task decides whether to retry, and it only ever sees the import service."""
     with patch(FETCH) as fetch:
         fetch.return_value = MagicMock(
-            failure=True, errors=["Onisep indisponible"], status_code=503, network_error=False
+            failure=True, errors=["Onisep indisponible"], error_kind=ErrorKind.TRANSIENT
         )
         result = ImportFormationActions(scope="lycee")
 
-    assert result.failed_with_transient_error()
+    assert result.error_kind is ErrorKind.TRANSIENT
 
 
 def test_a_permanent_download_failure_is_not_worth_retrying(both_ends):
     with patch(FETCH) as fetch:
         fetch.return_value = MagicMock(
-            failure=True, errors=["Introuvable"], status_code=404, network_error=False
+            failure=True, errors=["Introuvable"], error_kind=ErrorKind.PERMANENT
         )
         result = ImportFormationActions(scope="lycee")
 
-    assert not result.failed_with_transient_error()
+    assert result.error_kind is ErrorKind.PERMANENT

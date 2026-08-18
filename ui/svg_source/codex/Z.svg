@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+<svg fill="currentColor" width="100%" height="100%" viewBox="0 0 827 827" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" xml:space="preserve" xmlns:serif="http://www.serif.com/" style="fill-rule:evenodd;clip-rule:evenodd;stroke-linejoin:round;stroke-miterlimit:2;">
+    <g transform="matrix(1,0,0,1,0,-5310)">
+        <g id="TPT_Codex-Z" transform="matrix(1,0,0,1,0,-0.992126)">
+            <rect x="0" y="5310.992" width="826.772" height="826.772" style="fill:none;"/>
+            <g transform="matrix(0,1,-0.666667,0,866.141732,4956.661417)">
+                <rect x="472.441" y="590.551" width="118.11" height="354.331"/>
+            </g>
+            <g transform="matrix(0,1,-0.666667,0,1102.362205,5429.102362)">
+                <rect x="472.441" y="590.551" width="118.11" height="354.331"/>
+            </g>
+            <g transform="matrix(-1,0,0,1,1417.322835,5192.88189)">
+                <rect x="826.772" y="354.331" width="118.11" height="118.11"/>
+                <g transform="matrix(1,0,0,1,118.110236,118.110236)">
+                    <rect x="826.772" y="354.331" width="118.11" height="118.11"/>
+                </g>
+            </g>
+            <g transform="matrix(-1,0,0,1,1181.102362,5429.102362)">
+                <rect x="826.772" y="354.331" width="118.11" height="118.11"/>
+                <g transform="matrix(1,0,0,1,118.110236,118.110236)">
+                    <rect x="826.772" y="354.331" width="118.11" height="118.11"/>
+                </g>
+            </g>
+        </g>
+    </g>
+</svg>

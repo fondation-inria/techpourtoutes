@@ -50,7 +50,7 @@ urlpatterns = [
         name="beneficiary_training_experience_delete",
     ),
     path("se-deconnecter/", views.logout_view, name="logout"),
-    path("mon-compte-mentor/", views.login_to_jobirl, name="login_to_jobirl"),
+    path("mon-compte-mentorat/", views.login_to_jobirl, name="login_to_jobirl"),
     path(
         "mon-compte/supprimer/confirmation",
         views.delete_account_modal,

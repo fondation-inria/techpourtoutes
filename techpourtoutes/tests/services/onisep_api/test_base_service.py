@@ -1,5 +1,6 @@
 import httpx
 
+from techpourtoutes.services.base import ErrorKind
 from techpourtoutes.services.onisep_api.fetch_formations import FetchOnisepFormations
 
 DATASET_URL = "https://api.opendata.onisep.fr/downloads/5fa591127f501/5fa591127f501.json"
@@ -21,7 +22,7 @@ def test_an_http_error_is_a_transient_failure(httpx_mock):
 
     assert result.failure
     assert "503" in result.errors[0]
-    assert result.failed_with_transient_error()
+    assert result.error_kind is ErrorKind.TRANSIENT
 
 
 def test_a_network_error_is_a_transient_failure(httpx_mock):
@@ -30,7 +31,7 @@ def test_a_network_error_is_a_transient_failure(httpx_mock):
     result = FetchOnisepFormations()
 
     assert result.failure
-    assert result.failed_with_transient_error()
+    assert result.error_kind is ErrorKind.TRANSIENT
 
 
 def test_a_client_error_is_not_worth_retrying(httpx_mock):
@@ -39,7 +40,7 @@ def test_a_client_error_is_not_worth_retrying(httpx_mock):
     result = FetchOnisepFormations()
 
     assert result.failure
-    assert not result.failed_with_transient_error()
+    assert result.error_kind is ErrorKind.PERMANENT
 
 
 def test_an_unparsable_body_fails_without_records(httpx_mock):

@@ -14,7 +14,7 @@ pytestmark = pytest.mark.django_db
 def test_the_task_runs_the_import_service():
     with patch(SERVICE) as service:
         service.return_value = MagicMock(
-            failure=False, errors=[], failed_with_transient_error=lambda: False
+            failure=False, errors=[], failed_with_transient_error=False
         )
 
         import_onisep_formations_task(sample=True)
@@ -25,7 +25,7 @@ def test_the_task_runs_the_import_service():
 def test_a_permanent_failure_raises_a_runtime_error():
     with patch(SERVICE) as service:
         service.return_value = MagicMock(
-            failure=True, errors=["boum"], failed_with_transient_error=lambda: False
+            failure=True, errors=["boum"], failed_with_transient_error=False
         )
 
         with pytest.raises(RuntimeError, match="boum"):
@@ -35,7 +35,7 @@ def test_a_permanent_failure_raises_a_runtime_error():
 def test_a_transient_failure_asks_celery_to_retry():
     with patch(SERVICE) as service:
         service.return_value = MagicMock(
-            failure=True, errors=["boum"], failed_with_transient_error=lambda: True
+            failure=True, errors=["boum"], failed_with_transient_error=True
         )
 
         with pytest.raises(TransientError, match="boum"):
