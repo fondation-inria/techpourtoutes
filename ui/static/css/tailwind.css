@@ -8,9 +8,9 @@
     --font-serif: "Newsreader", ui-serif, Georgia, Cambria, "Times New Roman", Times, serif;
     --font-mono: "Noto Sans Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
     --color-red-500: #b82f4f;
-    --color-green-500: #00a25e;
     --color-orange-500: #FF713D;
     --color-yellow-500: #fad207;
+    --color-green-500: #00a25e;
     --color-blue-500: #0E6DC7;
     --color-purple-500: #BD76FF;
     --color-neutral-50: #f8fafc;
@@ -63,7 +63,6 @@
     --radius-lg: 12px;
     --radius-2xl: 1rem;
     --ease-out: cubic-bezier(0, 0, 0.2, 1);
-    --ease-in-out: cubic-bezier(0.4, 0, 0.2, 1);
     --default-transition-duration: 150ms;
     --default-transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
     --default-font-family: var(--font-sans);
@@ -2969,6 +2968,9 @@
   .-top-5 {
     top: calc(var(--spacing) * -5);
   }
+  .-top-8 {
+    top: calc(var(--spacing) * -8);
+  }
   .top-0 {
     top: 0px;
   }
@@ -3734,6 +3736,9 @@
   .h-\[80vh\] {
     height: 80vh;
   }
+  .h-\[calc\(100\%\+4rem\)\] {
+    height: calc(100% + 4rem);
+  }
   .h-dvh {
     height: 100dvh;
   }
@@ -3814,9 +3819,6 @@
   }
   .max-w-3xl {
     max-width: var(--container-3xl);
-  }
-  .max-w-4xl {
-    max-width: var(--container-4xl);
   }
   .max-w-6xl {
     max-width: var(--container-6xl);
@@ -5082,7 +5084,7 @@
     border-style: var(--tw-border-style);
     border-width: 1px;
     border-color: var(--color-neutral-950);
-    background-color: color-mix(in srgb, #9358ca 10%, transparent);
+    background-color: color-mix(in srgb, #BD76FF 10%, transparent);
     @supports (color: color-mix(in lab, red, red)) {
       background-color: color-mix(in oklab, var(--color-purple-500) 10%, transparent);
     }

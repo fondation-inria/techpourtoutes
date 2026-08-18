@@ -60,7 +60,7 @@ def bientot_disponible(request):
         )
     else:
         form = EmailNotificationForm()
-    return render(request, "static/bientot_disponible.html", {"form": form})
+    return render(request, "beneficiary/bientot_disponible.html", {"form": form})
 
 
 def find_mentor_landing(request):
