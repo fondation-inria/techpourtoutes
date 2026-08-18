@@ -7,8 +7,11 @@
     "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
     --font-serif: "Newsreader", ui-serif, Georgia, Cambria, "Times New Roman", Times, serif;
     --font-mono: "Noto Sans Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
+    --color-orange-500: #FF713D;
     --color-yellow-500: #fad207;
     --color-green-500: #00a25e;
+    --color-blue-500: #0E6DC7;
+    --color-purple-500: #BD76FF;
     --color-neutral-50: #f8fafc;
     --color-neutral-100: #f1f5f9;
     --color-neutral-200: #e2e8f0;
@@ -3116,6 +3119,9 @@
   .isolate {
     isolation: isolate;
   }
+  .-z-10 {
+    z-index: calc(10 * -1);
+  }
   .z-10 {
     z-index: 10;
   }
@@ -4070,6 +4076,12 @@
   .border-accent-500 {
     border-color: var(--color-accent-500);
   }
+  .border-blue-500 {
+    border-color: var(--color-blue-500);
+  }
+  .border-blue-500\! {
+    border-color: var(--color-blue-500) !important;
+  }
   .border-blue-background {
     border-color: var(--color-blue-background);
   }
@@ -4081,6 +4093,12 @@
   }
   .border-primary-700 {
     border-color: var(--color-primary-700);
+  }
+  .bg-grid {
+    background-color: var(--color-neutral-0);
+    background-image: linear-gradient(to right, black var(--grid-line), transparent var(--grid-line)), linear-gradient(to bottom, black var(--grid-line), transparent var(--grid-line));
+    background-size: var(--grid-cell) 100%, 100% var(--grid-cell);
+    background-position: var(--grid-offset-x) 0, 0 var(--grid-offset-y);
   }
   @layer daisyui.l1.l2 {
     :is(.tabs-lift :checked, .tabs-lift label:has(:checked), .tabs-lift :is(:is(.tab-active), [aria-selected="true"], [aria-current="true"], [aria-current="page"])) + .tab-content:nth-child(1) {
@@ -4115,6 +4133,9 @@
   }
   .bg-accent-50 {
     background-color: var(--color-accent-50);
+  }
+  .bg-blue-500 {
+    background-color: var(--color-blue-500);
   }
   .bg-blue-background {
     background-color: var(--color-blue-background);
@@ -4365,11 +4386,23 @@
   .text-black {
     color: var(--color-black);
   }
+  .text-black\! {
+    color: var(--color-black) !important;
+  }
+  .text-blue-500 {
+    color: var(--color-blue-500);
+  }
+  .text-blue-500\! {
+    color: var(--color-blue-500) !important;
+  }
   .text-error-500 {
     color: var(--color-error-500);
   }
   .text-error-700 {
     color: var(--color-error-700);
+  }
+  .text-green-500 {
+    color: var(--color-green-500);
   }
   .text-neutral-0 {
     color: var(--color-neutral-0);
@@ -4392,14 +4425,26 @@
   .text-neutral-950 {
     color: var(--color-neutral-950);
   }
+  .text-orange-500 {
+    color: var(--color-orange-500);
+  }
   .text-primary {
     color: var(--color-primary);
+  }
+  .text-primary-500 {
+    color: var(--color-primary-500);
   }
   .text-primary-700 {
     color: var(--color-primary-700);
   }
+  .text-purple-500 {
+    color: var(--color-purple-500);
+  }
   .text-white {
     color: var(--color-white);
+  }
+  .text-yellow-500 {
+    color: var(--color-yellow-500);
   }
   .capitalize {
     text-transform: capitalize;
@@ -4509,8 +4554,8 @@
     -webkit-user-select: none;
     user-select: none;
   }
-  .\[--tab-border-color\:primary-700\] {
-    --tab-border-color: primary-700;
+  .\[--tab-border-color\:blue-500\] {
+    --tab-border-color: blue-500;
   }
   @layer daisyui.l1.l2.l3 {
     .aura:has( > .card,  > .alert) {
@@ -4958,6 +5003,18 @@
   font-weight: 800;
   font-display: swap;
   src: url("../fonts/newsreader/newsreader-latin-800-italic.woff2") format("woff2");
+}
+:root {
+  --grid-cell: 60px;
+  --grid-line: 0.5px;
+  --grid-offset-x: -1px;
+  --grid-offset-y: 32px;
+  --codex-glyph: calc(7 * var(--grid-cell));
+}
+@media (resolution <= 1x) {
+  :root {
+    --grid-line: 1px;
+  }
 }
 @layer components {
   .text-disabled {

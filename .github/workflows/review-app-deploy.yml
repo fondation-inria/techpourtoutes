@@ -82,6 +82,16 @@ jobs:
           scalingo --app "$REVIEW_APP" env-set \
             "ALLOWED_HOSTS=$domain" "HOST=$URL" "DISABLE_ADMIN_2FA=true" "SEED_ENABLED=true"
 
+      # Review apps inherit the parent app's literal CACHE_URL, which points at staging's Redis.
+      # Scalingo's `$VAR` alias only works as a whole value, so the db index is appended here.
+      - name: Point the review app cache at its own Redis
+        env:
+          REVIEW_APP: techpourtoutes-staging-pr${{ steps.pr.outputs.number }}
+        run: |
+          redis_url=$(scalingo --app "$REVIEW_APP" env | sed -n 's/^SCALINGO_REDIS_URL=//p')
+          echo "::add-mask::$redis_url"
+          scalingo --app "$REVIEW_APP" env-set "CACHE_URL=$redis_url/1"
+
       - name: Parse extra env vars from comment
         id: extra-env
         uses: actions/github-script@v9
