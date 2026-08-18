@@ -241,8 +241,20 @@
 :root {
   --grid-cell: 60px;
   --grid-line: 0.5px;
+  /* The grid starts inside a cell rather than on a line: the first row and the
+     first column are shorter than the others */
+  --grid-offset-x: -1px;
+  --grid-offset-y: 32px;
   /* A Codex glyph is 7 cells wide (viewBox 827 / 118.11) */
   --codex-glyph: calc(7 * var(--grid-cell));
+}
+
+/* A 0.5px line is half a device pixel here, and the browser drops it rather than
+   antialiasing it. 1px is the thinnest that still renders as a single pixel. */
+@media (resolution <= 1x) {
+  :root {
+    --grid-line: 1px;
+  }
 }
 
 @utility bg-grid {
@@ -250,7 +262,12 @@
   background-image:
     linear-gradient(to right, black var(--grid-line), transparent var(--grid-line)),
     linear-gradient(to bottom, black var(--grid-line), transparent var(--grid-line));
-  background-size: var(--grid-cell) var(--grid-cell);
+  background-size:
+    var(--grid-cell) 100%,
+    100% var(--grid-cell);
+  background-position:
+    var(--grid-offset-x) 0,
+    0 var(--grid-offset-y);
 }
 
 @layer components {
