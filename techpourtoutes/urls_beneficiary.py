@@ -11,4 +11,5 @@ urlpatterns = [
         views.mentoring_signup_skip_modal,
         name="mentoring_signup_skip_modal",
     ),
+    path("bientot-disponible/", views.bientot_disponible, name="bientot_disponible"),
 ]
