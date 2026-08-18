@@ -50,6 +50,6 @@ class BaseMailer:
     def _base_context():
         return {
             "logo_url": settings.SITE_URL
-            + staticfiles_storage.url("images/techpourtoutes-logo-new.svg"),
+            + staticfiles_storage.url("images/techpourtoutes-logo-new-beneficiary.svg"),
             "base_url": settings.SITE_URL,
         }
