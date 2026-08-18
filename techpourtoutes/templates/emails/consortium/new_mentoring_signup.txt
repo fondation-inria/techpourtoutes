@@ -1,0 +1,10 @@
+Bonjour,
+
+{{ beneficiary.first_name }} {{ beneficiary.last_name }} nous a transmis les informations de son tuteur légal :
+
+{{ legal_representative_name }}
+{{ legal_representative_email }}
+
+Si jamais les informations te semblent erronées, tu peux renvoyer un mail à {{ beneficiary.email }}.
+Peux-tu lui envoyer la demande de signature de l'attestation ?
+Merci

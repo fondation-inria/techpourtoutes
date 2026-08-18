@@ -1,11 +1,11 @@
 from techpourtoutes.utils.onisep import read_onisep_csv
 
-from ..base_api import BaseApiService
+from ..base import BaseService
 from ..onisep_api.fetch_formations import FetchOnisepFormations
 from .upsert_formations import UpsertFormations
 
 
-class ImportFormations(BaseApiService):
+class ImportFormations(BaseService):
     SAMPLE = "formations_sample.csv"
 
     def perform(self, *, sample: bool = False) -> None:

@@ -14,7 +14,7 @@ def test_task_loads_pro_and_runs_service(pro):
         "techpourtoutes.tasks.notify_workshop_request.NotifyWorkshopRequest"
     ) as mock_service:
         mock_service.return_value = MagicMock(
-            failure=False, errors=[], failed_with_transient_error=lambda: False
+            failure=False, errors=[], failed_with_transient_error=False
         )
 
         notify_workshop_request_task(str(pro.pk), ["future_of_tech"], "hello", "0750001A")
@@ -33,7 +33,7 @@ def test_task_raises_runtime_error_on_permanent_failure(pro):
         "techpourtoutes.tasks.notify_workshop_request.NotifyWorkshopRequest"
     ) as mock_service:
         mock_service.return_value = MagicMock(
-            failure=True, errors=["boom"], failed_with_transient_error=lambda: False
+            failure=True, errors=["boom"], failed_with_transient_error=False
         )
 
         with pytest.raises(RuntimeError, match="boom"):
@@ -47,7 +47,7 @@ def test_task_raises_transient_error_on_transient_failure(pro):
         "techpourtoutes.tasks.notify_workshop_request.NotifyWorkshopRequest"
     ) as mock_service:
         mock_service.return_value = MagicMock(
-            failure=True, errors=["boom"], failed_with_transient_error=lambda: True
+            failure=True, errors=["boom"], failed_with_transient_error=True
         )
 
         with pytest.raises(TransientError, match="boom"):

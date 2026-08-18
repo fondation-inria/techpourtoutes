@@ -3,7 +3,7 @@ from celery import shared_task
 from techpourtoutes.models import Pro
 from techpourtoutes.services.n8n_api.notify_workshop_request import NotifyWorkshopRequest
 
-from ._retry import RETRY_KWARGS, TransientError
+from ._retry import RETRY_KWARGS, raise_failure
 
 
 @shared_task(bind=True, **RETRY_KWARGS)
@@ -15,7 +15,4 @@ def notify_workshop_request_task(
         pro=pro, ateliers=ateliers, remark=remark, structure_uai=structure_uai
     )
     if result.failure:
-        message = ", ".join(result.errors)
-        if result.failed_with_transient_error():
-            raise TransientError(message)
-        raise RuntimeError(message)
+        raise_failure(result)

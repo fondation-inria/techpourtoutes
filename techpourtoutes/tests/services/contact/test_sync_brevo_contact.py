@@ -4,6 +4,7 @@ import pytest
 from brevo.core.api_error import ApiError
 from django.test import override_settings
 
+from techpourtoutes.services.base import ErrorKind
 from techpourtoutes.services.contact.sync_brevo_contact import SyncBrevoContact
 
 
@@ -74,4 +75,4 @@ def test_sync_brevo_contact_fails_on_non_sms_api_error(pro, mock_brevo_client):
     result = SyncBrevoContact(instance=pro)
 
     assert result.failure
-    assert result.status_code == 500
+    assert result.error_kind is ErrorKind.TRANSIENT
