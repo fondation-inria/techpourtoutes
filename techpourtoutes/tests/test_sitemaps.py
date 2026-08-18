@@ -40,7 +40,6 @@ SITEMAP_EXCLUDED_URL_NAMES = {
     "accessibilite",
     "schema_pluriannuel",
     "a_propos",
-    # Placeholder page (no real content, shouldn't be indexed)
     "bientot_disponible",
 }
 
