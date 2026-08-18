@@ -6,8 +6,7 @@ class CreateMentoree(BaseService):
     def perform(self, *, beneficiary):
         result = RegisterUserOnJobirl(user=beneficiary, is_pro=False)
         if result.failure:
-            self.errors.extend(result.errors)
-            return
+            self.fail_with_errors(result)
         beneficiary.jobirl_user_id = result.user_id
         beneficiary.jobirl_user_token = result.token
         beneficiary.save()

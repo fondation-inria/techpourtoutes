@@ -124,8 +124,10 @@ def _create_beneficiary(request):
         wants_mentor=wants_mentor,
         mentoring_signup_data=mentoring_signup_data if wants_mentor else None,
     )
-    for error in result.mentoring_errors:
-        messages.error(request, error)
+    if result.failure:
+        for error in result.errors:
+            messages.error(request, error)
+        return _render_step(request, "mentoring_signup")
     response = _render_step(request, "code", email=result.beneficiary.email)
     response["HX-Trigger"] = "funnelReset"
     return response

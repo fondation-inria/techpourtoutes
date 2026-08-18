@@ -8,7 +8,7 @@ from techpourtoutes.models import Beneficiary
 from techpourtoutes.services.beneficiary.create_beneficiary import CreateBeneficiary
 from techpourtoutes.tasks import send_beneficiary_welcome_email_task
 
-CREATE_MENTOREE = "techpourtoutes.services.beneficiary.create_beneficiary.CreateMentoree"
+SIGN_UP = "techpourtoutes.services.beneficiary.create_beneficiary.SignUpForMentoring"
 
 
 def _training_experience_form():
@@ -23,6 +23,14 @@ def _minor_mentoring_data():
         "legal_representative_name": "Parent Test",
         "legal_representative_email": "parent@example.com",
     }
+
+
+def _signed_up():
+    return MagicMock(success=True, failure=False, errors=[])
+
+
+def _sign_up_refused(*errors):
+    return MagicMock(success=False, failure=True, errors=list(errors))
 
 
 def _create_beneficiary(**overrides):
@@ -54,7 +62,6 @@ def test_create_beneficiary_saves_beneficiary_with_expected_fields():
     assert beneficiary.legal_representative_name == ""
     assert beneficiary.legal_representative_email == ""
     assert result.beneficiary == beneficiary
-    assert result.mentoring_errors == []
 
 
 @pytest.mark.django_db
@@ -96,55 +103,62 @@ def test_create_beneficiary_schedules_welcome_email_task():
 
 
 @pytest.mark.django_db
-@override_settings(EMAIL_BACKEND="django.core.mail.backends.locmem.EmailBackend")
 def test_create_beneficiary_wants_mentor_and_minor_persists_legal_representative():
-    from django.core import mail
-
-    with patch(CREATE_MENTOREE) as MockCreateMentoree:
+    with patch(SIGN_UP, return_value=_signed_up()) as MockSignUp:
         result = _create_beneficiary(
             birth_date=date.today().replace(year=date.today().year - 16),
             wants_mentor=True,
             mentoring_signup_data=_minor_mentoring_data(),
         )
 
-    MockCreateMentoree.assert_not_called()
     assert result.beneficiary.phone == "+33612345678"
     assert result.beneficiary.legal_representative_name == "Parent Test"
     assert result.beneficiary.legal_representative_email == "parent@example.com"
-    assert "Nouvelle attestation à envoyer" in {message.subject for message in mail.outbox}
-    assert result.mentoring_errors == []
+    assert MockSignUp.call_args.kwargs["is_minor"] is True
 
 
 @pytest.mark.django_db
-def test_create_beneficiary_wants_mentor_and_adult_registers_with_jobirl():
-    mock = MagicMock(success=True, failure=False, errors=[])
-
-    with patch(CREATE_MENTOREE, return_value=mock) as MockCreateMentoree:
+def test_create_beneficiary_wants_mentor_and_adult_signs_up_for_mentoring():
+    with patch(SIGN_UP, return_value=_signed_up()) as MockSignUp:
         result = _create_beneficiary(
             birth_date=date.today().replace(year=date.today().year - 20),
             wants_mentor=True,
             mentoring_signup_data=_minor_mentoring_data(),
         )
 
-    MockCreateMentoree.assert_called_once_with(beneficiary=result.beneficiary)
+    MockSignUp.assert_called_once_with(
+        beneficiary=result.beneficiary,
+        is_minor=False,
+        mentoring_signup_data=_minor_mentoring_data(),
+    )
     assert result.beneficiary.phone == "+33612345678"
     # An adult never has a legal representative, even if the form data carried one.
     assert result.beneficiary.legal_representative_name == ""
     assert result.beneficiary.legal_representative_email == ""
-    assert result.mentoring_errors == []
 
 
 @pytest.mark.django_db
-def test_create_beneficiary_collects_jobirl_registration_errors_without_failing():
-    mock = MagicMock(success=False, failure=True, errors=["Jobirl est indisponible."])
+@override_settings(EMAIL_BACKEND="django.core.mail.backends.locmem.EmailBackend")
+def test_a_refused_mentoring_sign_up_rolls_the_whole_account_back():
+    from django.core import mail
 
-    with patch(CREATE_MENTOREE, return_value=mock):
-        result = _create_beneficiary(
-            birth_date=date.today().replace(year=date.today().year - 20),
-            wants_mentor=True,
-            mentoring_signup_data=_minor_mentoring_data(),
-        )
+    refused = _sign_up_refused("EMAIL ALREADY EXISTS")
 
-    assert result.success is True
-    assert result.mentoring_errors == ["Jobirl est indisponible."]
-    assert Beneficiary.objects.filter(pk=result.beneficiary.pk).exists()
+    with patch(SIGN_UP, return_value=refused):
+        with patch.object(send_beneficiary_welcome_email_task, "apply_async") as apply_async:
+            result = CreateBeneficiary(
+                email="lea@example.com",
+                first_name="Léa",
+                last_name="Petit",
+                birth_date=date.today().replace(year=date.today().year - 20),
+                newsletter_consent=True,
+                training_experience_form=_training_experience_form(),
+                wants_mentor=True,
+                mentoring_signup_data=_minor_mentoring_data(),
+            )
+
+    assert result.failure is True
+    assert result.errors == ["EMAIL ALREADY EXISTS"]
+    assert not Beneficiary.objects.filter(email="lea@example.com").exists()
+    assert mail.outbox == []
+    apply_async.assert_not_called()

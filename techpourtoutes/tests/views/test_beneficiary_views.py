@@ -8,6 +8,7 @@ from django.test import override_settings
 from waffle.testutils import override_switch
 
 from techpourtoutes.models import Beneficiary, Level, User
+from techpourtoutes.services.base import ErrorKind
 from techpourtoutes.utils.school_year import (
     current_school_year_label,
     current_school_year_start_date,
@@ -474,7 +475,7 @@ def test_mentoring_signup_step_creates_an_adult_beneficiary_without_legal_repres
     # accept a submission carrying only the phone number.
     instance = MagicMock(success=True, failure=False, errors=[])
     with patch(
-        "techpourtoutes.services.beneficiary.create_beneficiary.CreateMentoree",
+        "techpourtoutes.services.beneficiary.sign_up_for_mentoring.CreateMentoree",
         return_value=instance,
     ):
         response = client.post(
@@ -492,6 +493,38 @@ def test_mentoring_signup_step_creates_an_adult_beneficiary_without_legal_repres
     beneficiary = Beneficiary.objects.get(email="oceane@example.com")
     assert beneficiary.legal_representative_name == ""
     assert beneficiary.legal_representative_email == ""
+
+
+@pytest.mark.django_db
+def test_a_mentoring_sign_up_jobirl_refuses_sends_her_back_with_no_account(
+    client, beneficiary_mode, higher_ed_school, higher_ed_formation
+):
+    refused = MagicMock(
+        success=False,
+        failure=True,
+        errors=["EMAIL ALREADY EXISTS"],
+        failed_with_transient_error=False,
+        error_kind=ErrorKind.PERMANENT,
+    )
+    with patch(
+        "techpourtoutes.services.beneficiary.sign_up_for_mentoring.CreateMentoree",
+        return_value=refused,
+    ):
+        response = client.post(
+            FUNNEL_URL,
+            _higher_education_post(
+                higher_ed_school,
+                higher_ed_formation,
+                action="mentoring_signup",
+                wants_mentor="true",
+                phone="0612345678",
+            ),
+        )
+
+    assert b"Saisis le code" not in response.content
+    assert "EMAIL ALREADY EXISTS" in response.content.decode()
+    assert "HX-Trigger" not in response
+    assert not Beneficiary.objects.exists()
 
 
 @pytest.mark.django_db

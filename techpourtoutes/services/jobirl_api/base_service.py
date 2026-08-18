@@ -3,7 +3,7 @@ from functools import cached_property
 import httpx
 
 from techpourtoutes.clients.jobirl import JobirlClient
-from techpourtoutes.services.base import BaseService
+from techpourtoutes.services.base_api import BaseApiService
 
 HTTP_ERROR_MESSAGE = (
     "L'inscription sur la plateforme partenaire a échoué (code {code}). "
@@ -14,7 +14,7 @@ NETWORK_ERROR_MESSAGE = (
 )
 
 
-class JobirlApiBaseService(BaseService):
+class JobirlApiBaseService(BaseApiService):
     """Base class for Jobirl API service objects.
 
     Subclasses must implement `perform(**kwargs)`, which is called automatically on
@@ -35,9 +35,11 @@ class JobirlApiBaseService(BaseService):
         try:
             self._jobirl_response = getattr(JobirlClient(), method)(path=path, data=data)
         except httpx.RequestError:
+            self.network_error = True
             self.fail(NETWORK_ERROR_MESSAGE)
             return
         if not self._jobirl_response.is_success:
+            self.status_code = self._jobirl_response.status_code
             self._fail_with_errors()
 
     @cached_property
