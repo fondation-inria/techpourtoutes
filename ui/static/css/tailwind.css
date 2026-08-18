@@ -61,7 +61,6 @@
     --radius-xl: 16px;
     --radius-2xl: 1rem;
     --ease-out: cubic-bezier(0, 0, 0.2, 1);
-    --ease-in-out: cubic-bezier(0.4, 0, 0.2, 1);
     --default-transition-duration: 150ms;
     --default-transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
     --default-font-family: var(--font-sans);
@@ -3747,17 +3746,8 @@
   .min-h-0 {
     min-height: 0px;
   }
-  .min-h-1 {
-    min-height: var(--spacing);
-  }
-  .min-h-10 {
-    min-height: calc(var(--spacing) * 10);
-  }
   .min-h-11 {
     min-height: calc(var(--spacing) * 11);
-  }
-  .min-h-14 {
-    min-height: calc(var(--spacing) * 14);
   }
   .min-h-40 {
     min-height: calc(var(--spacing) * 40);
@@ -4559,22 +4549,10 @@
     }
   }
   @media (hover: hover) {
-    .group-hover\:scale-12:is(:where(.group):hover *) {
-      --tw-scale-x: 12%;
-      --tw-scale-y: 12%;
-      --tw-scale-z: 12%;
-      scale: var(--tw-scale-x) var(--tw-scale-y);
-    }
     .group-hover\:scale-115:is(:where(.group):hover *) {
       --tw-scale-x: 115%;
       --tw-scale-y: 115%;
       --tw-scale-z: 115%;
-      scale: var(--tw-scale-x) var(--tw-scale-y);
-    }
-    .group-hover\:scale-120:is(:where(.group):hover *) {
-      --tw-scale-x: 120%;
-      --tw-scale-y: 120%;
-      --tw-scale-z: 120%;
       scale: var(--tw-scale-x) var(--tw-scale-y);
     }
     .group-hover\:font-serif:is(:where(.group):hover *) {
