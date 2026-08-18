@@ -1,0 +1,41 @@
+<c-vars
+    id=""
+    color="yellow"
+    title=""
+    button=""
+    href=""
+    class=""
+    base_class="relative flex flex-col gap-4 p-6 border border-black cursor-pointer shadow-[2px_2px_20px_rgba(0,0,0,0.1)]"
+    yellow_class="bg-yellow-500 text-neutral-950"
+    orange_class="bg-orange-500 text-neutral-950"
+    green_class="bg-green-500 text-neutral-950"
+    purple_class="bg-purple-500 text-neutral-950"
+    blue_class="bg-blue-500 text-neutral-0"
+    title_class="self-start bg-black text-neutral-0 text-xl sm:text-2xl leading-[1.4] px-4 py-1"
+    body_class="text-sm leading-[1.4]"
+    button_class="self-center mt-auto relative z-20"
+    overlay_class="absolute inset-0 z-10"
+/>
+
+<div id="{{ id }}"
+     class="
+        {{ base_class }}
+        {% if color == "orange" %}
+            {{ orange_class }}
+        {% elif color == "green" %}
+            {{ green_class }}
+        {% elif color == "purple" %}
+            {{ purple_class }}
+        {% elif color == "blue" %}
+            {{ blue_class }}
+        {% else %}
+            {{ yellow_class }}
+        {% endif %}
+        {{ class }}"
+>
+    <h2 class="{{ title_class }}">{{ title|safe }}</h2>
+    <div class="{{ body_class }}">{{ slot }}</div>
+    <c-components.button variant="secondary" label="{{ button }}" href="{{ href }}" class="{{ button_class }}" />
+    {# Stretched link: a sibling of the button rather than its parent, so no <a> nests inside another #}
+    <a href="{{ href }}" class="{{ overlay_class }}" aria-hidden="true" tabindex="-1"></a>
+</div>

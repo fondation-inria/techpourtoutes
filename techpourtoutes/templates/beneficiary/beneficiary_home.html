@@ -1,10 +1,40 @@
 <c-layout.base title="TechPourToutes – le programme pour une tech inclusive" description="TechPourToutes est un programme national pour attirer et soutenir les femmes dans la tech. Rejoignez le programme pour bénéficier d'un accompagnement personnalisé." >
-    <c-components.card-shadow class="flex flex-col gap-3 justify-between h-42 md:h-38 text-primary-700 hover:border-primary-500 hover:shadow-primary-500 hover:scale-103 hover:text-primary-500" href="{% url "inscription_funnel" %}">
-        <div class="flex flex-1 justify-center">
-            <c-components.icon name="mentorer-bold" class="w-15 h-15" />
-        </div>
-        <p class="text-sm text-center font-medium">
-            S'inscrire
-        </p>
-    </c-components.card-shadow>
+    <div>
+        <c-components.title variant="tagline">
+            <span>Le futur sera </span>
+            <span>numérique...</span>
+            <span>et féminin</span>
+        </c-components.title>
+
+        <c-components.title title="Rejoins le club&nbsp;!" />
+    </div>
+
+
+    <c-components.card title="TechPourToutes, c'est quoi&nbsp;?">
+        <c-components.text>
+            Un programme d'accompagnement 100% gratuit, à la carte et sur mesure pour les lycéennes et étudiantes de 15 à 25 ans intéressées de poursuivre des études dans le numérique.
+        </c-components.text>
+    </c-components.card>
+
+    <div class="grid w-full grid-cols-1 md:grid-cols-2 gap-6">
+        <c-components.card-link color="yellow" title="Mentorat" button="En savoir plus" href="{% url "find_mentor_landing" %}">
+            TechPourToutes te propose un programme de mentorat de 6&nbsp;mois, 100% gratuit et digital pour t'aider à faire grandir ton projet.
+        </c-components.card-link>
+
+        <c-components.card-link color="orange" title="Club TechPourToutes" button="Rejoindre le club" href="{% url "inscription_funnel" %}">
+            Viens discuter avec des pro du numérique, des étudiantes ou des camarades pour en savoir plus sur leur parcours et recueillir de précieux conseils.
+        </c-components.card-link>
+
+        <c-components.card-link color="blue" title="Écoles &amp; formation" button="Découvrir les formations" href="#">
+            Découvre toutes les formations qui te donneront une chance de trouver le métier de ton choix dans le numérique.
+        </c-components.card-link>
+
+        <c-components.card-link color="green" title="Événements" button="Découvrir les événements tech" href="#">
+            Salons, portes-ouvertes, hackathons, stages de renforcement des compétences, tous les événements tech sont sur TechPourToutes.
+        </c-components.card-link>
+
+        <c-components.card-link color="purple" title="Stages &amp; alternances" button="Trouver ma prochaine opportunité" href="#">
+            Trouve ton prochain stage ou ton alternance sur notre plateforme dédiée aux stages dans les métiers tech spécifiquement pour les filles.
+        </c-components.card-link>
+    </div>
 </c-layout.base>
