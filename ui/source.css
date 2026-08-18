@@ -228,6 +228,7 @@
 
   /* Shadows */
   --shadow-bottom-and-right: 4px 4px 0 0 var(--color-primary-700);
+  --shadow-bottom-and-right-lg: 6px 6px 0 0 var(--color-primary-700);
   --shadow-right: 4px 0 0 0 var(--color-primary-700);
   --shadow-thin-bottom: 0 1px 0 0;
 
