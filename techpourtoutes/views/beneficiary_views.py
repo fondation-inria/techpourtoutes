@@ -3,6 +3,7 @@ from datetime import date
 from django.conf import settings
 from django.contrib import messages
 from django.contrib.auth import login
+from django.contrib.auth.decorators import login_required
 from django.http import HttpResponse
 from django.shortcuts import redirect, render
 from django.urls import reverse
@@ -23,7 +24,7 @@ from ..forms import (
 from ..mailers import AuthMailer
 from ..models import User
 from ..ratelimit import rate_limit
-from ..services.beneficiary.create_beneficiary import CreateBeneficiary
+from ..services.beneficiary.upsert_beneficiary import UpsertBeneficiary
 from ..tasks import upsert_email_notification_task
 from ..utils.dates import compute_age
 
@@ -64,7 +65,65 @@ def bientot_disponible(request):
 
 
 def find_mentor_landing(request):
-    return render(request, "beneficiary/find_mentor_landing.html", {})
+    beneficiary = getattr(request.user, "beneficiary", None)
+    cta_href = reverse("add_mentoring")
+    cta_label = "S'inscrire au mentorat"
+    cta_disabled = False
+    if not request.user.is_authenticated:
+        cta_href = f"{reverse('inscription_funnel')}?wants_mentor=1"
+    if beneficiary is not None:
+        if beneficiary.jobirl_user_id:
+            cta_href = reverse("login_to_jobirl")
+            cta_label = "Rejoindre mon espace mentorat"
+        elif beneficiary.legal_representative_email:
+            cta_href = ""
+            cta_label = "Rejoindre mon espace mentorat"
+            cta_disabled = True
+    return render(
+        request,
+        "beneficiary/find_mentor_landing.html",
+        {"cta_href": cta_href, "cta_label": cta_label, "cta_disabled": cta_disabled},
+    )
+
+
+@login_required
+def add_mentoring(request):
+    if not hasattr(request.user, "beneficiary"):
+        messages.error(request, "Cette page est réservée aux bénéficiaires.")
+        return redirect(reverse("account"))
+
+    beneficiary = request.user.beneficiary
+    if beneficiary.is_registered_for_mentoring:
+        messages.info(request, "Tu es déjà inscrite au programme de mentorat.")
+        return redirect(reverse("account"))
+
+    is_minor = compute_age(beneficiary.birth_date) < 18
+
+    if request.method == "POST":
+        form = BeneficiaryMentoringSignUpForm(data=request.POST)
+        if form.is_valid() and is_minor:
+            for field in ("legal_representative_name", "legal_representative_email"):
+                if not form.cleaned_data[field]:
+                    form.add_error(field, "Ce champ est obligatoire.")
+        if form.is_valid():
+            result = UpsertBeneficiary(
+                beneficiary=beneficiary, mentoring_signup_data=form.cleaned_data
+            )
+            if result.success:
+                messages.success(
+                    request, "Ton inscription au programme de mentorat a bien été prise en compte."
+                )
+                return redirect(reverse("account"))
+            for error in result.errors:
+                messages.error(request, error)
+    else:
+        form = BeneficiaryMentoringSignUpForm()
+
+    return render(
+        request,
+        "beneficiary/add_mentoring.html",
+        {"form": form, "is_minor": is_minor},
+    )
 
 
 def mentoring_signup_skip_modal(request):
@@ -138,14 +197,9 @@ def _create_beneficiary(request):
     except _StepInterrupt as interrupt:
         return interrupt.response
 
-    result = CreateBeneficiary(
-        email=email["email"],
-        first_name=identity["first_name"],
-        last_name=identity["last_name"],
-        birth_date=identity["birth_date"],
-        newsletter_consent=identity["newsletter_consent"],
+    result = UpsertBeneficiary(
+        beneficiary_data=email | identity,
         training_experience_form=training_experience_form,
-        wants_mentor=wants_mentor,
         mentoring_signup_data=mentoring_signup_data if wants_mentor else None,
     )
     if result.failure:
@@ -254,8 +308,17 @@ def _login_redirect_for_existing_email(request, email):
         return None
     messages.error(request, "Un compte existe déjà avec cet email.")
     back_url = reverse("coalition_home" if hasattr(user, "pro") else "home")
-    login_url = f"{reverse('login_request')}?{urlencode({'back': back_url})}"
+    next_url = reverse(_destination_view_for_existing_user(user, request.POST))
+    login_url = f"{reverse('login_request')}?{urlencode({'back': back_url, 'next': next_url})}"
     return HttpResponse(headers={"HX-Redirect": login_url, "HX-Trigger": "funnelReset"})
+
+
+def _destination_view_for_existing_user(user, data):
+    if hasattr(user, "pro"):
+        return "coalition_home"
+    if _wants_mentor(data) and hasattr(user, "beneficiary"):
+        return "account" if user.beneficiary.is_registered_for_mentoring else "add_mentoring"
+    return "home"
 
 
 _STEP_VALIDATORS = {

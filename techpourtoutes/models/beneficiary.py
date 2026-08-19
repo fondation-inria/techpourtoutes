@@ -17,6 +17,10 @@ class Beneficiary(User):
         verbose_name = _("bénéficiaire")
         verbose_name_plural = _("bénéficiaires")
 
+    @property
+    def is_registered_for_mentoring(self):
+        return bool(self.jobirl_user_id or self.legal_representative_email)
+
     def save(self, *args, **kwargs):
         if not self.pk:
             self.set_unusable_password()

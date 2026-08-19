@@ -398,3 +398,7 @@
 .steps-vertical .step:after {
   --step-fg: black;
 }
+
+.steps-vertical .step-success:before {
+  --step-bg: var(--color-yellow-500);
+}

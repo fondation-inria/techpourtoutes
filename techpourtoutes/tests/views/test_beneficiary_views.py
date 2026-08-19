@@ -5,6 +5,7 @@ from urllib.parse import quote
 import pytest
 from django.core import mail
 from django.test import override_settings
+from django.urls import reverse
 from waffle.testutils import override_switch
 
 from techpourtoutes.models import Beneficiary, Level, User
@@ -235,6 +236,7 @@ def test_existing_email_redirects_to_login(client, beneficiary_mode):
     response = client.post(FUNNEL_URL, {"action": "email", "email": "taken@example.com"})
     assert "se-connecter" in response["HX-Redirect"]
     assert f"back={quote('/', safe='')}" in response["HX-Redirect"]
+    assert f"next={quote('/', safe='')}" in response["HX-Redirect"]
     # A dead-end too: the client must not keep answers it can never submit.
     assert "funnelReset" in response["HX-Trigger"]
 
@@ -244,6 +246,47 @@ def test_existing_pro_email_redirects_to_login_with_coalition_back(client, benef
     response = client.post(FUNNEL_URL, {"action": "email", "email": pro.email})
     assert "se-connecter" in response["HX-Redirect"]
     assert f"back={quote('/coalition/', safe='')}" in response["HX-Redirect"]
+    assert f"next={quote('/coalition/', safe='')}" in response["HX-Redirect"]
+
+
+@pytest.mark.django_db
+def test_existing_registered_beneficiary_email_with_wants_mentor_logs_in_to_account(
+    client, beneficiary_mode, beneficiary
+):
+    beneficiary.jobirl_user_id = 42
+    beneficiary.save()
+
+    response = client.post(
+        FUNNEL_URL, {"action": "email", "email": beneficiary.email, "wants_mentor": "true"}
+    )
+
+    assert "se-connecter" in response["HX-Redirect"]
+    assert f"back={quote('/', safe='')}" in response["HX-Redirect"]
+    assert f"next={quote(reverse('account'), safe='')}" in response["HX-Redirect"]
+
+
+@pytest.mark.django_db
+def test_existing_unregistered_beneficiary_email_with_wants_mentor_logs_in_to_add_mentoring(
+    client, beneficiary_mode, beneficiary
+):
+    response = client.post(
+        FUNNEL_URL, {"action": "email", "email": beneficiary.email, "wants_mentor": "true"}
+    )
+
+    assert "se-connecter" in response["HX-Redirect"]
+    assert f"back={quote('/', safe='')}" in response["HX-Redirect"]
+    assert f"next={quote('/devenir-mentoree/', safe='')}" in response["HX-Redirect"]
+
+
+@pytest.mark.django_db
+def test_existing_beneficiary_email_without_wants_mentor_redirects_to_home_back(
+    client, beneficiary_mode, beneficiary
+):
+    response = client.post(FUNNEL_URL, {"action": "email", "email": beneficiary.email})
+
+    assert "se-connecter" in response["HX-Redirect"]
+    assert f"back={quote('/', safe='')}" in response["HX-Redirect"]
+    assert f"next={quote('/', safe='')}" in response["HX-Redirect"]
 
 
 @pytest.mark.django_db
@@ -567,6 +610,194 @@ def test_a_mentoring_sign_up_jobirl_refuses_sends_her_back_with_no_account(
     assert "EMAIL ALREADY EXISTS" in response.content.decode()
     assert "HX-Trigger" not in response
     assert not Beneficiary.objects.exists()
+
+
+ADD_MENTORING_URL = "/devenir-mentoree/"
+
+
+@pytest.mark.django_db
+def test_add_mentoring_requires_login(client, beneficiary_mode):
+    response = client.get(ADD_MENTORING_URL)
+
+    assert response.status_code == 302
+    assert reverse("login_request") in response["Location"]
+
+
+@pytest.mark.django_db
+def test_add_mentoring_redirects_non_beneficiary_with_error(client, beneficiary_mode, pro):
+    client.force_login(pro)
+
+    response = client.get(ADD_MENTORING_URL, follow=True)
+
+    assert response.status_code == 200
+    assert response.redirect_chain[-1][0] == reverse("account")
+    messages_list = [str(m) for m in response.context["messages"]]
+    assert any("réservée aux bénéficiaires" in m for m in messages_list)
+
+
+@pytest.mark.django_db
+def test_add_mentoring_redirects_when_already_registered(client, beneficiary_mode, beneficiary):
+    beneficiary.jobirl_user_id = 42
+    beneficiary.save()
+    client.force_login(beneficiary)
+
+    response = client.get(ADD_MENTORING_URL, follow=True)
+
+    assert response.status_code == 200
+    assert response.redirect_chain[-1][0] == reverse("account")
+
+
+@pytest.mark.django_db
+def test_add_mentoring_get_renders_form_for_adult(client, beneficiary_mode, beneficiary):
+    client.force_login(beneficiary)
+
+    response = client.get(ADD_MENTORING_URL)
+
+    assert response.status_code == 200
+    assert response.context["is_minor"] is False
+    assert "responsable légale" not in response.content.decode()
+
+
+@pytest.mark.django_db
+def test_add_mentoring_get_renders_form_for_minor(client, beneficiary_mode, beneficiary):
+    beneficiary.birth_date = _birth_date_for_age(16)
+    beneficiary.save()
+    client.force_login(beneficiary)
+
+    response = client.get(ADD_MENTORING_URL)
+
+    assert response.status_code == 200
+    assert response.context["is_minor"] is True
+    assert "responsable légale" in response.content.decode()
+
+
+@pytest.mark.django_db
+def test_add_mentoring_post_valid_adult_signs_up_and_redirects(
+    client, beneficiary_mode, beneficiary
+):
+    client.force_login(beneficiary)
+    instance = MagicMock(success=True, failure=False, errors=[])
+
+    with patch(
+        "techpourtoutes.services.beneficiary.sign_up_for_mentoring.CreateMentoree",
+        return_value=instance,
+    ):
+        response = client.post(ADD_MENTORING_URL, {"phone": "0612345678"}, follow=True)
+
+    assert response.status_code == 200
+    assert response.redirect_chain[-1][0] == reverse("account")
+    beneficiary.refresh_from_db()
+    assert beneficiary.phone == "+33612345678"
+
+
+@pytest.mark.django_db
+def test_add_mentoring_post_missing_legal_representative_fields_for_minor(
+    client, beneficiary_mode, beneficiary
+):
+    beneficiary.birth_date = _birth_date_for_age(16)
+    beneficiary.save()
+    client.force_login(beneficiary)
+
+    response = client.post(ADD_MENTORING_URL, {"phone": "0612345678"})
+
+    assert response.status_code == 200
+    assert "Ce champ est obligatoire." in response.content.decode()
+    beneficiary.refresh_from_db()
+    assert beneficiary.legal_representative_name == ""
+
+
+@pytest.mark.django_db
+def test_add_mentoring_post_service_failure_shows_error(client, beneficiary_mode, beneficiary):
+    client.force_login(beneficiary)
+    refused = MagicMock(
+        success=False,
+        failure=True,
+        errors=["EMAIL ALREADY EXISTS"],
+        failed_with_transient_error=False,
+    )
+
+    with patch(
+        "techpourtoutes.services.beneficiary.sign_up_for_mentoring.CreateMentoree",
+        return_value=refused,
+    ):
+        response = client.post(ADD_MENTORING_URL, {"phone": "0612345678"})
+
+    assert response.status_code == 200
+    assert "EMAIL ALREADY EXISTS" in response.content.decode()
+    beneficiary.refresh_from_db()
+    assert beneficiary.jobirl_user_id is None
+
+
+FIND_MENTOR_LANDING_URL = "/trouver-une-mentore/"
+
+
+@pytest.mark.django_db
+def test_find_mentor_landing_cta_for_anonymous_user(client, beneficiary_mode):
+    response = client.get(FIND_MENTOR_LANDING_URL)
+
+    assert response.status_code == 200
+    assert response.context["cta_href"] == "/inscription/?wants_mentor=1"
+    assert response.context["cta_label"] == "S'inscrire au mentorat"
+    assert response.context["cta_disabled"] is False
+
+
+@pytest.mark.django_db
+def test_find_mentor_landing_cta_for_connected_unregistered_beneficiary(
+    client, beneficiary_mode, beneficiary
+):
+    client.force_login(beneficiary)
+
+    response = client.get(FIND_MENTOR_LANDING_URL)
+
+    assert response.status_code == 200
+    assert response.context["cta_href"] == "/devenir-mentoree/"
+    assert response.context["cta_label"] == "S'inscrire au mentorat"
+    assert response.context["cta_disabled"] is False
+
+
+@pytest.mark.django_db
+def test_find_mentor_landing_cta_for_connected_registered_beneficiary(
+    client, beneficiary_mode, beneficiary
+):
+    beneficiary.jobirl_user_id = 42
+    beneficiary.save()
+    client.force_login(beneficiary)
+
+    response = client.get(FIND_MENTOR_LANDING_URL)
+
+    assert response.status_code == 200
+    assert response.context["cta_href"] == reverse("login_to_jobirl")
+    assert response.context["cta_label"] == "Rejoindre mon espace mentorat"
+    assert response.context["cta_disabled"] is False
+
+
+@pytest.mark.django_db
+def test_find_mentor_landing_cta_disabled_for_registration_pending_jobirl_account(
+    client, beneficiary_mode, beneficiary
+):
+    beneficiary.legal_representative_email = "parent.durand@example.com"
+    beneficiary.save()
+    client.force_login(beneficiary)
+
+    response = client.get(FIND_MENTOR_LANDING_URL)
+
+    assert response.status_code == 200
+    assert response.context["cta_label"] == "Rejoindre mon espace mentorat"
+    assert response.context["cta_disabled"] is True
+
+
+@pytest.mark.django_db
+def test_find_mentor_landing_cta_for_connected_non_beneficiary_points_to_add_mentoring(
+    client, beneficiary_mode, pro
+):
+    client.force_login(pro)
+
+    response = client.get(FIND_MENTOR_LANDING_URL)
+
+    assert response.status_code == 200
+    assert response.context["cta_href"] == "/devenir-mentoree/"
+    assert response.context["cta_label"] == "S'inscrire au mentorat"
+    assert response.context["cta_disabled"] is False
 
 
 @pytest.mark.django_db
