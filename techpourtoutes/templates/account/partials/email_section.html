@@ -17,7 +17,7 @@
             </div>
         </c-patterns.form>
     {% else %}
-        <c-components.button label="Changer mon adresse mail" variant="quaternary"
+        <c-components.button label="Changer mon adresse mail" variant="tertiary" class="my-2"
             hx-get="{% url 'email_change' %}"
             hx-target="#account-email-section"
             hx-swap="outerHTML"/>
