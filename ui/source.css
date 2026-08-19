@@ -214,7 +214,7 @@
    Tailwind cannot see, so theme variable tree-shaking would drop them. */
 :root {
   --grid-cell: 60px;
-  --grid-line: 0.5px;
+  --hairline: 0.5px;
   /* The grid starts inside a cell rather than on a line: the first row and the
      first column are shorter than the others */
   --grid-offset-x: -1px;
@@ -227,15 +227,15 @@
    antialiasing it. 1px is the thinnest that still renders as a single pixel. */
 @media (resolution <= 1x) {
   :root {
-    --grid-line: 1px;
+    --hairline: 1px;
   }
 }
 
 @utility bg-grid {
   background-color: var(--color-neutral-0);
   background-image:
-    linear-gradient(to right, black var(--grid-line), transparent var(--grid-line)),
-    linear-gradient(to bottom, black var(--grid-line), transparent var(--grid-line));
+    linear-gradient(to right, black var(--hairline), transparent var(--hairline)),
+    linear-gradient(to bottom, black var(--hairline), transparent var(--hairline));
   background-size:
     var(--grid-cell) 100%,
     100% var(--grid-cell);
@@ -359,6 +359,7 @@
   --color-primary-content: var(--color-info-50);
   --color-secondary-content: var(--color-info-50);
   --color-success: var(--color-green-500);
+  --color-success-content: var(--color-black);
   --color-warning: var(--color-warning-500);
   --color-info: var(--color-info-50);
   --color-error: var(--color-error-500);

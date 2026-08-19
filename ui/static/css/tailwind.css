@@ -4159,7 +4159,7 @@
   }
   .bg-grid {
     background-color: var(--color-neutral-0);
-    background-image: linear-gradient(to right, black var(--grid-line), transparent var(--grid-line)), linear-gradient(to bottom, black var(--grid-line), transparent var(--grid-line));
+    background-image: linear-gradient(to right, black var(--hairline), transparent var(--hairline)), linear-gradient(to bottom, black var(--hairline), transparent var(--hairline));
     background-size: var(--grid-cell) 100%, 100% var(--grid-cell);
     background-position: var(--grid-offset-x) 0, 0 var(--grid-offset-y);
   }
@@ -4930,9 +4930,9 @@
     .md\:self-start {
       align-self: flex-start;
     }
-    .md\:border-r-2 {
+    .md\:border-r-\(length\:--hairline\) {
       border-right-style: var(--tw-border-style);
-      border-right-width: 2px;
+      border-right-width: var(--hairline);
     }
     .md\:border-black {
       border-color: var(--color-black);
@@ -5182,14 +5182,14 @@
 }
 :root {
   --grid-cell: 60px;
-  --grid-line: 0.5px;
+  --hairline: 0.5px;
   --grid-offset-x: -1px;
   --grid-offset-y: 32px;
   --codex-glyph: calc(7 * var(--grid-cell));
 }
 @media (resolution <= 1x) {
   :root {
-    --grid-line: 1px;
+    --hairline: 1px;
   }
 }
 @layer components {
@@ -5745,6 +5745,7 @@
     --color-primary-content: var(--color-info-50);
     --color-secondary-content: var(--color-info-50);
     --color-success: var(--color-green-500);
+    --color-success-content: var(--color-black);
     --color-warning: var(--color-warning-500);
     --color-info: var(--color-info-50);
     --color-error: var(--color-error-500);
