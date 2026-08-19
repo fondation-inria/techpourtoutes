@@ -1,10 +1,20 @@
 <c-layout.base title="TechPourToutes – la coalition pour une tech inclusive" description="TechPourToutes est un programme national pour attirer et soutenir les femmes dans la tech. Rejoignez la coalition en devenant mentor, ambassadrice ou mécène.">
-    <c-components.title title="La mixité, là où la tech se fait" />
-    <p class="text-lg">
-        Entièrement gratuit, le programme TechPourToutes vise à soutenir les filles et les jeunes femmes dans leur parcours dans le numérique. C'est un programme national porté par un consortium réunissant recherche, enseignement supérieur, associations et entreprises du numérique.
-    </p>
+    <div>
+        <c-components.title variant="tagline">
+            <span>La mixité,</span>
+            <span>là où la tech se fait</span>
+        </c-components.title>
 
-    <c-components.card-shadow variant="blue" class="mt-3 mb-5">
+        <c-components.title title="Rejoignez la coalition&nbsp;!" />
+    </div>
+
+    <c-components.card title="TechPourToutes, c'est quoi&nbsp;?">
+        <c-components.text>
+            Entièrement gratuit, le programme TechPourToutes vise à soutenir les filles et les jeunes femmes dans leur parcours dans le numérique. C'est un programme national porté par un consortium réunissant recherche, enseignement supérieur, associations et entreprises du numérique.
+        </c-components.text>
+    </c-components.card>
+
+    <c-components.card-shadow class="mt-3 mb-5">
         <div class="flex gap-2">
             <div>
                 <c-components.icon name="quote-start" class="w-8 h-8" />
@@ -15,65 +25,36 @@
         </div>
 
         <div class="flex justify-end mt-3">
-            <c-components.button href="{% url "notre_manifeste" %}" label="Découvrir notre manifeste" variant="quaternary" />
+            <c-components.button href="{% url "notre_manifeste" %}" label="Découvrir notre manifeste" variant="tertiary" />
         </div>
     </c-components.card-shadow >
 
-    <c-components.title title="Comment contribuer&nbsp;?" variant="h2-thin" />
-    <div class="grid grid-cols-2 md:grid-cols-3 gap-5 w-full">
-        <c-components.card-shadow class="flex flex-col gap-3 justify-between h-42 md:h-38 text-primary-700 hover:border-primary-500 hover:shadow-primary-500 hover:scale-103 hover:text-primary-500" href="{% url "mentor_landing" %}">
-            <div class="flex flex-1 justify-center">
-                <c-components.icon name="mentorer-bold" class="w-15 h-15" />
-            </div>
-            <p class="text-sm text-center font-medium">
-                Mentorer une lycéenne ou une étudiante
-            </p>
-        </c-components.card-shadow>
+    <c-components.card title="Comment contribuer&nbsp;?" />
 
-        <c-components.card-shadow class="flex flex-col gap-3 justify-between h-42 md:h-38 text-primary-700 hover:border-primary-500 hover:shadow-primary-500 hover:scale-103" href="{% url "internships_landing" %}">
-            <div class="flex flex-1 justify-center">
-                <c-components.icon name="accueillir-une-stagiaire-bold" class="w-15 h-15" />
-            </div>
-            <p class="text-sm text-center font-medium">
-                Accueillir une stagiaire dans mon entreprise
-            </p>
-        </c-components.card-shadow>
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 w-full">
+        <c-components.card-link color="yellow" title="Mentorat" button="En savoir plus" href="{% url "mentor_landing" %}">
+            TechPourToutes recherche des mentors pour accompagner les filles pendant 6&nbsp;mois à distance, pour avoir un impact concret sur leur avenir.
+        </c-components.card-link>
 
-        <c-components.card-shadow class="flex flex-col gap-3 justify-between h-42 md:h-38 text-primary-700 hover:border-primary-500 hover:shadow-primary-500 hover:scale-103" href="{% url "work_ambassador_landing" %}">
-            <div class="flex flex-1 justify-center">
-                <c-components.icon name="pitcher-mon-metier-bold" class="w-15 h-15" />
-            </div>
-            <p class="text-sm text-center font-medium">
-                Pitcher mon métier
-            </p>
-        </c-components.card-shadow>
+        <c-components.card-link color="blue" title="Ateliers en classe" button="En savoir plus" href="{% url "workshops_landing" %}">
+            Au collège ou au lycée, prenez le temps d'aborder le numérique autrement à l'école grâce à nos deux formats d'atelier.
+        </c-components.card-link>
 
-        <c-components.card-shadow class="flex flex-col gap-3 justify-between h-42 md:h-38 text-primary-700 hover:border-primary-500 hover:shadow-primary-500 hover:scale-103" href="{% url "training_ambassador_landing" %}">
-            <div class="flex flex-1 justify-center">
-                <c-components.icon name="devenir-ambassadrice-etudiante-bold" class="w-15 h-15" />
-            </div>
-            <p class="text-sm text-center font-medium">
-                Devenir ambassadrice étudiante
-            </p>
-        </c-components.card-shadow>
+        <c-components.card-link color="purple" title="Stages" button="En savoir plus" href="{% url "internships_landing" %}">
+            Recrutez des filles pleines de motivation et de talents. Faites-leur découvrir votre métier lors d'un stage de 1 à 2&nbsp;semaines ou sur plusieurs mois.
+        </c-components.card-link>
 
-        <c-components.card-shadow class="flex flex-col gap-3 justify-between h-42 md:h-38 text-primary-700 hover:border-primary-500 hover:shadow-primary-500 hover:scale-103" href="{% url "sponsor_landing" %}">
-            <div class="flex flex-1 justify-center">
-                <c-components.icon name="devenir-mecene-bold" class="w-15 h-15" />
-            </div>
-            <p class="text-sm text-center font-medium">
-                Devenir mécène
-            </p>
-        </c-components.card-shadow>
+        <c-components.card-link color="green" title="Ambassadorat étudiant" button="En savoir plus" href="{% url "training_ambassador_landing" %}">
+            Étudiante dans une formation numérique, viens représenter ton école et transmettre ta passion à des lycéennes ou d'autres étudiantes.
+        </c-components.card-link>
 
-        <c-components.card-shadow class="flex flex-col gap-3 justify-between h-42 md:h-38 text-primary-700 hover:border-primary-500 hover:shadow-primary-500 hover:scale-103" href="{% url "workshops_landing" %}">
-            <div class="flex flex-1 justify-center">
-                <c-components.icon name="organiser-un-atelier-bold" class="w-15 h-15" />
-            </div>
-            <p class="text-sm text-center font-medium">
-                Organiser un atelier
-            </p>
-        </c-components.card-shadow>
+        <c-components.card-link color="orange" title="Ambassadorat métier" button="En savoir plus" href="{% url "work_ambassador_landing" %}">
+            Venez présenter votre métier à des lycéennes ou des étudiantes qui ont besoin de vous pour ouvrir leurs imaginaires.
+        </c-components.card-link>
+
+        <c-components.card-link color="yellow" title="Mécénat" button="En savoir plus" href="{% url "sponsor_landing" %}">
+            Agissez à nos côtés au service de la féminisation des métiers du numérique, via des bourses, des dons de matériel ou du mécénat de compétence.
+        </c-components.card-link>
     </div>
 
 </c-layout.base>

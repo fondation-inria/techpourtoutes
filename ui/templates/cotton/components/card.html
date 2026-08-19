@@ -1,6 +1,6 @@
 <c-vars title="" class="" nobg=False />
 
-<div class="p-4 w-full{% if nobg != True %} bg-neutral-0 rounded border border-primary{% endif %} {{ class }}">
+<div class="p-4 w-full{% if nobg != True %} bg-neutral-0 border border-y-neutral-950 shadow-[2px_2px_20px_rgba(0,0,0,0.1)]{% endif %} {{ class }}">
     {% if title %}
         <c-components.title title="{{ title|safe }}" variant="h2" />
     {% endif %}
