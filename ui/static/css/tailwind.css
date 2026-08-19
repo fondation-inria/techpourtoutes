@@ -26,6 +26,7 @@
     --color-white: #fff;
     --spacing: 0.25rem;
     --container-xs: 20rem;
+    --container-sm: 24rem;
     --container-md: 28rem;
     --container-lg: 32rem;
     --container-xl: 36rem;
@@ -86,6 +87,7 @@
     --color-error-700: #b82f4f;
     --color-error-900: #6d1a2f;
     --color-blue-background: #f4f4ff;
+    --color-mauve-background: #e9e3eb;
     --text-xxs: 0.625rem;
   }
 }

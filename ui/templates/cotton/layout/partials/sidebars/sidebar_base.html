@@ -13,7 +13,7 @@
             {% include "cotton/layout/partials/sidebars/sidebar_beneficiary.html" %}
         {% endif %}
     </div>
-    <div class="border-t border-blue-background p-3">
+    <div class="border-t border-black p-3">
         <ul class="flex flex-col gap-1 mb-5">
         {% if request.user.is_authenticated %}
             <c-components.nav-link href="{% url "account" %}" label="Mon compte" icon="se-connecter-{% if is_coalition_page %}pro{% else %}beneficiary{% endif %}"/>
