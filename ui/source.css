@@ -385,7 +385,7 @@
   --color-secondary: var(--color-yellow-500);
   --color-primary-content: var(--color-info-50);
   --color-secondary-content: var(--color-info-50);
-  --color-success: var(--color-success-500);
+  --color-success: var(--color-green-500);
   --color-warning: var(--color-warning-500);
   --color-info: var(--color-info-50);
   --color-error: var(--color-error-500);
@@ -393,4 +393,8 @@
 
 [x-cloak] {
   display: none !important;
+}
+
+.steps-vertical .step:after {
+  --step-fg: black;
 }

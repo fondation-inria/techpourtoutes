@@ -4643,6 +4643,18 @@
     transition-timing-function: var(--ease-out);
   }
   @layer daisyui.l1.l2 {
+    .steps .step-primary + .step-primary:before {
+      --step-bg: var(--color-primary);
+      --step-fg: var(--color-primary-content);
+    }
+    .steps .step-primary:after {
+      --step-bg: var(--color-primary);
+      --step-fg: var(--color-primary-content);
+    }
+    .steps .step-primary > .step-icon {
+      --step-bg: var(--color-primary);
+      --step-fg: var(--color-primary-content);
+    }
     .steps .step-secondary + .step-secondary:before {
       --step-bg: var(--color-secondary);
       --step-fg: var(--color-secondary-content);
@@ -4654,6 +4666,18 @@
     .steps .step-secondary > .step-icon {
       --step-bg: var(--color-secondary);
       --step-fg: var(--color-secondary-content);
+    }
+    .steps .step-success + .step-success:before {
+      --step-bg: var(--color-success);
+      --step-fg: var(--color-success-content);
+    }
+    .steps .step-success:after {
+      --step-bg: var(--color-success);
+      --step-fg: var(--color-success-content);
+    }
+    .steps .step-success > .step-icon {
+      --step-bg: var(--color-success);
+      --step-fg: var(--color-success-content);
     }
   }
   .select-none {
@@ -5487,6 +5511,9 @@
 [x-cloak] {
   display: none !important;
 }
+.steps-vertical .step:after {
+  --step-fg: black;
+}
 @layer base {
   :where(:root),:root:has(input.theme-controller[value=light]:checked),[data-theme=light] {
     color-scheme: light;
@@ -5762,7 +5789,7 @@
     --color-secondary: var(--color-yellow-500);
     --color-primary-content: var(--color-info-50);
     --color-secondary-content: var(--color-info-50);
-    --color-success: var(--color-success-500);
+    --color-success: var(--color-green-500);
     --color-warning: var(--color-warning-500);
     --color-info: var(--color-info-50);
     --color-error: var(--color-error-500);
