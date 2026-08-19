@@ -116,16 +116,14 @@
             </div>
         </template>
         <div class="mt-1">
-            <c-components.button type="button" variant="tertiary" size="sm"
+            <c-components.button type="button" variant="link"
                     x-show="!notFound"
                     @click="declareNotFound()"
-                    class="underline"
                     label="Je ne trouve pas ma formation" />
-            <c-components.button type="button" variant="tertiary" size="sm"
+            <c-components.button type="button" variant="link"
                     x-show="notFound"
                     x-cloak
                     @click="backToSearch()"
-                    class="underline"
                     label="Revenir à la recherche" />
         </div>
     </div>
