@@ -107,6 +107,9 @@ class User(BaseModel, AbstractUser):
     jobirl_user_token = models.CharField(
         max_length=128, blank=True, verbose_name=_("token utilisateur jobirl")
     )
+    faveod_id = models.IntegerField(
+        null=True, blank=True, unique=True, verbose_name=_("identifiant faveod")
+    )
 
     class Meta(AbstractUser.Meta):
         abstract = False
@@ -259,6 +262,7 @@ class User(BaseModel, AbstractUser):
         self.brevo_sync_enabled = False
         self.jobirl_user_id = None
         self.jobirl_user_token = ""
+        self.faveod_id = None
         self.save()
 
 
