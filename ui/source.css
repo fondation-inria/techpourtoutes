@@ -386,6 +386,7 @@
   --color-primary-content: var(--color-info-50);
   --color-secondary-content: var(--color-info-50);
   --color-success: var(--color-green-500);
+  --color-success-content: #000000;
   --color-warning: var(--color-warning-500);
   --color-info: var(--color-info-50);
   --color-error: var(--color-error-500);
