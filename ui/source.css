@@ -128,21 +128,6 @@
   --font-serif: "Newsreader", ui-serif, Georgia, Cambria, "Times New Roman", Times, serif;
   --font-mono: "Noto Sans Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
 
-  /* Primary */
-  --color-primary-50: #e8e8ff;
-  --color-primary-100: #d1d1ff;
-  --color-primary-500: #4a4aff;
-  --color-primary-600: #2a2ae6;
-  --color-primary-700: #1616dd;
-  --color-primary-900: #1010b8;
-
-  /* Accent */
-  --color-accent-50: #ffe6ff;
-  --color-accent-100: #ffb3ff;
-  --color-accent-500: #ff00ff;
-  --color-accent-600: #d100d1;
-  --color-accent-700: #b000b0;
-
   /* Neutral */
   --color-neutral-0: #ffffff;
   --color-neutral-50: #f8fafc;
@@ -166,17 +151,6 @@
   --color-info-700: #36458c;
   --color-info-800: #283468;
   --color-info-900: #1c2448;
-
-  /* Success */
-  --color-success-50: #eefaf2;
-  --color-success-100: #d5f3df;
-  --color-success-200: #ade7bf;
-  --color-success-300: #80d79a;
-  --color-success-500: #53ad78;
-  --color-success-600: #3f9860;
-  --color-success-700: #2f7448;
-  --color-success-800: #235937;
-  --color-success-900: #183f26;
 
   /* Alerte */
   --color-warning-50: #fff8e6;
@@ -215,7 +189,6 @@
   --color-orange-500: #FF713D;
 
   /* Named backgrounds */
-  --color-blue-background: #f4f4ff;
   --color-mauve-background: #e9e3eb;
 
   /* Border radius (Global.json) */
@@ -241,7 +214,7 @@
    Tailwind cannot see, so theme variable tree-shaking would drop them. */
 :root {
   --grid-cell: 60px;
-  --grid-line: 0.5px;
+  --hairline: 0.5px;
   /* The grid starts inside a cell rather than on a line: the first row and the
      first column are shorter than the others */
   --grid-offset-x: -1px;
@@ -254,15 +227,15 @@
    antialiasing it. 1px is the thinnest that still renders as a single pixel. */
 @media (resolution <= 1x) {
   :root {
-    --grid-line: 1px;
+    --hairline: 1px;
   }
 }
 
 @utility bg-grid {
   background-color: var(--color-neutral-0);
   background-image:
-    linear-gradient(to right, black var(--grid-line), transparent var(--grid-line)),
-    linear-gradient(to bottom, black var(--grid-line), transparent var(--grid-line));
+    linear-gradient(to right, black var(--hairline), transparent var(--hairline)),
+    linear-gradient(to bottom, black var(--hairline), transparent var(--hairline));
   background-size:
     var(--grid-cell) 100%,
     100% var(--grid-cell);
@@ -346,7 +319,7 @@
     @apply border-error-500 peer-focus-visible:ring-2 peer-focus-visible:ring-error-500 peer-focus-visible:ring-offset-1;
   }
   .tick-valid {
-    @apply border-success-500 peer-focus-visible:ring-2 peer-focus-visible:ring-success-500 peer-focus-visible:ring-offset-1;
+    @apply border-success peer-focus-visible:ring-2 peer-focus-visible:ring-success peer-focus-visible:ring-offset-1;
   }
   .tick-disabled {
     @apply border-neutral-300 cursor-not-allowed;
@@ -372,7 +345,7 @@
 
   /* Form inline link */
   .inline-link {
-    @apply underline decoration-1 underline-offset-4 hover:decoration-2 active:bg-neutral-200 active:decoration-2 focus:outline-primary-500 focus:outline-offset-2;
+    @apply underline decoration-1 underline-offset-4 hover:decoration-2 active:bg-neutral-200 active:decoration-2 focus:outline-blue-500 focus:outline-offset-2;
   }
 }
 
@@ -398,8 +371,4 @@
 
 .steps-vertical .step:after {
   --step-fg: black;
-}
-
-.steps-vertical .step-success:before {
-  --step-bg: var(--color-yellow-500);
 }

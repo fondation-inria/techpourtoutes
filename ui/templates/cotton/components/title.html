@@ -15,10 +15,10 @@
             <h2 class="text-xl font-medium bg-black text-white p-2 leading-[1.4]">{{ title|safe }}</h2>
         {% elif variant == "h2" %}
             <h2 class="text-xl font-medium leading-[1.2]">{{ title|safe }}</h2>
-        {% elif variant == "h2-black" %}
-            <h2 class="text-2xl text-black leading-[1.4]">{{ title|safe }}</h2>
         {% elif variant == "h3" %}
             <h3 class="text-lg leading-[1.4]">{{ title|safe }}</h3>
+        {% elif variant == "h1-black" %}
+            <h1 class="text-3xl text-black leading-[1.4] font-serif font-extrabold italic">{{ title|safe }}</h1>
         {% else %}
             <h1 class="text-2xl sm:text-4xl leading-[1.2] font-serif font-extrabold italic bg-yellow-500 text-neutral-950 border-[0.5px] border-neutral-950 rounded-full px-8 py-4 sm:py-2">{{ title|safe }}</h1>
         {% endif %}

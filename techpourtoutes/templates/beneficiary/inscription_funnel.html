@@ -15,7 +15,7 @@
              hx-swap="outerHTML"
              hx-vals='{"action": "resume", "csrfmiddlewaretoken": "{{ csrf_token }}", "wants_mentor": {{ wants_mentor|yesno:"true,false" }}}'
              class="w-full flex flex-col gap-y-4 my-auto items-center justify-center min-h-40">
-            <span class="loading loading-spinner text-primary-700"></span>
+            <span class="loading loading-spinner text-primary"></span>
         </div>
     </div>
     <c-slot name="right">
