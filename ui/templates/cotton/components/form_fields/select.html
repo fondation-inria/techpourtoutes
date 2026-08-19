@@ -39,15 +39,15 @@
             </span>
         </button>
         <ul x-show="open" x-cloak x-transition.opacity.duration.150ms
-            class="absolute z-10 mt-1 w-full bg-neutral-50 rounded shadow-thin-bottom shadow-primary-700 overflow-hidden"
+            class="absolute z-10 mt-1 w-full bg-neutral-50 rounded shadow-thin-bottom shadow-black overflow-hidden"
             role="listbox">
             {% for opt_value, opt_label in field.field.choices %}
                 {% if opt_value %}
                     <li>
                         <button type="button"
                             @click="selected = '{{ opt_value|escapejs }}'; open = false"
-                            class="w-full text-left px-3 py-2 text-sm hover:bg-primary-50"
-                            :class="selected === '{{ opt_value|escapejs }}' ? 'bg-primary-50 text-primary-700 font-medium' : 'text-neutral-950'">
+                            class="w-full text-left px-3 py-2 text-sm hover:bg-primary/20"
+                            :class="selected === '{{ opt_value|escapejs }}' ? 'bg-primary/20 text-black font-medium' : 'text-neutral-950'">
                             {{ opt_label }}
                         </button>
                     </li>

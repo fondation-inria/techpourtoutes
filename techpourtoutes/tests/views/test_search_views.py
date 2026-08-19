@@ -245,12 +245,12 @@ def test_search_schools_paginates_with_next_page_sentinel(client):
         School(onisep_id=str(i), name=f"Lycée {i:02d}", postal_code="75001", secondary=True).save()
 
     first = search_schools(client, "secondary", q="lycée").content.decode()
-    assert first.count("hover:bg-primary-50") == 20
+    assert first.count("hover:bg-primary/20") == 20
     assert "page=2" in first
     assert "scope=secondary" in first
 
     second = search_schools(client, "secondary", q="lycée", page="2").content.decode()
-    assert second.count("hover:bg-primary-50") == 5
+    assert second.count("hover:bg-primary/20") == 5
     assert "page=3" not in second
 
 
@@ -398,12 +398,12 @@ def test_search_formations_paginates_with_next_page_sentinel(client, school):
         Formation(onisep_id=str(i), name=f"Bac professionnel {i:02d}", secondary=True).save()
 
     first = search_formations(client, school, q="bac").content.decode()
-    assert first.count("hover:bg-primary-50") == 20
+    assert first.count("hover:bg-primary/20") == 20
     assert "page=2" in first
     assert f"school_id={school.pk}" in first
 
     second = search_formations(client, school, q="bac", page="2").content.decode()
-    assert second.count("hover:bg-primary-50") == 5
+    assert second.count("hover:bg-primary/20") == 5
     assert "page=3" not in second
 
 

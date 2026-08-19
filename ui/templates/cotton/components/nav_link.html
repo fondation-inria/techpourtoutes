@@ -8,7 +8,7 @@
         </span>
     {% else %}
         <a href="{{ href }}"
-           class="group flex items-center gap-2 px-2 py-2 text-neutral-900 transition-colors hover:ring-2 hover:ring-inset hover:ring-yellow-500 hover:rounded-xl focus-visible:outline-none focus-visible:bg-neutral-0 focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-primary-700{% if request.path == href or active %} font-serif font-bold italic bg-yellow-500 rounded-3xl text-sm{% else %} font-medium rounded-md text-[13px]{% endif %} {{ class }}">
+           class="group flex items-center gap-2 px-2 py-2 text-neutral-900 transition-colors hover:ring-2 hover:ring-inset hover:ring-yellow-500 hover:rounded-xl focus-visible:outline-none focus-visible:bg-neutral-0 focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-blue-500{% if request.path == href or active %} font-serif font-bold italic bg-yellow-500 rounded-3xl text-sm{% else %} font-medium rounded-md text-[13px]{% endif %} {{ class }}">
             {% if icon %}
                 <c-components.icon
                     name="{{ icon }}"

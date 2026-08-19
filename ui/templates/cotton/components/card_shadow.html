@@ -6,11 +6,11 @@
 />
 
 {% if href %}
-<a href="{{ href }}" id="{{ id }}" class="rounded-2xl shadow-bottom-and-right border border-purple-500 p-5 focus:outline-primary-500 focus:outline-offset-3 bg-neutral-0 {{ class }}">
+<a href="{{ href }}" id="{{ id }}" class="rounded-2xl shadow-bottom-and-right border border-purple-500 p-5 focus:outline-blue-500 focus:outline-offset-3 bg-neutral-0 {{ class }}">
     {{ slot }}
 </a>
 {% else %}
-<div id="{{ id }}" class="rounded-2xl shadow-bottom-and-right border border-purple-500 p-5 focus:outline-primary-500 focus:outline-offset-3 bg-neutral-0 {{ class }}">
+<div id="{{ id }}" class="rounded-2xl shadow-bottom-and-right border border-purple-500 p-5 focus:outline-blue-500 focus:outline-offset-3 bg-neutral-0 {{ class }}">
     {{ slot }}
 </div>
 {% endif %}
