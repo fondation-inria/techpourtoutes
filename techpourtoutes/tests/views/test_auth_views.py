@@ -471,25 +471,6 @@ def test_login_to_jobirl_requires_login(client):
 
 
 @pytest.mark.django_db
-def test_login_to_jobirl_for_non_mentor_renders_error(client, db):
-    from techpourtoutes.models import User
-
-    user = User.objects.create_user(
-        username="plain@example.com",
-        email="plain@example.com",
-        first_name="Plain",
-        last_name="User",
-    )
-    client.force_login(user)
-
-    response = client.get(reverse("login_to_jobirl"))
-
-    assert response.status_code == 200
-    stored = [str(m) for m in get_messages(response.wsgi_request)]
-    assert any("compte sur jobirl" in m.lower() for m in stored)
-
-
-@pytest.mark.django_db
 @override_settings(JOBIRL_URL="https://jobirl.test")
 def test_login_to_jobirl_redirects_to_jobirl_url(client, pro):
     with patch("techpourtoutes.views.auth_views.RefreshAccessToken") as MockRefresh:

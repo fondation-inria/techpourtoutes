@@ -9,7 +9,7 @@ from django.urls import reverse
 from django.utils.http import url_has_allowed_host_and_scheme
 from django.views.decorators.http import require_POST
 
-from ..forms import CommunicationForm, LoginRequestForm, VerificationCodeForm
+from ..forms import LoginRequestForm, VerificationCodeForm
 from ..mailers import AuthMailer
 from ..models import User
 from ..ratelimit import rate_limit
@@ -116,12 +116,7 @@ def login_verify(request, token):
 @login_required
 def login_to_jobirl(request):
     account = getattr(request.user, "pro", None) or getattr(request.user, "beneficiary", None)
-    if account is None:
-        messages.error(request, "Vous n'avez pas de compte sur JobIRL")
-        form = CommunicationForm(user=request.user)
-        return render(request, "account/account.html", {"form": form})
-
-    result = RefreshAccessToken(pro=account)
+    result = RefreshAccessToken(user=account)
     if result.failure:
         messages.error(request, result.errors[0])
         return redirect(reverse("account"))

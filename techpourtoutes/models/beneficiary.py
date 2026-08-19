@@ -19,7 +19,7 @@ class Beneficiary(User):
 
     @property
     def is_registered_for_mentoring(self):
-        return bool(self.jobirl_user_id or self.legal_representative_name)
+        return bool(self.jobirl_user_id or self.legal_representative_email)
 
     def save(self, *args, **kwargs):
         if not self.pk:

@@ -145,6 +145,6 @@ def test_is_registered_for_mentoring_true_for_an_adult_with_a_jobirl_account(ben
 
 @pytest.mark.django_db
 def test_is_registered_for_mentoring_true_for_a_minor_with_a_legal_representative(beneficiary):
-    beneficiary.legal_representative_name = "Parent Test"
+    beneficiary.legal_representative_email = "parent@example.com"
 
     assert beneficiary.is_registered_for_mentoring is True

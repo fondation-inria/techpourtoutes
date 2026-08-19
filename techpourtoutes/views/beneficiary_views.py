@@ -24,8 +24,7 @@ from ..forms import (
 from ..mailers import AuthMailer
 from ..models import User
 from ..ratelimit import rate_limit
-from ..services.beneficiary.add_mentoring import AddMentoring
-from ..services.beneficiary.create_beneficiary import CreateBeneficiary
+from ..services.beneficiary.upsert_beneficiary import UpsertBeneficiary
 from ..tasks import upsert_email_notification_task
 from ..utils.dates import compute_age
 
@@ -76,7 +75,7 @@ def find_mentor_landing(request):
         if beneficiary.jobirl_user_id:
             cta_href = reverse("login_to_jobirl")
             cta_label = "Rejoindre mon espace mentorat"
-        elif beneficiary.legal_representative_name:
+        elif beneficiary.legal_representative_email:
             cta_href = ""
             cta_label = "Rejoindre mon espace mentorat"
             cta_disabled = True
@@ -107,7 +106,9 @@ def add_mentoring(request):
                 if not form.cleaned_data[field]:
                     form.add_error(field, "Ce champ est obligatoire.")
         if form.is_valid():
-            result = AddMentoring(beneficiary=beneficiary, mentoring_signup_data=form.cleaned_data)
+            result = UpsertBeneficiary(
+                beneficiary=beneficiary, mentoring_signup_data=form.cleaned_data
+            )
             if result.success:
                 messages.success(
                     request, "Ton inscription au programme de mentorat a bien été prise en compte."
@@ -196,14 +197,9 @@ def _create_beneficiary(request):
     except _StepInterrupt as interrupt:
         return interrupt.response
 
-    result = CreateBeneficiary(
-        email=email["email"],
-        first_name=identity["first_name"],
-        last_name=identity["last_name"],
-        birth_date=identity["birth_date"],
-        newsletter_consent=identity["newsletter_consent"],
+    result = UpsertBeneficiary(
+        beneficiary_data=email | identity,
         training_experience_form=training_experience_form,
-        wants_mentor=wants_mentor,
         mentoring_signup_data=mentoring_signup_data if wants_mentor else None,
     )
     if result.failure:

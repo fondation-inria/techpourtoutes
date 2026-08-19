@@ -775,7 +775,7 @@ def test_find_mentor_landing_cta_for_connected_registered_beneficiary(
 def test_find_mentor_landing_cta_disabled_for_registration_pending_jobirl_account(
     client, beneficiary_mode, beneficiary
 ):
-    beneficiary.legal_representative_name = "Parent Durand"
+    beneficiary.legal_representative_email = "parent.durand@example.com"
     beneficiary.save()
     client.force_login(beneficiary)
 

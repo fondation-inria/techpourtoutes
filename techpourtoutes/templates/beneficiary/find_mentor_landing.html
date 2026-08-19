@@ -3,41 +3,31 @@
     <c-components.card>
         TechPourToutes te propose un programme de mentorat de 6 mois, 100% gratuit et digital. En fonction de ton profil et de tes envies, on te trouve une ou un mentor pour t'accompagner.
     </c-components.card>
-    <div>
-        <div class="w-fit bg-green-500 text-white text-xl font-bold px-4 py-2">
-            Comment ça se passe&nbsp;?
-        </div>
-        <c-components.card>
-            <ul class="steps steps-vertical">
-                <li class="step text-left">Rejoins le club et dis-nous en plus sur ton parcours</li>
-                <li class="step text-left">On t'appelle pour connaître tes attentes et te trouver une ou un mentor</li>
-                <li class="step text-left">À raison d'un rendez-vous en moyenne par mois, tu construis ta relation de mentorée</li>
-                <li class="step text-left">6 mois déjà&nbsp;! On fait le bilan</li>
-            </ul>
-        </c-components.card>
-    </div>
-    <div>
-        <div class="w-fit bg-blue-500 text-white text-xl font-bold px-4 py-2">
-            Quels thèmes aborder&nbsp;?
-        </div>
-        <c-components.card>
-            <div class="flex items-center gap-2">
-                <c-components.icon name="orientation" class="w-6 h-6 shrink-0"/> <span><strong>Orientation</strong>&nbsp;: quelles sont les bonnes formations pour atteindre le métier de tes rêves</span>
-            </div>
-            <br>
-            <div class="flex items-center gap-2">
-                <c-components.icon name="lettre-de-motivation" class="w-6 h-6 shrink-0"/> <span><strong>Lettre de motivation</strong>&nbsp;: les bonnes pratiques, les adapter aux écoles ou entreprises, etc.</span>
-            </div>
-            <br>
-            <div class="flex items-center gap-2">
-                <c-components.icon name="organisation" class="w-6 h-6 shrink-0"/> <span><strong>Organisation</strong>&nbsp;: comment ne pas se laisser submerger par les devoirs, le travail, etc.</span>
-            </div>
-            <br>
-            <div class="flex items-center gap-2">
-                <c-components.icon name="recherche-stage-ou-alternance" class="w-6 h-6 shrink-0"/> <span><strong>Recherche de stage ou d'alternance</strong></span>
-            </div>
-        </c-components.card>
-    </div>
+    <c-components.card header="Comment ça se passe&nbsp;?" header_color="bg-green-500">
+        <ul class="steps steps-vertical">
+            <li class="step text-left">Rejoins le club et dis-nous en plus sur ton parcours</li>
+            <li class="step text-left">On t'appelle pour connaître tes attentes et te trouver une ou un mentor</li>
+            <li class="step text-left">À raison d'un rendez-vous en moyenne par mois, tu construis ta relation de mentorée</li>
+            <li class="step text-left">6 mois déjà&nbsp;! On fait le bilan</li>
+        </ul>
+    </c-components.card>
+    <c-components.card header="Quels thèmes aborder&nbsp;?" header_color="bg-blue-500">
+        <c-components.icon_list_item icon="orientation">
+            <strong>Orientation</strong>&nbsp;: quelles sont les bonnes formations pour atteindre le métier de tes rêves
+        </c-components.icon_list_item>
+        <br>
+        <c-components.icon_list_item icon="lettre-de-motivation">
+            <strong>Lettre de motivation</strong>&nbsp;: les bonnes pratiques, les adapter aux écoles ou entreprises, etc.
+        </c-components.icon_list_item>
+        <br>
+        <c-components.icon_list_item icon="organisation">
+            <strong>Organisation</strong>&nbsp;: comment ne pas se laisser submerger par les devoirs, le travail, etc.
+        </c-components.icon_list_item>
+        <br>
+        <c-components.icon_list_item icon="recherche-stage-ou-alternance">
+            <strong>Recherche de stage ou d'alternance</strong>
+        </c-components.icon_list_item>
+    </c-components.card>
     <div class="flex justify-center w-full">
         <c-components.button href="{{ cta_href }}" label="{{ cta_label }}" :disabled="cta_disabled"/>
     </div>
