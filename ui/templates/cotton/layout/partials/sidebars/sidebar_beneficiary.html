@@ -1,14 +1,14 @@
 <c-components.nav-section label="S'orienter" class="bg-orange-500">
-    <c-components.nav-link label="Trouver la bonne formation" icon="trouver-une-formation" icon_class="w-6 h-6" />
-    <c-components.nav-link label="Parler à une ambassadrice" icon="parler-a-une-ambassadrice" icon_class="w-6 h-6" />
+    <c-components.nav-link href="{% url "bientot_disponible" %}?feature=formation" label="Trouver la bonne formation" icon="trouver-une-formation" icon_class="w-6 h-6" />
+    <c-components.nav-link href="{% url "bientot_disponible" %}?feature=ambassadrice" label="Parler à une ambassadrice" icon="parler-a-une-ambassadrice" icon_class="w-6 h-6" />
 </c-components.nav-section>
 
 <c-components.nav-section label="S'entourer" class="bg-orange-500">
     <c-components.nav-link href="{% url "find_mentor_landing" %}" label="Trouver une mentore" icon="trouver-une-mentore" icon_class="w-6 h-6" />
-    <c-components.nav-link label="Rejoindre le club" icon="rejoindre-le-club" icon_class="w-6 h-6" />
+    <c-components.nav-link href="{% url "bientot_disponible" %}?feature=club" label="Rejoindre le club" icon="rejoindre-le-club" icon_class="w-6 h-6" />
 </c-components.nav-section>
 
 <c-components.nav-section label="Passer à l'action" class="bg-orange-500">
-    <c-components.nav-link label="Trouver un stage ou une alternance" icon="trouver-stage-ou-alternance" icon_class="w-7 h-7" />
-    <c-components.nav-link label="Participer à des évènements" icon="participer-a-des-evenements" icon_class="w-6 h-6" />
+    <c-components.nav-link href="{% url "bientot_disponible" %}?feature=stage" label="Trouver un stage ou une alternance" icon="trouver-stage-ou-alternance" icon_class="w-7 h-7" />
+    <c-components.nav-link href="{% url "bientot_disponible" %}?feature=evenements" label="Participer à des évènements" icon="participer-a-des-evenements" icon_class="w-6 h-6" />
 </c-components.nav-section>
