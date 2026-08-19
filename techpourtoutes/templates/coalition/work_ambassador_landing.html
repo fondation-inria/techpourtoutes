@@ -34,14 +34,14 @@
         </c-components.text>
     </c-components.card>
 
-    <c-components.accordion title="L'ambassadrice est-elle la femme de l'ambassadeur ou une personne avec une existence propre&nbsp;?" variant="green">
+    <c-components.accordion title="L'ambassadrice est-elle la femme de l'ambassadeur ou une personne avec une existence propre&nbsp;?">
         <c-components.text>
             Bien qu'une femme fut nommée "ambassadrice extraordinaire" dès 1645, le Dictionnaire de l'Académie française précisait lui en 1718 que l'ambassadrice était la "femme d'un ambassadeur". Ce n'est qu'en 2019 que l'Académie française revient sur sa position et permet "la féminisation des noms de métiers et de professions". Quelques années après l'Annuaire diplomatique qui employait déjà le terme d'"ambassadrice" dès le tournant du siècle.
 
             Alors à la suite de toutes les Renée Crespin du Bec, ingénieuse émissaire du cardinal Mazarin et première ambassadrice, pour nous une ambassadrice est une fière représentante de son métier et participe à la mixité dans les métiers du numérique - au même titre que les ambassadeurs métiers&nbsp;!
 
         </c-components.text>
-        <c-components.button href="https://fr.wikipedia.org/wiki/Ambassadeur" label="Source&nbsp;: Wikipedia" icon="external-link" variant="quaternary" target="_blank" />
+        <c-components.button href="https://fr.wikipedia.org/wiki/Ambassadeur" label="Source&nbsp;: Wikipedia" icon="external-link" variant="tertiary" target="_blank" />
     </c-components.accordion>
 
     <c-components.accordion title="Cette action est menée par">
@@ -49,24 +49,23 @@
             la Fondation Inria, pilote du programme TechPourToutes.
 
         </c-components.text>
-        <c-components.button href="{% url "qui_sommes_nous" %}" label="Découvrir tous les membres du consortium TechPourToutes" variant="quaternary" />
+        <c-components.button href="{% url "qui_sommes_nous" %}" label="Découvrir tous les membres du consortium TechPourToutes" variant="tertiary" />
     </c-components.accordion>
 
     <c-slot name="decorations">
-        <c-components.codex-letter letter="P" row="6" col="16" class="text-yellow-500" />
+        <c-components.codex-letter letter="P" row="6" col="16" class="text-orange-500" />
     </c-slot>
 
     <c-slot name="right">
-        <div class="flex flex-col items-center px-4 md:mt-[65px] md:self-start"
+        <div class="flex flex-col items-center px-4 md:mt-[100px] md:self-start"
              x-data="{ showForm: {{ form.is_bound|yesno:'true,false' }}, situation: '{{ form.professional_situation.value|default:'' }}' }"
              @select-change="situation = $event.detail.value"
              :class="{ 'md:sticky md:top-14 xl:top-8': !showForm }">
-            <c-components.title title="Rejoignez la coalition&nbsp;!" class="justify-center w-[300px] h-16" variant="h3" />
+            <c-components.starburst-title title="Rejoignez la coalition&nbsp;!" />
             <div id="work-ambassador-card">
                 <div x-show="!showForm" {% if not pro or "work_ambassador" not in pro.engagements %}@click.prevent="showForm = true; $nextTick(() => { $refs.formCard.scrollIntoView({ behavior: 'smooth', block: 'start' }) })" class="cursor-pointer"{% endif %}>
                     <c-components.card-shadow id="work-ambassador-member-card" class="w-[320px] my-5">
                         <div class="flex gap-5">
-                            <c-components.icon name="badge-coeur" class="shrink-0 w-15 h-15" />
                             <div>
                                 {% if pro %}
                                     <p class="font-medium pb-3">{{ pro.first_name }}</p>
@@ -91,7 +90,6 @@
                     x-transition:enter-end="scale-y-100"
                 />
                     <c-components.card-shadow id="work-ambassador-form-card" class="w-[320px] my-5 p-5 relative">
-                        <c-components.icon name="badge-coeur" class="shrink-0 w-15 h-15 absolute -top-5 -right-5" />
                         <c-patterns.form url="{% url 'work_ambassador_landing' %}">
                             <c-components.title title="Engagement ambassadrice" variant="h3" />
                             <p class="description-text-xxs">Les champs suivis d'un astérisque (*) sont obligatoires.</p>

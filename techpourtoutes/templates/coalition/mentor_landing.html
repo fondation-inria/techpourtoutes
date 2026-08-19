@@ -11,22 +11,16 @@
 
             Au cours de ces 6 mois de mentorat, vous apprendrez à vous connaître et vous aurez l'occasion de les aider à affiner leur projet d'étude ou de carrière, à gagner en confiance et à accéder à de nouvelles opportunités.
         </c-components.text>
-    </c-components.card>
 
-    <div class="flex justify-center w-full md:hidden">
-        <c-components.button href="#mentor-card" label="Je deviens mentor" />
-    </div>
-
-    <c-components.card title="Les 4 étapes clés du mentorat en ligne" nobg=True>
+        <c-components.title title="Les 4 étapes clefs du mentorat en ligne" variant="h2" class="pt-8 pb-4" />
         <ul class="steps steps-vertical">
             <li class="step step-secondary text-left">JobIRL prend contact avec vous et vous donne tous les éléments pour réussir votre relation de mentorat</li>
             <li class="step step-secondary text-left">Vous êtes mise en relation avec une mentorée</li>
             <li class="step step-secondary text-left">Vous échangez sur son projet et ses attentes</li>
             <li class="step step-secondary text-left">Vous faites le bilan des progrès</li>
         </ul>
-    </c-components.card>
 
-    <c-components.card title="On vous accompagne à toutes les étapes">
+        <c-components.title title="On vous accompagne à toutes les étapes" variant="h2" class="pt-8" />
         <c-components.text>
             Sur la plateforme TechPourToutes, vous retrouverez de nombreuses informations sur les formations, les stages, des événements, etc.
 
@@ -34,12 +28,12 @@
         </c-components.text>
     </c-components.card>
 
-    <c-components.accordion title="Mentor ou mentore&nbsp;?" variant="green">
+    <c-components.accordion title="Mentor ou mentore&nbsp;?">
         <c-components.text>
             Eh bien, le terme mentor provient d'un personnage de la mythologie grecque. Mentor est le précepteur de Télémaque et l'ami d'Ulysse qui est chargé de prendre soin de sa maison à la suite de son départ. C'est ainsi que le terme mentor désigne désormais un conseiller expérimenté, attentif et sage auquel on fait confiance. Mentor est au féminin comme au masculin&nbsp;: un mentor, une mentor&nbsp;!
 
         </c-components.text>
-        <c-components.button href="https://fr.wikipedia.org/wiki/Mentor" label="Source&nbsp;: Wikipedia" icon="external-link" variant="quaternary" target="_blank" />
+        <c-components.button href="https://fr.wikipedia.org/wiki/Mentor" label="Source&nbsp;: Wikipedia" icon="external-link" variant="tertiary" target="_blank" />
     </c-components.accordion>
 
     <c-components.accordion title="Cette action est menée par">
@@ -47,7 +41,7 @@
             JobIRL, spécialiste du mentorat depuis 2013 et association loi 1901 reconnue d'intérêt général à caractère social et éducatif, et conventionnée par le ministère de l'Éducation nationale.
 
         </c-components.text>
-        <c-components.button href="{% url "qui_sommes_nous" %}" label="Découvrir tous les membres du consortium TechPourToutes" variant="quaternary" />
+        <c-components.button href="{% url "qui_sommes_nous" %}" label="Découvrir tous les membres du consortium TechPourToutes" variant="tertiary" />
     </c-components.accordion>
 
     <c-slot name="decorations">
@@ -55,18 +49,17 @@
     </c-slot>
 
     <c-slot name="right">
-        <div class="flex flex-col items-center px-4 md:mt-[65px] md:self-start"
+        <div class="flex flex-col items-center px-4 md:mt-[100px] md:self-start"
              x-data="{ showForm: {{ form.is_bound|yesno:'true,false' }}, situation: '{{ form.professional_situation.value|default:'' }}' }"
              @select-change="situation = $event.detail.value"
              :class="{ 'md:sticky md:top-14 xl:top-8': !showForm }">
-            <c-components.title title="Rejoignez la coalition&nbsp;!" class="justify-center w-[300px] h-16" variant="h3" />
+            <c-components.starburst-title title="Rejoignez la coalition&nbsp;!" />
 
             <div id="mentor-card">
 
                 <div x-show="!showForm" {% if not pro or "mentor" not in pro.engagements %}@click.prevent="showForm = true; $nextTick(() => { $refs.formCard.scrollIntoView({ behavior: 'smooth', block: 'start' }) })" class="cursor-pointer"{% endif %}>
                     <c-components.card-shadow id="mentor-member-card" class="w-[320px] my-5">
                         <div class="flex gap-5">
-                            <c-components.icon name="badge-coeur" class="shrink-0 w-15 h-15" />
                             <div>
                                 {% if pro %}
                                     <p class="font-medium pb-3">{{ pro.first_name }}</p>
@@ -94,7 +87,6 @@
                     x-transition:enter-end="scale-y-100"
                 />
                     <c-components.card-shadow id="mentor-form-card" class="w-[320px] my-5 p-5 relative">
-                        <c-components.icon name="badge-coeur" class="shrink-0 w-15 h-15 absolute -top-5 -right-5" />
                         <c-patterns.form url="{% url 'mentor_landing' %}">
                             <c-components.title title="Engagement mentor" variant="h3" />
                             <p class="description-text-xxs">Les champs suivis d'un astérisque (*) sont obligatoires.</p>

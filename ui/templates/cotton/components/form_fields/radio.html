@@ -25,7 +25,7 @@
                         class="peer sr-only"
                     />
                     <span class="tick-base rounded-full {% if variant == "disabled" %}tick-disabled{% elif field.errors or errors or variant == "error" %}tick-error{% elif variant == "valid" %}tick-valid{% else %}tick-default{% endif %}"></span>
-                    <span class="absolute h-2.5 w-2.5 rounded-full hidden peer-checked:block bg-primary-700"></span>
+                    <span class="absolute h-2.5 w-2.5 rounded-full hidden peer-checked:block bg-primary"></span>
                 </span>
                 <span class="text-sm {% if variant == "disabled" %}text-disabled{% else %}text-neutral-950{% endif %}">{{ opt_label }}</span>
             </label>

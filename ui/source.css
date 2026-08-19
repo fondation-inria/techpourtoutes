@@ -227,9 +227,9 @@
   --radius-pill: 9999px;
 
   /* Shadows */
-  --shadow-bottom-and-right: 4px 4px 0 0 var(--color-purple-500);
-  --shadow-bottom-and-right-lg: 6px 6px 0 0 var(--color-primary-700);
-  --shadow-right: 4px 0 0 0 var(--color-primary-700);
+  --shadow-bottom-and-right: 4px 4px 0 0 var(--color-primary);
+  --shadow-bottom-and-right-lg: 6px 6px 0 0 var(--color-primary);
+  --shadow-right: 4px 0 0 0 var(--color-primary);
   --shadow-thin-bottom: 0 1px 0 0;
 
   /* Typography sizes (Global.json) */
@@ -340,7 +340,7 @@
     @apply h-5 w-5 shrink-0 border bg-neutral-50 transition-colors;
   }
   .tick-default {
-    @apply border-primary-700 peer-focus-visible:ring-2 peer-focus-visible:ring-primary-700 peer-focus-visible:ring-offset-1;
+    @apply border-primary peer-focus-visible:ring-2 peer-focus-visible:ring-primary peer-focus-visible:ring-offset-1;
   }
   .tick-error {
     @apply border-error-500 peer-focus-visible:ring-2 peer-focus-visible:ring-error-500 peer-focus-visible:ring-offset-1;
@@ -381,11 +381,11 @@
   name: "techpourtoutes";
   default: true;
 
-  --color-primary: var(--color-primary-500);
-  --color-secondary: var(--color-accent-500);
+  --color-primary: var(--color-purple-500);
+  --color-secondary: var(--color-yellow-500);
   --color-primary-content: var(--color-info-50);
   --color-secondary-content: var(--color-info-50);
-  --color-success: var(--color-success-500);
+  --color-success: var(--color-green-500);
   --color-warning: var(--color-warning-500);
   --color-info: var(--color-info-50);
   --color-error: var(--color-error-500);
@@ -393,4 +393,8 @@
 
 [x-cloak] {
   display: none !important;
+}
+
+.steps-vertical .step:after {
+  --step-fg: black;
 }
