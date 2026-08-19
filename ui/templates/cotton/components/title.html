@@ -1,4 +1,4 @@
-<c-vars icon-name="" title="" variant="h1" class="" />
+<c-vars icon-name="" title="" title_bg="" variant="h1" class="" />
 
 {% if variant == "tagline" %}
     <h2 class="tagline-lines flex flex-col items-start mb-(--grid-cell) font-serif text-3xl sm:text-5xl font-medium italic text-neutral-0 [&>span]:flex [&>span]:items-center [&>span]:h-(--grid-cell) [&>span]:leading-none [&>span]:bg-neutral-950 [&>span]:px-3 [&>span:nth-child(even)]:ml-25 {{ class }}">
@@ -11,7 +11,9 @@
         {% if icon_name %}
             <c-components.icon name="{{ icon_name }}" class="size-12 shrink-0" />
         {% endif %}
-        {% if variant == "h2" %}
+        {% if variant == "h2" and title_bg == "black" %}
+            <h2 class="text-xl font-medium bg-black text-white p-2 leading-[1.4]">{{ title|safe }}</h2>
+        {% elif variant == "h2" %}
             <h2 class="text-xl font-medium leading-[1.2]">{{ title|safe }}</h2>
         {% elif variant == "h2-black" %}
             <h2 class="text-2xl text-black leading-[1.4]">{{ title|safe }}</h2>
