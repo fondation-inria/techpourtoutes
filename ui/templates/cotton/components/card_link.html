@@ -4,8 +4,10 @@
     title=""
     button=""
     href=""
+    disabled=False
     class=""
-    base_class="relative flex flex-col gap-4 p-6 border border-black cursor-pointer shadow-[2px_2px_20px_rgba(0,0,0,0.1)]"
+    base_class="relative flex flex-col gap-4 p-6 border border-black shadow-[2px_2px_20px_rgba(0,0,0,0.1)]"
+    cursor_class="cursor-pointer"
     yellow_class="bg-yellow-500 text-neutral-950"
     orange_class="bg-orange-500 text-neutral-950"
     green_class="bg-green-500 text-neutral-950"
@@ -20,6 +22,7 @@
 <div id="{{ id }}"
      class="
         {{ base_class }}
+        {% if not disabled %}{{ cursor_class }}{% endif %}
         {% if color == "orange" %}
             {{ orange_class }}
         {% elif color == "green" %}
@@ -35,7 +38,9 @@
 >
     <h2 class="{{ title_class }}">{{ title|safe }}</h2>
     <div class="{{ body_class }}">{{ slot }}</div>
-    <c-components.button variant="secondary" label="{{ button }}" href="{{ href }}" class="{{ button_class }}" />
-    {# Stretched link: a sibling of the button rather than its parent, so no <a> nests inside another #}
-    <a href="{{ href }}" class="{{ overlay_class }}" aria-hidden="true" tabindex="-1"></a>
+    <c-components.button variant="secondary" label="{{ button }}" href="{{ href }}" class="{{ button_class }}" :disabled="disabled" {{ attrs }} />
+    {% if not disabled %}
+        {# Stretched link: a sibling of the button rather than its parent, so no <a> nests inside another #}
+        <a href="{{ href }}" class="{{ overlay_class }}" aria-hidden="true" tabindex="-1" {{ attrs }}></a>
+    {% endif %}
 </div>
