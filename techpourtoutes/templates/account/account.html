@@ -2,7 +2,17 @@
     <c-components.title title="Mon compte" variant="h1" />
 
     {% if user.jobirl_user_id %}
-        <c-components.button href="{% url "login_to_jobirl" %}" label="Accéder à mon espace mentorat" icon="external-link" target="_blank" />
+        <c-components.card-link color="yellow" title="Mentorat" button="Rejoindre mon espace mentorat" href="{% url "login_to_jobirl" %}" target="_blank" class="max-w-sm">
+            TechPourToutes propose un programme de mentorat de 6 mois, 100% gratuit et digital.
+        </c-components.card-link>
+    {% elif is_beneficiary and user.legal_representative_email %}
+        <c-components.card-link color="yellow" title="Mentorat" button="Rejoindre mon espace mentorat" class="max-w-sm" :disabled="True">
+            Nous avons bien reçu ta demande de mentorat. Nous sommes en attente de l'autorisation de la personne responsable légale.
+        </c-components.card-link>
+    {% elif is_beneficiary %}
+        <c-components.card-link color="yellow" title="Mentorat" button="S'inscrire au mentorat" href="{% url "add_mentoring" %}" class="max-w-sm">
+            TechPourToutes propose un programme de mentorat de 6 mois, 100% gratuit et digital.
+        </c-components.card-link>
     {% endif %}
 
     {% include "account/partials/info_card.html" %}
