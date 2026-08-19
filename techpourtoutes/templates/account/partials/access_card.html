@@ -3,7 +3,7 @@
         <br>
         {% include "account/partials/email_section.html" %}
         <c-components.title title="Compte" variant="intertitre"/>
-        <c-components.button label="Supprimer mon compte" variant="quaternary_danger" class="my-2" hx-get="{% url 'delete_account_modal' %}" hx-target="#modal-container" hx-swap="innerHTML"/>
+        <c-components.button label="Supprimer mon compte" variant="tertiary_danger" class="my-2" hx-get="{% url 'delete_account_modal' %}" hx-target="#modal-container" hx-swap="innerHTML"/>
     </c-components.card>
 </div>
 

@@ -12,9 +12,9 @@
                     <c-components.button type="submit" label="Continuer" class="justify-center" />
                 </div>
             </c-patterns.form>
-            <c-patterns.form url="{% url 'email_change_resend' %}" class="mt-2 items-center">
+            <c-patterns.form url="{% url 'email_change_resend' %}" class="mt-4 items-center">
                 <input type="hidden" name="token" value="{{ token }}">
-                <c-components.button type="submit" label="Je n'ai pas reçu de code" variant="quaternary" />
+                <c-components.button type="submit" label="Je n'ai pas reçu de code" variant="tertiary" />
             </c-patterns.form>
         </c-components.card>
     </div>
