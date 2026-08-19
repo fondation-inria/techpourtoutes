@@ -1,12 +1,14 @@
 <c-layout.base title="Devenir ambassadrice étudiante – TechPourToutes" description="Devenir ambassadrice étudiante TechPourToutes, c'est s'engager concrètement pour l'égalité de genre dans la tech et développer des compétences clés pour la suite de son parcours.">
-    <c-components.title title="Devenir ambassadrice étudiante" />
+    <c-components.title title="Ambassadrice étudiante" />
     <div class="flex flex-wrap gap-2 md:gap-4">
         <c-components.badge label="1 an" />
         <c-components.badge label="En présentiel" />
         <c-components.badge label="À distance" />
     </div>
 
-    Vous êtes étudiante et vous souhaitez vous engager concrètement pour l'égalité de genre dans l'enseignement supérieur et le monde professionnel&nbsp;? Devenez ambassadrice étudiante TechPourToutes&nbsp;!
+    <c-components.card>
+            Vous êtes étudiante et vous souhaitez vous engager concrètement pour l'égalité de genre dans l'enseignement supérieur et le monde professionnel&nbsp;? Devenez ambassadrice étudiante TechPourToutes&nbsp;!
+    </c-components.card>
 
     <div class="flex justify-center w-full md:hidden">
         <c-components.button href="#training-ambassador-card" label="Je deviens ambassadrice" />
@@ -79,7 +81,7 @@
             la Conférence des Grandes Écoles, France Universités et la Conférence des Directeurs des Écoles Françaises d'Ingénieurs.
 
         </c-components.text>
-        <c-components.button href="{% url "qui_sommes_nous" %}" label="Découvrir tous les membres du consortium TechPourToutes" variant="quaternary" />
+        <c-components.button href="{% url "qui_sommes_nous" %}" label="Découvrir tous les membres du consortium TechPourToutes" variant="tertiary" />
     </c-components.accordion>
 
     <c-slot name="decorations">
@@ -88,15 +90,14 @@
 
 
     <c-slot name="right">
-        <div class="flex flex-col items-center px-4 md:mt-[65px] md:self-start"
+        <div class="flex flex-col items-center px-4 md:mt-[100px] md:self-start"
              x-data="{ showForm: {{ form.is_bound|yesno:'true,false' }} }"
              :class="{ 'md:sticky md:top-14 xl:top-8': !showForm }">
-            <c-components.title title="Rejoignez la coalition&nbsp;!" class="justify-center w-[300px] h-16" variant="h3" />
+            <c-components.starburst-title title="Rejoignez la coalition&nbsp;!" />
             <div id="training-ambassador-card">
                 <div x-show="!showForm" {% if not pro or "training_ambassador" not in pro.engagements %}@click.prevent="showForm = true; $nextTick(() => { $refs.formCard.scrollIntoView({ behavior: 'smooth', block: 'start' }) })" class="cursor-pointer"{% endif %}>
                     <c-components.card-shadow id="training-ambassador-member-card" class="w-[320px] my-5">
                         <div class="flex gap-5">
-                            <c-components.icon name="badge-coeur" class="shrink-0 w-15 h-15" />
                             <div>
                                 {% if pro %}
                                     <p class="font-medium pb-3">{{ pro.first_name }}</p>
@@ -121,7 +122,6 @@
                     x-transition:enter-end="scale-y-100"
                 />
                     <c-components.card-shadow id="training-ambassador-form-card" class="w-[320px] my-5 p-5 relative">
-                        <c-components.icon name="badge-coeur" class="shrink-0 w-15 h-15 absolute -top-5 -right-5" />
                         <c-patterns.form url="{% url 'training_ambassador_landing' %}">
                             <c-components.title title="Engagement ambassadrice" variant="h3" />
                             <p class="description-text-xxs">Les champs suivis d'un astérisque (*) sont obligatoires.</p>
