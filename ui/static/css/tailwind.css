@@ -66,7 +66,6 @@
     --radius-2xl: 1rem;
     --radius-3xl: 1.5rem;
     --ease-out: cubic-bezier(0, 0, 0.2, 1);
-    --ease-in-out: cubic-bezier(0.4, 0, 0.2, 1);
     --default-transition-duration: 150ms;
     --default-transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
     --default-font-family: var(--font-sans);
@@ -4797,9 +4796,6 @@
   .h-25 {
     height: calc(var(--spacing) * 25);
   }
-  .h-42 {
-    height: calc(var(--spacing) * 42);
-  }
   .h-\[80vh\] {
     height: 80vh;
   }
@@ -6215,17 +6211,8 @@
     background-color: var(--color-primary-700);
   }
   @media (hover: hover) {
-    .hover\:scale-103:hover {
-      --tw-scale-x: 103%;
-      --tw-scale-y: 103%;
-      --tw-scale-z: 103%;
-      scale: var(--tw-scale-x) var(--tw-scale-y);
-    }
     .hover\:rounded-xl:hover {
       border-radius: var(--radius-xl);
-    }
-    .hover\:border-primary-500:hover {
-      border-color: var(--color-primary-500);
     }
     .hover\:bg-error-50:hover {
       background-color: var(--color-error-50);
@@ -6243,9 +6230,6 @@
       --tw-font-weight: var(--font-weight-medium);
       font-weight: var(--font-weight-medium);
     }
-    .hover\:text-primary-500:hover {
-      color: var(--color-primary-500);
-    }
     .hover\:decoration-2:hover {
       text-decoration-thickness: 2px;
     }
@@ -6256,14 +6240,6 @@
     .hover\:ring-2:hover {
       --tw-ring-shadow: var(--tw-ring-inset,) 0 0 0 calc(2px + var(--tw-ring-offset-width)) var(--tw-ring-color, currentcolor);
       box-shadow: var(--tw-inset-shadow), var(--tw-inset-ring-shadow), var(--tw-ring-offset-shadow), var(--tw-ring-shadow), var(--tw-shadow);
-    }
-    .hover\:shadow-primary-500:hover {
-      --tw-shadow-color: #4a4aff;
-    }
-    @supports (color: color-mix(in lab, red, red)) {
-      .hover\:shadow-primary-500:hover {
-        --tw-shadow-color: color-mix(in oklab, var(--color-primary-500) var(--tw-shadow-alpha), transparent);
-      }
     }
     .hover\:ring-yellow-500:hover {
       --tw-ring-color: var(--color-yellow-500);
@@ -6398,9 +6374,6 @@
     }
     .md\:hidden {
       display: none;
-    }
-    .md\:h-38 {
-      height: calc(var(--spacing) * 38);
     }
     .md\:min-h-screen {
       min-height: 100vh;

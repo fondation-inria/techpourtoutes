@@ -9,17 +9,7 @@
             hx-swap="outerHTML">
             <input type="hidden" name="action" value="mentoring_signup">
             <c-components.title title="Rejoins le club, {{ first_name }}" variant="h1-black" />
-            {% if is_minor %}
-                <p>Comme tu es mineure, pour valider ton inscription au programme de mentorat, nous avons besoin d'une autorisation de tes parents ou d'une personne responsable légalement.</p>
-            {% else %}
-                <p>Pour valider ton inscription au programme de mentorat, nous avons besoin de ton numéro de téléphone.</p>
-            {% endif %}
-            <p class="text-xs text-neutral-500">Tous les champs sont obligatoires</p>
-            <c-components.form_fields.input field=form.phone />
-            {% if is_minor %}
-                <c-components.form_fields.input field=form.legal_representative_name autocomplete="name" description="exemple : Hedy Lamarr" />
-                <c-components.form_fields.input field=form.legal_representative_email autocomplete="email" />
-            {% endif %}
+            {% include "beneficiary/partials/inscription/mentoring_signup_fields.html" %}
             <div class="flex justify-center">
                 <c-components.button type="submit" label="Rejoindre le club" />
             </div>

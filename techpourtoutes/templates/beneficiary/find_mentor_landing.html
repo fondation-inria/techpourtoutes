@@ -1,10 +1,34 @@
-<c-layout.base title="TechPourToutes – le programme pour une tech inclusive" description="TechPourToutes est un programme national pour attirer et soutenir les femmes dans la tech. Rejoignez le programme pour bénéficier d'un accompagnement personnalisé." >
-    <c-components.card-shadow class="flex flex-col gap-3 justify-between h-42 md:h-38 text-primary-700 hover:border-primary-500 hover:shadow-primary-500 hover:scale-103 hover:text-primary-500" href="{% url "inscription_funnel" %}?wants_mentor=1">
-        <div class="flex flex-1 justify-center">
-            <c-components.icon name="mentorer-bold" class="w-15 h-15" />
-        </div>
-        <p class="text-sm text-center font-medium">
-            S'inscrire
-        </p>
-    </c-components.card-shadow>
+<c-layout.base title="Trouver une mentore - TechPourToutes" description="Trouve la mentore qui te correspond et bénéficie d'un accompagnement personnalisé." >
+    <c-components.title title="Trouve une pro à ton écoute" class="md:whitespace-nowrap" />
+    <c-components.card>
+        TechPourToutes te propose un programme de mentorat de 6 mois, 100% gratuit et digital. En fonction de ton profil et de tes envies, on te trouve une ou un mentor pour t'accompagner.
+    </c-components.card>
+    <c-components.card header="Comment ça se passe&nbsp;?" header_color="bg-green-500">
+        <ul class="steps steps-vertical">
+            <li class="step step-success text-left">Rejoins le club et dis-nous en plus sur ton parcours</li>
+            <li class="step step-success text-left">On t'appelle pour connaître tes attentes et te trouver une ou un mentor</li>
+            <li class="step step-success text-left">À raison d'un rendez-vous en moyenne par mois, tu construis ta relation de mentorée</li>
+            <li class="step step-success text-left">6 mois déjà&nbsp;! On fait le bilan</li>
+        </ul>
+    </c-components.card>
+    <c-components.card header="Quels thèmes aborder&nbsp;?" header_color="bg-blue-500">
+        <c-components.icon_list_item icon="orientation">
+            <strong>Orientation</strong>&nbsp;: quelles sont les bonnes formations pour atteindre le métier de tes rêves
+        </c-components.icon_list_item>
+        <br>
+        <c-components.icon_list_item icon="lettre-de-motivation">
+            <strong>Lettre de motivation</strong>&nbsp;: les bonnes pratiques, les adapter aux écoles ou entreprises, etc.
+        </c-components.icon_list_item>
+        <br>
+        <c-components.icon_list_item icon="organisation">
+            <strong>Organisation</strong>&nbsp;: comment ne pas se laisser submerger par les devoirs, le travail, etc.
+        </c-components.icon_list_item>
+        <br>
+        <c-components.icon_list_item icon="recherche-stage-ou-alternance">
+            <strong>Recherche de stage ou d'alternance</strong>
+        </c-components.icon_list_item>
+    </c-components.card>
+    <div class="flex justify-center w-full">
+        <c-components.button href="{{ cta_href }}" label="{{ cta_label }}" :disabled="cta_disabled"/>
+    </div>
 </c-layout.base>

@@ -22,7 +22,7 @@ def test_refresh_access_token_sends_correct_data_and_exposes_token(httpx_mock, p
         json={"response": "success", "datas": {"token": "new-token-abc"}},
     )
 
-    result = RefreshAccessToken(pro=pro)
+    result = RefreshAccessToken(user=pro)
 
     assert result.success
     assert result.token == "new-token-abc"
@@ -49,7 +49,7 @@ def test_refresh_access_token_updates_mentor_token_in_db(httpx_mock, pro):
         json={"response": "success", "datas": {"token": "new-token-abc"}},
     )
 
-    RefreshAccessToken(pro=pro)
+    RefreshAccessToken(user=pro)
 
     pro.refresh_from_db()
     assert pro.jobirl_user_token == "new-token-abc"
@@ -63,7 +63,7 @@ def test_refresh_access_token_fails_on_http_error(httpx_mock, pro):
     refresh_url = f"{JOBIRL_TEST_URL}/techpourtoutes/api/user_refresh_access_token"
     httpx_mock.add_response(url=refresh_url, status_code=401)
 
-    result = RefreshAccessToken(pro=pro)
+    result = RefreshAccessToken(user=pro)
 
     assert result.failure
     assert result.errors
@@ -76,7 +76,7 @@ def test_refresh_access_token_fails_on_network_error(httpx_mock, pro):
 
     httpx_mock.add_exception(httpx.RequestError("connection failed"))
 
-    result = RefreshAccessToken(pro=pro)
+    result = RefreshAccessToken(user=pro)
 
     assert result.failure
     assert result.errors
