@@ -1,6 +1,6 @@
 import pytest
 
-from techpourtoutes.utils.phone import parse_school_phone
+from techpourtoutes.utils.phone import parse_phone
 
 
 @pytest.mark.parametrize(
@@ -13,14 +13,14 @@ from techpourtoutes.utils.phone import parse_school_phone
         ("05 94 30 34 39", "+594594303439"),  # Guyane
     ],
 )
-def test_parse_school_phone_returns_e164(raw, expected):
-    assert parse_school_phone(raw) == expected
+def test_parse_phone_returns_e164(raw, expected):
+    assert parse_phone(raw) == expected
 
 
 @pytest.mark.parametrize("raw", ["", "   ", "39 36", "30 06", "03 81 39 33 00 55", "n/a"])
-def test_parse_school_phone_drops_unusable_values(raw):
-    assert parse_school_phone(raw) == ""
+def test_parse_phone_drops_unusable_values(raw):
+    assert parse_phone(raw) == ""
 
 
-def test_parse_school_phone_accepts_none():
-    assert parse_school_phone(None) == ""
+def test_parse_phone_accepts_none():
+    assert parse_phone(None) == ""
