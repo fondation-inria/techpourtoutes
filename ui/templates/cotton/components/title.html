@@ -1,7 +1,7 @@
 <c-vars icon-name="" title="" title_bg="" variant="h1" class="" />
 
 {% if variant == "tagline" %}
-    <h2 class="tagline-lines flex flex-col items-start mb-(--grid-cell) font-serif text-3xl sm:text-5xl font-medium italic text-neutral-0 [&>span]:flex [&>span]:items-center [&>span]:h-(--grid-cell) [&>span]:leading-none [&>span]:bg-neutral-950 [&>span]:px-3 [&>span:nth-child(even)]:ml-25 {{ class }}">
+    <h2 class="tagline-lines flex flex-col items-start font-serif text-3xl sm:text-5xl font-medium italic text-neutral-0 [&>span]:flex [&>span]:items-center [&>span]:h-(--grid-cell) [&>span]:leading-none [&>span]:bg-neutral-950 [&>span]:px-3 [&>span:nth-child(even)]:ml-25 {{ class }}">
         {{ slot }}
     </h2>
 {% elif variant == "intertitre" %}
@@ -11,16 +11,21 @@
         {% if icon_name %}
             <c-components.icon name="{{ icon_name }}" class="size-12 shrink-0" />
         {% endif %}
-        {% if variant == "h2" and title_bg == "black" %}
-            <h2 class="text-xl font-medium bg-black text-white p-2 leading-[1.4]">{{ title|safe }}</h2>
-        {% elif variant == "h2" %}
-            <h2 class="text-xl font-medium leading-[1.2]">{{ title|safe }}</h2>
+        {% if variant == "h2" %}
+            <h2 class="text-xl
+                        {% if title_bg == "black" %}bg-black text-white p-2 leading-[1.4]{% else %}leading-[1.2]{% endif %}
+                        {% if style == "serif" %}font-serif font-extrabold italic{% else %}font-medium{% endif %}
+            ">
+                {{ title|safe }}
+            </h2>
         {% elif variant == "h3" %}
             <h3 class="text-lg leading-[1.4]">{{ title|safe }}</h3>
-        {% elif variant == "h1-black" %}
-            <h1 class="text-3xl text-black leading-[1.4] font-serif font-extrabold italic">{{ title|safe }}</h1>
-        {% else %}
-            <h1 class="text-2xl sm:text-4xl leading-[1.2] font-serif font-extrabold italic bg-yellow-500 text-neutral-950 border-[0.5px] border-neutral-950 rounded-full px-8 py-4 sm:py-2">{{ title|safe }}</h1>
+        {% elif variant == "h1" %}
+            <h1 class="font-serif font-extrabold italic
+                        {% if title_bg == "yellow" %}text-2xl sm:text-4xl leading-[1.2] bg-yellow-500 border-[0.5px] border-neutral-950 rounded-full px-8 py-4 sm:py-2{% else %}text-3xl text-black leading-[1.4]{% endif %}
+            ">
+                {{ title|safe }}
+            </h1>
         {% endif %}
     </div>
 {% endif %}

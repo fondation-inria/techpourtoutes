@@ -6,10 +6,10 @@
     footer=False
     back="{% url 'find_mentor_landing' %}">
     <div class="w-full md:max-w-xl flex flex-col py-8">
-        <img src="{% static 'images/techpourtoutes-logo-new-beneficiary.svg' %}" alt="logo TechPourToutes" class="w-48 shrink-0 mb-8" />
+        <img src="{% static 'images/techpourtoutes-logo-new-beneficiary.png' %}" alt="logo TechPourToutes" class="w-48 shrink-0 mb-8" />
         <c-components.card nobg=True>
             <c-patterns.form url="{% url 'add_mentoring' %}">
-                <c-components.title title="Rejoins le programme de mentorat" variant="h2-black" />
+                <c-components.title title="Rejoins le programme de mentorat" variant="h1" />
                 {% include "beneficiary/partials/inscription/mentoring_signup_fields.html" %}
                 <div class="flex justify-center">
                     <c-components.button type="submit" label="Rejoindre le mentorat" />

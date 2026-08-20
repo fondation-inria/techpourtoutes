@@ -2,11 +2,11 @@
 {% is_coalition_page back as is_coalition_page %}
 <c-layout.base variant="funnel" back="{{ back }}">
     <div class="w-full md:max-w-xl flex flex-col py-8">
-        <img src="{% static 'images/techpourtoutes-logo-new-beneficiary.svg' %}" alt="logo TechPourToutes" class="w-48 shrink-0 mb-8" />
+        <img src="{% static 'images/techpourtoutes-logo-new-beneficiary.png' %}" alt="logo TechPourToutes" class="w-48 shrink-0 mb-8" />
         <div class="w-full flex flex-col gap-y-4 my-auto divide-y divide-neutral-200">
             <div>
                 <c-patterns.form url="{% url 'login_code' %}" class="mt-4">
-                    <c-components.title title="Se connecter" variant="h1-black" />
+                    <c-components.title title="Se connecter" variant="h1" />
                     <p class="">
                         Saisir le code à 6 chiffres envoyé par mail à {{ recipient_prefix }}<strong>{{ masked_recipient }}</strong>
                     </p>

@@ -6,7 +6,9 @@
     href=""
     disabled=False
     class=""
-    base_class="relative flex flex-col gap-4 p-6 border border-black shadow-[2px_2px_20px_rgba(0,0,0,0.1)]"
+    base_class="relative flex flex-col border border-black shadow-[2px_2px_20px_rgba(0,0,0,0.1)]"
+    margin_class="gap-4 p-6"
+    margin_class_sm="gap-2 p-4 text-xs"
     cursor_class="cursor-pointer"
     yellow_class="bg-yellow-500 text-neutral-950"
     orange_class="bg-orange-500 text-neutral-950"
@@ -15,13 +17,16 @@
     blue_class="bg-blue-500 text-neutral-0"
     title_class="self-start bg-black text-neutral-0 text-xl sm:text-2xl leading-[1.4] px-4 py-1"
     body_class="text-sm leading-[1.4]"
+    body_class_sm="text-xs leading-[1.4]"
     button_class="self-center mt-auto relative z-20"
     overlay_class="absolute inset-0 z-10"
+    size=""
 />
 
 <div id="{{ id }}"
      class="
         {{ base_class }}
+        {% if size == "sm" %}{{ margin_class_sm }}{% else %}{{ margin_class }} {% endif %}
         {% if not disabled %}{{ cursor_class }}{% endif %}
         {% if color == "orange" %}
             {{ orange_class }}
@@ -36,8 +41,10 @@
         {% endif %}
         {{ class }}"
 >
-    <h2 class="{{ title_class }}">{{ title|safe }}</h2>
-    <div class="{{ body_class }}">{{ slot }}</div>
+    {% if title %}
+        <h2 class="{{ title_class }}">{{ title|safe }}</h2>
+    {% endif %}
+    <div class="{% if size == "sm" %}{{ body_class_sm }}{% else %}{{ body_class }} {% endif %}">{{ slot }}</div>
     <c-components.button variant="secondary" label="{{ button }}" href="{{ href }}" class="{{ button_class }}" :disabled="disabled" {{ attrs }} />
     {% if not disabled %}
         {# Stretched link: a sibling of the button rather than its parent, so no <a> nests inside another #}
