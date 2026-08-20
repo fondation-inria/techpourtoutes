@@ -105,6 +105,7 @@ def test_soft_delete_anonymizes_expected_fields_for_beneficiary(beneficiary):
     original_postal_code = beneficiary.postal_code
     beneficiary.legal_representative_name = "Parent Test"
     beneficiary.legal_representative_email = "parent@example.com"
+    beneficiary.faveod_id = 4243
     beneficiary.save()
 
     beneficiary.soft_delete()
@@ -121,6 +122,7 @@ def test_soft_delete_anonymizes_expected_fields_for_beneficiary(beneficiary):
     assert not beneficiary.brevo_sync_enabled
 
     assert beneficiary.phone == ""
+    assert beneficiary.faveod_id is None
     assert beneficiary.jobirl_user_id is None
     assert beneficiary.jobirl_user_token == ""
 

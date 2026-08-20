@@ -1,7 +1,7 @@
 from techpourtoutes.models import School
 from techpourtoutes.services.base import BaseService
 from techpourtoutes.utils.onisep import onisep_id_from_url, split_parent_label
-from techpourtoutes.utils.phone import parse_school_phone
+from techpourtoutes.utils.phone import parse_phone
 from techpourtoutes.utils.text import strip_accents
 
 UNKNOWN_SCOPE_MESSAGE = "Périmètre d'import inconnu : {scope}."
@@ -90,7 +90,7 @@ class UpsertSchools(BaseService):
             city=record.get("commune") or "",
             cog_code=record.get("commune_cog") or "",
             cedex=record.get("cedex") or "",
-            phone=parse_school_phone(record.get("telephone")),
+            phone=parse_phone(record.get("telephone")),
             borough=record.get("arrondissement") or "",
             department=record.get("departement") or "",
             academy=record.get("academie") or "",

@@ -29,9 +29,6 @@ class Pro(User):
         max_length=255, blank=True, verbose_name=_("nom de la structure")
     )
     job_title = models.CharField(max_length=255, blank=True, verbose_name=_("métier"))
-    faveod_id = models.IntegerField(
-        null=True, blank=True, unique=True, verbose_name=_("identifiant faveod")
-    )
     engagements = ArrayField(
         models.CharField(max_length=30, choices=Engagement.choices),
         default=list,
@@ -52,7 +49,3 @@ class Pro(User):
         engagement = str(engagement)
         if engagement not in self.engagements:
             self.engagements.append(engagement)
-
-    def soft_delete(self):
-        self.faveod_id = None
-        super().soft_delete()
