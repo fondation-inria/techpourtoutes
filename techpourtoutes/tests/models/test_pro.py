@@ -101,6 +101,8 @@ def test_pro_phone_is_optional(valid_pro_model_data):
 @pytest.mark.django_db
 def test_soft_delete_anonymizes_expected_fields(pro):
     original_pk = pro.pk
+    pro.faveod_id = 4242
+    pro.save()
     original_professional_situation = pro.professional_situation
     original_engagements = pro.engagements
     original_postal_code = pro.postal_code
