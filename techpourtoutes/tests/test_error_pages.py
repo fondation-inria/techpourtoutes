@@ -27,4 +27,4 @@ def test_404_page_renders(client):
 def test_403_page_renders(client):
     response = client.get("/test-403/")
     assert response.status_code == 403
-    assert b"refus" in response.content
+    assert b"autorisation" in response.content
