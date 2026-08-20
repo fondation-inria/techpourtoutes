@@ -8,6 +8,6 @@
     {% if variant == "funnel" %}
         <c-layout.partials.bodies.funnel_body back="{{ back }}" right="{{ right }}" :footer="footer">{{ slot }}</c-layout.partials.bodies.funnel_body>
     {% else %}
-        <c-layout.partials.bodies.base_body right="{{ right }}" decorations="{{ decorations }}">{{ slot }}</c-layout.partials.bodies.base_body>
+        <c-layout.partials.bodies.base_body right="{{ right }}" decorations="{{ decorations }}" banner="{{ banner }}">{{ slot }}</c-layout.partials.bodies.base_body>
     {% endif %}
 </html>

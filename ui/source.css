@@ -165,21 +165,6 @@
   --color-warning-on100: #5f4100;
   --color-warning-on500: #1a1a1a;
 
-  /* Erreur */
-  --color-error-50: #fff1f4;
-  --color-error-100: #ffd7df;
-  --color-error-200: #ffb1c0;
-  --color-error-300: #ff8aa0;
-  --color-error-400: #f76380;
-  --color-error-500: #ed4b6a;
-  --color-error-600: #d93d5e;
-  --color-error-700: #b82f4f;
-  --color-error-800: #91243f;
-  --color-error-900: #6d1a2f;
-  --color-error-on100: #6d1a2f;
-  --color-error-on500: #ffffff;
-  --color-error-on700: #ffffff;
-
   /* New DA colors */
   --color-yellow-500: #fad207;
   --color-green-500: #00a25e;
@@ -255,56 +240,19 @@
   .label-text-sm {
     @apply text-sm font-light text-neutral-950 leading-[1.4];
   }
-
   /* Boxed form controls: input, select */
   .field-base {
-    @apply w-full px-3 py-2 text-sm rounded focus:outline-none focus:ring text-neutral-950 bg-purple-500/10 border border-neutral-950;
+    @apply w-full px-3 py-2 text-sm rounded focus:outline-none text-neutral-950 bg-purple-500/10 border border-neutral-950;
   }
   .field-default {
-    @apply focus:ring-neutral-950;
+    @apply focus:border-primary;
   }
   .field-error {
-    @apply shadow-red-500 focus:ring-red-500;
+    @apply shadow-red-500 focus:border-red-500;
   }
   .field-valid {
-    @apply shadow-green-500 focus:ring-green-500;
+    @apply shadow-green-500 focus:border-green-500;
   }
-  .field-disabled {
-    @apply text-neutral-500 bg-neutral-100 cursor-not-allowed border-none;
-  }
-  /* Boxed form controls: input, select */
-  .field-base {
-    @apply w-full px-3 py-2 text-sm rounded focus:outline-none focus:ring text-neutral-950 bg-purple-500/10 border border-neutral-950;
-  }
-  .field-default {
-    @apply focus:ring-neutral-950;
-  }
-  .field-error {
-    @apply shadow-red-500 focus:ring-red-500;
-  }
-  .field-valid {
-    @apply shadow-green-500 focus:ring-green-500;
-  }
-  .field-disabled {
-    @apply text-neutral-500 bg-neutral-100 cursor-not-allowed border-none;
-  }
-  /* Boxed form controls: input, select */
-  .field-base {
-    @apply w-full px-3 py-2 text-sm rounded focus:outline-none focus:ring text-neutral-950 bg-purple-500/10 border border-neutral-950;
-  }
-
-  .field-default {
-    @apply focus:ring-neutral-950;
-  }
-
-  .field-error {
-    @apply shadow-red-500 focus:ring-red-500;
-  }
-
-  .field-valid {
-    @apply shadow-green-500 focus:ring-green-500;
-  }
-
   .field-disabled {
     @apply text-neutral-500 bg-neutral-100 cursor-not-allowed border-none;
   }
@@ -313,10 +261,10 @@
     @apply h-5 w-5 shrink-0 border bg-neutral-50 transition-colors;
   }
   .tick-default {
-    @apply border-primary peer-focus-visible:ring-2 peer-focus-visible:ring-primary peer-focus-visible:ring-offset-1;
+    @apply border-black peer-focus-visible:ring-2 peer-focus-visible:ring-primary peer-focus-visible:ring-offset-1;
   }
   .tick-error {
-    @apply border-error-500 peer-focus-visible:ring-2 peer-focus-visible:ring-error-500 peer-focus-visible:ring-offset-1;
+    @apply border-error peer-focus-visible:ring-2 peer-focus-visible:ring-error peer-focus-visible:ring-offset-1;
   }
   .tick-valid {
     @apply border-success peer-focus-visible:ring-2 peer-focus-visible:ring-success peer-focus-visible:ring-offset-1;
@@ -362,7 +310,7 @@
   --color-success-content: var(--color-black);
   --color-warning: var(--color-warning-500);
   --color-info: var(--color-info-50);
-  --color-error: var(--color-error-500);
+  --color-error: var(--color-red-500);
 }
 
 [x-cloak] {

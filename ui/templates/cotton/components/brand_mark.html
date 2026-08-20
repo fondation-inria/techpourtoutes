@@ -3,5 +3,5 @@
 {% url "coalition_home" as coalition_home %}
 {% is_coalition_page as is_coalition_page %}
 <a href="{% if is_coalition_page %}{{ coalition_home }}{% else %}{% url "home" %}{% endif %}" class="block">
-    <img src="{% if is_coalition_page %}{% static 'images/techpourtoutes-logo-new-coalition.svg' %}{% else %}{% static 'images/techpourtoutes-logo-new-beneficiary.svg' %}{% endif %}" alt="logo TechPourToutes" class="h-10 w-auto {{ class }}" />
+    <img src="{% if is_coalition_page %}{% static 'images/techpourtoutes-logo-new-coalition.png' %}{% else %}{% static 'images/techpourtoutes-logo-new-beneficiary.png' %}{% endif %}" alt="logo TechPourToutes" class="h-14 w-auto {{ class }}" />
 </a>

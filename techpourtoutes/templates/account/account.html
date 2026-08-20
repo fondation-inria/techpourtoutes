@@ -1,5 +1,5 @@
 <c-layout.base>
-    <c-components.title title="Mon compte" variant="h1" />
+    <c-components.title title="Mon compte" title_bg="yellow" />
 
     {% if user.jobirl_user_id %}
         <c-components.card-link color="yellow" title="Mentorat" button="Rejoindre mon espace mentorat" href="{% url "login_to_jobirl" %}" target="_blank" class="max-w-sm">
