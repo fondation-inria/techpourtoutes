@@ -1,16 +1,22 @@
+{% load static %}
+
 <c-layout.base title="TechPourToutes – la coalition pour une tech inclusive" description="TechPourToutes est un programme national pour attirer et soutenir les femmes dans la tech. Rejoignez la coalition en devenant mentor, ambassadrice ou mécène.">
-    <div>
-        <c-components.title variant="tagline">
-            <span>La mixité,</span>
-            <span>là où la tech se fait</span>
-        </c-components.title>
+    <c-slot name="banner">
+        <a href="{% url "home" %}">
+            <div class="flex h-full items-center justify-center gap-x-3 px-4 border-b">
+                <p class="text-sm">Tu es intéressée par le numérique et tu as entre 15 et 25 ans : découvre</p>
+                <img src="{% static 'images/techpourtoutes-logo-new-beneficiary.png' %}" alt="logo TechPourToutes" class="h-12 w-auto {{ class }}" />
+            </div>
+        </a>
+    </c-slot>
 
-        <c-components.title title="Rejoignez la coalition&nbsp;!" />
-    </div>
+    <c-components.title title="Rejoignez la coalition&nbsp;!" title_bg="yellow" />
 
-    <c-components.card title="TechPourToutes, c'est quoi&nbsp;?" title_bg="">
+    <c-components.card title="TechPourToutes, c'est quoi&nbsp;?" title_bg="" style="serif">
         <c-components.text>
-            Entièrement gratuit, le programme TechPourToutes vise à soutenir les filles et les jeunes femmes dans leur parcours dans le numérique. C'est un programme national porté par un consortium réunissant recherche, enseignement supérieur, associations et entreprises du numérique.
+            100% gratuit, TechPourToutes est un programme d'accompagnement à la carte et sur mesure pour les lycéennes et étudiantes de 15 à 25 ans intéressées de poursuivre des études dans le numérique.
+
+            C'est un programme national porté par un consortium réunissant recherche, enseignement supérieur, associations et entreprises du numérique.
         </c-components.text>
     </c-components.card>
 
@@ -29,11 +35,11 @@
         </div>
     </c-components.card-shadow >
 
-    <c-components.card title="Comment contribuer&nbsp;?" title_bg="" />
+    <c-components.card title="Comment contribuer&nbsp;?" title_bg="" style="serif" />
 
     <div class="grid grid-cols-1 md:grid-cols-2 gap-6 w-full">
         <c-components.card-link color="yellow" title="Mentorat" button="En savoir plus" href="{% url "mentor_landing" %}">
-            TechPourToutes recherche des mentors pour accompagner les filles pendant 6&nbsp;mois à distance, pour avoir un impact concret sur leur avenir.
+            TechPourToutes recherche des mentors pour accompagner les jeunes femmes pendant 6&nbsp;mois à distance, pour avoir un impact sur leur avenir.
         </c-components.card-link>
 
         <c-components.card-link color="blue" title="Ateliers en classe" button="En savoir plus" href="{% url "workshops_landing" %}">
@@ -55,6 +61,14 @@
         <c-components.card-link color="yellow" title="Mécénat" button="En savoir plus" href="{% url "sponsor_landing" %}">
             Agissez à nos côtés au service de la féminisation des métiers du numérique, via des bourses, des dons de matériel ou du mécénat de compétence.
         </c-components.card-link>
+    </div>
+
+    <div class="flex justify-center w-full mt-4">
+        <c-components.title variant="tagline">
+            <span>Le futur sera </span>
+            <span>numérique...</span>
+            <span>et féminin</span>
+        </c-components.title>
     </div>
 
 </c-layout.base>
