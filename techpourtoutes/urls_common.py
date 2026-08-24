@@ -8,6 +8,7 @@ urlpatterns = [
     path("se-connecter/code/", views.login_code, name="login_code"),
     path("se-connecter/token/<str:token>/", views.login_verify, name="login_verify"),
     path("mon-compte/", views.account, name="account"),
+    path("mon-compte/detail/", views.account_detail, name="account_detail"),
     path("mon-compte/infos/", views.account_info, name="account_info"),
     path("mon-compte/modifier/", views.account_edit, name="account_edit"),
     path(

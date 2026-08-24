@@ -1,6 +1,7 @@
 from .account_views import (
     account,
     account_communication,
+    account_detail,
     account_edit,
     account_email,
     account_info,
@@ -64,6 +65,7 @@ __all__ = [
     "account",
     "add_mentoring",
     "account_communication",
+    "account_detail",
     "account_edit",
     "account_email",
     "account_info",

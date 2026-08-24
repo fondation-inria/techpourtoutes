@@ -9,7 +9,7 @@ from django.urls import reverse
 @pytest.mark.django_db
 def test_account_page_lists_a_card_per_training_experience(client, pro, experience):
     client.force_login(pro)
-    content = client.get(reverse("account")).content.decode()
+    content = client.get(reverse("account_detail")).content.decode()
     assert f"training-experience-{experience.pk}" in content
     assert "Master Informatique" in content
     assert "Bac +3" in content
@@ -90,7 +90,7 @@ def test_account_page_lists_a_card_per_beneficiary_training_experience(
     client, beneficiary, beneficiary_experience
 ):
     client.force_login(beneficiary)
-    content = client.get(reverse("account")).content.decode()
+    content = client.get(reverse("account_detail")).content.decode()
     assert f"beneficiary-training-experience-{beneficiary_experience.pk}" in content
     assert "Spécialité mathématiques" in content
 
@@ -110,7 +110,7 @@ def test_account_page_places_current_year_placeholder_after_future_experience(cl
     )
     client.force_login(beneficiary)
 
-    content = client.get(reverse("account")).content.decode()
+    content = client.get(reverse("account_detail")).content.decode()
 
     assert content.index(f'id="beneficiary-training-experience-{next_year.pk}"') < content.index(
         'id="beneficiary-training-experience-current-year"'
@@ -498,7 +498,7 @@ def test_account_page_shows_not_enrolled_status_when_no_current_year_experience(
 ):
     client.force_login(beneficiary)
 
-    content = client.get(reverse("account")).content.decode()
+    content = client.get(reverse("account_detail")).content.decode()
 
     assert "Je ne suis pas inscrite dans une formation" in content
     assert re.search(r'<input[^>]*id="id_not_enrolled"[^>]*>', content) is None
@@ -534,7 +534,7 @@ def test_account_page_does_not_duplicate_existing_current_year_experience(client
     )
     client.force_login(beneficiary)
 
-    content = client.get(reverse("account")).content.decode()
+    content = client.get(reverse("account_detail")).content.decode()
 
     assert content.count(f'id="beneficiary-training-experience-{current.pk}"') == 1
     assert re.search(r'<input[^>]*id="id_not_enrolled"[^>]*>', content) is None
@@ -635,7 +635,7 @@ def test_beneficiary_training_experience_card_modifier_targets_closest_ancestor(
 ):
     client.force_login(beneficiary)
 
-    content = client.get(reverse("account")).content.decode()
+    content = client.get(reverse("account_detail")).content.decode()
 
     assert "hx-target=\"closest [id^='beneficiary-training-experience-']\"" in content
     assert 'hx-target="#beneficiary-training-experience-' not in content
@@ -777,6 +777,6 @@ def test_a_parcours_without_a_linked_formation_shows_the_name_she_typed(
     )
     client.force_login(beneficiary)
 
-    content = client.get(reverse("account")).content.decode()
+    content = client.get(reverse("account_detail")).content.decode()
 
     assert 'Formation : <span class="font-medium">Spécialité mathématiques</span>' in content

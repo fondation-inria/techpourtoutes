@@ -22,6 +22,7 @@ SITEMAP_EXCLUDED_URL_NAMES = {
     "account_info",
     "account_edit",
     "account_communication",
+    "account_detail",
     "account_email",
     "email_change",
     "email_change_resend",
