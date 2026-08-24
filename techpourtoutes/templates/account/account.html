@@ -3,7 +3,7 @@
     <c-components.title title="Mon compte" title_bg="yellow" />
 
     <div class="grid w-full grid-cols-1 md:grid-cols-2 gap-6">
-        <c-components.card-link color="white" title="Profil" button="Modifier" href="{% url "account_detail" %}" class="max-w-sm">
+        <c-components.card-link color="white" title="Profil" button="Modifier" href="{% url "account_detail" %}">
             {% politeness "Retrouvez vos" "Retrouve tes" %} informations personnelles et {% politeness "vos" "tes" %} préférences de compte.
         </c-components.card-link>
             

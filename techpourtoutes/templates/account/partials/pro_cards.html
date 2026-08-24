@@ -1,55 +1,55 @@
 {% if user.jobirl_user_id %}
-    <c-components.card-link color="yellow" title="Mentorat" button="Rejoindre mon espace mentorat" href="{% url "login_to_jobirl" %}" target="_blank" class="max-w-sm">
+    <c-components.card-link color="yellow" title="Mentorat" button="Rejoindre mon espace mentorat" href="{% url "login_to_jobirl" %}" target="_blank">
         Retrouvez les échanges avec votre mentorée et des conseils directement dans l'espace dédié.
     </c-components.card-link>
 {% else %}
-    <c-components.card-link color="yellow" title="Mentorat" button="Mentorer" href="{% url "mentor_landing" %}" class="max-w-sm">
+    <c-components.card-link color="yellow" title="Mentorat" button="Mentorer" href="{% url "mentor_landing" %}">
         TechPourToutes propose un programme de mentorat de 6 mois, 100% gratuit et digital.
     </c-components.card-link>
 {% endif %}
 
-<c-components.card-link color="blue" title="Événements" button="Proposer un événement" href="{% url "bientot_disponible" %}" class="max-w-sm">
+<c-components.card-link color="blue" title="Événements" button="Proposer un événement" href="{% url "bientot_disponible" %}">
     TechPourToutes vous permet de mettre en avant vos salons, portes ouvertes, hackathons, stages de renforcement de compétences, etc.
 </c-components.card-link>
 
 {% if is_training_ambassador %}
-    <c-components.card-link color="green" title="Ambassadorat étudiant" button="Rejoindre le forum" href="{% url "bientot_disponible" %}" class="max-w-sm">
+    <c-components.card-link color="green" title="Ambassadorat étudiant" button="Rejoindre le forum" href="{% url "bientot_disponible" %}">
         Retrouvez vos discussions en cours et participez à de nouveaux échanges.
     </c-components.card-link>
 {% else %}
-    <c-components.card-link color="green" title="Ambassadorat étudiant" button="En savoir plus" href="{% url "training_ambassador_landing" %}" class="max-w-sm">
+    <c-components.card-link color="green" title="Ambassadorat étudiant" button="En savoir plus" href="{% url "training_ambassador_landing" %}">
         Étudiante dans une formation numérique, viens représenter ton école et transmettre ta passion à des lycéennes ou d'autres étudiantes.
     </c-components.card-link>
 {% endif %}
 
 {% if is_work_ambassador %}
-    <c-components.card-link color="orange" title="Ambassadorat métier" button="Rejoindre le forum" href="{% url "bientot_disponible" %}" class="max-w-sm">
+    <c-components.card-link color="orange" title="Ambassadorat métier" button="Rejoindre le forum" href="{% url "bientot_disponible" %}">
         Retrouvez vos discussions en cours et participez à de nouveaux échanges.
     </c-components.card-link>
 {% else %}
-    <c-components.card-link color="orange" title="Ambassadorat métier" button="En savoir plus" href="{% url "work_ambassador_landing" %}" class="max-w-sm">
+    <c-components.card-link color="orange" title="Ambassadorat métier" button="En savoir plus" href="{% url "work_ambassador_landing" %}">
         Venez présenter votre métier à des lycéennes ou des étudiantes qui ont besoin de vous pour ouvrir leurs imaginaires.
     </c-components.card-link>
 {% endif %}
 
 {% if has_internships %}
-    <c-components.card-link color="purple" title="Stages &amp; alternance" button="Aller sur la plateforme de stages" href="https://stages.techpourtoutes.io/professionnels" target="_blank" class="max-w-sm">
+    <c-components.card-link color="purple" title="Stages &amp; alternance" button="Aller sur la plateforme de stages" href="https://stages.techpourtoutes.io/professionnels" target="_blank">
         Retrouvez vos offres de stage et d'alternance.
     </c-components.card-link>
 {% else %}
-    <c-components.card-link color="purple" title="Stages &amp; alternance" button="En savoir plus" href="{% url "internships_landing" %}" class="max-w-sm">
+    <c-components.card-link color="purple" title="Stages &amp; alternance" button="En savoir plus" href="{% url "internships_landing" %}">
         Recrutez des jeunes femmes motivées et faites-leur découvrir votre métier lors d'un stage de 1 à 2 semaines ou sur plusieurs mois.
     </c-components.card-link>
 {% endif %}
 
 {% if has_workshops %}
-    <c-components.card-link color="yellow" title="Ateliers en classe" button="Demander un nouvel atelier" href="{% url "workshops_landing" %}" class="max-w-sm">
+    <c-components.card-link color="yellow" title="Ateliers en classe" button="Demander un nouvel atelier" href="{% url "workshops_landing" %}">
         {% with request_count=user.workshop_requests.count %}
             Vous avez soumis {{ request_count }} demande{% if request_count > 1 %}s{% endif %} d'atelier.
         {% endwith %}
     </c-components.card-link>
 {% else %}
-    <c-components.card-link color="yellow" title="Ateliers en classe" button="En savoir plus" href="{% url "workshops_landing" %}" class="max-w-sm">
+    <c-components.card-link color="yellow" title="Ateliers en classe" button="En savoir plus" href="{% url "workshops_landing" %}">
         Au collège ou au lycée, prenez le temps d'aborder le numérique autrement à l'école grâce à nos deux formats d'atelier.
     </c-components.card-link>
 {% endif %}
