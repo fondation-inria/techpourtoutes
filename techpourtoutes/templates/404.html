@@ -5,14 +5,14 @@
         <img src="{% static 'images/error-page-bg.png' %}"
              alt=""
              class="hidden md:block absolute -top-8 left-1/2 -translate-x-1/2 h-[calc(100%+4rem)] w-full md:w-screen md:max-w-4xl -z-10 object-cover border border-neutral-950" />
-        <c-components.title title="Cette page n'existe pas" variant="h1" class="w-full md:w-screen md:max-w-4xl text-center" />
+        <c-components.title title="Cette page n'existe pas" variant="h1" title_bg="yellow" class="w-full md:w-screen md:max-w-4xl text-center" />
         <div class="w-full md:w-screen md:max-w-4xl bg-neutral-0 border border-neutral-950 p-4">
             <p>
-                Cette page est introuvable et depuis longtemps, ce fut le cas des femmes dans l'informatique.
+                Cette page est introuvable, comme l'ont longtemps été les femmes dans l'informatique.
             </p>
             <br>
             <p>
-                Mais désormais, les femmes ont bien toute leur place dans la Tech ! Elles en sont même parfois à l'origine comme Ada Lovelace qui a imaginé le premier algorithme informatique dès 1843.
+                Mais désormais, les femmes ont bien toute leur place dans la Tech&nbsp;! Elles en sont même parfois à l'origine comme Ada Lovelace qui a imaginé le premier algorithme informatique dès 1843.
             </p>
         </div>
         <c-components.button label="Retour à l'accueil" href="{% home_url %}" />
