@@ -2,7 +2,6 @@ from urllib.parse import urlparse
 
 from django import template
 from django.urls import Resolver404, resolve
-from waffle import switch_is_active
 
 from techpourtoutes.urls_coalition import urlpatterns as coalition_urlpatterns
 
@@ -13,12 +12,9 @@ URL_COALITION_NAMES = {pattern.name for pattern in coalition_urlpatterns}
 
 @register.simple_tag(takes_context=True)
 def is_coalition_page(context, path=None):
-    if not switch_is_active("beneficiary_mode"):
-        return True
-    return _is_coalition_url(_resolve_url_match(context, path))
-
-
-def _is_coalition_url(url_match):
+    if path is None and "is_pro" in context:
+        return bool(context["is_pro"])
+    url_match = _resolve_url_match(context, path)
     return url_match is not None and url_match.url_name in URL_COALITION_NAMES
 
 

@@ -3728,9 +3728,6 @@
   .h-10 {
     height: calc(var(--spacing) * 10);
   }
-  .h-12 {
-    height: calc(var(--spacing) * 12);
-  }
   .h-14 {
     height: calc(var(--spacing) * 14);
   }
@@ -4114,14 +4111,6 @@
     border-top-style: var(--tw-border-style);
     border-top-width: 1px;
   }
-  .border-t-\[0\.5px\] {
-    border-top-style: var(--tw-border-style);
-    border-top-width: 0.5px;
-  }
-  .border-t-\[1px\] {
-    border-top-style: var(--tw-border-style);
-    border-top-width: 1px;
-  }
   .border-r {
     border-right-style: var(--tw-border-style);
     border-right-width: 1px;
@@ -4348,9 +4337,6 @@
   }
   .pt-12 {
     padding-top: calc(var(--spacing) * 12);
-  }
-  .pr-1 {
-    padding-right: var(--spacing);
   }
   .pr-2 {
     padding-right: calc(var(--spacing) * 2);
