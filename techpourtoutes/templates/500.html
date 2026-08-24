@@ -1,24 +1,16 @@
-<!DOCTYPE html>
-<html lang="fr">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Erreur serveur — TechPourToutes</title>
-    <style>
-        body { font-family: sans-serif; background: #f0f4ff; color: #1a1a2e; margin: 0; min-height: 100vh; display: flex; align-items: center; justify-content: center; }
-        .container { text-align: center; padding: 2rem; max-width: 480px; }
-        .code { font-size: 3.75rem; font-weight: 700; color: #4a4aff; margin: 0; }
-        h1 { font-size: 3rem; margin: 0.5rem 0 1rem; color: #1616dd; }
-        p { color: #6b7280; line-height: 1.6; }
-        a { display: inline-block; margin-top: 1.5rem; padding: 0.75rem 1.5rem; background: #1616dd; color: #fff; text-decoration: none; border-radius: 6px; font-weight: 500; font-size: 0.875rem; box-shadow: 4px 4px 0 0 #000; }
-    </style>
-</head>
-<body>
-    <div class="container">
-        <p class="code">500</p>
-        <h1>Erreur serveur</h1>
-        <p>Une erreur inattendue s'est produite. Veuillez réessayer dans quelques instants.</p>
-        <a href="/">Retour à l'accueil</a>
+{% load static home_url %}
+
+<c-layout.base title="500 – TechPourToutes" description="Une erreur inattendue s'est produite. Veuillez réessayer dans quelques instants.">
+    <div class="relative isolate flex flex-col items-center justify-start gap-4 w-full md:min-h-screen pb-16">
+        <img src="{% static 'images/error-page-bg.png' %}"
+             alt=""
+             class="hidden md:block absolute -top-8 left-1/2 -translate-x-1/2 h-[calc(100%+4rem)] w-full md:w-screen md:max-w-4xl -z-10 object-cover border border-neutral-950" />
+        <c-components.title title="Problème serveur" variant="h1" title_bg="yellow" class="w-full md:w-screen md:max-w-4xl text-center" />
+        <div class="w-full md:w-screen md:max-w-4xl bg-neutral-0 border border-neutral-950 p-4">
+            <p>
+                Dans le numérique, faire des erreurs fait partie du processus. L'important, c'est d'apprendre, d'améliorer et de recommencer&nbsp;!
+            </p>
+        </div>
+        <c-components.button label="Retour à l'accueil" href="{% home_url %}" />
     </div>
-</body>
-</html>
+</c-layout.base>
