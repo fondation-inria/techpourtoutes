@@ -1,7 +1,7 @@
 from django import forms
 from django.utils.translation import gettext_lazy as _
-from phonenumber_field.formfields import PhoneNumberField
 
+from ..fields import PhoneNumberField
 from ..validators import validate_birth_date
 
 
