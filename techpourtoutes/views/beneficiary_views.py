@@ -26,7 +26,7 @@ from ..models import User
 from ..ratelimit import rate_limit
 from ..services.beneficiary.upsert_beneficiary import UpsertBeneficiary
 from ..tasks import upsert_email_notification_task
-from ..utils.dates import compute_age
+from ..utils.dates import adult_birth_date, compute_age
 
 # The funnel steps in order — the single source of truth navigation is derived from.
 _STEPS = ("email", "identity", "study_status", "training_experience", "mentoring_signup")
@@ -97,10 +97,15 @@ def add_mentoring(request):
         messages.info(request, "Tu es déjà inscrite au programme de mentorat.")
         return redirect(reverse("account"))
 
-    is_minor = compute_age(beneficiary.birth_date) < 18
+    # An account imported from Faveod carries no birth date, so the form
+    # asks for it and minority is only known once it comes back.
+    needs_birth_date = beneficiary.birth_date is None
+    is_minor = not needs_birth_date and compute_age(beneficiary.birth_date) < 18
 
     if request.method == "POST":
-        form = BeneficiaryMentoringSignUpForm(data=request.POST)
+        form = BeneficiaryMentoringSignUpForm(data=request.POST, needs_birth_date=needs_birth_date)
+        if form.is_valid() and needs_birth_date:
+            is_minor = compute_age(form.cleaned_data["birth_date"]) < 18
         if form.is_valid() and is_minor:
             for field in ("legal_representative_name", "legal_representative_email"):
                 if not form.cleaned_data[field]:
@@ -117,12 +122,17 @@ def add_mentoring(request):
             for error in result.errors:
                 messages.error(request, error)
     else:
-        form = BeneficiaryMentoringSignUpForm()
+        form = BeneficiaryMentoringSignUpForm(needs_birth_date=needs_birth_date)
 
     return render(
         request,
         "beneficiary/add_mentoring.html",
-        {"form": form, "is_minor": is_minor},
+        {
+            "form": form,
+            "is_minor": is_minor,
+            "needs_birth_date": needs_birth_date,
+            "adult_birth_date": adult_birth_date().isoformat(),
+        },
     )
 
 

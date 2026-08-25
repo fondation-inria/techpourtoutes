@@ -9,6 +9,7 @@ from django.urls import reverse
 
 from techpourtoutes.models import Beneficiary, Level, User
 from techpourtoutes.services.base import ErrorKind
+from techpourtoutes.utils.dates import adult_birth_date
 from techpourtoutes.utils.school_year import (
     current_school_year_label,
     current_school_year_start_date,
@@ -680,6 +681,95 @@ def test_add_mentoring_post_missing_legal_representative_fields_for_minor(client
     response = client.post(ADD_MENTORING_URL, {"phone": "0612345678"})
 
     assert response.status_code == 200
+    assert "Ce champ est obligatoire." in response.content.decode()
+    beneficiary.refresh_from_db()
+    assert beneficiary.legal_representative_name == ""
+
+
+@pytest.mark.django_db
+def test_add_mentoring_get_asks_for_the_birth_date_when_the_account_has_none(client, beneficiary):
+    beneficiary.birth_date = None
+    beneficiary.save()
+    client.force_login(beneficiary)
+
+    response = client.get(ADD_MENTORING_URL)
+
+    assert response.status_code == 200
+    assert response.context["needs_birth_date"] is True
+    assert response.context["is_minor"] is False
+    assert 'name="birth_date"' in response.content.decode()
+
+
+@pytest.mark.django_db
+def test_add_mentoring_ships_the_legal_representative_fields_for_alpine_to_reveal(
+    client, beneficiary
+):
+    beneficiary.birth_date = None
+    beneficiary.save()
+    client.force_login(beneficiary)
+
+    response = client.get(ADD_MENTORING_URL)
+    content = response.content.decode()
+
+    # Minority is only settled once she picks a date, so the fields ship hidden and Alpine
+    # reveals them right away rather than after a rejected submit.
+    assert response.context["adult_birth_date"] == adult_birth_date().isoformat()
+    assert 'name="legal_representative_email"' in content
+    assert 'x-show="isMinor"' in content
+
+
+@pytest.mark.django_db
+def test_add_mentoring_post_saves_the_submitted_birth_date_of_an_adult(client, beneficiary):
+    beneficiary.birth_date = None
+    beneficiary.save()
+    client.force_login(beneficiary)
+    birth_date = _birth_date_for_age(20)
+
+    with patch(
+        "techpourtoutes.services.beneficiary.sign_up_for_mentoring.CreateMentoree",
+        return_value=MagicMock(success=True, failure=False, errors=[]),
+    ):
+        response = client.post(
+            ADD_MENTORING_URL,
+            {"phone": "0612345678", "birth_date": birth_date.isoformat()},
+            follow=True,
+        )
+
+    assert response.status_code == 200
+    assert response.redirect_chain[-1][0] == reverse("account")
+    beneficiary.refresh_from_db()
+    assert beneficiary.birth_date == birth_date
+
+
+@pytest.mark.django_db
+def test_add_mentoring_post_without_a_birth_date_when_the_account_has_none(client, beneficiary):
+    beneficiary.birth_date = None
+    beneficiary.save()
+    client.force_login(beneficiary)
+
+    response = client.post(ADD_MENTORING_URL, {"phone": "0612345678"})
+
+    assert response.status_code == 200
+    assert response.context["form"].errors["birth_date"]
+    beneficiary.refresh_from_db()
+    assert beneficiary.birth_date is None
+
+
+@pytest.mark.django_db
+def test_add_mentoring_post_with_a_minor_birth_date_requires_a_legal_representative(
+    client, beneficiary
+):
+    beneficiary.birth_date = None
+    beneficiary.save()
+    client.force_login(beneficiary)
+
+    response = client.post(
+        ADD_MENTORING_URL,
+        {"phone": "0612345678", "birth_date": _birth_date_for_age(16).isoformat()},
+    )
+
+    assert response.status_code == 200
+    assert response.context["is_minor"] is True
     assert "Ce champ est obligatoire." in response.content.decode()
     beneficiary.refresh_from_db()
     assert beneficiary.legal_representative_name == ""
