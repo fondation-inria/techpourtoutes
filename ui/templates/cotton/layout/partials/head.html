@@ -1,4 +1,4 @@
-{% load tailwind_cli static matomo %}
+{% load tailwind_cli static matomo coalition_page %}
 <c-vars title="TechPourToutes" description="" og_image="" head_js="" />
 
 <head>
@@ -13,7 +13,12 @@
     <link rel="canonical" href="{{ request.build_absolute_uri }}">
     {% matomo_tracking %}
     <title>{{ title }}</title>
-    <link rel="icon" type="image/png" href="{% static FAVICON_NAMEFILE|add:".png" %}">
+    {% if FAVICON_DYNAMIC_ENABLED %}
+        {% is_coalition_page as is_coalition_page %}
+        <link rel="icon" type="image/svg+xml" href="{% if is_coalition_page %}{% static 'images/favicon-tpt-coalition.svg' %}{% else %}{% static 'images/favicon-tpt-beneficiary.svg' %}{% endif %}">
+    {% else %}
+        <link rel="icon" type="image/png" href="{% static FAVICON_NAMEFILE|add:".png" %}">
+    {% endif %}
     {% tailwind_css %}
     {% for src in head_js.split %}<script defer src="{% static src %}"></script>{% endfor %}
     <script defer src="{% static 'js/alpine.min.js' %}"></script>
