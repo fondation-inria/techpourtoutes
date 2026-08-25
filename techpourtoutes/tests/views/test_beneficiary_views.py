@@ -6,7 +6,6 @@ import pytest
 from django.core import mail
 from django.test import override_settings
 from django.urls import reverse
-from waffle.testutils import override_switch
 
 from techpourtoutes.models import Beneficiary, Level, User
 from techpourtoutes.services.base import ErrorKind
@@ -20,12 +19,6 @@ from techpourtoutes.utils.school_year import (
 FUNNEL_URL = "/inscription/"
 SKIP_MODAL_URL = "/inscription/passer-mentorat/"
 BIENTOT_DISPONIBLE_URL = "/bientot-disponible/"
-
-
-@pytest.fixture
-def beneficiary_mode():
-    with override_switch("beneficiary_mode", active=True):
-        yield
 
 
 def _valid_identity_post():
@@ -110,15 +103,13 @@ def _last_diploma_post(school, formation, **overrides):
 
 
 @pytest.mark.django_db
-def test_bientot_disponible_get_returns_200(client, beneficiary_mode):
+def test_bientot_disponible_get_returns_200(client):
     assert client.get(BIENTOT_DISPONIBLE_URL).status_code == 200
 
 
 @pytest.mark.django_db
 @override_settings(BREVO_SYNC_ENABLED=True)
-def test_bientot_disponible_post_valid_pushes_brevo_contact_and_redirects(
-    client, beneficiary_mode
-):
+def test_bientot_disponible_post_valid_pushes_brevo_contact_and_redirects(client):
     with patch(
         "techpourtoutes.views.beneficiary_views.upsert_email_notification_task"
     ) as mock_task:
@@ -131,7 +122,7 @@ def test_bientot_disponible_post_valid_pushes_brevo_contact_and_redirects(
 
 @pytest.mark.django_db
 @override_settings(BREVO_SYNC_ENABLED=False)
-def test_bientot_disponible_post_skips_task_when_sync_disabled(client, beneficiary_mode):
+def test_bientot_disponible_post_skips_task_when_sync_disabled(client):
     with patch(
         "techpourtoutes.views.beneficiary_views.upsert_email_notification_task"
     ) as mock_task:
@@ -142,7 +133,7 @@ def test_bientot_disponible_post_skips_task_when_sync_disabled(client, beneficia
 
 
 @pytest.mark.django_db
-def test_bientot_disponible_post_invalid_rerenders_with_errors(client, beneficiary_mode):
+def test_bientot_disponible_post_invalid_rerenders_with_errors(client):
     response = client.post(BIENTOT_DISPONIBLE_URL, data={"email": "not-an-email"})
     assert response.status_code == 200
     assert response.context["form"].errors
@@ -151,7 +142,7 @@ def test_bientot_disponible_post_invalid_rerenders_with_errors(client, beneficia
 
 
 @pytest.mark.django_db
-def test_get_renders_funnel_shell(client, beneficiary_mode):
+def test_get_renders_funnel_shell(client):
     response = client.get(FUNNEL_URL)
     assert response.status_code == 200
     # The GET is a stateless shell; the step itself is fetched by the client via "resume".
@@ -161,30 +152,26 @@ def test_get_renders_funnel_shell(client, beneficiary_mode):
 
 
 @pytest.mark.django_db
-def test_get_without_the_mentor_parameter_starts_a_funnel_without_the_mentoring_screen(
-    client, beneficiary_mode
-):
+def test_get_without_the_mentor_parameter_starts_a_funnel_without_the_mentoring_screen(client):
     response = client.get(FUNNEL_URL)
     assert b'"wants_mentor": false' in response.content
 
 
 @pytest.mark.django_db
-def test_get_with_the_mentor_parameter_starts_a_funnel_with_the_mentoring_screen(
-    client, beneficiary_mode
-):
+def test_get_with_the_mentor_parameter_starts_a_funnel_with_the_mentoring_screen(client):
     response = client.get(f"{FUNNEL_URL}?wants_mentor=1")
     assert b'"wants_mentor": true' in response.content
 
 
 @pytest.mark.django_db
-def test_resume_without_answers_renders_email_step(client, beneficiary_mode):
+def test_resume_without_answers_renders_email_step(client):
     response = client.post(FUNNEL_URL, {"action": "resume"})
     assert response.status_code == 200
     assert b'name="action" value="email"' in response.content
 
 
 @pytest.mark.django_db
-def test_resume_returns_furthest_reached_step_prefilled(client, beneficiary_mode):
+def test_resume_returns_furthest_reached_step_prefilled(client):
     response = client.post(
         FUNNEL_URL,
         {
@@ -200,7 +187,7 @@ def test_resume_returns_furthest_reached_step_prefilled(client, beneficiary_mode
 
 
 @pytest.mark.django_db
-def test_resume_returns_to_the_study_status_when_it_is_unknown(client, beneficiary_mode):
+def test_resume_returns_to_the_study_status_when_it_is_unknown(client):
     # The last screen is picked from the study status, so a forged one can't reach it.
     response = client.post(
         FUNNEL_URL,
@@ -218,14 +205,14 @@ def test_resume_returns_to_the_study_status_when_it_is_unknown(client, beneficia
 
 
 @pytest.mark.django_db
-def test_email_step_advances_to_identity(client, beneficiary_mode):
+def test_email_step_advances_to_identity(client):
     response = client.post(FUNNEL_URL, {"action": "email", "email": "oceane@example.com"})
     assert response.status_code == 200
     assert b'name="action" value="identity"' in response.content
 
 
 @pytest.mark.django_db
-def test_existing_email_redirects_to_login(client, beneficiary_mode):
+def test_existing_email_redirects_to_login(client):
     User.objects.create_user(
         username="taken@example.com",
         email="taken@example.com",
@@ -242,7 +229,7 @@ def test_existing_email_redirects_to_login(client, beneficiary_mode):
 
 
 @pytest.mark.django_db
-def test_existing_pro_email_redirects_to_login_with_coalition_back(client, beneficiary_mode, pro):
+def test_existing_pro_email_redirects_to_login_with_coalition_back(client, pro):
     response = client.post(FUNNEL_URL, {"action": "email", "email": pro.email})
     assert "se-connecter" in response["HX-Redirect"]
     assert f"back={quote('/coalition/', safe='')}" in response["HX-Redirect"]
@@ -251,7 +238,7 @@ def test_existing_pro_email_redirects_to_login_with_coalition_back(client, benef
 
 @pytest.mark.django_db
 def test_existing_registered_beneficiary_email_with_wants_mentor_logs_in_to_account(
-    client, beneficiary_mode, beneficiary
+    client, beneficiary
 ):
     beneficiary.jobirl_user_id = 42
     beneficiary.save()
@@ -267,7 +254,7 @@ def test_existing_registered_beneficiary_email_with_wants_mentor_logs_in_to_acco
 
 @pytest.mark.django_db
 def test_existing_unregistered_beneficiary_email_with_wants_mentor_logs_in_to_add_mentoring(
-    client, beneficiary_mode, beneficiary
+    client, beneficiary
 ):
     response = client.post(
         FUNNEL_URL, {"action": "email", "email": beneficiary.email, "wants_mentor": "true"}
@@ -280,7 +267,7 @@ def test_existing_unregistered_beneficiary_email_with_wants_mentor_logs_in_to_ad
 
 @pytest.mark.django_db
 def test_existing_beneficiary_email_without_wants_mentor_redirects_to_home_back(
-    client, beneficiary_mode, beneficiary
+    client, beneficiary
 ):
     response = client.post(FUNNEL_URL, {"action": "email", "email": beneficiary.email})
 
@@ -291,13 +278,13 @@ def test_existing_beneficiary_email_without_wants_mentor_redirects_to_home_back(
 
 @pytest.mark.django_db
 @pytest.mark.parametrize("age", [15, 20, 25])
-def test_identity_step_advances_when_age_is_eligible(client, beneficiary_mode, age):
+def test_identity_step_advances_when_age_is_eligible(client, age):
     response = client.post(FUNNEL_URL, _identity_post_for_age(age))
     assert b'name="action" value="study_status"' in response.content
 
 
 @pytest.mark.django_db
-def test_identity_step_shows_too_young_screen_below_15(client, beneficiary_mode):
+def test_identity_step_shows_too_young_screen_below_15(client):
     response = client.post(FUNNEL_URL, _identity_post_for_age(14))
     assert b'name="action" value="study_status"' not in response.content
     assert b"un peu de patience" in response.content
@@ -306,7 +293,7 @@ def test_identity_step_shows_too_young_screen_below_15(client, beneficiary_mode)
 
 
 @pytest.mark.django_db
-def test_identity_step_shows_too_old_screen_above_25(client, beneficiary_mode):
+def test_identity_step_shows_too_old_screen_above_25(client):
     response = client.post(FUNNEL_URL, _identity_post_for_age(26))
     assert b'name="action" value="study_status"' not in response.content
     assert b"Rejoindre la coalition" in response.content
@@ -314,7 +301,7 @@ def test_identity_step_shows_too_old_screen_above_25(client, beneficiary_mode):
 
 
 @pytest.mark.django_db
-def test_identity_step_keeps_birth_date_when_form_is_invalid(client, beneficiary_mode):
+def test_identity_step_keeps_birth_date_when_form_is_invalid(client):
     # <input type="date"> only accepts YYYY-MM-DD, so the re-rendered field must keep that format.
     birth_date = _birth_date_for_age(20)
     response = client.post(FUNNEL_URL, {**_identity_post_for_age(20), "terms_accepted": ""})
@@ -324,9 +311,7 @@ def test_identity_step_keeps_birth_date_when_form_is_invalid(client, beneficiary
 
 
 @pytest.mark.django_db
-def test_study_status_step_offers_the_secondary_levels_to_a_high_schooler(
-    client, beneficiary_mode
-):
+def test_study_status_step_offers_the_secondary_levels_to_a_high_schooler(client):
     response = client.post(
         FUNNEL_URL,
         {**_valid_identity_post(), "action": "study_status", "study_status": "high_school"},
@@ -338,7 +323,7 @@ def test_study_status_step_offers_the_secondary_levels_to_a_high_schooler(
 
 
 @pytest.mark.django_db
-def test_study_status_step_offers_the_higher_ed_levels_to_a_student(client, beneficiary_mode):
+def test_study_status_step_offers_the_higher_ed_levels_to_a_student(client):
     response = client.post(
         FUNNEL_URL,
         {**_valid_identity_post(), "action": "study_status", "study_status": "higher_education"},
@@ -349,7 +334,7 @@ def test_study_status_step_offers_the_higher_ed_levels_to_a_student(client, bene
 
 
 @pytest.mark.django_db
-def test_study_status_step_asks_a_graduate_about_her_last_diploma(client, beneficiary_mode):
+def test_study_status_step_asks_a_graduate_about_her_last_diploma(client):
     response = client.post(
         FUNNEL_URL,
         {**_valid_identity_post(), "action": "study_status", "study_status": "finished"},
@@ -367,7 +352,7 @@ def test_study_status_step_asks_a_graduate_about_her_last_diploma(client, benefi
 
 @pytest.mark.django_db
 def test_training_experience_step_creates_beneficiary_and_shows_code_screen(
-    client, beneficiary_mode, higher_ed_school, higher_ed_formation
+    client, higher_ed_school, higher_ed_formation
 ):
     response = client.post(
         FUNNEL_URL, _higher_education_post(higher_ed_school, higher_ed_formation)
@@ -384,7 +369,7 @@ def test_training_experience_step_creates_beneficiary_and_shows_code_screen(
 
 @pytest.mark.django_db
 def test_training_experience_step_creates_the_current_year_training(
-    client, beneficiary_mode, higher_ed_school, higher_ed_formation
+    client, higher_ed_school, higher_ed_formation
 ):
     client.post(FUNNEL_URL, _higher_education_post(higher_ed_school, higher_ed_formation))
 
@@ -397,7 +382,7 @@ def test_training_experience_step_creates_the_current_year_training(
 
 @pytest.mark.django_db
 def test_training_experience_step_creates_the_training_of_a_high_schooler(
-    client, beneficiary_mode, school, formation
+    client, school, formation
 ):
     client.post(FUNNEL_URL, _high_school_post(school, formation))
 
@@ -411,7 +396,7 @@ def test_training_experience_step_creates_the_training_of_a_high_schooler(
 @pytest.mark.django_db
 @pytest.mark.parametrize("study_status", ["finished", "resuming"])
 def test_training_experience_step_creates_the_training_of_a_graduate(
-    client, beneficiary_mode, school, formation, study_status
+    client, school, formation, study_status
 ):
     client.post(FUNNEL_URL, _last_diploma_post(school, formation, study_status=study_status))
 
@@ -424,7 +409,7 @@ def test_training_experience_step_creates_the_training_of_a_graduate(
 
 @pytest.mark.django_db
 def test_training_experience_step_does_not_create_without_an_establishment(
-    client, beneficiary_mode, school, formation
+    client, school, formation
 ):
     response = client.post(FUNNEL_URL, _high_school_post(school, formation, school_id=""))
 
@@ -435,9 +420,7 @@ def test_training_experience_step_does_not_create_without_an_establishment(
 
 @pytest.mark.django_db
 @override_settings(EMAIL_BACKEND="django.core.mail.backends.locmem.EmailBackend")
-def test_a_missing_school_still_creates_the_account_and_reports_it(
-    client, beneficiary_mode, school, formation
-):
+def test_a_missing_school_still_creates_the_account_and_reports_it(client, school, formation):
     client.post(
         FUNNEL_URL,
         _high_school_post(
@@ -461,7 +444,7 @@ def test_a_missing_school_still_creates_the_account_and_reports_it(
 @pytest.mark.django_db
 @override_settings(EMAIL_BACKEND="django.core.mail.backends.locmem.EmailBackend")
 def test_training_experience_step_sends_login_code_and_welcome_emails(
-    client, beneficiary_mode, higher_ed_school, higher_ed_formation
+    client, higher_ed_school, higher_ed_formation
 ):
     client.post(FUNNEL_URL, _higher_education_post(higher_ed_school, higher_ed_formation))
 
@@ -479,7 +462,7 @@ def test_training_experience_step_sends_login_code_and_welcome_emails(
 @pytest.mark.django_db
 @override_settings(EMAIL_BACKEND="django.core.mail.backends.locmem.EmailBackend")
 def test_skipping_the_mentoring_screen_creates_beneficiary_without_mentoring_signup(
-    client, beneficiary_mode, higher_ed_school, higher_ed_formation
+    client, higher_ed_school, higher_ed_formation
 ):
     response = client.post(
         FUNNEL_URL,
@@ -499,7 +482,7 @@ def test_skipping_the_mentoring_screen_creates_beneficiary_without_mentoring_sig
 
 
 @pytest.mark.django_db
-def test_skip_modal_submits_the_step_preceding_the_mentoring_screen(client, beneficiary_mode):
+def test_skip_modal_submits_the_step_preceding_the_mentoring_screen(client):
     response = client.get(SKIP_MODAL_URL)
 
     # Skipping makes the step before the mentoring screen the last one, and it is already filled.
@@ -509,7 +492,7 @@ def test_skip_modal_submits_the_step_preceding_the_mentoring_screen(client, bene
 
 @pytest.mark.django_db
 def test_mentoring_signup_step_persists_legal_representative_email_for_a_minor(
-    client, beneficiary_mode, higher_ed_school, higher_ed_formation
+    client, higher_ed_school, higher_ed_formation
 ):
     response = client.post(
         FUNNEL_URL,
@@ -533,7 +516,7 @@ def test_mentoring_signup_step_persists_legal_representative_email_for_a_minor(
 
 @pytest.mark.django_db
 def test_mentoring_signup_step_blocks_a_minor_without_legal_representative_fields(
-    client, beneficiary_mode, higher_ed_school, higher_ed_formation
+    client, higher_ed_school, higher_ed_formation
 ):
     response = client.post(
         FUNNEL_URL,
@@ -554,7 +537,7 @@ def test_mentoring_signup_step_blocks_a_minor_without_legal_representative_field
 
 @pytest.mark.django_db
 def test_mentoring_signup_step_creates_an_adult_beneficiary_without_legal_representative_fields(
-    client, beneficiary_mode, higher_ed_school, higher_ed_formation
+    client, higher_ed_school, higher_ed_formation
 ):
     # The template never shows the legal-representative fields to an adult, so the form must
     # accept a submission carrying only the phone number.
@@ -582,7 +565,7 @@ def test_mentoring_signup_step_creates_an_adult_beneficiary_without_legal_repres
 
 @pytest.mark.django_db
 def test_a_mentoring_sign_up_jobirl_refuses_sends_her_back_with_no_account(
-    client, beneficiary_mode, higher_ed_school, higher_ed_formation
+    client, higher_ed_school, higher_ed_formation
 ):
     refused = MagicMock(
         success=False,
@@ -616,7 +599,7 @@ ADD_MENTORING_URL = "/devenir-mentoree/"
 
 
 @pytest.mark.django_db
-def test_add_mentoring_requires_login(client, beneficiary_mode):
+def test_add_mentoring_requires_login(client):
     response = client.get(ADD_MENTORING_URL)
 
     assert response.status_code == 302
@@ -624,7 +607,7 @@ def test_add_mentoring_requires_login(client, beneficiary_mode):
 
 
 @pytest.mark.django_db
-def test_add_mentoring_redirects_non_beneficiary_with_error(client, beneficiary_mode, pro):
+def test_add_mentoring_redirects_non_beneficiary_with_error(client, pro):
     client.force_login(pro)
 
     response = client.get(ADD_MENTORING_URL, follow=True)
@@ -636,7 +619,7 @@ def test_add_mentoring_redirects_non_beneficiary_with_error(client, beneficiary_
 
 
 @pytest.mark.django_db
-def test_add_mentoring_redirects_when_already_registered(client, beneficiary_mode, beneficiary):
+def test_add_mentoring_redirects_when_already_registered(client, beneficiary):
     beneficiary.jobirl_user_id = 42
     beneficiary.save()
     client.force_login(beneficiary)
@@ -648,7 +631,7 @@ def test_add_mentoring_redirects_when_already_registered(client, beneficiary_mod
 
 
 @pytest.mark.django_db
-def test_add_mentoring_get_renders_form_for_adult(client, beneficiary_mode, beneficiary):
+def test_add_mentoring_get_renders_form_for_adult(client, beneficiary):
     client.force_login(beneficiary)
 
     response = client.get(ADD_MENTORING_URL)
@@ -659,7 +642,7 @@ def test_add_mentoring_get_renders_form_for_adult(client, beneficiary_mode, bene
 
 
 @pytest.mark.django_db
-def test_add_mentoring_get_renders_form_for_minor(client, beneficiary_mode, beneficiary):
+def test_add_mentoring_get_renders_form_for_minor(client, beneficiary):
     beneficiary.birth_date = _birth_date_for_age(16)
     beneficiary.save()
     client.force_login(beneficiary)
@@ -672,9 +655,7 @@ def test_add_mentoring_get_renders_form_for_minor(client, beneficiary_mode, bene
 
 
 @pytest.mark.django_db
-def test_add_mentoring_post_valid_adult_signs_up_and_redirects(
-    client, beneficiary_mode, beneficiary
-):
+def test_add_mentoring_post_valid_adult_signs_up_and_redirects(client, beneficiary):
     client.force_login(beneficiary)
     instance = MagicMock(success=True, failure=False, errors=[])
 
@@ -691,9 +672,7 @@ def test_add_mentoring_post_valid_adult_signs_up_and_redirects(
 
 
 @pytest.mark.django_db
-def test_add_mentoring_post_missing_legal_representative_fields_for_minor(
-    client, beneficiary_mode, beneficiary
-):
+def test_add_mentoring_post_missing_legal_representative_fields_for_minor(client, beneficiary):
     beneficiary.birth_date = _birth_date_for_age(16)
     beneficiary.save()
     client.force_login(beneficiary)
@@ -707,7 +686,7 @@ def test_add_mentoring_post_missing_legal_representative_fields_for_minor(
 
 
 @pytest.mark.django_db
-def test_add_mentoring_post_service_failure_shows_error(client, beneficiary_mode, beneficiary):
+def test_add_mentoring_post_service_failure_shows_error(client, beneficiary):
     client.force_login(beneficiary)
     refused = MagicMock(
         success=False,
@@ -732,7 +711,7 @@ FIND_MENTOR_LANDING_URL = "/trouver-une-mentore/"
 
 
 @pytest.mark.django_db
-def test_find_mentor_landing_cta_for_anonymous_user(client, beneficiary_mode):
+def test_find_mentor_landing_cta_for_anonymous_user(client):
     response = client.get(FIND_MENTOR_LANDING_URL)
 
     assert response.status_code == 200
@@ -742,9 +721,7 @@ def test_find_mentor_landing_cta_for_anonymous_user(client, beneficiary_mode):
 
 
 @pytest.mark.django_db
-def test_find_mentor_landing_cta_for_connected_unregistered_beneficiary(
-    client, beneficiary_mode, beneficiary
-):
+def test_find_mentor_landing_cta_for_connected_unregistered_beneficiary(client, beneficiary):
     client.force_login(beneficiary)
 
     response = client.get(FIND_MENTOR_LANDING_URL)
@@ -756,9 +733,7 @@ def test_find_mentor_landing_cta_for_connected_unregistered_beneficiary(
 
 
 @pytest.mark.django_db
-def test_find_mentor_landing_cta_for_connected_registered_beneficiary(
-    client, beneficiary_mode, beneficiary
-):
+def test_find_mentor_landing_cta_for_connected_registered_beneficiary(client, beneficiary):
     beneficiary.jobirl_user_id = 42
     beneficiary.save()
     client.force_login(beneficiary)
@@ -773,7 +748,7 @@ def test_find_mentor_landing_cta_for_connected_registered_beneficiary(
 
 @pytest.mark.django_db
 def test_find_mentor_landing_cta_disabled_for_registration_pending_jobirl_account(
-    client, beneficiary_mode, beneficiary
+    client, beneficiary
 ):
     beneficiary.legal_representative_email = "parent.durand@example.com"
     beneficiary.save()
@@ -788,7 +763,7 @@ def test_find_mentor_landing_cta_disabled_for_registration_pending_jobirl_accoun
 
 @pytest.mark.django_db
 def test_find_mentor_landing_cta_for_connected_non_beneficiary_points_to_add_mentoring(
-    client, beneficiary_mode, pro
+    client, pro
 ):
     client.force_login(pro)
 
@@ -801,7 +776,7 @@ def test_find_mentor_landing_cta_for_connected_non_beneficiary_points_to_add_men
 
 
 @pytest.mark.django_db
-def test_funnel_redirects_authenticated_user_to_account(client, beneficiary_mode):
+def test_funnel_redirects_authenticated_user_to_account(client):
     beneficiary = Beneficiary.objects.create(
         username="oceane@example.com",
         email="oceane@example.com",
@@ -817,7 +792,7 @@ def test_funnel_redirects_authenticated_user_to_account(client, beneficiary_mode
 
 
 @pytest.mark.django_db
-def test_code_step_with_valid_code_logs_in_and_redirects(client, beneficiary_mode):
+def test_code_step_with_valid_code_logs_in_and_redirects(client):
     beneficiary = Beneficiary.objects.create(
         username="oceane@example.com",
         email="oceane@example.com",
@@ -835,7 +810,7 @@ def test_code_step_with_valid_code_logs_in_and_redirects(client, beneficiary_mod
 
 
 @pytest.mark.django_db
-def test_code_step_with_invalid_code_shows_error(client, beneficiary_mode):
+def test_code_step_with_invalid_code_shows_error(client):
     beneficiary = Beneficiary.objects.create(
         username="oceane@example.com",
         email="oceane@example.com",
@@ -856,7 +831,7 @@ def test_code_step_with_invalid_code_shows_error(client, beneficiary_mode):
 
 @pytest.mark.django_db
 @override_settings(EMAIL_BACKEND="django.core.mail.backends.locmem.EmailBackend")
-def test_resend_step_mails_a_new_code_and_stays_on_the_code_screen(client, beneficiary_mode):
+def test_resend_step_mails_a_new_code_and_stays_on_the_code_screen(client):
     beneficiary = Beneficiary.objects.create(
         username="oceane@example.com",
         email="oceane@example.com",
@@ -879,7 +854,7 @@ def test_resend_step_mails_a_new_code_and_stays_on_the_code_screen(client, benef
 
 @pytest.mark.django_db
 @override_settings(EMAIL_BACKEND="django.core.mail.backends.locmem.EmailBackend")
-def test_resend_step_with_unknown_email_sends_nothing(client, beneficiary_mode):
+def test_resend_step_with_unknown_email_sends_nothing(client):
     response = client.post(FUNNEL_URL, {"action": "resend", "email": "inconnue@example.com"})
 
     assert response.status_code == 200
@@ -889,7 +864,7 @@ def test_resend_step_with_unknown_email_sends_nothing(client, beneficiary_mode):
 
 @pytest.mark.django_db
 def test_training_experience_step_routes_back_to_furthest_invalid_step_with_error(
-    client, beneficiary_mode, higher_ed_school, higher_ed_formation
+    client, higher_ed_school, higher_ed_formation
 ):
     # Email and study status are fine, but the birth date is invalid: the user is sent back
     # to the identity step (the furthest-back screen that needs correcting), not to email.
@@ -905,7 +880,7 @@ def test_training_experience_step_routes_back_to_furthest_invalid_step_with_erro
 
 @pytest.mark.django_db
 def test_training_experience_step_does_not_create_when_email_is_missing(
-    client, beneficiary_mode, higher_ed_school, higher_ed_formation
+    client, higher_ed_school, higher_ed_formation
 ):
     response = client.post(
         FUNNEL_URL, _higher_education_post(higher_ed_school, higher_ed_formation, email="")
@@ -918,9 +893,7 @@ def test_training_experience_step_does_not_create_when_email_is_missing(
 
 
 @pytest.mark.django_db
-def test_progress_ignores_the_mentoring_screen_when_it_is_not_part_of_the_funnel(
-    client, beneficiary_mode
-):
+def test_progress_ignores_the_mentoring_screen_when_it_is_not_part_of_the_funnel(client):
     response = client.post(
         FUNNEL_URL,
         {**_valid_identity_post(), "action": "study_status", "study_status": "higher_education"},
@@ -932,7 +905,7 @@ def test_progress_ignores_the_mentoring_screen_when_it_is_not_part_of_the_funnel
 
 
 @pytest.mark.django_db
-def test_progress_counts_the_mentoring_screen_when_a_mentor_is_wanted(client, beneficiary_mode):
+def test_progress_counts_the_mentoring_screen_when_a_mentor_is_wanted(client):
     response = client.post(
         FUNNEL_URL,
         {
@@ -947,7 +920,7 @@ def test_progress_counts_the_mentoring_screen_when_a_mentor_is_wanted(client, be
 
 
 @pytest.mark.django_db
-def test_back_step_returns_previous_step_prefilled(client, beneficiary_mode):
+def test_back_step_returns_previous_step_prefilled(client):
     response = client.post(
         FUNNEL_URL, {**_identity_post_for_age(20), "action": "back", "to": "study_status"}
     )

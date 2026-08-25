@@ -1,6 +1,5 @@
 import pytest
 from django.urls import reverse
-from waffle.testutils import override_switch
 
 from techpourtoutes.sitemaps import StaticViewSitemap
 
@@ -58,10 +57,7 @@ def _argument_free_names(*url_modules):
 def test_every_public_page_is_either_in_sitemap_or_explicitly_excluded():
     from techpourtoutes import urls_beneficiary, urls_coalition, urls_common
 
-    coalition_sitemap = set(StaticViewSitemap().items())
-    with override_switch("beneficiary_mode", active=True):
-        beneficiary_sitemap = set(StaticViewSitemap().items())
-    accounted_for = coalition_sitemap | beneficiary_sitemap | SITEMAP_EXCLUDED_URL_NAMES
+    accounted_for = set(StaticViewSitemap().items()) | SITEMAP_EXCLUDED_URL_NAMES
 
     app_page_names = _argument_free_names(urls_coalition, urls_common, urls_beneficiary)
 
@@ -75,8 +71,7 @@ def test_every_public_page_is_either_in_sitemap_or_explicitly_excluded():
 
 @pytest.mark.django_db
 def test_beneficiary_sitemap_includes_coalition_pages_served_under_prefix():
-    with override_switch("beneficiary_mode", active=True):
-        items = StaticViewSitemap().items()
+    items = StaticViewSitemap().items()
     assert "home" in items
     assert "coalition_home" in items
     assert "mentor_landing" in items

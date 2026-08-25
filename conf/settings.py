@@ -79,7 +79,6 @@ AUTH_USER_MODEL = "techpourtoutes.User"
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
     "whitenoise.middleware.WhiteNoiseMiddleware",
-    "techpourtoutes.middleware.SiteModeUrlconfMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",

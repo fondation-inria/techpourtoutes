@@ -2,7 +2,6 @@ import re
 
 import pytest
 from playwright.sync_api import expect
-from waffle.testutils import override_switch
 
 from techpourtoutes.models import (
     Beneficiary,
@@ -28,12 +27,6 @@ _DIPLOMA_FORMATION_LABEL = "De quelle formation es-tu diplômée ?*"
 @pytest.fixture
 def funnel_url(live_server):
     return f"{live_server.url}/inscription/"
-
-
-@pytest.fixture
-def beneficiary_mode():
-    with override_switch("beneficiary_mode", active=True):
-        yield
 
 
 def _complete_email_step(page, email="oceane@example.com"):
@@ -92,7 +85,7 @@ def _voltaire_teaching(formation_name):
     return school, formation
 
 
-def test_graduate_registers_with_her_last_diploma(page, funnel_url, beneficiary_mode):
+def test_graduate_registers_with_her_last_diploma(page, funnel_url):
     _, formation = _voltaire_teaching("Bac général")
     diploma_year = current_school_year_start_date().year - 3
 
@@ -120,7 +113,7 @@ def test_graduate_registers_with_her_last_diploma(page, funnel_url, beneficiary_
     assert experience.start_date.year == diploma_year
 
 
-def test_the_formation_field_waits_for_the_school(page, funnel_url, beneficiary_mode):
+def test_the_formation_field_waits_for_the_school(page, funnel_url):
     _voltaire_teaching("Spécialité mathématiques")
 
     page.goto(funnel_url)
@@ -137,9 +130,7 @@ def test_the_formation_field_waits_for_the_school(page, funnel_url, beneficiary_
     expect(formation_field).to_be_enabled()
 
 
-def test_clearing_the_school_empties_and_disables_the_formation(
-    page, funnel_url, beneficiary_mode
-):
+def test_clearing_the_school_empties_and_disables_the_formation(page, funnel_url):
     _voltaire_teaching("Spécialité mathématiques")
 
     page.goto(funnel_url)
@@ -157,9 +148,7 @@ def test_clearing_the_school_empties_and_disables_the_formation(
     expect(_search_field(page, _HIGH_SCHOOL_FORMATION_LABEL)).to_be_disabled()
 
 
-def test_changing_the_diploma_level_swaps_the_establishment_list(
-    page, funnel_url, beneficiary_mode
-):
+def test_changing_the_diploma_level_swaps_the_establishment_list(page, funnel_url):
     page.goto(funnel_url)
     _complete_email_step(page)
     _complete_identity_step(page)
@@ -178,7 +167,7 @@ def test_changing_the_diploma_level_swaps_the_establishment_list(
     expect(higher_ed_dropdown).to_have_count(1)
 
 
-def test_high_schooler_registers_with_her_school(page, funnel_url, beneficiary_mode):
+def test_high_schooler_registers_with_her_school(page, funnel_url):
     _, formation = _voltaire_teaching("Spécialité mathématiques")
     requests = []
     page.on("request", lambda request: requests.append(request.url))
@@ -209,7 +198,7 @@ def test_high_schooler_registers_with_her_school(page, funnel_url, beneficiary_m
     assert not [url for url in searches if "oceane" in url]
 
 
-def test_a_failed_submit_keeps_the_chosen_school_collapsed(page, funnel_url, beneficiary_mode):
+def test_a_failed_submit_keeps_the_chosen_school_collapsed(page, funnel_url):
     _voltaire_teaching("Spécialité mathématiques")
 
     page.goto(funnel_url)
@@ -231,7 +220,7 @@ def test_a_failed_submit_keeps_the_chosen_school_collapsed(page, funnel_url, ben
     expect(page.get_by_text("Lycée Voltaire (75011)")).to_be_visible()
 
 
-def test_reload_keeps_progress(page, funnel_url, beneficiary_mode):
+def test_reload_keeps_progress(page, funnel_url):
     page.goto(funnel_url)
     _complete_email_step(page)
     _complete_identity_step(page)
@@ -244,7 +233,7 @@ def test_reload_keeps_progress(page, funnel_url, beneficiary_mode):
     expect(page.get_by_text("Océane")).to_be_visible()
 
 
-def test_closing_the_funnel_wipes_progress(page, funnel_url, beneficiary_mode):
+def test_closing_the_funnel_wipes_progress(page, funnel_url):
     page.goto(funnel_url)
     _complete_email_step(page)
     expect(page.locator('input[name="action"]:not([value="back"])')).to_have_value("identity")
@@ -257,7 +246,7 @@ def test_closing_the_funnel_wipes_progress(page, funnel_url, beneficiary_mode):
     expect(page.locator('input[name="email"]')).to_have_value("")
 
 
-def test_unchecking_a_box_after_going_back_is_kept(page, funnel_url, beneficiary_mode):
+def test_unchecking_a_box_after_going_back_is_kept(page, funnel_url):
     page.goto(funnel_url)
     _complete_email_step(page)
     page.locator('input[name="newsletter_consent"]').check(force=True)
@@ -275,9 +264,7 @@ def test_unchecking_a_box_after_going_back_is_kept(page, funnel_url, beneficiary
     expect(page.locator('input[name="newsletter_consent"]')).not_to_be_checked()
 
 
-def test_unchecking_a_required_box_after_going_back_blocks_the_step(
-    page, funnel_url, beneficiary_mode
-):
+def test_unchecking_a_required_box_after_going_back_blocks_the_step(page, funnel_url):
     page.goto(funnel_url)
     _complete_email_step(page)
     _complete_identity_step(page)
@@ -293,7 +280,7 @@ def test_unchecking_a_required_box_after_going_back_blocks_the_step(
     expect(page.locator('input[name="action"]:not([value="back"])')).to_have_value("identity")
 
 
-def test_existing_email_wipes_progress(page, funnel_url, beneficiary_mode):
+def test_existing_email_wipes_progress(page, funnel_url):
     User.objects.create_user(
         username="taken@example.com",
         email="taken@example.com",
@@ -314,7 +301,7 @@ def test_existing_email_wipes_progress(page, funnel_url, beneficiary_mode):
     expect(page.locator('input[name="email"]')).to_have_value("")
 
 
-def test_age_gate_wipes_progress(page, funnel_url, beneficiary_mode):
+def test_age_gate_wipes_progress(page, funnel_url):
     page.goto(funnel_url)
     _complete_email_step(page)
     _complete_identity_step(page, birth_date="1990-01-01")
@@ -326,9 +313,7 @@ def test_age_gate_wipes_progress(page, funnel_url, beneficiary_mode):
     expect(page.locator('input[name="email"]')).to_have_value("")
 
 
-def test_a_missing_school_frees_the_field_and_opens_the_whole_catalogue(
-    page, funnel_url, beneficiary_mode
-):
+def test_a_missing_school_frees_the_field_and_opens_the_whole_catalogue(page, funnel_url):
     _voltaire_teaching("Spécialité mathématiques")
     elsewhere = Formation(onisep_id="9999", name="Bac pro maréchalerie", secondary=True)
     elsewhere.save()
@@ -356,7 +341,7 @@ def test_a_missing_school_frees_the_field_and_opens_the_whole_catalogue(
     assert experience.level == Level.TERMINALE
 
 
-def test_both_records_missing_registers_on_free_text_alone(page, funnel_url, beneficiary_mode):
+def test_both_records_missing_registers_on_free_text_alone(page, funnel_url):
     _voltaire_teaching("Spécialité mathématiques")
 
     page.goto(funnel_url)

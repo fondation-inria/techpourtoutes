@@ -1,8 +1,7 @@
-{% load static home_url %}
-
+{% load static %}
 <c-layout.base title="404 – TechPourToutes" description="La page que vous cherchez n'existe pas ou a été déplacée.">
-    <div class="relative isolate flex flex-col items-center justify-start gap-4 w-full md:min-h-screen pb-16">
-        <img src="{% static 'images/error-page-bg.png' %}"
+    <div class="relative isolate flex flex-col items-center justify-start gap-4 w-full md:flex-1 pb-16">
+        <img src="{% static 'images/error-page-bg.webp' %}"
              alt=""
              class="hidden md:block absolute -top-8 left-1/2 -translate-x-1/2 h-[calc(100%+4rem)] w-full md:w-screen md:max-w-4xl -z-10 object-cover border border-neutral-950" />
         <c-components.title title="Cette page n'existe pas" variant="h1" title_bg="yellow" class="w-full md:w-screen md:max-w-4xl text-center" />
@@ -15,6 +14,6 @@
                 Mais désormais, les femmes ont bien toute leur place dans la Tech&nbsp;! Elles en sont même parfois à l'origine comme Ada Lovelace qui a imaginé le premier algorithme informatique dès 1843.
             </p>
         </div>
-        <c-components.button label="Retour à l'accueil" href="{% home_url %}" />
+        <c-components.button label="Retour à l'accueil" href="{% url 'home' %}" />
     </div>
 </c-layout.base>
