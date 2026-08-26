@@ -16,7 +16,6 @@ from ..forms import (
     VerificationCodeForm,
 )
 from ..mailers import AuthMailer
-from ..models import Pro
 from ..ratelimit import rate_limit
 from ..services.account.verify_email_change_code import VerifyEmailChangeCode
 from ..utils.text import mask_email
@@ -27,11 +26,6 @@ from ..utils.training_experience import training_experience_slots
 def account(request):
     is_pro, is_beneficiary, user = _resolve_account(request)
     context = {"user": user, "is_pro": is_pro, "is_beneficiary": is_beneficiary}
-    if is_pro:
-        context["is_training_ambassador"] = Pro.Engagement.TRAINING_AMBASSADOR in user.engagements
-        context["is_work_ambassador"] = Pro.Engagement.WORK_AMBASSADOR in user.engagements
-        context["has_workshops"] = Pro.Engagement.WORKSHOPS in user.engagements
-        context["has_internships"] = Pro.Engagement.INTERNSHIPS in user.engagements
     return render(request, "account/account.html", context)
 
 
