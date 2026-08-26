@@ -3,6 +3,34 @@ from django.urls import reverse
 
 
 @pytest.mark.django_db
+def test_favicon_uses_favicon_namefile_when_dynamic_favicon_disabled(client, settings):
+    settings.FAVICON_DYNAMIC_ENABLED = False
+    settings.FAVICON_NAMEFILE = "images/favicon-tpt-staging"
+    content = client.get(reverse("mentions_legales")).content.decode()
+    assert "favicon-tpt-staging.png" in content
+    assert "favicon-tpt-coalition.svg" not in content
+    assert "favicon-tpt-beneficiary.svg" not in content
+
+
+@pytest.mark.django_db
+def test_favicon_is_coalition_variant_on_coalition_page_when_dynamic_favicon_enabled(
+    client, settings
+):
+    settings.FAVICON_DYNAMIC_ENABLED = True
+    content = client.get(reverse("coalition_home")).content.decode()
+    assert "favicon-tpt-coalition.svg" in content
+
+
+@pytest.mark.django_db
+def test_favicon_is_beneficiary_variant_on_beneficiary_page_when_dynamic_favicon_enabled(
+    client, settings
+):
+    settings.FAVICON_DYNAMIC_ENABLED = True
+    content = client.get(reverse("mentions_legales")).content.decode()
+    assert "favicon-tpt-beneficiary.svg" in content
+
+
+@pytest.mark.django_db
 def test_home_page_has_unique_title(client):
     content = client.get(reverse("coalition_home")).content.decode()
     assert "<title>TechPourToutes</title>" not in content

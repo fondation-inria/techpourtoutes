@@ -7,12 +7,25 @@ from .training_experience import TrainingExperienceInline
 PERSONAL_FIELDS = ("civility", "first_name", "last_name", "email", "phone", "postal_code")
 
 
+class AccountCreationFieldsMixin:
+    """Fields typed when the account is created, then locked — editing them is the funnel's job."""
+
+    CREATE_ONLY_FIELDS = ("email", "brevo_sync_enabled")
+
+    def get_readonly_fields(self, _request, obj=None):
+        if obj is None:
+            return self.readonly_fields
+        return (*self.readonly_fields, *self.CREATE_ONLY_FIELDS)
+
+
 @admin.register(User)
-class UserAdmin(admin.ModelAdmin):
+class UserAdmin(AccountCreationFieldsMixin, admin.ModelAdmin):
     readonly_fields = (
         "last_login",
         "created_at",
         "updated_at",
+        "jobirl_user_id",
+        "faveod_id",
     )
     fieldsets = (
         (
@@ -23,6 +36,8 @@ class UserAdmin(admin.ModelAdmin):
             "Autres infos",
             {
                 "fields": (
+                    "jobirl_user_id",
+                    "faveod_id",
                     "last_login",
                     "created_at",
                     "updated_at",
