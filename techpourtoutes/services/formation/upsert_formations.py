@@ -20,6 +20,7 @@ MAPPED_FIELDS = [
     "code_rncp",
     "certification_level",
     "certification_level_name",
+    "domain",
 ]
 
 
@@ -60,4 +61,5 @@ class UpsertFormations(BaseService):
             code_rncp=record.get("code_rncp") or "",
             certification_level=record.get("niveau_de_certification") or "",
             certification_level_name=record.get("libelle_niveau_de_certification") or "",
+            domain=record.get("domainesous-domaine") or "",
         )

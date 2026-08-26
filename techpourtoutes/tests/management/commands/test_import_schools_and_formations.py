@@ -19,6 +19,7 @@ def test_the_master_command_imports_everything_in_order():
     # The actions need both ends imported first: a wrong order would leave this at zero.
     assert FormationAction.objects.count() == 200
     assert School.objects.training_ambassador().count() == 90
+    assert School.objects.filter(eligible=True).count() == 106
 
 
 def test_running_twice_changes_no_count():
@@ -33,6 +34,7 @@ def test_running_twice_changes_no_count():
         FormationAction.objects.count(),
     ) == counts
     assert School.objects.training_ambassador().count() == 90
+    assert School.objects.filter(eligible=True).count() == 106
 
 
 def test_if_empty_is_forwarded_to_every_step():
@@ -57,6 +59,7 @@ def test_async_hands_the_whole_chain_to_the_worker():
         "import_onisep_formation_actions_task",
         "techpourtoutes.tasks.flag_training_ambassador_schools."
         "flag_training_ambassador_schools_task",
+        "techpourtoutes.tasks.flag_eligible_schools.flag_eligible_schools_task",
     ]
     assert School.objects.count() == 0
 
@@ -69,6 +72,7 @@ def test_async_runs_the_same_import_when_celery_is_eager():
     assert Formation.objects.count() == 149
     assert FormationAction.objects.count() == 200
     assert School.objects.training_ambassador().count() == 90
+    assert School.objects.filter(eligible=True).count() == 106
 
 
 def test_async_refuses_if_empty():

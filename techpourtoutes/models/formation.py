@@ -63,6 +63,7 @@ class Formation(BaseModel):
     certification_level_name = models.CharField(
         max_length=50, blank=True, verbose_name=_("libellé du niveau de certification")
     )
+    domain = models.TextField(blank=True, verbose_name=_("domaine de formation"))
     secondary = models.BooleanField(default=False, verbose_name=_("enseignement secondaire"))
     higher_ed = models.BooleanField(default=False, verbose_name=_("enseignement supérieur"))
     schools = models.ManyToManyField(
@@ -71,7 +72,6 @@ class Formation(BaseModel):
         related_name="formations",
         verbose_name=_("établissements"),
     )
-
     objects = FormationQuerySet.as_manager()
 
     class Meta:
