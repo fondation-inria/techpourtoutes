@@ -123,6 +123,11 @@ class User(BaseModel, AbstractUser):
         instance._loaded_brevo_sync_enabled = instance.brevo_sync_enabled
         return instance
 
+    def save(self, *args, **kwargs):
+        if not self.username:
+            self.username = self.email
+        super().save(*args, **kwargs)
+
     @property
     def full_name(self):
         return f"{self.first_name} {self.last_name.upper()}".strip()

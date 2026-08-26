@@ -6,18 +6,16 @@ from techpourtoutes.models import Pro
 from ..filters import EngagementFilter
 from ..stats import pro_stats
 from .training_experience import TrainingExperienceInline
-from .user import PERSONAL_FIELDS
+from .user import PERSONAL_FIELDS, AccountCreationFieldsMixin
 from .workshop_request import WorkshopRequestInline
 
 
 @admin.register(Pro)
-class ProAdmin(admin.ModelAdmin):
+class ProAdmin(AccountCreationFieldsMixin, admin.ModelAdmin):
     readonly_fields = (
-        "email",
         "last_login",
         "created_at",
         "updated_at",
-        "brevo_sync_enabled",
         "jobirl_user_id",
         "faveod_id",
         "display_engagements",
