@@ -4107,9 +4107,6 @@
   .border-orange-500 {
     border-color: var(--color-orange-500);
   }
-  .border-primary {
-    border-color: var(--color-primary);
-  }
   .border-purple-500 {
     border-color: var(--color-purple-500);
   }
@@ -4156,6 +4153,12 @@
   .bg-black {
     background-color: var(--color-black);
   }
+  .bg-black\/40 {
+    background-color: color-mix(in srgb, #000 40%, transparent);
+    @supports (color: color-mix(in lab, red, red)) {
+      background-color: color-mix(in oklab, var(--color-black) 40%, transparent);
+    }
+  }
   .bg-blue-500 {
     background-color: var(--color-blue-500);
   }
@@ -4164,9 +4167,6 @@
   }
   .bg-green-500 {
     background-color: var(--color-green-500);
-  }
-  .bg-mauve-background {
-    background-color: var(--color-mauve-background);
   }
   .bg-neutral-0 {
     background-color: var(--color-neutral-0);
