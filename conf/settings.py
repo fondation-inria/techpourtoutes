@@ -22,6 +22,9 @@ environ.Env.read_env(BASE_DIR / ".env")
 SECRET_KEY = env("SECRET_KEY")
 DEBUG = env("DEBUG")
 FAVICON_NAMEFILE = env("FAVICON_NAMEFILE", default="images/favicon-tpt")
+# Switches the favicon between favicon-tpt-coalition.svg and favicon-tpt-beneficiary.svg based
+# on the sidebar shown, instead of the fixed FAVICON_NAMEFILE. Enable in prod only.
+FAVICON_DYNAMIC_ENABLED = env.bool("FAVICON_DYNAMIC_ENABLED", default=False)
 
 ALLOWED_HOSTS = env.list("ALLOWED_HOSTS")
 SITE_URL = env("HOST", default="https://localhost:8000").rstrip("/")
@@ -79,7 +82,6 @@ AUTH_USER_MODEL = "techpourtoutes.User"
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
     "whitenoise.middleware.WhiteNoiseMiddleware",
-    "techpourtoutes.middleware.SiteModeUrlconfMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",

@@ -21,4 +21,4 @@ def test_robots_txt_disallows_private_pages(client):
     content = client.get("/robots.txt").content.decode()
     assert "Disallow: /mon-compte/" in content
     assert "Disallow: /mon-compte-mentorat/" in content
-    assert "Disallow: /bienvenue-dans-la-coalition/" in content
+    assert "Disallow: /coalition/bienvenue-dans-la-coalition/" in content

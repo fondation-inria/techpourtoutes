@@ -10,11 +10,11 @@ from techpourtoutes.services.beneficiary.create_mentoree import CreateMentoree
 
 from ..filters import MentoringStatusFilter
 from .training_experience import TrainingExperienceInline
-from .user import PERSONAL_FIELDS
+from .user import PERSONAL_FIELDS, AccountCreationFieldsMixin
 
 
 @admin.register(Beneficiary)
-class BeneficiaryAdmin(admin.ModelAdmin):
+class BeneficiaryAdmin(AccountCreationFieldsMixin, admin.ModelAdmin):
     readonly_fields = (
         "last_login",
         "created_at",

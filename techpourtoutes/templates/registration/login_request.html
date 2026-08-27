@@ -1,4 +1,4 @@
-{% load static home_url coalition_page %}
+{% load static coalition_page %}
 {% is_coalition_page back as is_coalition_page %}
 <c-layout.base variant="funnel" back="{{ back }}">
     <div class="w-full md:max-w-xl flex flex-col py-8">
@@ -22,10 +22,7 @@
                     Pas encore de compte ?
                 </p>
                 {% url "coalition_home" as coalition_home %}
-                {% home_url as home_url %}
-                {% if home_url != coalition_home %}
-                    <c-components.button href="{{ home_url }}" label="Je veux bénéficier du programme" variant="tertiary" class="text-center md:w-auto" />
-                {% endif %}
+                <c-components.button href="{% url 'home' %}" label="Je veux bénéficier du programme" variant="tertiary" class="text-center md:w-auto" />
                 <c-components.button href="{{ coalition_home }}" label="Je veux soutenir le programme" variant="tertiary" class="text-center md:w-auto" />
             </div>
         </div>
