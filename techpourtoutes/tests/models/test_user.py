@@ -1,0 +1,329 @@
+import hashlib
+import uuid
+from datetime import timedelta
+
+import pytest
+from django.utils import timezone
+
+
+@pytest.mark.django_db
+def test_user_has_uuid_pk():
+    from techpourtoutes.models import User
+
+    user = User.objects.create_user(
+        username="test@example.com",
+        email="test@example.com",
+        first_name="Test",
+        last_name="User",
+    )
+    assert isinstance(user.pk, uuid.UUID)
+
+
+def test_user_full_name_shouts_the_last_name():
+    from techpourtoutes.models import User
+
+    user = User(first_name="Ada", last_name="Lovelace")
+
+    assert user.full_name == "Ada LOVELACE"
+
+
+@pytest.mark.django_db
+def test_issue_login_token_returns_plaintext_and_stores_hash(pro):
+    plaintext = pro.issue_login_token()
+
+    assert plaintext
+    expected_hash = hashlib.sha256(plaintext.encode()).hexdigest()
+    pro.refresh_from_db()
+    assert pro.login_token_hash == expected_hash
+    assert pro.login_token_hash != plaintext
+
+
+@pytest.mark.django_db
+def test_issue_login_token_sets_expiry_one_hour_ahead(pro):
+    before = timezone.now()
+    pro.issue_login_token()
+    after = timezone.now()
+
+    pro.refresh_from_db()
+    assert before + timedelta(hours=1) - timedelta(seconds=5) <= pro.login_token_expires_at
+    assert pro.login_token_expires_at <= after + timedelta(hours=1) + timedelta(seconds=5)
+
+
+@pytest.mark.django_db
+def test_issue_login_token_twice_overwrites_previous(pro):
+    first = pro.issue_login_token()
+    second = pro.issue_login_token()
+
+    assert first != second
+    pro.refresh_from_db()
+    assert pro.login_token_hash == hashlib.sha256(second.encode()).hexdigest()
+
+
+@pytest.mark.django_db
+def test_consume_login_token_returns_user_and_clears_hash(pro):
+    from techpourtoutes.models import User
+
+    plaintext = pro.issue_login_token()
+
+    consumed = User.consume_login_token(plaintext=plaintext)
+
+    assert consumed is not None
+    assert consumed.pk == pro.pk
+    pro.refresh_from_db()
+    assert pro.login_token_hash == ""
+    assert pro.login_token_expires_at is None
+
+
+@pytest.mark.django_db
+def test_consume_login_token_returns_none_for_garbage():
+    from techpourtoutes.models import User
+
+    assert User.consume_login_token(plaintext="not-a-real-token") is None
+
+
+@pytest.mark.django_db
+def test_consume_login_token_returns_none_when_expired(pro):
+    from techpourtoutes.models import User
+
+    plaintext = pro.issue_login_token()
+    pro.login_token_expires_at = timezone.now() - timedelta(minutes=1)
+    pro.save()
+
+    assert User.consume_login_token(plaintext=plaintext) is None
+
+
+@pytest.mark.django_db
+def test_consume_login_token_returns_none_on_second_use(pro):
+    from techpourtoutes.models import User
+
+    plaintext = pro.issue_login_token()
+    assert User.consume_login_token(plaintext=plaintext) is not None
+    assert User.consume_login_token(plaintext=plaintext) is None
+
+
+@pytest.mark.django_db
+def test_issue_login_code_stores_hash_and_resets_attempts(pro):
+    pro.login_code_attempts = 3
+    pro.save()
+
+    code = pro.issue_login_code()
+
+    assert len(code) == 6 and code.isdigit()
+    pro.refresh_from_db()
+    assert pro.login_code_hash == hashlib.sha256(code.encode()).hexdigest()
+    assert pro.login_code_hash != code
+    assert pro.login_code_attempts == 0
+    assert pro.login_code_expires_at > timezone.now()
+
+
+@pytest.mark.django_db
+def test_consume_login_code_returns_true_on_match(pro):
+    code = pro.issue_login_code()
+
+    assert pro.consume_login_code(code) is True
+
+
+@pytest.mark.django_db
+def test_consume_login_code_consumes_code_on_success(pro):
+    from techpourtoutes.models import User
+
+    code = pro.issue_login_code()
+
+    assert pro.consume_login_code(code) is True
+
+    fresh = User.objects.get(pk=pro.pk)
+    assert fresh.login_code_hash == ""
+    assert fresh.consume_login_code(code) is False
+
+
+@pytest.mark.django_db
+def test_consume_login_code_is_single_use_under_concurrent_verify(pro):
+    from techpourtoutes.models import User
+
+    code = pro.issue_login_code()
+    first = User.objects.get(pk=pro.pk)
+    second = User.objects.get(pk=pro.pk)
+
+    results = [first.consume_login_code(code), second.consume_login_code(code)]
+
+    assert results.count(True) == 1
+
+
+@pytest.mark.django_db
+def test_consume_login_code_wrong_increments_attempts(pro):
+    pro.issue_login_code()
+
+    assert pro.consume_login_code("000000") is False
+    pro.refresh_from_db()
+    assert pro.login_code_attempts == 1
+
+
+@pytest.mark.django_db
+def test_consume_login_code_false_when_no_code(pro):
+    assert pro.consume_login_code("123456") is False
+
+
+@pytest.mark.django_db
+def test_consume_login_code_false_when_expired(pro):
+    code = pro.issue_login_code()
+    pro.login_code_expires_at = timezone.now() - timedelta(minutes=1)
+    pro.save()
+
+    assert pro.consume_login_code(code) is False
+
+
+@pytest.mark.django_db
+def test_consume_login_code_false_when_locked(pro):
+    from techpourtoutes.models.user import VERIFICATION_CODE_MAX_ATTEMPTS
+
+    code = pro.issue_login_code()
+    pro.login_code_attempts = VERIFICATION_CODE_MAX_ATTEMPTS
+    pro.save()
+
+    assert pro.consume_login_code(code) is False
+
+
+@pytest.mark.django_db
+def test_consume_login_code_clears_code_on_final_wrong_attempt(pro):
+    from techpourtoutes.models.user import VERIFICATION_CODE_MAX_ATTEMPTS
+
+    pro.issue_login_code()
+    pro.login_code_attempts = VERIFICATION_CODE_MAX_ATTEMPTS - 1
+    pro.save()
+
+    assert pro.consume_login_code("000000") is False
+    pro.refresh_from_db()
+    assert pro.login_code_hash == ""
+
+
+@pytest.mark.django_db
+def test_set_email_change_code_stores_hash_and_resets_attempts(pro):
+    pro.email_change_attempts = 3
+    pro.save()
+
+    code = pro.set_email_change_code()
+
+    assert code
+    assert len(code) == 6 and code.isdigit()
+    pro.refresh_from_db()
+    assert pro.email_change_code_hash == hashlib.sha256(code.encode()).hexdigest()
+    assert pro.email_change_code_hash != code
+    assert pro.email_change_attempts == 0
+
+
+@pytest.mark.django_db
+def test_consume_email_change_code_returns_true_on_match(pro):
+    code = pro.set_email_change_code()
+
+    assert pro.consume_email_change_code(code) is True
+
+
+@pytest.mark.django_db
+def test_consume_email_change_code_consumes_code_on_success(pro):
+    from techpourtoutes.models import User
+
+    code = pro.set_email_change_code()
+
+    assert pro.consume_email_change_code(code) is True
+
+    fresh = User.objects.get(pk=pro.pk)
+    assert fresh.email_change_code_hash == ""
+    assert fresh.consume_email_change_code(code) is False
+
+
+@pytest.mark.django_db
+def test_consume_email_change_code_is_single_use_under_concurrent_verify(pro):
+    from techpourtoutes.models import User
+
+    code = pro.set_email_change_code()
+    first = User.objects.get(pk=pro.pk)
+    second = User.objects.get(pk=pro.pk)
+
+    results = [first.consume_email_change_code(code), second.consume_email_change_code(code)]
+
+    assert results.count(True) == 1
+
+
+@pytest.mark.django_db
+def test_consume_email_change_code_wrong_increments_attempts(pro):
+    pro.set_email_change_code()
+
+    assert pro.consume_email_change_code("000000") is False
+    pro.refresh_from_db()
+    assert pro.email_change_attempts == 1
+
+
+@pytest.mark.django_db
+def test_consume_email_change_code_false_when_no_code(pro):
+    assert pro.consume_email_change_code("123456") is False
+
+
+@pytest.mark.django_db
+def test_consume_email_change_code_false_when_locked(pro):
+    from techpourtoutes.models.user import VERIFICATION_CODE_MAX_ATTEMPTS
+
+    code = pro.set_email_change_code()
+    pro.email_change_attempts = VERIFICATION_CODE_MAX_ATTEMPTS
+    pro.save()
+
+    assert pro.consume_email_change_code(code) is False
+
+
+@pytest.mark.django_db
+def test_consume_email_change_code_false_when_expired(pro):
+    code = pro.set_email_change_code()
+    pro.email_change_code_expires_at = timezone.now() - timedelta(minutes=1)
+    pro.save()
+
+    assert pro.consume_email_change_code(code) is False
+
+
+@pytest.mark.django_db
+def test_apply_email_change_updates_email_and_username_and_clears(pro):
+    pro.set_email_change_code()
+
+    pro.apply_email_change("nouvelle@example.com")
+
+    pro.refresh_from_db()
+    assert pro.email == "nouvelle@example.com"
+    assert pro.username == "nouvelle@example.com"
+    assert pro.email_change_code_hash == ""
+    assert pro.email_change_attempts == 0
+
+
+@pytest.mark.django_db
+def test_email_change_token_round_trip(pro):
+    token = pro.issue_email_change_token("nouvelle@example.com", "current")
+
+    assert pro.read_email_change_token(token) == {
+        "user_pk": str(pro.pk),
+        "new_email": "nouvelle@example.com",
+        "stage": "current",
+    }
+
+
+@pytest.mark.django_db
+def test_read_email_change_token_rejects_tampered_token(pro):
+    token = pro.issue_email_change_token("nouvelle@example.com", "current")
+
+    assert pro.read_email_change_token(token + "x") is None
+
+
+@pytest.mark.django_db
+def test_read_email_change_token_rejects_other_user(pro, inactive_user):
+    token = pro.issue_email_change_token("nouvelle@example.com", "current")
+
+    assert inactive_user.read_email_change_token(token) is None
+
+
+@pytest.mark.django_db
+def test_email_change_verify_url_carries_token(pro):
+    from urllib.parse import urlencode
+
+    from django.urls import reverse
+
+    token = pro.issue_email_change_token("nouvelle@example.com", "current")
+    url = pro.email_change_verify_url(token)
+
+    assert url.startswith(reverse("email_change_verify"))
+    assert urlencode({"token": token}) in url

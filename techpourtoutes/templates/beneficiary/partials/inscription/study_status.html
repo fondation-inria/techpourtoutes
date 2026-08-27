@@ -1,0 +1,20 @@
+<div id="funnel-step" class="w-full flex flex-col">
+    {% include "beneficiary/partials/inscription/progress.html" %}
+    <c-layout.partials.messages wrapper_class="w-full flex flex-col gap-y-2" />
+    <c-components.card nobg=True>
+        <c-patterns.form
+            hx-post="{% url 'inscription_funnel' %}"
+            hx-target="#funnel-step"
+            hx-swap="outerHTML">
+            <input type="hidden" name="action" value="study_status">
+            <c-components.title title="Rejoins le club, {{ first_name }}" variant="h1" />
+            <p>Où en es-tu dans tes études ?</p>
+            <c-components.form_fields.radio
+                field=form.study_status
+                class="[&_[role=radiogroup]]:flex-col [&_label]:w-[283px] [&_label]:max-w-full [&_label]:border [&_label]:border-primary [&_label]:rounded [&_label]:px-4 [&_label]:py-3" />
+            <div class="flex justify-center">
+                <c-components.button type="submit" label="Continuer" />
+            </div>
+        </c-patterns.form>
+    </c-components.card>
+</div>

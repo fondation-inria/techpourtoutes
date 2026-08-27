@@ -2,69 +2,50 @@ import csv
 import re
 from datetime import datetime, timezone
 
-import phonenumbers
 from django.core.management.base import BaseCommand
+from django.db import transaction
+from django.db.models import Q
 
-from techpourtoutes.models import Pro
+from techpourtoutes.models import Beneficiary, User
+from techpourtoutes.utils.phone import parse_phone
 
-WORK_STATUS_MAP = {
-    "En recherche d'emploi": Pro.ProfessionalSituation.JOBLESS,
-    "Retraité": Pro.ProfessionalSituation.RETIRED,
-}
-
-GENDER_MAP = {
-    "1": Pro.Civility.MADAME,
-    "2": Pro.Civility.MONSIEUR,
-}
+BENEFICIARY_USER_TYPES = {"1", "2"}
 
 
 class Command(BaseCommand):
-    help = "Import pros from a Faveod CSV export"
+    help = "Import beneficiaries from a Faveod CSV export"
 
     def add_arguments(self, parser):
-        parser.add_argument("csv_file", help="Path to the Faveod CSV file")
+        parser.add_argument("csv_file", help="Chemin du fichier CSV Faveod")
         parser.add_argument(
             "--dry-run",
             action="store_true",
-            help="Parse and validate rows without writing to the database",
+            help="Analyse et valide les lignes sans rien écrire en base",
         )
 
     def handle(self, *args, **options):
-        csv_file = options["csv_file"]
         dry_run = options["dry_run"]
 
         if dry_run:
-            self.stdout.write(self.style.WARNING("Dry run — no changes will be written."))
+            self.stdout.write(self.style.WARNING("Dry run — aucune écriture en base."))
 
         created = skipped = errors = 0
 
-        with open(csv_file, newline="", encoding="utf-8") as f:
-            reader = csv.DictReader(f)
-            for row in reader:
-                faveod_id = int(row["id"])
-
-                if Pro.objects.filter(faveod_id=faveod_id).exists():
-                    self.stdout.write(f"  faveod_id={faveod_id} already exists, skipping.")
-                    skipped += 1
-                    continue
-
-                if Pro.objects.filter(email=row["email"]).exists():
-                    self.stdout.write(
-                        f"  email={row['email']} already exists (faveod_id={faveod_id}), skipping."
-                    )
+        with open(options["csv_file"], newline="", encoding="utf-8") as f:
+            for row in csv.DictReader(f):
+                if not self._is_beneficiary(row):
                     skipped += 1
                     continue
 
                 try:
-                    pro = self._build_pro(row, faveod_id)
-                    if not dry_run:
-                        pro.save()
-                        if created_at := self._parse_created_at(row.get("created_at")):
-                            Pro.objects.filter(pk=pro.pk).update(created_at=created_at)
+                    if self._already_imported(row):
+                        skipped += 1
+                        continue
+                    self._import(row, dry_run)
                     created += 1
                 except Exception as exc:
                     self.stderr.write(
-                        self.style.ERROR(f"  faveod_id={faveod_id} ({row.get('email')}): {exc}")
+                        self.style.ERROR(f"  id={row.get('id')} ({row.get('email')}): {exc}")
                     )
                     errors += 1
 
@@ -74,56 +55,61 @@ class Command(BaseCommand):
             )
         )
 
-    def _build_pro(self, row, faveod_id):
-        engagements = []
+    @staticmethod
+    def _is_beneficiary(row):
+        user_types = set(re.split(r"[,\s]+", row.get("user_types", "")))
+        return row.get("active", "").lower() == "true" and bool(
+            BENEFICIARY_USER_TYPES & user_types
+        )
 
-        if "5" in re.split(r"[,\s]+", row.get("user_types", "")):
-            engagements.append(Pro.Engagement.WORKSHOPS)
+    def _already_imported(self, row):
+        # all_objects and not objects: the default manager hides deactivated accounts, whose
+        # email and username would still collide on the unique constraints.
+        email = row["email"].strip()
+        if User.all_objects.filter(faveod_id=int(row["id"])).exists():
+            self.stdout.write(f"  faveod_id={row['id']} existe déjà, ignoré.")
+            return True
+        if User.all_objects.filter(Q(email=email) | Q(username=email)).exists():
+            self.stdout.write(f"  email={email} existe déjà (id={row['id']}), ignoré.")
+            return True
+        return False
 
-        if row.get("agreed_to_be_contacted", "").lower() == "true":
-            engagements.append(Pro.Engagement.WORK_AMBASSADOR)
+    def _import(self, row, dry_run):
+        """Write the row, rolling back on a dry run so it is validated exactly as a real one."""
+        beneficiary = self._build_beneficiary(row)
+        with transaction.atomic():
+            beneficiary.save()
+            # created_at is auto_now_add, so the imported date needs a second write.
+            if created_at := self._parse_created_at(row.get("created_at")):
+                Beneficiary.objects.filter(pk=beneficiary.pk).update(created_at=created_at)
+            if dry_run:
+                transaction.set_rollback(True)
 
-        jobirl_user_id = None
-        jobirl_user_token = ""
-        if row.get("jobirl_user_id"):
-            jobirl_user_id = int(row["jobirl_user_id"])
-            engagements.append(Pro.Engagement.MENTOR)
-        if row.get("jobirl_user_token"):
-            jobirl_user_token = row["jobirl_user_token"]
-
-        return Pro(
-            username=row["email"],
-            email=row["email"],
-            first_name=row.get("first_name", ""),
-            last_name=row.get("last_name", ""),
-            civility=GENDER_MAP.get(row.get("gender", ""), Pro.Civility.MADAME),
-            phone=self._normalize_phone(row.get("phone_number", "")),
-            professional_situation=WORK_STATUS_MAP.get(
-                row.get("work_status", ""), Pro.ProfessionalSituation.WORKING
-            ),
-            structure_name=row.get("organization_name", ""),
-            job_title=row.get("position", ""),
-            postal_code=row.get("zip_code", "") or "",
-            faveod_id=faveod_id,
-            jobirl_user_id=jobirl_user_id,
-            jobirl_user_token=jobirl_user_token,
-            engagements=engagements,
+    def _build_beneficiary(self, row):
+        email = row["email"].strip()
+        jobirl_user_id = row.get("jobirl_user_id", "").strip()
+        return Beneficiary(
+            username=email,
+            email=email,
+            first_name=row.get("first_name", "").strip(),
+            last_name=row.get("last_name", "").strip(),
+            legal_representative_email=row.get("e_mail_tuteur", "").strip(),
+            phone=parse_phone(row.get("phone_number")),
+            postal_code=self._normalize_postal_code(row.get("zip_code")),
+            faveod_id=int(row["id"]),
+            jobirl_user_id=int(jobirl_user_id) if jobirl_user_id else None,
+            jobirl_user_token=row.get("jobirl_user_token", "").strip(),
+            brevo_sync_enabled=row.get("agreed_to_be_contacted", "").lower() == "true",
         )
 
     @staticmethod
-    def _normalize_phone(raw):
-        if not raw:
-            return ""
-        cleaned = re.sub(r"[\s.\-]", "", raw)
-        # "+33 0XXXXXXXXX" → "+33XXXXXXXXX" (strip double country-code prefix)
-        cleaned = re.sub(r"^\+330", "+33", cleaned)
-        try:
-            parsed = phonenumbers.parse(cleaned, "FR")
-            if phonenumbers.is_valid_number(parsed):
-                return phonenumbers.format_number(parsed, phonenumbers.PhoneNumberFormat.E164)
-        except phonenumbers.NumberParseException:
-            pass
-        return cleaned
+    def _normalize_postal_code(raw):
+        """Keep what `POSTAL_CODE_VALIDATOR` accepts, drop the rest rather than fail the row."""
+        digits = re.sub(r"\D", "", raw or "")
+        # Spreadsheets eat the leading zero of the 01-09 départements.
+        if len(digits) == 4:
+            digits = f"0{digits}"
+        return digits if len(digits) == 5 else ""
 
     @staticmethod
     def _parse_created_at(raw):

@@ -2,6 +2,7 @@ import re
 from unittest.mock import patch
 
 from django.test import override_settings
+from django.urls import reverse
 from playwright.sync_api import expect
 
 from techpourtoutes.models import Pro
@@ -23,7 +24,7 @@ def test_mentor_signup_creates_pro_and_sends_welcome_email(
             json={"response": "success", "datas": {"id": 42, "token": "tok-abc"}},
         )
 
-        page.goto(f"{live_server.url}/mentorer/")
+        page.goto(f"{live_server.url}{reverse('mentor_landing')}")
         _reveal_form(page, "mentor-member-card")
 
         _fill_identity(
@@ -45,7 +46,7 @@ def test_mentor_signup_creates_pro_and_sends_welcome_email(
 
 
 def test_work_ambassador_signup_creates_pro_and_sends_welcome_email(page, live_server, mailoutbox):
-    page.goto(f"{live_server.url}/pitcher-mon-metier/")
+    page.goto(f"{live_server.url}{reverse('work_ambassador_landing')}")
     _reveal_form(page, "work-ambassador-member-card")
 
     _fill_identity(page, first_name="Bea", last_name="Dupuis", email="bea.ambassador@example.com")
@@ -67,7 +68,7 @@ def test_work_ambassador_signup_creates_pro_and_sends_welcome_email(page, live_s
 
 
 def test_sponsor_signup_creates_pro_and_sends_welcome_email(page, live_server, mailoutbox):
-    page.goto(f"{live_server.url}/devenir-mecene")
+    page.goto(f"{live_server.url}{reverse('sponsor_landing')}")
     _reveal_form(page, "sponsor-member-card")
 
     _fill_identity(
@@ -87,16 +88,17 @@ def test_sponsor_signup_creates_pro_and_sends_welcome_email(page, live_server, m
 
 
 def test_training_ambassador_signup_creates_pro_and_training_experience(
-    page, live_server, higher_ed_school, mailoutbox
+    page, live_server, higher_ed_school, higher_ed_formation, mailoutbox
 ):
-    page.goto(f"{live_server.url}/devenir-ambassadrice-etudiante/")
+    page.goto(f"{live_server.url}{reverse('training_ambassador_landing')}")
     _reveal_form(page, "training-ambassador-member-card")
 
     _fill_identity(page, first_name="Dina", last_name="Faure", email="dina.training@example.com")
     page.fill('input[name="phone"]', "0612345678")
-    page.fill("#id_higher_ed_school_id", higher_ed_school.name)
+    page.fill("#id_school_label", higher_ed_school.name)
     page.get_by_role("option", name=higher_ed_school.display_label).click()
-    page.fill('input[name="course"]', "Master informatique")
+    page.fill("#id_formation_label", higher_ed_formation.name)
+    page.get_by_role("option", name=higher_ed_formation.name).click()
     _accept_terms(page)
     page.locator("#training-ambassador-form-card").get_by_role(
         "button", name="Je deviens ambassadrice"
@@ -105,21 +107,23 @@ def test_training_ambassador_signup_creates_pro_and_training_experience(
     expect(page).to_have_url(re.compile(r"/bienvenue-dans-la-coalition/$"))
     pro = Pro.objects.get(email="dina.training@example.com")
     assert "training_ambassador" in pro.engagements
-    assert pro.training_experiences.get().higher_ed_school_id == higher_ed_school.id
-    assert len(mailoutbox) == 2
+    experience = pro.training_experiences.get()
+    assert experience.school_id == higher_ed_school.id
+    assert experience.formation_id == higher_ed_formation.id
+    assert len(mailoutbox) == 3
 
 
 def test_workshops_signup_creates_pro_and_workshop_requests(page, live_server, school, mailoutbox):
     with patch("techpourtoutes.views.coalition_views.notify_workshop_request_task"):
-        page.goto(f"{live_server.url}/organiser-un-atelier")
+        page.goto(f"{live_server.url}{reverse('workshops_landing')}")
         page.locator("#latitudes-cta").click()
 
         _fill_identity(
             page, first_name="Elsa", last_name="Girard", email="elsa.workshop@example.com"
         )
         _select_custom_dropdown(page, field_id="id_job_title", option_label="Enseignante")
-        page.fill("#id_structure_name", school.name)
-        page.get_by_role("button", name=f"{school.name} ({school.postal_code})").click()
+        page.fill("#id_school_label", school.name)
+        page.get_by_role("option", name=f"{school.name} ({school.postal_code})").click()
         _check(page, 'input[name="ateliers"][value="future_of_tech"]')
         _accept_terms(page)
         page.locator("#latitudes-form-card").get_by_role(

@@ -1,0 +1,21 @@
+<div id="training-experience-{{ experience.pk }}" class="w-full">
+    <c-components.card title="Formation">
+        <br>
+        {% if experience.start_date %}
+            <span class="font-medium">{{ experience.period_label_display }}</span>
+        {% endif %}
+        <c-components.text class="font-light">
+            Établissement : <span class="font-medium">{{ experience.school_label }}</span>
+
+            Niveau : <span class="font-medium">{{ experience.get_level_display }}</span>
+
+            Formation : <span class="font-medium">{{ experience.formation_label }}</span>
+        </c-components.text>
+        <div class="flex mt-3 justify-end">
+            <c-components.button label="Modifier" variant="secondary"
+                hx-get="{% url 'pro_training_experience_edit' experience.pk %}"
+                hx-target="#training-experience-{{ experience.pk }}"
+                hx-swap="outerHTML" />
+        </div>
+    </c-components.card>
+</div>

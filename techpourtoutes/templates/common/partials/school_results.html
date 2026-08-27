@@ -1,0 +1,14 @@
+{% for school in schools %}
+    <li role="none">{% include row_template %}</li>
+{% endfor %}
+{% if next_page %}
+    <li hx-get="{% url 'search_schools' %}?scope={{ scope|urlencode }}&unique_id={{ unique_id|urlencode }}&q={{ q|urlencode }}&page={{ next_page }}"
+        hx-trigger="intersect once root:#school-results{% if unique_id %}-{{ unique_id }}{% endif %}"
+        hx-target="this"
+        hx-swap="outerHTML"
+        class="px-3 py-2 text-xs text-neutral-500">
+        Chargement…
+    </li>
+{% elif not schools and page == 1 %}
+    <li class="px-3 py-2 text-sm text-neutral-500">Aucun établissement trouvé</li>
+{% endif %}

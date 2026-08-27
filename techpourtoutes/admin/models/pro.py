@@ -5,17 +5,17 @@ from techpourtoutes.models import Pro
 
 from ..filters import EngagementFilter
 from ..stats import pro_stats
+from .training_experience import TrainingExperienceInline
+from .user import PERSONAL_FIELDS, AccountCreationFieldsMixin
 from .workshop_request import WorkshopRequestInline
 
 
 @admin.register(Pro)
-class ProAdmin(admin.ModelAdmin):
+class ProAdmin(AccountCreationFieldsMixin, admin.ModelAdmin):
     readonly_fields = (
-        "email",
         "last_login",
         "created_at",
         "updated_at",
-        "brevo_sync_enabled",
         "jobirl_user_id",
         "faveod_id",
         "display_engagements",
@@ -25,12 +25,7 @@ class ProAdmin(admin.ModelAdmin):
             "Infos personnelles",
             {
                 "fields": (
-                    "civility",
-                    "first_name",
-                    "last_name",
-                    "email",
-                    "phone",
-                    "postal_code",
+                    *PERSONAL_FIELDS,
                     "professional_situation",
                     "structure_name",
                     "job_title",
@@ -58,6 +53,7 @@ class ProAdmin(admin.ModelAdmin):
     list_display_links = list_display
     search_fields = ("first_name", "last_name", "email")
     list_filter = (EngagementFilter, ("created_at", admin.DateFieldListFilter))
+    inlines = [TrainingExperienceInline, WorkshopRequestInline]
 
     @admin.display(description=_("engagements"))
     def display_engagements(self, obj):
@@ -67,8 +63,3 @@ class ProAdmin(admin.ModelAdmin):
     def changelist_view(self, request, extra_context=None):
         extra_context = {**(extra_context or {}), "stats": pro_stats()}
         return super().changelist_view(request, extra_context=extra_context)
-
-    def get_inlines(self, _request, obj):
-        if obj and obj.workshop_requests.exists():
-            return [WorkshopRequestInline]
-        return []

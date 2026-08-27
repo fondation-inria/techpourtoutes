@@ -1,5 +1,5 @@
 <c-layout.a_propos title="Qui sommes-nous – TechPourToutes" description="TechPourToutes est un consortium d'acteurs engagés, qui réunit recherche, enseignement supérieur, associations et entreprises du numérique dans le cadre du plan France 2030.">
-    <c-components.title title="Un consortium d'acteurs engagés" variant="h2" />
+    <c-components.title title="Un consortium d'acteurs engagés" variant="h2" title_bg="black" />
     <c-components.text>
         TechPourToutes est le fruit d'une initiative conjointe des pouvoirs publics et d'un consortium d'acteurs du numérique pour promouvoir l'égalité femmes-hommes dans les métiers techniques du numérique.
 
@@ -8,10 +8,22 @@
         TechPourToutes est une initiative soutenue par l'État dans le cadre de l'appel à manifestation d'intérêt (AMI) « Compétences et Métiers d'Avenir » de France 2030 opéré par la Caisse des Dépôts et Consignations.
     </c-components.text>
 
+    <c-slot name="decorations">
+        <c-components.codex-letter letter="F" row="8" col="3" class="text-purple-500" />
+        <c-components.codex-letter letter="I" row="16" col="18" class="text-green-500" />
+        <c-components.codex-letter letter="U" row="23" col="3" class="text-blue-500" />
+        <c-components.codex-letter letter="C" row="30" col="18" class="text-yellow-500" />
+        <c-components.codex-letter letter="C" row="36" col="3" class="text-orange-500" />
+        <c-components.codex-letter letter="F" row="43" col="18" class="text-purple-500" />
+        <c-components.codex-letter letter="B" row="50" col="3" class="text-green-500" />
+        <c-components.codex-letter letter="L" row="55" col="19" class="text-blue-500" />
+        <c-components.codex-letter letter="J" row="61" col="3" class="text-yellow-500" />
+        <c-components.codex-letter letter="N" row="68" col="18" class="text-orange-500" />
+    </c-slot>
+
     <c-slot name="additional_content">
-        <c-components.title title="Nos membres" variant="h2" class="mt-7 -mb-4" />
-        <c-components.card class="mt-5">
-            <c-components.title title="Fondation Inria" variant="h2" />
+        <c-components.card class="mt-5" title="Nos membres">
+            <c-components.title title="Fondation Inria" variant="h2" class="mt-5"/>
             <c-components.text>
                 La Fondation Inria anime le programme TechPourToutes avec l’appui et l’expertise d’Inria. Adossée à l’institut de recherche Inria, elle veut « donner du sens au numérique ». Alors que le monde se digitalise, la fondation œuvre pour faire émerger et grandir des projets d’intérêt général porteurs d’un impact positif pour les femmes et les hommes, la société et la planète. Ceci, tout particulièrement dans quatre domaines clés où le numérique joue un rôle critique : la santé, l’environnement, l’éducation, la vie démocratique.
 
@@ -19,7 +31,7 @@
 
             </c-components.text>
             <div class="flex justify-end">
-                <c-components.button href="https://www.fondation-inria.fr/" label="Découvrir le site" variant="quaternary" target="_blank" icon="external-link" />
+                <c-components.button href="https://www.fondation-inria.fr/" label="Découvrir le site" variant="tertiary" target="_blank" icon="external-link" />
             </div>
 
             <c-components.title title="Inria" variant="h2" class="mt-5" />
@@ -28,7 +40,7 @@
 
             </c-components.text>
             <div class="flex justify-end">
-                <c-components.button href="https://www.inria.fr/" label="Découvrir le site" variant="quaternary" target="_blank" icon="external-link" />
+                <c-components.button href="https://www.inria.fr/" label="Découvrir le site" variant="tertiary" target="_blank" icon="external-link" />
             </div>
 
             <c-components.title title="France Universités" variant="h2" class="mt-5" />
@@ -37,7 +49,7 @@
 
             </c-components.text>
             <div class="flex justify-end">
-                <c-components.button href="https://franceuniversites.fr/" label="Découvrir le site" variant="quaternary" target="_blank" icon="external-link" />
+                <c-components.button href="https://franceuniversites.fr/" label="Découvrir le site" variant="tertiary" target="_blank" icon="external-link" />
             </div>
 
             <c-components.title title="Conférence des Directeurs des Écoles Françaises d’Ingénieurs (CDEFI)" variant="h2" class="mt-5" />
@@ -46,7 +58,7 @@
 
             </c-components.text>
             <div class="flex justify-end">
-                <c-components.button href="https://www.cdefi.fr/" label="Découvrir le site" variant="quaternary" target="_blank" icon="external-link" />
+                <c-components.button href="https://www.cdefi.fr/" label="Découvrir le site" variant="tertiary" target="_blank" icon="external-link" />
             </div>
 
             <c-components.title title="Conférence des Grandes Écoles (CGE)" variant="h2" class="mt-5" />
@@ -55,7 +67,7 @@
 
             </c-components.text>
             <div class="flex justify-end">
-                <c-components.button href="https://www.cge.asso.fr/" label="Découvrir le site" variant="quaternary" target="_blank" icon="external-link" />
+                <c-components.button href="https://www.cge.asso.fr/" label="Découvrir le site" variant="tertiary" target="_blank" icon="external-link" />
             </div>
 
             <c-components.title title="Femmes@Numérique" variant="h2" class="mt-5" />
@@ -64,7 +76,7 @@
 
             </c-components.text>
             <div class="flex justify-end">
-                <c-components.button href="https://www.femmes-numerique.fr/" label="Découvrir le site" variant="quaternary" target="_blank" icon="external-link" />
+                <c-components.button href="https://www.femmes-numerique.fr/" label="Découvrir le site" variant="tertiary" target="_blank" icon="external-link" />
             </div>
 
             <c-components.title title="BECOMTECH" variant="h2" class="mt-5" />
@@ -73,7 +85,7 @@
 
             </c-components.text>
             <div class="flex justify-end">
-                <c-components.button href="https://becomtech.fr/" label="Découvrir le site" variant="quaternary" target="_blank" icon="external-link" />
+                <c-components.button href="https://becomtech.fr/" label="Découvrir le site" variant="tertiary" target="_blank" icon="external-link" />
             </div>
 
             <c-components.title title="Latitudes" variant="h2" class="mt-5" />
@@ -82,7 +94,7 @@
 
             </c-components.text>
             <div class="flex justify-end">
-                <c-components.button href="https://www.latitudes.cc/" label="Découvrir le site" variant="quaternary" target="_blank" icon="external-link" />
+                <c-components.button href="https://www.latitudes.cc/" label="Découvrir le site" variant="tertiary" target="_blank" icon="external-link" />
             </div>
 
             <c-components.title title="JobIRL" variant="h2" class="mt-5" />
@@ -90,7 +102,7 @@
                 JobIRL, association loi 1901 reconnue d’intérêt général à caractère sociale et éducative, agit depuis 2013 pour favoriser l’égalité des chances en accompagnant les jeunes dans leur orientation et leur insertion professionnelle. Conventionnée par le Ministère de l’Éducation Nationale, elle rend l’orientation plus concrète, accessible et inspirante en connectant les jeunes de 12 à 30 ans avec des professionnels et des étudiants. Son réseau social <c-components.inline-link label="jobirl.com" href="https://www.jobirl.com/" icon="external-link" target="_blank" /> réunit plus de 150&nbsp;000 membres actifs et permet à tout jeune de trouver « du réseau » pour poser des questions sur les métiers et les formations. Il propose également du mentorat à distance, des offres de stage et d’alternance. JobIRL a également accompagné plus de 150&nbsp;000 jeunes dans les quartiers populaires et zones rurales pour qu’ils se construisent un projet professionnel plus ambitieux et en lien avec les filières d’avenir. Au sein du collectif Intrépides de la tech, JobIRL conduit également des actions de sensibilisation des collégiennes et lycéennes aux métiers du numérique.
                 <br><br>
             <div class="flex justify-end">
-                <c-components.button href="https://www.jobirl.com/" label="Découvrir le site" variant="quaternary" target="_blank" icon="external-link" />
+                <c-components.button href="https://www.jobirl.com/" label="Découvrir le site" variant="tertiary" target="_blank" icon="external-link" />
             </div>
 
             <c-components.title title="Numeum" variant="h2" class="mt-5" />
@@ -99,7 +111,7 @@
 
             </c-components.text>
             <div class="flex justify-end">
-                <c-components.button href="https://numeum.fr/" label="Découvrir le site" variant="quaternary" target="_blank" icon="external-link" />
+                <c-components.button href="https://numeum.fr/" label="Découvrir le site" variant="tertiary" target="_blank" icon="external-link" />
             </div>
         </c-components.card>
     </c-slot>

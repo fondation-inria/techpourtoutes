@@ -22,7 +22,7 @@
                         {% if variant == "disabled" %}disabled{% endif %}
                         class="peer sr-only"
                     />
-                    <span class="tick-base rounded-xs peer-checked:bg-primary-700 {% if variant == "disabled" %}tick-disabled{% elif field.errors or errors or variant == "error" %}tick-error{% elif variant == "valid" %}tick-valid{% else %}tick-default{% endif %}"></span>
+                    <span class="tick-base rounded-xs peer-checked:bg-primary {% if variant == "disabled" %}tick-disabled{% elif field.errors or errors or variant == "error" %}tick-error{% elif variant == "valid" %}tick-valid{% else %}tick-default{% endif %}"></span>
                     <c-components.icon name="check" class="absolute h-3 w-3 hidden peer-checked:block text-neutral-50 pointer-events-none" />
                 </span>
                 <span class="text-sm {% if variant == "disabled" %}text-disabled{% else %}text-neutral-950{% endif %}">{{ opt_label }}</span>

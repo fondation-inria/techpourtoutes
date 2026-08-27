@@ -1,7 +1,13 @@
 from django.conf import settings
+from django.core.management import call_command
 from django.core.management.base import BaseCommand, CommandError
 
-from techpourtoutes.models import Pro
+from techpourtoutes.models import Formation, Level, Pro, TrainingExperience
+from techpourtoutes.models.beneficiary import Beneficiary
+from techpourtoutes.utils.school_year import (
+    current_school_year_end_date,
+    current_school_year_start_date,
+)
 
 
 class Command(BaseCommand):
@@ -13,7 +19,12 @@ class Command(BaseCommand):
                 "seed creates an account with a well-known-by-default password; it refuses "
                 "to run unless SEED_ENABLED is set."
             )
+        self._import_onisep_samples()
         self._create_admin_pro()
+        self._create_beneficiary()
+
+    def _import_onisep_samples(self):
+        call_command("import_schools_and_formations", sample=True, if_empty=True)
 
     def _create_admin_pro(self):
         email = settings.SEED_ADMIN_EMAIL
@@ -40,3 +51,31 @@ class Command(BaseCommand):
         self.stdout.write(
             self.style.SUCCESS(f"  Admin pro created: {email} / {settings.SEED_ADMIN_PASSWORD}")
         )
+
+    def _create_beneficiary(self):
+        email = settings.SEED_BENEFICIARY_EMAIL
+        if Beneficiary.objects.filter(email=email).exists():
+            self.stdout.write(f"  Beneficiary {email} already exists, skipping.")
+            return
+        beneficiary = Beneficiary(
+            username=email,
+            email=email,
+            first_name="Beneficiary",
+            last_name="TechPourToutes",
+            civility=Beneficiary.Civility.MADAME,
+            phone="+33600000000",
+            postal_code="75001",
+        )
+        beneficiary.save()
+        beneficiary.save(update_fields=["password"])
+
+        formation = Formation.objects.secondary().order_by("name").first()
+        TrainingExperience.objects.create(
+            user=beneficiary,
+            school=formation.schools.order_by("name").first(),
+            formation=formation,
+            level=Level.TERMINALE,
+            start_date=current_school_year_start_date(),
+            end_date=current_school_year_end_date(),
+        )
+        self.stdout.write(self.style.SUCCESS(f"  Beneficiary created: {email}"))

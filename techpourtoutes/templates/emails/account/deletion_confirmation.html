@@ -1,0 +1,23 @@
+{% load politeness %}
+<c-layout.email>
+  <p style="font-size:15px;color:#374151;">Bonjour {{ first_name }},</p>
+  <p style="font-size:15px;color:#374151;">
+    Nous {% politeness "vous" "te" %} confirmons la suppression de {% politeness "votre" "ton" %} compte sur la plateforme TechPourToutes.
+  </p>
+
+  {% if has_jobirl_account %}
+  <p style="font-size:15px;color:#374151;">
+    Nous avons transmis {% politeness "votre" "ta" %} demande à JobIRL. Nous {% politeness "vous" "te" %} invitons à les contacter directement pour valider la suppression de {% politeness "votre" "ton" %} compte également chez eux&nbsp;:
+    <br><br>
+    Julie Masmejean
+    <br>
+    <a href="mailto:e-mentorat@jobirl.com">e-mentorat@jobirl.com</a>
+    <br>
+    06 31 59 74 43
+  </p>
+  {% endif %}
+  <br>
+  <p style="font-size:15px;color:#374151;">
+    Bonne journée
+  </p>
+</c-layout.email>

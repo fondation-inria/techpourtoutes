@@ -1,0 +1,31 @@
+<c-layout.email>
+  <p style="font-size:15px;color:#374151;">Bonjour,</p>
+  <p style="font-size:15px;color:#374151;">
+    <strong>{{ user.first_name }} {{ user.last_name }}</strong> ({{ user.email }}) n'a pas trouvé son établissement ou sa formation dans le catalogue Onisep.
+  </p>
+  <br>
+  <p style="font-size:15px;color:#374151;">- Formulaire&nbsp;: <strong>{{ origin }}</strong></p>
+  {% if level %}
+    <p style="font-size:15px;color:#374151;">- Niveau&nbsp;: <strong>{{ level }}</strong></p>
+  {% endif %}
+  <p style="font-size:15px;color:#374151;">
+    - Établissement&nbsp;:
+    {% if school %}
+      <strong>{{ school.name }}</strong> (déjà au catalogue)
+    {% else %}
+      <strong>{{ school_label }}</strong> — à créer
+    {% endif %}
+  </p>
+  <p style="font-size:15px;color:#374151;">
+    - Formation&nbsp;:
+    {% if formation %}
+      <strong>{{ formation.name }}</strong> (déjà au catalogue)
+    {% elif formation_label %}
+      <strong>{{ formation_label }}</strong> — à créer
+    {% else %}
+      non renseignée
+    {% endif %}
+  </p>
+  <br>
+  <p style="font-size:15px;color:#374151;">Bonne journée</p>
+</c-layout.email>

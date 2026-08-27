@@ -1,8 +1,8 @@
 from celery import shared_task
 
-from techpourtoutes.services.upsert_manifeste_signatory import UpsertManifesteSignatory
+from techpourtoutes.services.contact.upsert_manifeste_signatory import UpsertManifesteSignatory
 
-from ._retry import RETRY_KWARGS, is_transient_status, retry_task_later
+from ._retry import RETRY_KWARGS, raise_failure
 
 
 @shared_task(bind=True, **RETRY_KWARGS)
@@ -16,7 +16,4 @@ def upsert_manifeste_signatory_task(
         structure_name=structure_name,
     )
     if result.failure:
-        message = ", ".join(result.errors)
-        if is_transient_status(getattr(result, "status_code", None)):
-            retry_task_later(message)
-        raise RuntimeError(message)
+        raise_failure(result)

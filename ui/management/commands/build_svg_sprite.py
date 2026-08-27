@@ -15,6 +15,7 @@ def _namespace_ids(content: str, slug: str) -> str:
         escaped = re.escape(id_val)
         content = re.sub(rf'\bid="{escaped}"', f'id="{slug}-{id_val}"', content)
         content = re.sub(rf"url\(#{escaped}\)", f"url(#{slug}-{id_val})", content)
+        content = re.sub(rf"url\('#{escaped}'\)", f"url('#{slug}-{id_val}')", content)
         content = re.sub(rf'href="#{escaped}"', f'href="#{slug}-{id_val}"', content)
         content = re.sub(rf"href='#{escaped}'", f"href='#{slug}-{id_val}'", content)
     return content
@@ -24,14 +25,14 @@ class Command(BaseCommand):
     help = "Generate ui/static/svg/sprite.svg from SVG files in ui/svg_source/"
 
     def handle(self, *args, **options):
-        svg_files = sorted(SVG_SOURCE_DIR.glob("*.svg"))
+        svg_files = sorted(SVG_SOURCE_DIR.rglob("*.svg"))
         if not svg_files:
             self.stderr.write(f"No SVG files found in {SVG_SOURCE_DIR}")
             return
 
         symbols = []
         for svg_file in svg_files:
-            slug = svg_file.stem
+            slug = "-".join(svg_file.relative_to(SVG_SOURCE_DIR).with_suffix("").parts)
             content = svg_file.read_text(encoding="utf-8")
 
             root_match = re.search(r"<svg\b([^>]*?)>(.*?)</svg>", content, re.DOTALL)

@@ -1,40 +1,118 @@
-from django.db.models import Q
+from dataclasses import dataclass
+
+from django.db.models import Count, Q
+from django.http import HttpResponseBadRequest
 from django.shortcuts import render
 
-from ..models import HigherEdSchool, School
-from ..text import strip_accents
+from ..models import Formation, School
 
-SCHOOL_PAGE_SIZE = 20
+PAGE_SIZE = 20
+
+
+@dataclass(frozen=True)
+class SearchScope:
+    """Everything one autocomplete needs: what it looks in, and how it renders a hit."""
+
+    filters: Q
+    match_postal_code: bool
+    ordering: str
+    row_template: str
+    disambiguate_homonyms: bool = False
+
+
+SCOPES = {
+    "secondary": SearchScope(
+        filters=Q(secondary=True),
+        match_postal_code=True,
+        ordering="postal_code",
+        row_template="common/partials/school_row/secondary.html",
+    ),
+    # Same schools as `secondary`, but the workshop form stores the bare school name —
+    # it travels to Brevo and to Latitudes as the structure name.
+    "workshop": SearchScope(
+        filters=Q(secondary=True),
+        match_postal_code=True,
+        ordering="postal_code",
+        row_template="common/partials/school_row/workshop.html",
+    ),
+    "higher_ed": SearchScope(
+        filters=Q(higher_ed=True),
+        match_postal_code=False,
+        ordering="postal_code",
+        row_template="common/partials/school_row/higher_ed.html",
+        disambiguate_homonyms=True,
+    ),
+    "training_ambassador": SearchScope(
+        filters=Q(training_ambassador_eligible=True),
+        match_postal_code=False,
+        ordering="postal_code",
+        row_template="common/partials/school_row/higher_ed.html",
+        disambiguate_homonyms=True,
+    ),
+}
+
+FORMATION_SCOPES = {
+    "secondary": Q(secondary=True),
+    "higher_ed": Q(higher_ed=True),
+}
 
 
 def search_schools(request):
+    scope_name = request.GET.get("scope", "")
+    scope = SCOPES.get(scope_name)
+    if scope is None:
+        return HttpResponseBadRequest("Périmètre de recherche inconnu.")
+
     q, page = _search_params(request)
-    schools = School.objects.all()
-    for token in q.split():
-        schools = schools.filter(
-            Q(name_normalized__icontains=strip_accents(token)) | Q(postal_code__startswith=token)
-        )
-    items, next_page = _paginate(schools.order_by("identifier"), page)
+    schools = School.objects.filter(scope.filters).search(
+        q, match_postal_code=scope.match_postal_code
+    )
+    items, next_page = _paginate(schools.order_by(scope.ordering), page)
+    if scope.disambiguate_homonyms:
+        _flag_homonyms(items, scope.filters)
     return render(
         request,
-        "coalition/partials/school_results.html",
-        {"schools": items, "q": q, "page": page, "next_page": next_page},
+        "common/partials/school_results.html",
+        {
+            "schools": items,
+            "q": q,
+            "page": page,
+            "next_page": next_page,
+            "scope": scope_name,
+            "row_template": scope.row_template,
+            "unique_id": request.GET.get("unique_id", ""),
+        },
     )
 
 
-def search_higher_ed_schools(request):
+def search_formations(request):
+    """No school means the user could not find hers: offer the whole (level-scoped) catalogue."""
+    scope_name = request.GET.get("scope", "")
+    scope_filter = FORMATION_SCOPES.get(scope_name)
+    if scope_filter is None:
+        return HttpResponseBadRequest("Périmètre de recherche inconnu.")
+
+    school_id = request.GET.get("school_id", "")
+    school = School.objects.find(school_id) if school_id else None
+    if school_id and school is None:
+        return HttpResponseBadRequest("Établissement inconnu.")
+
     q, page = _search_params(request)
-    schools = HigherEdSchool.objects.all()
-    for token in q.split():
-        needle = strip_accents(token)
-        schools = schools.filter(
-            Q(name_normalized__icontains=needle) | Q(full_name_normalized__icontains=needle)
-        )
-    items, next_page = _paginate(schools.order_by("full_name"), page)
+    formations = Formation.objects.filter(scope_filter)
+    if school:
+        formations = formations.taught_at(school)
+    items, next_page = _paginate(formations.search(q).order_by("name"), page)
     return render(
         request,
-        "coalition/partials/higher_ed_school_results.html",
-        {"schools": items, "q": q, "page": page, "next_page": next_page},
+        "common/partials/formation_results.html",
+        {
+            "formations": items,
+            "q": q,
+            "page": page,
+            "next_page": next_page,
+            "school_id": school.pk if school else "",
+            "unique_id": request.GET.get("unique_id", ""),
+        },
     )
 
 
@@ -50,8 +128,21 @@ def _search_params(request):
     return q, page
 
 
+def _flag_homonyms(schools, filters):
+    """Two schools of a same perimeter sharing a name are indistinguishable: say where they are."""
+    shared = {
+        row["name"]
+        for row in School.objects.filter(filters, name__in=[school.name for school in schools])
+        .values("name")
+        .annotate(count=Count("pk"))
+        .filter(count__gt=1)
+    }
+    for school in schools:
+        school.has_homonym = school.name in shared
+
+
 def _paginate(queryset, page):
-    start = (page - 1) * SCHOOL_PAGE_SIZE
-    items = list(queryset[start : start + SCHOOL_PAGE_SIZE + 1])
-    next_page = page + 1 if len(items) > SCHOOL_PAGE_SIZE else None
-    return items[:SCHOOL_PAGE_SIZE], next_page
+    start = (page - 1) * PAGE_SIZE
+    items = list(queryset[start : start + PAGE_SIZE + 1])
+    next_page = page + 1 if len(items) > PAGE_SIZE else None
+    return items[:PAGE_SIZE], next_page

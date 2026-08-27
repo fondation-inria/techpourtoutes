@@ -9,6 +9,8 @@
       "Bash(uv lock)",
       "Bash(uv pip list)",
       "Bash(uv run python manage.py check)",
+      "Bash(uv run pytest *)",
+      "Bash(uv run ruff *)",
       "Bash(uv run python manage.py showmigrations *)",
       "Bash(uv run python manage.py makemigrations *)",
       "Bash(uv run python manage.py migrate *)",
@@ -33,7 +35,12 @@
       "Read(.env.example)",
       "WebFetch(domain:developers.brevo.com)",
       "WebFetch(domain:doc.scalingo.com)",
-      "WebFetch(domain:developers.scalingo.com)"
+      "WebFetch(domain:developers.scalingo.com)",
+      "Bash(git ls-tree *)",
+      "Bash(awk '{print $4}')",
+      "Bash(awk '{print $1, $3, $4}')",
+      "Bash(sort -k3)",
+      "mcp__plugin_context7_context7__query-docs"
     ],
     "deny": [
       "Bash(uv run python manage.py flush *)",
@@ -58,6 +65,19 @@
       "Read(**/faveod_users.csv)",
       "Edit(*/faveod_users.csv)",
       "Edit(**/faveod_users.csv)"
+    ]
+  },
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3 $CLAUDE_PROJECT_DIR/.claude/hooks/derived_permissions.py"
+          }
+        ]
+      }
     ]
   }
 }

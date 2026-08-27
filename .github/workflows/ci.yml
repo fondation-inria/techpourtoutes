@@ -49,5 +49,14 @@ jobs:
         with:
           enable-cache: true
       - run: uv sync --group dev
-      - run: uv run playwright install --with-deps chromium
+      # `--with-deps` is omitted on purpose: it spent ~5 min in apt installing system libraries
+      # the ubuntu runner already ships, while the browser download it gates is ~10 s.
+      - name: Cache Playwright browsers
+        id: playwright-cache
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/ms-playwright
+          key: playwright-${{ runner.os }}-${{ hashFiles('uv.lock') }}
+      - if: steps.playwright-cache.outputs.cache-hit != 'true'
+        run: uv run playwright install chromium
       - run: make test

@@ -1,0 +1,7 @@
+<c-vars letter="" row="0" col="0" class="text-primary" />
+
+{# row/col are counts of background grid cells from the first grid line of the page #}
+<div class="absolute {{ class }}"
+     style="top: calc(var(--grid-offset-y) + {{ row }} * var(--grid-cell)); left: calc(var(--grid-offset-x) + {{ col }} * var(--grid-cell)); width: var(--codex-glyph); height: var(--codex-glyph)">
+    <c-components.icon name="codex-{{ letter }}" class="w-full h-full" />
+</div>

@@ -30,6 +30,15 @@ jobs:
         id: pr
         run: echo "number=${{ github.event.issue.number }}" >> "$GITHUB_OUTPUT"
 
+      # Generated up front so the failure report at the end of the job can use it too:
+      # a token minted after the deploy step would never exist when that step is the one failing.
+      - name: Generate app token for PR comment
+        id: app-token
+        uses: actions/create-github-app-token@v3
+        with:
+          app-id: ${{ secrets.APP_ID }}
+          private-key: ${{ secrets.APP_PRIVATE_KEY }}
+
       - name: Create review app and wait for its first deploy
         id: review-app
         env:
@@ -54,16 +63,24 @@ jobs:
           fi
 
           status=""
-          for i in $(seq 1 30); do
+          for i in $(seq 1 90); do
             review_app=$(find_review_app)
             status=$(echo "$review_app" | jq -r '.last_deployment.status // empty')
-            [ "$status" = "success" ] && break
+            case "$status" in
+              success) break ;;
+              *-error|aborted)
+                echo "status=$status" >> "$GITHUB_OUTPUT"
+                echo "Review app deploy failed (status: $status)." >&2
+                exit 1
+                ;;
+            esac
             echo "Waiting for review app deploy to finish (status: ${status:-pending})..."
             sleep 10
           done
 
           if [ "$status" != "success" ]; then
-            echo "Timed out waiting for the review app deploy to succeed." >&2
+            echo "status=${status:-pending}" >> "$GITHUB_OUTPUT"
+            echo "Timed out after 15 minutes waiting for the review app deploy to succeed (last status: ${status:-pending})." >&2
             exit 1
           fi
 
@@ -81,6 +98,16 @@ jobs:
           domain="${domain%%/*}"
           scalingo --app "$REVIEW_APP" env-set \
             "ALLOWED_HOSTS=$domain" "HOST=$URL" "DISABLE_ADMIN_2FA=true" "SEED_ENABLED=true"
+
+      # Review apps inherit the parent app's literal CACHE_URL, which points at staging's Redis.
+      # Scalingo's `$VAR` alias only works as a whole value, so the db index is appended here.
+      - name: Point the review app cache at its own Redis
+        env:
+          REVIEW_APP: techpourtoutes-staging-pr${{ steps.pr.outputs.number }}
+        run: |
+          redis_url=$(scalingo --app "$REVIEW_APP" env | sed -n 's/^SCALINGO_REDIS_URL=//p')
+          echo "::add-mask::$redis_url"
+          scalingo --app "$REVIEW_APP" env-set "CACHE_URL=$redis_url/1"
 
       - name: Parse extra env vars from comment
         id: extra-env
@@ -133,13 +160,6 @@ jobs:
           REVIEW_APP: techpourtoutes-staging-pr${{ steps.pr.outputs.number }}
         run: scalingo --app "$REVIEW_APP" run python manage.py seed
 
-      - name: Generate app token for PR comment
-        id: app-token
-        uses: actions/create-github-app-token@v3
-        with:
-          app-id: ${{ secrets.APP_ID }}
-          private-key: ${{ secrets.APP_PRIVATE_KEY }}
-
       - name: Comment PR with review app URL
         uses: peter-evans/create-or-update-comment@v5
         with:
@@ -149,3 +169,29 @@ jobs:
           body: |
             Review app ready :
             ${{ steps.review-app.outputs.url }}
+
+      - name: Report failure on the PR
+        if: failure()
+        uses: actions/github-script@v9
+        env:
+          DEPLOY_STATUS: ${{ steps.review-app.outputs.status }}
+        with:
+          github-token: ${{ steps.app-token.outputs.token }}
+          script: |
+            const status = process.env.DEPLOY_STATUS || "";
+            const runUrl = `${context.serverUrl}/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId}`;
+            // A terminal Scalingo status sticks: the deploy step only creates a review app that is
+            // absent, so re-running the command re-reads the same failure until the app is destroyed.
+            let advice;
+            if (/(-error|aborted)$/.test(status)) {
+              advice = "Le build Scalingo a échoué. Relancer `/deploy-review-app` relira le même échec : lancez `/destroy-review-app` puis `/deploy-review-app`, ou poussez un nouveau commit.";
+            } else if (status) {
+              advice = "Le déploiement n'a pas abouti dans le temps imparti. Il se poursuit peut-être côté Scalingo : relancez `/deploy-review-app` dans quelques minutes.";
+            } else {
+              advice = "L'échec ne vient pas du déploiement lui-même mais d'une étape autour (configuration, restart ou seed) : voir les logs du workflow.";
+            }
+            await github.rest.issues.createComment({
+              ...context.repo,
+              issue_number: context.issue.number,
+              body: `Échec du déploiement de la review app${status ? ` (statut : \`${status}\`)` : ""}.\n\n${advice}\n\n[Logs du workflow](${runUrl})`,
+            });

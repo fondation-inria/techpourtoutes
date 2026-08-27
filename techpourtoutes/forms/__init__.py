@@ -1,23 +1,48 @@
-from .account_edit_form import AccountEditForm
-from .communication_form import CommunicationForm
-from .delete_account_form import DeleteAccountForm
-from .email_change_form import EmailChangeForm
-from .engagement_forms import EngagementForm, TrainingAmbassadorForm, WorkshopForm
-from .login_request_form import LoginRequestForm
+from .account import (
+    BeneficiaryEditAccountForm,
+    BeneficiaryTrainingExperienceForm,
+    CommunicationForm,
+    DeleteAccountForm,
+    EmailChangeForm,
+    ProEditAccountForm,
+    ProTrainingExperienceForm,
+)
+from .auth import LoginRequestForm, VerificationCodeForm
+from .beneficiary_inscription import (
+    BeneficiaryEmailForm,
+    BeneficiaryHigherEducationTrainingExperienceForm,
+    BeneficiaryHighSchoolTrainingExperienceForm,
+    BeneficiaryIdentityForm,
+    BeneficiaryLastDiplomaTrainingExperienceForm,
+    BeneficiaryMentoringSignUpForm,
+    BeneficiaryStudyStatusForm,
+    StudyStatus,
+)
+from .email_notification_form import EmailNotificationForm
+from .engagement import EngagementForm, TrainingAmbassadorForm, WorkshopForm
 from .manifeste_signature_form import ManifesteSignatureForm
-from .training_experience_form import TrainingExperienceForm
-from .verification_code_form import VerificationCodeForm
 
 __all__ = [
-    "AccountEditForm",
+    "BeneficiaryEmailForm",
+    "BeneficiaryHigherEducationTrainingExperienceForm",
+    "BeneficiaryHighSchoolTrainingExperienceForm",
+    "BeneficiaryIdentityForm",
+    "BeneficiaryLastDiplomaTrainingExperienceForm",
+    "BeneficiaryMentoringSignUpForm",
+    "BeneficiaryStudyStatusForm",
+    "BeneficiaryEditAccountForm",
+    "BeneficiaryTrainingExperienceForm",
     "CommunicationForm",
+    "StudyStatus",
     "DeleteAccountForm",
     "EmailChangeForm",
+    "EmailNotificationForm",
     "EngagementForm",
     "LoginRequestForm",
     "ManifesteSignatureForm",
+    "ProEditAccountForm",
+    "ProTrainingExperienceForm",
     "TrainingAmbassadorForm",
-    "TrainingExperienceForm",
     "VerificationCodeForm",
     "WorkshopForm",
 ]

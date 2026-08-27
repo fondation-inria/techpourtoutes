@@ -1,15 +1,34 @@
 <c-layout.base>
-    <c-components.title title="Mon compte" variant="h1" />
+    <c-components.title title="Mon compte" title_bg="yellow" />
 
     {% if user.jobirl_user_id %}
-        <c-components.button href="{% url "login_to_jobirl" %}" label="Accéder à mon espace mentorat" icon="external-link" target="_blank" />
+        <c-components.card-link color="yellow" title="Mentorat" button="Rejoindre mon espace mentorat" href="{% url "login_to_jobirl" %}" target="_blank" class="max-w-sm">
+            TechPourToutes propose un programme de mentorat de 6 mois, 100% gratuit et digital.
+        </c-components.card-link>
+    {% elif is_beneficiary and user.legal_representative_email %}
+        <c-components.card-link color="yellow" title="Mentorat" button="Rejoindre mon espace mentorat" class="max-w-sm" :disabled="True">
+            Nous avons bien reçu ta demande de mentorat. Nous sommes en attente de l'autorisation de la personne responsable légale.
+        </c-components.card-link>
+    {% elif is_beneficiary %}
+        <c-components.card-link color="yellow" title="Mentorat" button="S'inscrire au mentorat" href="{% url "add_mentoring" %}" class="max-w-sm">
+            TechPourToutes propose un programme de mentorat de 6 mois, 100% gratuit et digital.
+        </c-components.card-link>
     {% endif %}
 
     {% include "account/partials/info_card.html" %}
 
-    {% for experience in user.training_experiences.all %}
-        {% include "account/partials/training_experience_card.html" %}
-    {% endfor %}
+    {% if is_pro %}
+        {# a pro can only have one training experience for now #}
+        {% with experience=user.training_experiences.first %}
+            {% if experience %}
+                {% include "account/partials/pro_training_experience_card.html" %}
+            {% endif %}
+        {% endwith %}
+    {% endif %}
+
+    {% if is_beneficiary %}
+        {% include "account/partials/beneficiary_training_experience_card.html" %}
+    {% endif %}
 
     {% include "account/partials/communication_card.html" %}
 

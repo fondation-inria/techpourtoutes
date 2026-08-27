@@ -22,9 +22,16 @@ environ.Env.read_env(BASE_DIR / ".env")
 SECRET_KEY = env("SECRET_KEY")
 DEBUG = env("DEBUG")
 FAVICON_NAMEFILE = env("FAVICON_NAMEFILE", default="images/favicon-tpt")
+# Switches the favicon between favicon-tpt-coalition.svg and favicon-tpt-beneficiary.svg based
+# on the sidebar shown, instead of the fixed FAVICON_NAMEFILE. Enable in prod only.
+FAVICON_DYNAMIC_ENABLED = env.bool("FAVICON_DYNAMIC_ENABLED", default=False)
 
 ALLOWED_HOSTS = env.list("ALLOWED_HOSTS")
 SITE_URL = env("HOST", default="https://localhost:8000").rstrip("/")
+BENEFICIARY_BOOKING_URL = env(
+    "BENEFICIARY_BOOKING_URL",
+    default="https://outlook.office.com/bookwithme/user/ef04c95ea1e44a329c6ba9bd01786932@fondation-inria.fr/meetingtype/4RQaWcoi4kCW8TruTK0Rxg2?anonymous&ismsaljsauthenabled&ep=mlink",
+)
 # Admin is mounted at this path; override in production to a non-guessable value.
 ADMIN_URL = env("ADMIN_URL", default="admin").strip("/")
 # Escape hatch to disable the admin 2FA requirement outside local dev (e.g. review apps).
@@ -35,6 +42,7 @@ DISABLE_ADMIN_2FA = env.bool("DISABLE_ADMIN_2FA", default=False)
 SEED_ENABLED = env.bool("SEED_ENABLED", default=DEBUG)
 SEED_ADMIN_EMAIL = env("SEED_ADMIN_EMAIL", default="admin@techpourtoutes.io")
 SEED_ADMIN_PASSWORD = env("SEED_ADMIN_PASSWORD", default="admin")
+SEED_BENEFICIARY_EMAIL = env("SEED_BENEFICIARY_EMAIL", default="beneficiary@techpourtoutes.io")
 DATABASES = {
     "default": {
         **env.db("DATABASE_URL"),
@@ -74,7 +82,6 @@ AUTH_USER_MODEL = "techpourtoutes.User"
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
     "whitenoise.middleware.WhiteNoiseMiddleware",
-    "techpourtoutes.middleware.SiteModeUrlconfMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
@@ -128,6 +135,11 @@ LOGGING = {
         "techpourtoutes.services": {
             "handlers": ["console"],
             "level": "DEBUG" if DEBUG else "INFO",
+            "propagate": False,
+        },
+        "techpourtoutes.management": {
+            "handlers": ["console"],
+            "level": "INFO",
             "propagate": False,
         },
     },
@@ -186,9 +198,6 @@ else:
 JOBIRL_API_KEY = env("JOBIRL_API_KEY", default="")
 JOBIRL_URL = env("JOBIRL_URL", default="")
 
-# Schools import (data.education.gouv.fr)
-HUWISE_API_KEY = env("HUWISE_API_KEY", default="")
-
 # n8n webhooks
 N8N_WORKSHOP_WEBHOOK_URL = env(
     "N8N_WORKSHOP_WEBHOOK_URL",
@@ -201,7 +210,9 @@ N8N_WORKSHOP_WEBHOOK_BASIC_AUTH_PASSWORD = env(
 
 # Brevo contacts API
 BREVO_PRO_LIST_ID = env.int("BREVO_PRO_LIST_ID", default=0)
+BREVO_BENEFICIARY_LIST_ID = env.int("BREVO_BENEFICIARY_LIST_ID", default=0)
 BREVO_MANIFESTE_LIST_ID = env.int("BREVO_MANIFESTE_LIST_ID", default=0)
+BREVO_EMAIL_NOTIFICATION_LIST_ID = env.int("BREVO_EMAIL_NOTIFICATION_LIST_ID", default=0)
 BREVO_SYNC_ENABLED = env.bool("BREVO_SYNC_ENABLED", default=False)
 
 # Coalition engagement notification recipients
@@ -217,8 +228,17 @@ COALITION_TRAINING_AMBASSADOR_RECIPIENTS = env.list(
 COALITION_SPONSOR_RECIPIENTS = env.list(
     "COALITION_SPONSOR_RECIPIENTS", default=["bonjour@techpourtoutes.io"]
 )
-COALITION_ACCOUNT_DELETION_RECIPIENTS = env.list(
-    "COALITION_ACCOUNT_DELETION_RECIPIENTS", default=["bonjour@techpourtoutes.io"]
+
+
+JOBIRL_ACCOUNT_DELETION_RECIPIENTS = env.list(
+    "JOBIRL_ACCOUNT_DELETION_RECIPIENTS", default=["bonjour@techpourtoutes.io"]
+)
+LATITUDE_ACCOUNT_DELETION_RECIPIENTS = env.list(
+    "LATITUDE_ACCOUNT_DELETION_RECIPIENTS", default=["bonjour@techpourtoutes.io"]
+)
+
+NEW_MENTORING_SIGNUP_RECIPIENTS = env.list(
+    "NEW_MENTORING_SIGNUP_RECIPIENTS", default=["bonjour@techpourtoutes.io"]
 )
 
 # Celery

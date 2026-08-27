@@ -4,7 +4,7 @@ from .base_service import N8nApiBaseService
 
 
 class NotifyWorkshopRequest(N8nApiBaseService):
-    def perform(self, *, pro, ateliers, remark):
+    def perform(self, *, pro, ateliers, remark, structure_uai):
         self.request(
             method="notify_workshop_request",
             payload={
@@ -15,7 +15,7 @@ class NotifyWorkshopRequest(N8nApiBaseService):
                 "email": pro.email,
                 "etablissement": pro.structure_name,
                 "code_postal": pro.postal_code,
-                "identifiant_etablissement": pro.structure_id,
+                "identifiant_etablissement": structure_uai,
                 "fonction": pro.job_title,
                 "remarque": remark,
                 "timestamp": timezone.now().isoformat(),

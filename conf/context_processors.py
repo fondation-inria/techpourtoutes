@@ -5,4 +5,5 @@ def global_settings(request):
     return {
         "SITE_URL": settings.SITE_URL,
         "FAVICON_NAMEFILE": settings.FAVICON_NAMEFILE,
+        "FAVICON_DYNAMIC_ENABLED": settings.FAVICON_DYNAMIC_ENABLED,
     }

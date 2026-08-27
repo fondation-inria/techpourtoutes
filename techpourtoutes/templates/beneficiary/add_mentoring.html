@@ -1,0 +1,27 @@
+{% load static %}
+<c-layout.base
+    variant="funnel"
+    title="Rejoindre le mentorat – TechPourToutes"
+    description="Termine ton inscription au programme de mentorat TechPourToutes."
+    footer=False
+    back="{% url 'find_mentor_landing' %}">
+    <div class="w-full md:max-w-xl flex flex-col py-8">
+        <img src="{% static 'images/techpourtoutes-logo-new-beneficiary.png' %}" alt="logo TechPourToutes" class="w-48 shrink-0 mb-8" />
+        <c-components.card nobg=True>
+            <c-patterns.form url="{% url 'add_mentoring' %}">
+                <c-components.title title="Rejoins le programme de mentorat" variant="h1" />
+                {% include "beneficiary/partials/inscription/mentoring_signup_fields.html" %}
+                <div class="flex justify-center">
+                    <c-components.button type="submit" label="Rejoindre le mentorat" />
+                </div>
+            </c-patterns.form>
+        </c-components.card>
+    </div>
+    <c-slot name="right">
+        <div class="hidden md:block flex-1">
+            <img src="{% static 'images/inscription-funnel-hero.webp' %}"
+                 alt="Le futur sera numérique... et féminin"
+                 class="w-full h-full object-cover" />
+        </div>
+    </c-slot>
+</c-layout.base>

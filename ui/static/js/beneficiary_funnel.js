@@ -1,0 +1,48 @@
+// Client-side state for the beneficiary registration funnel.
+//
+// The collected answers are the single source of truth, kept per-tab in sessionStorage: they
+// survive a reload but die with the tab, and are wiped on an explicit exit (close button, or a
+// server "funnelReset" trigger on the age-gated dead-ends). The server stays stateless: every
+// request carries the whole set of answers accumulated so far, injected here on htmx:configRequest.
+document.addEventListener("alpine:init", () => {
+    Alpine.data("beneficiaryFunnel", () => ({
+        answers: Alpine.$persist({}).using(sessionStorage).as("beneficiary_funnel"),
+
+        init() {
+            document.body.addEventListener("htmx:configRequest", (event) => this.sendAnswers(event));
+            document.body.addEventListener("funnelReset", () => this.reset());
+            document
+                .querySelector("[data-funnel-close]")
+                ?.addEventListener("click", () => this.reset());
+        },
+
+        // Persist the freshly submitted fields, then piggy-back every prior answer on the request.
+        // Only the funnel's own POSTs carry the answers: the establishment autocomplete fires its
+        // own GET from inside the form, and must not leak them into the query string.
+        sendAnswers(event) {
+            if (event.detail.verb !== "post") return;
+            const params = event.detail.parameters;
+            const control = ["action", "to", "csrfmiddlewaretoken", "q"];
+            const stored = { ...this.answers };
+            this.forgetAnswersOf(event.detail.elt, stored);
+            Object.keys(params).forEach((key) => {
+                if (!control.includes(key)) stored[key] = params[key];
+            });
+            this.answers = stored;
+            Object.keys(stored).forEach((key) => {
+                if (!(key in params)) params[key] = stored[key];
+            });
+        },
+
+        // A submitted screen replaces its own answers rather than merging into them: an unchecked
+        // box sends nothing, so without this its previous value would come back on every request.
+        forgetAnswersOf(element, stored) {
+            if (element.tagName !== "FORM") return;
+            element.querySelectorAll("[name]").forEach((field) => delete stored[field.name]);
+        },
+
+        reset() {
+            this.answers = {};
+        },
+    }));
+});

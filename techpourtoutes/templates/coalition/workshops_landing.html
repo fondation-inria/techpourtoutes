@@ -1,14 +1,14 @@
 <c-layout.base title="Organiser un atelier – TechPourToutes" description="Vous êtes professeur? Prenez le temps d'aborder le numérique autrement à l'école et faites découvrir les enjeux et métiers de la tech à vos élèves grâce aux ateliers gratuits TechPourToutes.">
-    <c-components.title icon-name="organiser-un-atelier-bold" title="Organiser un atelier" />
+    <c-components.title title="Organiser un atelier" title_bg="yellow" />
     <div class="flex flex-wrap gap-2 md:gap-4">
         <c-components.badge label="Ponctuel" />
         <c-components.badge label="2 heures" />
         <c-components.badge label="En présentiel" />
     </div>
 
-    <p>
-        Prenez le temps d'aborder le numérique autrement à l'école&nbsp;: TechPourToutes propose deux formats d'atelier à destination des lycées.
-    </p>
+    <c-components.card>
+            Prenez le temps d'aborder le numérique autrement à l'école&nbsp;: TechPourToutes propose deux formats d'atelier à destination des lycées.
+    </c-components.card>
 
     <c-components.card title="1. Les ateliers Futurs Numériques de Latitudes">
         <c-components.text>
@@ -63,7 +63,7 @@
             Latitudes, une communauté d'acteurs et d'actrices de la tech qui agissent pour créer une technologie engagée et responsable.
 
         </c-components.text>
-        <c-components.button href="{% url "qui_sommes_nous" %}" label="Découvrir tous les membres du consortium TechPourToutes" variant="quaternary" />
+        <c-components.button href="{% url "qui_sommes_nous" %}" label="Découvrir tous les membres du consortium TechPourToutes" variant="tertiary" />
     </c-components.accordion>
 
     <c-components.card title="2. Les ateliers Chiche&nbsp;! avec Inria">
@@ -77,14 +77,19 @@
             Inria, l'Institut national de recherche en sciences et technologies du numérique.
 
         </c-components.text>
-        <c-components.button href="{% url "qui_sommes_nous" %}" label="Découvrir tous les membres du consortium TechPourToutes" variant="quaternary" />
+        <c-components.button href="{% url "qui_sommes_nous" %}" label="Découvrir tous les membres du consortium TechPourToutes" variant="tertiary" />
     </c-components.accordion>
 
+    <c-slot name="decorations">
+        <c-components.codex-letter letter="E" row="6" col="16" class="text-orange-500" />
+    </c-slot>
+
+
     <c-slot name="right">
-        <div class="flex flex-col items-center px-4 md:mt-[65px] md:self-start"
+        <div class="flex flex-col items-center px-4 md:mt-[100px] md:self-start"
              x-data="{ showForm: {{ form.is_bound|yesno:'true,false' }} }"
              :class="{ 'md:sticky md:top-14 xl:top-8': !showForm }">
-            <c-components.title title="Demandez un atelier&nbsp;!" class="justify-center text-center w-[250px] h-16" variant="h3" />
+            <c-components.starburst-title title="Demandez un atelier&nbsp;!" class="mb-8" />
 
             <div id="latitudes-form">
                 <div x-show="!showForm" @click.prevent="showForm = true; $nextTick(() => { $refs.formCard.scrollIntoView({ behavior: 'smooth', block: 'start' }) })" class="cursor-pointer">
@@ -98,7 +103,6 @@
                     x-transition:enter-end="scale-y-100"
                 />
                     <c-components.card-shadow id="latitudes-form-card" class="w-[320px] my-5 p-5 relative">
-                        <c-components.icon name="badge-coeur" class="shrink-0 w-15 h-15 absolute -top-5 -right-5" />
                         <c-patterns.form url="{% url 'workshops_landing' %}">
                             <c-components.title title="Organiser un atelier Latitudes" variant="h3" />
                             <p class="description-text-xxs">Les champs suivis d'un astérisque (*) sont obligatoires.</p>
@@ -108,9 +112,12 @@
                             <c-components.form_fields.input field=form.email autocomplete="email" variant="{% if pro %}disabled{% endif %}" />
                             <c-components.form_fields.select field=form.job_title />
                             <c-components.form_fields.school_search
-                                name_field=form.structure_name
-                                id_field=form.structure_id
+                                name_field=form.school_label
+                                id_field=form.structure_uai
+                                not_found_field=form.school_not_found
                                 postal_field=form.postal_code
+                                scope="workshop"
+                                key="uai"
                                 description="Recherchez par nom et/ou code postal"
                             />
                             <c-components.form_fields.checkbox_group field=form.ateliers description="Vous pouvez choisir plusieurs ateliers" />

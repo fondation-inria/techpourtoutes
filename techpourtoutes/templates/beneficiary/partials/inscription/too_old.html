@@ -1,0 +1,13 @@
+<div id="funnel-step" class="w-full flex flex-col my-auto">
+    <c-components.card nobg=True>
+        <div class="flex flex-col gap-4">
+            <p>TechPourToutes est un programme à destination des filles ayant entre 15 et 25 ans inclus.</p>
+            <p>Toutes les ressources sont disponibles en ligne sans restriction mais vous n'êtes plus éligible à l'accompagnement personnalisé.</p>
+            <p>Si vous avez déjà de l'expérience dans le numérique, vous pouvez rejoindre la coalition pour parler de votre parcours et accompagner les futures étudiantes du numérique.</p>
+            <div class="flex flex-col items-center gap-3 mt-2">
+                <c-components.button href="{% url 'coalition_home' %}" label="Rejoindre la coalition" />
+                <c-components.button href="{% url 'home' %}" variant="tertiary" label="Retourner à l'accueil" />
+            </div>
+        </div>
+    </c-components.card>
+</div>

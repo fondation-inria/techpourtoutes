@@ -1,0 +1,20 @@
+{% for formation in formations %}
+    <li role="none">
+        <button type="button" role="option"
+            @click="select('{{ formation.id|escapejs }}', '{{ formation.name|escapejs }}')"
+            class="w-full text-left px-3 py-2 text-sm hover:bg-primary/20 text-neutral-950">
+            {{ formation.name }}
+        </button>
+    </li>
+{% endfor %}
+{% if next_page %}
+    <li hx-get="{% url 'search_formations' %}?school_id={{ school_id|urlencode }}&unique_id={{ unique_id|urlencode }}&q={{ q|urlencode }}&page={{ next_page }}"
+        hx-trigger="intersect once root:#formation-results{% if unique_id %}-{{ unique_id }}{% endif %}"
+        hx-target="this"
+        hx-swap="outerHTML"
+        class="px-3 py-2 text-xs text-neutral-500">
+        Chargement…
+    </li>
+{% elif not formations and page == 1 %}
+    <li class="px-3 py-2 text-sm text-neutral-500">Aucune formation trouvée</li>
+{% endif %}

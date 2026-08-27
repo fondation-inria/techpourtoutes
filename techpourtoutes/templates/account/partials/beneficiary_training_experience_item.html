@@ -1,0 +1,32 @@
+{% if oob_swap %}<div hx-swap-oob="{{ oob_swap }}">{% endif %}
+<div id="beneficiary-training-experience-{{ experience.pk|default:"current-year" }}"
+     class="w-full pb-4 flex justify-between">
+    {% if experience %}
+        <c-components.text class="font-light pr-8">
+            <span class="font-medium">{{ experience.period_label_display }}</span>
+
+            Établissement : <span class="font-medium">{{ experience.school_label }}</span>
+
+            Niveau : <span class="font-medium">{{ experience.get_level_display }}</span>
+
+            Formation : <span class="font-medium">{{ experience.formation_label }}</span>
+        </c-components.text>
+    {% else %}
+        <c-components.text class="font-light pr-8"><span class="font-medium">Année scolaire en cours</span>
+
+            Je ne suis pas inscrite dans une formation.
+        </c-components.text>
+    {% endif %}
+    <div>
+        <br>
+        <c-components.button type="button" variant="icon"
+            icon="edit"
+            icon_size_class="w-6 h-6"
+            class="p-1 text-black bg-secondary/20 rounded-sm"
+            aria-label="Modifier"
+            hx-get="{% if experience %}{% url 'beneficiary_training_experience_edit' experience.pk %}{% else %}{% url 'beneficiary_training_experience_add' %}?current_year=true{% endif %}"
+            hx-target="closest [id^='beneficiary-training-experience-']"
+            hx-swap="outerHTML" />
+    </div>
+</div>
+{% if oob_swap %}</div>{% endif %}

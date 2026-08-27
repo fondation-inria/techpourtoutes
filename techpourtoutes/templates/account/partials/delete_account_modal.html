@@ -1,7 +1,8 @@
-<c-components.modal title="Voulez-vous vraiment supprimer votre compte ?">
+{% load politeness %}
+<c-components.modal title="{% politeness "Voulez-vous" "Veux-tu" %} vraiment supprimer {% politeness "votre" "ton" %} compte ?">
     <br>
     <p class="text-center text-sm">
-        Cette action est irréversible. Pour confirmer, veuillez cocher la case.
+        Cette action est irréversible. Pour confirmer, {% politeness "veuillez cocher" "coche" %} la case{% politeness "" " ci-dessous" %}.
     </p>
     <br>
     <div class="flex justify-center">
@@ -28,7 +29,6 @@
                     label="Annuler"
                     type="button"
                     variant="tertiary"
-                    size="lg"
                     hx-on:click="document.getElementById('modal-container').innerHTML = ''"
                 />
             </div>

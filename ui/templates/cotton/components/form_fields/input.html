@@ -1,3 +1,4 @@
+{% load date_filters %}
 <c-vars
     field=field
     label=""
@@ -11,13 +12,14 @@
     variant="default"
     class=""
     autocomplete=""
+    type="text"
 />
 
 <c-components.form-fields.base label=label description=description message=message class=class>
     <input
-        type="text"
+        type="{{ type }}"
         id="{{ id|default:field.id_for_label }}"
-        value="{{ value|default:field.value|default:"" }}"
+        {% if type == "date" %}value="{{ value|default:field.value|iso_date }}"{% else %}value="{{ value|default:field.value|default:"" }}"{% endif %}
         name="{{ name|default:field.html_name }}"
         autocomplete="{{ autocomplete|default:field.html_name }}"
         {% if placeholder %}placeholder="{{ placeholder }}"{% endif %}

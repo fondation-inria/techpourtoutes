@@ -1,5 +1,11 @@
 <c-layout.a_propos title="Contact – TechPourToutes" description="Vous avez des idées ou des questions ? Vous voulez contribuer autrement ? Contactez l'équipe TechPourToutes ou suivez-nous sur nos réseaux sociaux.">
-    <c-components.title title="Écrivez-nous" variant="h2" />
+
+    <c-slot name="decorations">
+        <c-components.codex-letter letter="A" row="2" col="3" class="text-green-500" />
+        <c-components.codex-letter letter="B" row="4" col="18" class="text-yellow-500" />
+    </c-slot>
+
+    <c-components.title title="Écrivez-nous" variant="h2" title_bg="black"  />
         <br>
         Vous avez des idées ? Vous voulez contribuer autrement ? N'hésitez pas à nous écrire :
         <br><br>
@@ -9,19 +15,19 @@
         <br><br>
         - pour remonter un problème sur le site : <c-components.inline-link label="perfectible@techpourtoutes.io" href="mailto:perfectible@techpourtoutes.io" />
         <br><br>
-    <c-components.title title="Suivez-nous sur les réseaux" variant="h2" class="mb-5" />
-    <div class="flex justify-center gap-20">
+    <c-components.title title="Suivez-nous sur les réseaux" variant="h2" title_bg="black" />
+    <div class="flex justify-center gap-20 mt-5">
         <a href="https://instagram.com/techpourtoutes/" class="flex flex-col items-center link-hover underline decoration-1 underline-offset-4" target="_blank">
-            <c-components.icon name="instagram-bold" class="w-15 h-15" />
-            <span class="flex items-center gap-1 hover:decoration-2 active:bg-neutral-200 active:decoration-2 focus:outline-primary-500 focus:outline-offset-2">
-                Instagram 
+            <c-components.icon name="instagram-bold" class="w-15 h-15 text-black!" />
+            <span class="flex items-center gap-1 hover:decoration-2 active:bg-neutral-200 active:decoration-2 focus:outline-blue-500 focus:outline-offset-2">
+                Instagram
                 <c-components.icon name="external-link" class="w-5 h-5" />
             </span>
         </a>
         <a href="https://linkedin.com/showcase/techpourtoutes/" class="flex flex-col items-center link-hover underline decoration-1 underline-offset-4" target="_blank">
-            <c-components.icon name="linkedin-bold" class="w-15 h-15" />
-            <span class="flex items-center gap-1 hover:decoration-2 active:bg-neutral-200 active:decoration-2 focus:outline-primary-500 focus:outline-offset-2">
-                LinkedIn 
+            <c-components.icon name="linkedin-bold" class="w-15 h-15 text-black!" />
+            <span class="flex items-center gap-1 hover:decoration-2 active:bg-neutral-200 active:decoration-2 focus:outline-blue-500 focus:outline-offset-2">
+                LinkedIn
                 <c-components.icon name="external-link" class="w-5 h-5" />
             </span>
         </a>

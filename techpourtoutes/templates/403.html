@@ -1,11 +1,15 @@
-{% load home_url %}
-<c-layout.base>
-    <div class="flex flex-col min-h-[80dvh] w-full items-center justify-center gap-y-6 text-center">
-        <p class="text-6xl font-bold text-primary">403</p>
-        <c-components.title title="Accès refusé" variant="h1" />
-        <p class="text-neutral-600 max-w-md">
-            Vous n'avez pas les autorisations nécessaires pour accéder à cette page.
-        </p>
-        <c-components.button label="Retour à l'accueil" href="{% home_url %}" />
+{% load static %}
+<c-layout.base title="403 – TechPourToutes" description="Vous n'avez pas les autorisations nécessaires pour accéder à cette page.">
+    <div class="relative isolate flex flex-col items-center justify-start gap-4 w-full md:flex-1 pb-16">
+        <img src="{% static 'images/error-page-bg.webp' %}"
+             alt=""
+             class="hidden md:block absolute -top-8 left-1/2 -translate-x-1/2 h-[calc(100%+4rem)] w-full md:w-screen md:max-w-4xl -z-10 object-cover border border-neutral-950" />
+        <c-components.title title="Vous n'avez pas l'autorisation" variant="h1" title_bg="yellow" class="w-full md:w-screen md:max-w-4xl text-center" />
+        <div class="w-full md:w-screen md:max-w-4xl bg-neutral-0 border border-neutral-950 p-4">
+            <p>
+                Pendant longtemps, les femmes ont eu bien plus d'erreur 403 que de portes ouvertes dans la Tech. Mais les choses changent&nbsp;!
+            </p>
+        </div>
+        <c-components.button label="Retour à l'accueil" href="{% url 'home' %}" />
     </div>
 </c-layout.base>

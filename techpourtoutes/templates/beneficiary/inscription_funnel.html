@@ -1,0 +1,28 @@
+{% load static %}
+<c-layout.base
+    variant="funnel"
+    title="Rejoins le club TechPourToutes !"
+    footer=False
+    head_js="js/alpine.persist.min.js js/beneficiary_funnel.js">
+    <div x-data="beneficiaryFunnel" class="w-full md:max-w-xl flex flex-col py-8">
+        <img src="{% static 'images/techpourtoutes-logo-new-beneficiary.png' %}" alt="logo TechPourToutes" class="w-48 shrink-0 mb-8" />
+        {# Stateless shell: on load, the client asks the server for the right step through a #}
+        {# "resume" POST; the Alpine component piggy-backs the answers stored in sessionStorage. #}
+        <div id="funnel-step"
+             hx-post="{% url 'inscription_funnel' %}"
+             hx-trigger="load"
+             hx-target="#funnel-step"
+             hx-swap="outerHTML"
+             hx-vals='{"action": "resume", "csrfmiddlewaretoken": "{{ csrf_token }}", "wants_mentor": {{ wants_mentor|yesno:"true,false" }}}'
+             class="w-full flex flex-col gap-y-4 my-auto items-center justify-center min-h-40">
+            <span class="loading loading-spinner text-primary"></span>
+        </div>
+    </div>
+    <c-slot name="right">
+        <div class="hidden md:block flex-1">
+            <img src="{% static 'images/inscription-funnel-hero.webp' %}"
+                 alt="Le futur sera numérique... et féminin"
+                 class="w-full h-full object-cover" />
+        </div>
+    </c-slot>
+</c-layout.base>
