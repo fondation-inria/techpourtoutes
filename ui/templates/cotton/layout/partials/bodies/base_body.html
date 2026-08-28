@@ -1,4 +1,6 @@
 <c-vars right="" decorations="" banner="" />
+{% load coalition_page %}
+{% is_coalition_page as is_coalition_page %}
 
 <body class="min-h-screen font-sans text-neutral-900 drawer xl:drawer-open">
     {% if decorations %}
@@ -8,7 +10,7 @@
     <div class="drawer-content flex flex-col min-h-screen">
         <header class="xl:hidden flex items-center justify-between px-4 py-3 bg-neutral-0 z-100">
             <label for="sidebar-drawer" class="cursor-pointer p-1">
-                <c-components.icon name="menu-burger-light" class="w-6 h-6" />
+                <c-components.icon name="menu-burger-{% if is_coalition_page %}pro{% else %}beneficiary{% endif %}" class="w-6 h-6" />
             </label>
             <c-components.brand-mark />
             <div />
