@@ -22,10 +22,10 @@
             <h3 class="text-lg leading-[1.4]">{{ title|safe }}</h3>
         {% elif variant == "h1" %}
             <h1 class="font-serif font-extrabold italic
-                        {% if title_bg == "yellow" %}text-2xl sm:text-4xl leading-[2.3] sm:leading-[1.45]{% else %}text-3xl text-black leading-[1.4]{% endif %}
+                        {% if title_bg == "yellow" %}text-2xl sm:text-4xl leading-(--grid-cell){% else %}text-3xl text-black leading-[1.4]{% endif %}
             ">
                 {% if title_bg == "yellow" %}
-                    <span class="box-decoration-clone bg-yellow-500 border-[0.5px] border-neutral-950 rounded-full px-8 py-4 sm:py-2">{{ title|safe }}</span>
+                    <span class="box-decoration-clone bg-yellow-500 border-[0.5px] border-neutral-950 rounded-full px-8 py-5 sm:py-3.5">{{ title|safe }}</span>
                 {% else %}
                     {{ title|safe }}
                 {% endif %}

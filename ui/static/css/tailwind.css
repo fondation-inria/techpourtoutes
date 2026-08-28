@@ -55,7 +55,6 @@
     --font-weight-medium: 500;
     --font-weight-bold: 700;
     --font-weight-extrabold: 800;
-    --leading-loose: 2;
     --radius-xs: 4px;
     --radius-sm: 6px;
     --radius-md: 8px;
@@ -4463,6 +4462,30 @@
   .-mt-0\.5 {
     margin-top: calc(var(--spacing) * -0.5);
   }
+  .-mt-2 {
+    margin-top: calc(var(--spacing) * -2);
+  }
+  .-mt-2\.5 {
+    margin-top: calc(var(--spacing) * -2.5);
+  }
+  .-mt-3 {
+    margin-top: calc(var(--spacing) * -3);
+  }
+  .-mt-3\.5 {
+    margin-top: calc(var(--spacing) * -3.5);
+  }
+  .-mt-4 {
+    margin-top: calc(var(--spacing) * -4);
+  }
+  .-mt-5 {
+    margin-top: calc(var(--spacing) * -5);
+  }
+  .-mt-6 {
+    margin-top: calc(var(--spacing) * -6);
+  }
+  .-mt-35 {
+    margin-top: calc(var(--spacing) * -35);
+  }
   .-mt-px {
     margin-top: -1px;
   }
@@ -5518,6 +5541,9 @@
   .py-4 {
     padding-block: calc(var(--spacing) * 4);
   }
+  .py-5 {
+    padding-block: calc(var(--spacing) * 5);
+  }
   .py-7 {
     padding-block: calc(var(--spacing) * 7);
   }
@@ -5651,6 +5677,10 @@
   .text-xxs {
     font-size: var(--text-xxs);
   }
+  .leading-\(--grid-cell\) {
+    --tw-leading: var(--grid-cell);
+    line-height: var(--grid-cell);
+  }
   .leading-\[1\.2\] {
     --tw-leading: 1.2;
     line-height: 1.2;
@@ -5658,50 +5688,6 @@
   .leading-\[1\.4\] {
     --tw-leading: 1.4;
     line-height: 1.4;
-  }
-  .leading-\[1\.5\] {
-    --tw-leading: 1.5;
-    line-height: 1.5;
-  }
-  .leading-\[1\.7\] {
-    --tw-leading: 1.7;
-    line-height: 1.7;
-  }
-  .leading-\[1\.45\] {
-    --tw-leading: 1.45;
-    line-height: 1.45;
-  }
-  .leading-\[1\.\] {
-    --tw-leading: 1.;
-    line-height: 1.;
-  }
-  .leading-\[2\.0\] {
-    --tw-leading: 2.0;
-    line-height: 2.0;
-  }
-  .leading-\[2\.2\] {
-    --tw-leading: 2.2;
-    line-height: 2.2;
-  }
-  .leading-\[2\.3\] {
-    --tw-leading: 2.3;
-    line-height: 2.3;
-  }
-  .leading-\[2\.4\] {
-    --tw-leading: 2.4;
-    line-height: 2.4;
-  }
-  .leading-\[2\.\] {
-    --tw-leading: 2.;
-    line-height: 2.;
-  }
-  .leading-\[2\] {
-    --tw-leading: 2;
-    line-height: 2;
-  }
-  .leading-loose {
-    --tw-leading: var(--leading-loose);
-    line-height: var(--leading-loose);
   }
   .leading-none {
     --tw-leading: 1;
@@ -6321,6 +6307,9 @@
     .sm\:py-2 {
       padding-block: calc(var(--spacing) * 2);
     }
+    .sm\:py-3\.5 {
+      padding-block: calc(var(--spacing) * 3.5);
+    }
     .sm\:text-2xl {
       font-size: var(--text-2xl);
       line-height: var(--tw-leading, var(--text-2xl--line-height));
@@ -6332,10 +6321,6 @@
     .sm\:text-5xl {
       font-size: var(--text-5xl);
       line-height: var(--tw-leading, var(--text-5xl--line-height));
-    }
-    .sm\:leading-\[1\.45\] {
-      --tw-leading: 1.45;
-      line-height: 1.45;
     }
   }
   @media (width >= 48rem) {
@@ -6672,7 +6657,7 @@
   src: url("../fonts/newsreader/newsreader-latin-800-italic.woff2") format("woff2");
 }
 :root {
-  --grid-cell: 60px;
+  --grid-cell: 64px;
   --hairline: 0.5px;
   --grid-offset-x: -1px;
   --grid-offset-y: 32px;
