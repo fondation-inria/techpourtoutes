@@ -55,6 +55,7 @@
     --font-weight-medium: 500;
     --font-weight-bold: 700;
     --font-weight-extrabold: 800;
+    --leading-loose: 2;
     --radius-xs: 4px;
     --radius-sm: 6px;
     --radius-md: 8px;
@@ -5674,9 +5675,33 @@
     --tw-leading: 1.;
     line-height: 1.;
   }
+  .leading-\[2\.0\] {
+    --tw-leading: 2.0;
+    line-height: 2.0;
+  }
   .leading-\[2\.2\] {
     --tw-leading: 2.2;
     line-height: 2.2;
+  }
+  .leading-\[2\.3\] {
+    --tw-leading: 2.3;
+    line-height: 2.3;
+  }
+  .leading-\[2\.4\] {
+    --tw-leading: 2.4;
+    line-height: 2.4;
+  }
+  .leading-\[2\.\] {
+    --tw-leading: 2.;
+    line-height: 2.;
+  }
+  .leading-\[2\] {
+    --tw-leading: 2;
+    line-height: 2;
+  }
+  .leading-loose {
+    --tw-leading: var(--leading-loose);
+    line-height: var(--leading-loose);
   }
   .leading-none {
     --tw-leading: 1;
