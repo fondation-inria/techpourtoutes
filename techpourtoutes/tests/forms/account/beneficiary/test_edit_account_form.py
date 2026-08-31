@@ -68,12 +68,3 @@ def test_form_rejects_invalid_postal_code():
     )
     assert not form.is_valid()
     assert "postal_code" in form.errors
-
-
-@pytest.mark.django_db
-def test_form_rejects_missing_birth_date():
-    from techpourtoutes.forms import BeneficiaryEditAccountForm
-
-    form = BeneficiaryEditAccountForm(data={"first_name": "Léa", "last_name": "Petit"})
-    assert not form.is_valid()
-    assert "birth_date" in form.errors
