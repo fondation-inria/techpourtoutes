@@ -6,7 +6,7 @@ from django.contrib.messages import get_messages
 from django.core import mail
 from django.urls import reverse
 
-from techpourtoutes.models import Beneficiary
+from techpourtoutes.models import Beneficiary, Pro
 
 
 @pytest.mark.django_db
@@ -25,6 +25,17 @@ def test_account_renders_when_authenticated(client, pro):
     response = client.get(reverse("account"))
 
     assert response.status_code == 200
+
+
+@pytest.mark.django_db
+def test_account_shows_forum_link_when_engaged_as_training_ambassador(client, pro):
+    pro.engagements = [Pro.Engagement.TRAINING_AMBASSADOR]
+    pro.save()
+    client.force_login(pro)
+
+    response = client.get(reverse("account"))
+
+    assert b"Rejoindre le forum" in response.content
 
 
 @pytest.mark.django_db
@@ -350,7 +361,7 @@ def test_email_change_resend_remails(_code, client, pro):
 @pytest.mark.django_db
 def test_account_page_shows_communication_checkbox_checked_when_synced(client, pro):
     client.force_login(pro)
-    content = client.get(reverse("account")).content.decode()
+    content = client.get(reverse("account_detail")).content.decode()
     assert "Je veux recevoir ponctuellement des nouvelles de TechPourToutes" in content
     assert "account-communication-card" in content
     assert "checked" in content
