@@ -1,0 +1,27 @@
+{# One screen of the mentoring sign-up. Like the funnel, each step posts back to its own view #}
+{# and swaps itself in place; the hidden `action` says which one is coming back. #}
+<div id="mentoring-step" class="w-full flex flex-col">
+    <c-layout.partials.messages wrapper_class="w-full flex flex-col gap-y-2" />
+    <c-components.card nobg=True>
+        <c-patterns.form
+            hx-post="{% url 'add_mentoring' %}"
+            hx-target="#mentoring-step"
+            hx-swap="outerHTML">
+            <input type="hidden" name="action" value="{{ step }}">
+            <c-components.title title="Rejoins le programme de mentorat" variant="h1" />
+            {% if step == "study_status" %}
+                {% include "beneficiary/partials/inscription/study_status_fields.html" %}
+            {% elif step == "training_experience" %}
+                {# The only answer the previous step hands over. #}
+                <input type="hidden" name="study_status" value="{{ study_status }}">
+                <p class="text-xs text-neutral-500">Tous les champs sont obligatoires</p>
+                {% include "beneficiary/partials/inscription/training_experience_fields.html" %}
+            {% else %}
+                {% include "beneficiary/partials/inscription/mentoring_signup_fields.html" %}
+            {% endif %}
+            <div class="flex justify-center">
+                <c-components.button type="submit" label="{% if step == 'mentoring_signup' %}Rejoindre le mentorat{% else %}Continuer{% endif %}" />
+            </div>
+        </c-patterns.form>
+    </c-components.card>
+</div>
