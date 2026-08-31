@@ -1,0 +1,25 @@
+<c-layout.base>
+    <c-components.title title="Mon compte" title_bg="yellow" />
+    {% include "account/partials/info_card.html" %}
+
+    {% if is_pro %}
+        {# a pro can only have one training experience for now #}
+        {% with experience=user.training_experiences.first %}
+            {% if experience %}
+                {% include "account/partials/pro_training_experience_card.html" %}
+            {% endif %}
+        {% endwith %}
+    {% endif %}
+
+    {% if is_beneficiary %}
+        {% include "account/partials/beneficiary_training_experience_card.html" %}
+    {% endif %}
+
+    {% include "account/partials/communication_card.html" %}
+
+    {% include "account/partials/access_card.html" %}
+
+    <c-patterns.form url="{% url 'logout' %}">
+        <c-components.button type="submit" label="Se déconnecter" variant="secondary" />
+    </c-patterns.form>
+</c-layout.base>
