@@ -210,6 +210,25 @@ def test_saves_legal_representative_for_a_minor(beneficiary):
 
 
 @pytest.mark.django_db
+def test_saves_the_birth_date_carried_by_the_mentoring_form_and_derives_minority(beneficiary):
+    beneficiary.birth_date = None
+    beneficiary.save()
+    birth_date = date.today().replace(year=date.today().year - 16)
+    data = {**_minor_mentoring_data(), "birth_date": birth_date}
+
+    with patch(SIGN_UP, return_value=_signed_up()) as MockSignUp:
+        result = UpsertBeneficiary(beneficiary=beneficiary, mentoring_signup_data=data)
+
+    assert result.success is True
+    beneficiary.refresh_from_db()
+    assert beneficiary.birth_date == birth_date
+    assert beneficiary.legal_representative_email == "parent@example.com"
+    MockSignUp.assert_called_once_with(
+        beneficiary=beneficiary, is_minor=True, mentoring_signup_data=data
+    )
+
+
+@pytest.mark.django_db
 def test_relays_sign_up_failure(beneficiary):
     with patch(SIGN_UP, return_value=_sign_up_refused("Jobirl error")):
         result = UpsertBeneficiary(

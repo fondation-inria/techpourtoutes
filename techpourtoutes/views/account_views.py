@@ -25,12 +25,7 @@ from ..utils.training_experience import training_experience_slots
 @login_required
 def account(request):
     is_pro, is_beneficiary, user = _resolve_account(request)
-    form = CommunicationForm(user=user)
-    context = {"user": user, "is_pro": is_pro, "is_beneficiary": is_beneficiary, "form": form}
-    if is_beneficiary:
-        context["training_experience_slots"] = training_experience_slots(
-            user.training_experiences.all()
-        )
+    context = {"user": user, "is_pro": is_pro, "is_beneficiary": is_beneficiary}
     return render(request, "account/account.html", context)
 
 
@@ -45,6 +40,22 @@ def account_communication(request):
         request,
         "account/partials/communication_card.html",
         {"user": user, "form": form},
+    )
+
+
+@login_required
+def account_detail(request):
+    is_pro, is_beneficiary, user = _resolve_account(request)
+    form = CommunicationForm(user=user)
+    context = {"user": user, "is_pro": is_pro, "is_beneficiary": is_beneficiary, "form": form}
+    if is_beneficiary:
+        context["training_experience_slots"] = training_experience_slots(
+            user.training_experiences.all()
+        )
+    return render(
+        request,
+        "account/partials/account_detail.html",
+        context,
     )
 
 
