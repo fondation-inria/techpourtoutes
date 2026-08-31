@@ -49,3 +49,19 @@ class Pro(User):
         engagement = str(engagement)
         if engagement not in self.engagements:
             self.engagements.append(engagement)
+
+    @property
+    def is_training_ambassador(self):
+        return self.Engagement.TRAINING_AMBASSADOR in self.engagements
+
+    @property
+    def is_work_ambassador(self):
+        return self.Engagement.WORK_AMBASSADOR in self.engagements
+
+    @property
+    def has_workshops(self):
+        return self.Engagement.WORKSHOPS in self.engagements
+
+    @property
+    def has_internships(self):
+        return self.Engagement.INTERNSHIPS in self.engagements
