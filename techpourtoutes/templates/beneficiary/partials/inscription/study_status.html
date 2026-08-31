@@ -8,10 +8,7 @@
             hx-swap="outerHTML">
             <input type="hidden" name="action" value="study_status">
             <c-components.title title="Rejoins le club, {{ first_name }}" variant="h1" />
-            <p>Où en es-tu dans tes études ?</p>
-            <c-components.form_fields.radio
-                field=form.study_status
-                class="[&_[role=radiogroup]]:flex-col [&_label]:w-[283px] [&_label]:max-w-full [&_label]:border [&_label]:border-primary [&_label]:rounded [&_label]:px-4 [&_label]:py-3" />
+            {% include "beneficiary/partials/inscription/study_status_fields.html" %}
             <div class="flex justify-center">
                 <c-components.button type="submit" label="Continuer" />
             </div>
