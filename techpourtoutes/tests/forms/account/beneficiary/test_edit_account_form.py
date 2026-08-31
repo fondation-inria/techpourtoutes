@@ -24,17 +24,26 @@ def test_form_email_field_is_disabled(beneficiary):
 
 
 @pytest.mark.django_db
+def test_form_birth_date_field_is_disabled(beneficiary):
+    from techpourtoutes.forms import BeneficiaryEditAccountForm
+
+    form = BeneficiaryEditAccountForm(beneficiary=beneficiary)
+    assert form.fields["birth_date"].disabled
+
+
+@pytest.mark.django_db
 def test_form_save_updates_beneficiary(beneficiary):
     from techpourtoutes.forms import BeneficiaryEditAccountForm
 
     form = BeneficiaryEditAccountForm(
+        beneficiary=beneficiary,
         data={
             "first_name": "Léa",
             "last_name": "Petit",
             "birth_date": "2008-03-15",
             "phone": "0698765432",
             "postal_code": "69001",
-        }
+        },
     )
     assert form.is_valid(), form.errors
     form.save(beneficiary)

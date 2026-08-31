@@ -1,9 +1,9 @@
-<c-vars field=field :errors=[] message="" />
+<c-vars field=field :errors=[] message="" message_class="" />
 
 {% for error in field.errors|default:errors %}
     <p class="text-xxs leading-[1.4] text-error font-normal">{{ error }}</p>
 {% empty %}
     {% if message %}
-        <p class="text-xxs leading-[1.4] text-black font-normal">{{ message }}</p>
+        <p class="text-xxs leading-[1.4] text-black font-normal {{ message_class }}">{{ message }}</p>
     {% endif %}
 {% endfor %}
