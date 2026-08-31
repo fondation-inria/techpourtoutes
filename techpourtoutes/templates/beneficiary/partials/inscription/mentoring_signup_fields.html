@@ -1,11 +1,24 @@
-{% if is_minor %}
-    <p>Comme tu es mineure, pour valider ton inscription au programme de mentorat, nous avons besoin d'une autorisation de tes parents ou d'une personne responsable légalement.</p>
-{% else %}
-    <p>Pour valider ton inscription au programme de mentorat, nous avons besoin de ton numéro de téléphone.</p>
-{% endif %}
-<p class="text-xs text-neutral-500">Tous les champs sont obligatoires</p>
-<c-components.form_fields.input field=form.phone />
-{% if is_minor %}
-    <c-components.form_fields.input field=form.legal_representative_name autocomplete="name" description="exemple : Hedy Lamarr" />
-    <c-components.form_fields.input field=form.legal_representative_email autocomplete="email" />
-{% endif %}
+{# `is_minor` is settled server-side, except for an account imported from Faveod: the form then #}
+{# asks for a birth date and Alpine flips the copy and the legal representative fields as she #}
+{# picks it, so a minor never has to submit twice. #}
+<div class="flex flex-col gap-4" x-data="{ isMinor: {{ is_minor|yesno:'true,false' }} }">
+    {% if is_minor or needs_birth_date %}
+        <p{% if needs_birth_date %} x-show="isMinor" x-cloak{% endif %}>Comme tu es mineure, pour valider ton inscription au programme de mentorat, nous avons besoin d'une autorisation de tes parents ou d'une personne responsable légalement.</p>
+    {% endif %}
+    {% if not is_minor %}
+        <p{% if needs_birth_date %} x-show="!isMinor"{% endif %}>Pour valider ton inscription au programme de mentorat, nous avons besoin de {% if needs_birth_date %}ta date de naissance et de {% endif %}ton numéro de téléphone.</p>
+    {% endif %}
+    <p class="text-xs text-neutral-500">Tous les champs sont obligatoires</p>
+    {% if needs_birth_date %}
+        <div @input="isMinor = $event.target.value > '{{ adult_birth_date }}'">
+            <c-components.form_fields.input field=form.birth_date type="date" />
+        </div>
+    {% endif %}
+    <c-components.form_fields.input field=form.phone />
+    {% if is_minor or needs_birth_date %}
+        <div class="flex flex-col gap-4"{% if needs_birth_date %} x-show="isMinor" x-cloak{% endif %}>
+            <c-components.form_fields.input field=form.legal_representative_name autocomplete="name" description="exemple : Hedy Lamarr" />
+            <c-components.form_fields.input field=form.legal_representative_email autocomplete="email" />
+        </div>
+    {% endif %}
+</div>

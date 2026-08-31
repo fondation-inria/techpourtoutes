@@ -1,6 +1,7 @@
 from .account_views import (
     account,
     account_communication,
+    account_detail,
     account_edit,
     account_email,
     account_info,
@@ -17,14 +18,9 @@ from .auth_views import (
     login_verify,
     logout_view,
 )
-from .beneficiary_views import (
-    add_mentoring,
-    beneficiary_home,
-    bientot_disponible,
-    find_mentor_landing,
-    inscription_funnel,
-    mentoring_signup_skip_modal,
-)
+from .beneficiary.inscription_views import inscription_funnel, mentoring_signup_skip_modal
+from .beneficiary.mentoring_views import add_mentoring
+from .beneficiary_views import beneficiary_home, bientot_disponible, find_mentor_landing
 from .coalition_views import (
     coalition_home,
     coalition_welcome,
@@ -64,6 +60,7 @@ __all__ = [
     "account",
     "add_mentoring",
     "account_communication",
+    "account_detail",
     "account_edit",
     "account_email",
     "account_info",
