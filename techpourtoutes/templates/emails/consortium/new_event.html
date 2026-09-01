@@ -1,0 +1,27 @@
+<c-layout.email>
+  <p style="font-size:15px;color:#374151;">Un nouvel événement attend une validation.</p>
+  <ul style="font-size:15px;color:#374151;">
+    <li>Titre&nbsp;: <strong>{{ event.title }}</strong></li>
+    <li>Organisateur&nbsp;: {{ event.organizer }}</li>
+    <li>Type&nbsp;: {{ event.category_label }}</li>
+    <li>Dates&nbsp;: du {{ event.start_date|date:"d/m/Y" }} à {{ event.start_time|time:"H\hi" }} au {{ event.end_date|date:"d/m/Y" }} à {{ event.end_time|time:"H\hi" }}</li>
+    <li>Format&nbsp;: {{ event.get_location_type_display }}</li>
+    {% if event.location_type == "physical" %}
+      <li>Adresse&nbsp;: {{ event.address }} {{ event.postal_code }} {{ event.city }}</li>
+    {% else %}
+      <li>Lien de connexion&nbsp;: {{ event.online_url|default:"non renseigné" }}</li>
+    {% endif %}
+    <li>Inscription&nbsp;: {{ event.get_access_type_display }}{% if event.registration_url %} — {{ event.registration_url }}{% endif %}</li>
+    <li>Tarif&nbsp;: {% if event.price %}{{ event.price }}&nbsp;€{% else %}gratuit{% endif %}</li>
+  </ul>
+  {% if event.location_type == "physical" and not event.latitude %}
+    <p style="font-size:15px;color:#b91c1c;">
+      Adresse non géocodée&nbsp;: l'événement ne pourra pas être validé tant que ses coordonnées ne sont pas complétées.
+    </p>
+  {% endif %}
+  <p style="font-size:15px;color:#374151;">
+    Proposé par {{ event.created_by.full_name }} (<a href="mailto:{{ event.created_by.email }}">{{ event.created_by.email }}</a>).
+  </p>
+  <hr style="border:none;border-top:1px solid #e5e7eb;margin:24px 0;">
+  <p style="font-size:13px;color:#6b7280;">{{ event.description|linebreaksbr }}</p>
+</c-layout.email>

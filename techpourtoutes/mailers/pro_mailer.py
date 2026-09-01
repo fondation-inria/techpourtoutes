@@ -27,6 +27,15 @@ class ProMailer(BaseMailer):
         )
 
     @classmethod
+    def event_submitted(cls, *, event):
+        cls.send_mail(
+            subject="Votre événement est en cours de validation",
+            recipient_list=[event.created_by.email],
+            context={"event": event},
+            tags=["utilisateur", "coalition", "événement soumis"],
+        )
+
+    @classmethod
     def welcome_training_ambassador(cls, *, pro):
         cls.send_mail(
             subject="Une dernière étape pour devenir ambassadrice étudiante",

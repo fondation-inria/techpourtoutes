@@ -43,3 +43,16 @@ def test_welcome_attaches_its_brevo_tags(pro):
     ProMailer.welcome(pro=pro, token="tok-abc")
 
     assert mail.outbox[0].tags == ["utilisateur", "coalition", "mail de bienvenue"]
+
+
+@pytest.mark.django_db
+@override_settings(EMAIL_BACKEND="django.core.mail.backends.locmem.EmailBackend")
+def test_event_submitted_confirms_the_event_is_awaiting_validation(event):
+    ProMailer.event_submitted(event=event)
+
+    assert len(mail.outbox) == 1
+    message = mail.outbox[0]
+    assert message.to == [event.created_by.email]
+    assert "en cours de validation" in message.subject
+    assert event.title in message.body
+    assert message.tags == ["utilisateur", "coalition", "événement soumis"]

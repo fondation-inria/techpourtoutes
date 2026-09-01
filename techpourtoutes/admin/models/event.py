@@ -23,7 +23,7 @@ class EventAdmin(SimpleHistoryAdmin):
                     "price",
                     "location_type",
                     "online_url",
-                    "event_url",
+                    "registration_url",
                 )
             },
         ),

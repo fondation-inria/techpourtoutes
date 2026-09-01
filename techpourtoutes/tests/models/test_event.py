@@ -180,6 +180,43 @@ def test_approved_returns_only_the_validated_events(pro):
 
 
 @pytest.mark.django_db
+def test_an_ungeocoded_physical_event_cannot_be_approved(pro):
+    """Nothing may go live on a map without coordinates: the admin has to geocode it first."""
+    from techpourtoutes.models import Event
+
+    event = build_event(
+        pro,
+        location_type=Event.LocationType.PHYSICAL,
+        address="Salle des fêtes, derrière la mairie",
+        status=Event.Status.APPROVED,
+    )
+
+    with pytest.raises(ValidationError):
+        event.save()
+
+
+@pytest.mark.django_db
+def test_a_geocoded_physical_event_can_be_approved(event):
+    from techpourtoutes.models import Event
+
+    event.status = Event.Status.APPROVED
+    event.save()
+
+    assert list(Event.objects.approved()) == [event]
+
+
+@pytest.mark.django_db
+def test_an_online_event_can_be_approved_without_coordinates(pro):
+    from techpourtoutes.models import Event
+
+    event = build_event(pro, status=Event.Status.APPROVED)
+    event.save()
+
+    assert event.latitude is None
+    assert list(Event.objects.approved()) == [event]
+
+
+@pytest.mark.django_db
 def test_event_history_records_the_validation(event):
     from techpourtoutes.models import Event
 

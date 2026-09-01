@@ -1,0 +1,16 @@
+{% autoescape off %}Bonjour {{ event.created_by.first_name }},
+
+
+Nous avons bien reçu votre événement « {{ event.title }} », proposé par {{ event.organizer }}.
+
+Il est actuellement en cours de validation par notre équipe. Vous recevrez un mail dès qu'il sera validé : il sera alors en ligne et visible automatiquement.
+
+Pour rappel, voici ce que vous avez renseigné :
+
+- Type : {{ event.category_label }}
+- Dates : du {{ event.start_date|date:"d/m/Y" }} à {{ event.start_time|time:"H\hi" }} au {{ event.end_date|date:"d/m/Y" }} à {{ event.end_time|time:"H\hi" }}
+- Format : {{ event.get_location_type_display }}
+
+
+Bonne journée,
+L'équipe TechPourToutes{% endautoescape %}

@@ -1,0 +1,18 @@
+<c-layout.email>
+  <p style="font-size:15px;color:#374151;">Bonjour {{ event.created_by.first_name }},</p>
+  <p style="font-size:15px;color:#374151;">
+    Nous avons bien reçu votre événement <strong>{{ event.title }}</strong>, proposé par {{ event.organizer }}.
+  </p>
+  <p style="font-size:15px;color:#374151;">
+    Il est actuellement en cours de validation par notre équipe. Vous recevrez un mail dès qu'il sera validé&nbsp;: il sera alors en ligne et visible automatiquement.
+  </p>
+  <br>
+  <p style="font-size:15px;color:#374151;">Pour rappel, voici ce que vous avez renseigné&nbsp;:</p>
+  <ul style="font-size:15px;color:#374151;">
+    <li>Type&nbsp;: {{ event.category_label }}</li>
+    <li>Dates&nbsp;: du {{ event.start_date|date:"d/m/Y" }} à {{ event.start_time|time:"H\hi" }} au {{ event.end_date|date:"d/m/Y" }} à {{ event.end_time|time:"H\hi" }}</li>
+    <li>Format&nbsp;: {{ event.get_location_type_display }}</li>
+  </ul>
+  <br>
+  <p style="font-size:15px;color:#374151;">Bonne journée</p>
+</c-layout.email>

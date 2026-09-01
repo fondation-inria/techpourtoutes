@@ -25,7 +25,6 @@
     --color-white: #fff;
     --spacing: 0.25rem;
     --container-xs: 20rem;
-    --container-sm: 24rem;
     --container-lg: 32rem;
     --container-xl: 36rem;
     --container-2xl: 42rem;
@@ -70,7 +69,6 @@
     --color-neutral-0: #ffffff;
     --color-info-50: #f1f4ff;
     --color-warning-500: #ffab00;
-    --color-mauve-background: #e9e3eb;
     --text-xxs: 0.625rem;
   }
 }
@@ -3456,6 +3454,9 @@
   .mt-5 {
     margin-top: calc(var(--spacing) * 5);
   }
+  .mt-6 {
+    margin-top: calc(var(--spacing) * 6);
+  }
   .mt-7 {
     margin-top: calc(var(--spacing) * 7);
   }
@@ -3479,6 +3480,9 @@
   }
   .mb-8 {
     margin-bottom: calc(var(--spacing) * 8);
+  }
+  .-ml-px {
+    margin-left: -1px;
   }
   .ml-2 {
     margin-left: calc(var(--spacing) * 2);
@@ -3924,6 +3928,9 @@
   .items-center {
     align-items: center;
   }
+  .items-end {
+    align-items: flex-end;
+  }
   .items-start {
     align-items: flex-start;
   }
@@ -4098,14 +4105,23 @@
   .border-blue-500 {
     border-color: var(--color-blue-500);
   }
+  .border-error {
+    border-color: var(--color-error);
+  }
   .border-neutral-200 {
     border-color: var(--color-neutral-200);
+  }
+  .border-neutral-300 {
+    border-color: var(--color-neutral-300);
   }
   .border-neutral-950 {
     border-color: var(--color-neutral-950);
   }
   .border-orange-500 {
     border-color: var(--color-orange-500);
+  }
+  .border-primary {
+    border-color: var(--color-primary);
   }
   .border-purple-500 {
     border-color: var(--color-purple-500);
@@ -4658,11 +4674,30 @@
       font-style: italic;
     }
   }
+  .peer-checked\:relative:is(:where(.peer):checked ~ *) {
+    position: relative;
+  }
   .peer-checked\:block:is(:where(.peer):checked ~ *) {
     display: block;
   }
+  .peer-checked\:border-primary:is(:where(.peer):checked ~ *) {
+    border-color: var(--color-primary);
+  }
   .peer-checked\:bg-primary:is(:where(.peer):checked ~ *) {
     background-color: var(--color-primary);
+  }
+  .peer-checked\:bg-primary\/20:is(:where(.peer):checked ~ *) {
+    background-color: var(--color-primary);
+    @supports (color: color-mix(in lab, red, red)) {
+      background-color: color-mix(in oklab, var(--color-primary) 20%, transparent);
+    }
+  }
+  .peer-focus-visible\:outline:is(:where(.peer):focus-visible ~ *) {
+    outline-style: var(--tw-outline-style);
+    outline-width: 1px;
+  }
+  .peer-focus-visible\:outline-blue-500:is(:where(.peer):focus-visible ~ *) {
+    outline-color: var(--color-blue-500);
   }
   @media (hover: hover) {
     .hover\:rounded-xl:hover {
@@ -4808,6 +4843,9 @@
   @media (width >= 40rem) {
     .sm\:hidden {
       display: none;
+    }
+    .sm\:grid-cols-2 {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
     }
     .sm\:py-3\.5 {
       padding-block: calc(var(--spacing) * 3.5);
@@ -5813,6 +5851,11 @@
   syntax: "*";
   inherits: false;
 }
+@property --tw-outline-style {
+  syntax: "*";
+  inherits: false;
+  initial-value: solid;
+}
 @layer properties {
   @supports ((-webkit-hyphens: none) and (not (margin-trim: inline))) or ((-moz-orient: inline) and (not (color:rgb(from red r g b)))) {
     *, ::before, ::after, ::backdrop {
@@ -5861,6 +5904,7 @@
       --tw-drop-shadow-size: initial;
       --tw-duration: initial;
       --tw-ease: initial;
+      --tw-outline-style: solid;
     }
   }
 }

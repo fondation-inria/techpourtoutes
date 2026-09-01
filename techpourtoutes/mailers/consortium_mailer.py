@@ -38,6 +38,15 @@ class ConsortiumMailer(BaseMailer):
         )
 
     @classmethod
+    def new_event(cls, *, event):
+        cls.send_mail(
+            subject=f"Un nouvel événement à valider : {event.title}",
+            recipient_list=settings.NEW_EVENT_RECIPIENTS,
+            context={"event": event},
+            tags=["interne", "coalition", "nouvel événement"],
+        )
+
+    @classmethod
     def new_mentoring_signup(cls, *, beneficiary, mentoring_signup_data):
         cls.send_mail(
             subject="Nouvelle attestation à envoyer",

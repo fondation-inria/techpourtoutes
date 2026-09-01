@@ -91,9 +91,9 @@ class Event(BaseModel):
         ONLINE = "online", _("En ligne")
 
     class AccessType(models.TextChoices):
-        CANDIDACY = "candidacy", _("Candidature")
-        REGISTRATION = "registration", _("Inscription")
         OPEN = "open", _("Accès libre")
+        REGISTRATION = "registration", _("Inscription obligatoire")
+        CANDIDACY = "candidacy", _("Sur candidature")
 
     class Status(models.TextChoices):
         PENDING = "pending", _("En attente de validation")
@@ -131,7 +131,7 @@ class Event(BaseModel):
     latitude = models.FloatField(null=True, blank=True, verbose_name=_("latitude"))
     ban_id = models.CharField(max_length=30, blank=True, verbose_name=_("identifiant BAN"))
     online_url = models.URLField(blank=True, verbose_name=_("lien de connexion"))
-    event_url = models.URLField(blank=True, verbose_name=_("lien vers l'événement"))
+    registration_url = models.URLField(blank=True, verbose_name=_("lien d'inscription"))
     access_type = models.CharField(
         max_length=20, choices=AccessType.choices, verbose_name=_("modalité d'inscription")
     )
@@ -162,6 +162,15 @@ class Event(BaseModel):
                 | models.Q(end_date=models.F("start_date"), end_time__gte=models.F("start_time")),
                 name="event_ends_after_it_starts",
                 violation_error_message=_("La fin de l'événement doit suivre son début."),
+            ),
+            # Literal values: a nested class body cannot see the enclosing class namespace.
+            models.CheckConstraint(
+                condition=~models.Q(status="approved", location_type="physical")
+                | models.Q(latitude__isnull=False, longitude__isnull=False),
+                name="approved_physical_event_is_geocoded",
+                violation_error_message=_(
+                    "Un événement en présentiel doit être géocodé avant d'être validé."
+                ),
             ),
         ]
 

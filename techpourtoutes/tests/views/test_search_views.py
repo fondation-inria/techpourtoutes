@@ -440,3 +440,58 @@ def test_higher_ed_school_search_escapes_reflected_value_for_js_context(client):
     content = response.content.decode()
     assert "Test\\u0027X" in content
     assert "Test&#x27;X" not in content
+
+
+ADDRESS_FEATURE = {
+    "properties": {
+        "id": "80021_6590_00008",
+        "label": "8 Boulevard du Port 80000 Amiens",
+        "name": "8 Boulevard du Port",
+        "postcode": "80000",
+        "city": "Amiens",
+        "citycode": "80021",
+    },
+    "geometry": {"coordinates": [2.29009, 49.897443]},
+}
+
+
+def test_address_search_renders_a_selectable_row(client, httpx_mock):
+    httpx_mock.add_response(json={"features": [ADDRESS_FEATURE]})
+
+    response = client.get(reverse("search_addresses"), {"q": "8 boulevard du port"})
+
+    content = response.content.decode()
+    assert "8 Boulevard du Port 80000 Amiens" in content
+    assert "80021_6590_00008" in content
+    assert "HX-Trigger" not in response
+
+
+def test_address_search_announces_an_unreachable_api(client, httpx_mock):
+    """The component only offers manual entry once it hears the API is down."""
+    httpx_mock.add_response(status_code=503)
+
+    response = client.get(reverse("search_addresses"), {"q": "8 boulevard du port"})
+
+    assert response["HX-Trigger"] == "addressApiDown"
+    assert "indisponible" in response.content.decode()
+
+
+def test_address_search_says_when_nothing_matches(client, httpx_mock):
+    httpx_mock.add_response(json={"features": []})
+
+    response = client.get(reverse("search_addresses"), {"q": "adresse introuvable"})
+
+    assert "Aucune adresse trouvée" in response.content.decode()
+    assert "HX-Trigger" not in response
+
+
+def test_address_search_escapes_reflected_value_for_js_context(client, httpx_mock):
+    # The label is interpolated into the Alpine `select({...})` call, so a quote has to leave
+    # as ' rather than close the JS string. The visible row text stays HTML-escaped.
+    properties = ADDRESS_FEATURE["properties"] | {"label": "Rue d'X"}
+    httpx_mock.add_response(json={"features": [ADDRESS_FEATURE | {"properties": properties}]})
+
+    content = client.get(reverse("search_addresses"), {"q": "rue"}).content.decode()
+
+    assert "label: 'Rue d\\u0027X'" in content
+    assert "label: 'Rue d'X'" not in content

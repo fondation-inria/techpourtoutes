@@ -64,3 +64,19 @@ def test_new_pro_includes_pro_details_in_body(pro):
     assert pro.first_name in body
     assert pro.last_name in body
     assert pro.email in body
+
+
+@pytest.mark.django_db
+@override_settings(
+    EMAIL_BACKEND="django.core.mail.backends.locmem.EmailBackend",
+    NEW_EVENT_RECIPIENTS=["agir@techpourtoutes.io"],
+)
+def test_new_event_notifies_the_moderation_team(event):
+    ConsortiumMailer.new_event(event=event)
+
+    assert len(mail.outbox) == 1
+    message = mail.outbox[0]
+    assert message.to == ["agir@techpourtoutes.io"]
+    assert event.title in message.body
+    assert event.created_by.email in message.body
+    assert message.tags == ["interne", "coalition", "nouvel événement"]

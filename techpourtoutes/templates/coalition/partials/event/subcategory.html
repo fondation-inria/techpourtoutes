@@ -1,0 +1,23 @@
+<div id="funnel-step" class="w-full flex flex-col gap-y-4">
+    <c-layout.partials.messages wrapper_class="w-full flex flex-col gap-y-2" />
+    <c-components.card nobg=True>
+        <c-patterns.form
+            hx-post="{% url 'event_funnel' %}"
+            hx-target="#funnel-step"
+            hx-swap="outerHTML"
+            x-data="{ subcategory: '{{ form.subcategory.value|default:''|escapejs }}' }"
+            @select-change="subcategory = $event.detail.value">
+            <input type="hidden" name="action" value="subcategory">
+            {% include "coalition/partials/event/carried_answers.html" %}
+            <c-components.title title="Proposer un événement" variant="h1" />
+            <p class="description-text-xxs">Tous les champs sont obligatoires</p>
+            <c-components.form_fields.select field=form.subcategory :watchable=True />
+            <div x-show="subcategory == 'other'" x-cloak>
+                <c-components.form_fields.input field=form.subcategory_other autocomplete="off" />
+            </div>
+            <div class="flex justify-center">
+                <c-components.button type="submit" label="Continuer" />
+            </div>
+        </c-patterns.form>
+    </c-components.card>
+</div>

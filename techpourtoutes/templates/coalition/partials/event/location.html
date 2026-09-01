@@ -1,0 +1,94 @@
+<div id="funnel-step" class="w-full flex flex-col gap-y-4">
+    {% include "coalition/partials/event/back.html" %}
+    <c-layout.partials.messages wrapper_class="w-full flex flex-col gap-y-2" />
+    <c-components.card nobg=True>
+        <c-patterns.form
+            hx-post="{% url 'event_funnel' %}"
+            hx-target="#funnel-step"
+            hx-swap="outerHTML"
+            x-data="{
+                locationType: '{{ form.location_type.value|default:''|escapejs }}',
+                accessType: '{{ form.access_type.value|default:''|escapejs }}',
+                paid: '{{ form.price.value|default:''|escapejs }}' !== '' && '{{ form.price.value|default:'0'|escapejs }}' !== '0',
+                setFree() { this.paid = false; this.$refs.price.value = '0'; },
+                setPaid() { this.paid = true; if (this.$refs.price.value === '0') this.$refs.price.value = ''; }
+            }"
+            @segmented-change="
+                if ($event.detail.name === 'location_type') locationType = $event.detail.value;
+                if ($event.detail.name === 'access_type') accessType = $event.detail.value;
+            ">
+            <input type="hidden" name="action" value="location">
+            {% include "coalition/partials/event/carried_answers.html" %}
+            <c-components.title title="Proposer un événement" variant="h1" />
+            <p class="description-text-xxs">Les champs suivis d'un astérisque (*) sont obligatoires</p>
+
+            <c-components.form_fields.segmented field=form.location_type :watchable=True />
+
+            <div x-show="locationType == 'physical'" x-cloak>
+                <c-components.form_fields.address_search
+                    :address_field=form.address
+                    :postal_code_field=form.postal_code
+                    :city_field=form.city
+                    :cog_code_field=form.cog_code
+                    :longitude_field=form.longitude
+                    :latitude_field=form.latitude
+                    :ban_id_field=form.ban_id
+                    :api_down_field=form.address_api_down
+                    label="Quelle est l'adresse de l'événement ?*"
+                    description="Saisissez le numéro, la voie et la ville, puis sélectionnez votre adresse parmi les suggestions" />
+            </div>
+
+            <div x-show="locationType == 'online'" x-cloak>
+                <c-components.form_fields.input field=form.online_url type="url" autocomplete="off" />
+            </div>
+
+            <c-components.form_fields.segmented field=form.access_type :watchable=True />
+
+            {# One column, two labels: `<template x-if>` so only the active one is submitted. #}
+            <template x-if="accessType == 'registration'">
+                <div>
+                    <c-components.form_fields.input
+                        field=form.registration_url type="url" autocomplete="off"
+                        label="Lien d'inscription*"
+                        description="La plateforme ne gère pas les inscriptions pour le moment, veuillez indiquer un lien externe." />
+                </div>
+            </template>
+            <template x-if="accessType == 'candidacy'">
+                <div>
+                    <c-components.form_fields.input
+                        field=form.registration_url type="url" autocomplete="off"
+                        label="Lien de candidature*"
+                        description="La plateforme ne gère pas les dossiers de candidature, veuillez indiquer un lien externe." />
+                </div>
+            </template>
+
+            <div class="flex flex-col gap-2">
+                <span class="label-text-sm">L'événement est-il gratuit ?*</span>
+                <div role="radiogroup" class="inline-flex flex-wrap w-fit">
+                    <button type="button" @click="setFree()"
+                            :class="paid ? 'border-neutral-300' : 'bg-primary/20 border-primary relative'"
+                            class="inline-block border px-4 py-2 text-sm text-neutral-950 -ml-px cursor-pointer">Gratuit</button>
+                    <button type="button" @click="setPaid()"
+                            :class="paid ? 'bg-primary/20 border-primary relative' : 'border-neutral-300'"
+                            class="inline-block border px-4 py-2 text-sm text-neutral-950 -ml-px cursor-pointer">Payant</button>
+                </div>
+            </div>
+
+            {# `x-show`, not `x-if`: the price must be submitted even when the event is free. #}
+            <div x-show="paid" x-cloak class="flex items-end gap-2">
+                <c-components.form_fields.base :field=form.price label="Tarif*" description="Le tarif s'affichera sur l'événement à titre informatif">
+                    <input type="number" step="0.01" min="0" x-ref="price"
+                           id="{{ form.price.id_for_label }}"
+                           name="{{ form.price.html_name }}"
+                           value="{{ form.price.value|default:'0' }}"
+                           class="field-base {% if form.price.errors %}field-error{% else %}field-default{% endif %}" />
+                </c-components.form-fields.base>
+                <span class="pb-3 text-sm">€</span>
+            </div>
+
+            <div class="flex justify-center">
+                <c-components.button type="submit" label="Publier" />
+            </div>
+        </c-patterns.form>
+    </c-components.card>
+</div>

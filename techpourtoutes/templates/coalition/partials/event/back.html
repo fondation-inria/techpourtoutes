@@ -1,0 +1,16 @@
+{# A POST, not a link: the answers have to travel in the body. It is a sibling of the step's #}
+{# own form, never nested — HTML forbids that. #}
+<c-patterns.form
+    hx-post="{% url 'event_funnel' %}"
+    hx-target="#funnel-step"
+    hx-swap="outerHTML">
+    <input type="hidden" name="action" value="back">
+    <input type="hidden" name="to" value="{{ step }}">
+    {% include "coalition/partials/event/carried_answers.html" %}
+    <c-components.button type="submit" variant="tertiary" class="w-fit px-4 bg-white! hover:bg-secondary/20! active:bg-orange-500! text-neutral-900! font-normal">
+        <span class="flex items-center gap-1">
+            <c-components.icon name="chevron-down" class="w-4 h-4 rotate-90" />
+            Retour
+        </span>
+    </c-components.button>
+</c-patterns.form>

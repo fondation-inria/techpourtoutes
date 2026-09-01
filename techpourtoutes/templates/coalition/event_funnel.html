@@ -1,0 +1,31 @@
+<c-layout.base
+    variant="funnel"
+    title="Proposer un événement"
+    description="Proposez un événement tech aux jeunes femmes de la communauté TechPourToutes."
+    footer=False
+    back="{% url 'account' %}">
+    {# Nothing is saved before the last screen, so leaving throws the answers away: the close #}
+    {# button is intercepted to say so. `back` keeps it working if Alpine never boots. #}
+    <div class="w-full md:max-w-xl flex flex-col py-8"
+         x-data="{ quitting: false }"
+         x-init="document.querySelector('[data-funnel-close]')
+                     ?.addEventListener('click', event => { event.preventDefault(); quitting = true })">
+        {% include "coalition/partials/event/subcategory.html" %}
+
+        <template x-if="quitting">
+            <c-components.modal title="Voulez-vous vraiment quitter la création de votre événement ?">
+                <p class="text-sm text-neutral-950 text-center mt-4">
+                    En quittant, votre formulaire ne sera pas enregistré.
+                </p>
+                <div class="flex flex-wrap justify-center gap-4 mt-6">
+                    <c-components.button type="button" variant="secondary" @click="quitting = false" label="Annuler" />
+                    <c-components.button href="{% url 'account' %}" label="Quitter" />
+                </div>
+            </c-components.modal>
+        </template>
+    </div>
+    <c-slot name="right">
+        {# Deliberately empty: the funnel keeps the two-column layout, right side left blank. #}
+        <div class="hidden md:block flex-1"></div>
+    </c-slot>
+</c-layout.base>

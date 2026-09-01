@@ -5,6 +5,7 @@ from django.http import HttpResponseBadRequest
 from django.shortcuts import render
 
 from ..models import Formation, School
+from ..services.geoplateforme_api.search_addresses import SearchAddresses
 
 PAGE_SIZE = 20
 
@@ -114,6 +115,23 @@ def search_formations(request):
             "unique_id": request.GET.get("unique_id", ""),
         },
     )
+
+
+def search_addresses(request):
+    """Unlike the other two, this one queries a live API: no scope, no pagination.
+
+    A failure is not an error page — the dropdown says so and tells the component to offer
+    manual entry, through the `addressApiDown` trigger.
+    """
+    result = SearchAddresses(query=request.GET.get("q", "").strip())
+    response = render(
+        request,
+        "common/partials/address_results.html",
+        {"addresses": result.addresses, "api_down": result.failure},
+    )
+    if result.failure:
+        response["HX-Trigger"] = "addressApiDown"
+    return response
 
 
 # ------------------- private -------------------
