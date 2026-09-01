@@ -25,10 +25,8 @@ class UpsertBeneficiary(BaseService):
         self.beneficiary = beneficiary or Beneficiary(
             username=beneficiary_data["email"], email=beneficiary_data["email"]
         )
-        birth_date = (
-            beneficiary_data["birth_date"] if beneficiary_data else self.beneficiary.birth_date
-        )
-        is_minor = compute_age(birth_date) < 18
+        self._apply_birth_date(beneficiary_data, mentoring_signup_data)
+        is_minor = compute_age(self.beneficiary.birth_date) < 18
         with transaction.atomic():
             self._save_beneficiary(
                 beneficiary_data=beneficiary_data,
@@ -46,6 +44,13 @@ class UpsertBeneficiary(BaseService):
         if is_new:
             self._trigger_onboarding()
 
+    def _apply_birth_date(self, beneficiary_data, mentoring_signup_data):
+        # The identity step normally carries it; the mentoring form only does so for an account
+        # imported from Faveod
+        data = beneficiary_data or mentoring_signup_data or {}
+        if data.get("birth_date"):
+            self.beneficiary.birth_date = data["birth_date"]
+
     def _save_beneficiary(self, *, beneficiary_data, is_minor, mentoring_signup_data):
         if beneficiary_data:
             self._apply_identity(beneficiary_data)
@@ -56,7 +61,6 @@ class UpsertBeneficiary(BaseService):
     def _apply_identity(self, beneficiary_data):
         self.beneficiary.first_name = beneficiary_data["first_name"]
         self.beneficiary.last_name = beneficiary_data["last_name"]
-        self.beneficiary.birth_date = beneficiary_data["birth_date"]
         self.beneficiary.brevo_sync_enabled = beneficiary_data["newsletter_consent"]
 
     def _apply_mentoring_contact(self, mentoring_signup_data, is_minor):
