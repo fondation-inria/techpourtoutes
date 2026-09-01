@@ -126,6 +126,41 @@ def beneficiary_experience(beneficiary, school, formation):
     )
 
 
+@pytest.fixture
+def event(pro):
+    """A geocoded, upcoming event — the nominal case the autocomplete produces."""
+    from datetime import time, timedelta
+    from decimal import Decimal
+
+    from django.utils import timezone
+
+    from techpourtoutes.models import Event
+
+    start = timezone.localdate() + timedelta(days=30)
+    event = Event(
+        created_by=pro,
+        title="Salon des métiers du numérique",
+        organizer="Numeum",
+        category=Event.Category.SALON,
+        start_date=start,
+        end_date=start + timedelta(days=1),
+        start_time=time(9, 0),
+        end_time=time(18, 0),
+        location_type=Event.LocationType.PHYSICAL,
+        address="8 Boulevard du Port",
+        postal_code="80000",
+        city="Amiens",
+        cog_code="80021",
+        longitude=2.29009,
+        latitude=49.897443,
+        ban_id="80021_6590_00008",
+        reservation_type=Event.ReservationType.OPEN,
+        price=Decimal("0"),
+    )
+    event.save()
+    return event
+
+
 ONISEP = "https://www.onisep.fr/http/redirection"
 
 
