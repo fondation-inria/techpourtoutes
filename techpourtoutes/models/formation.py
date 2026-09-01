@@ -42,7 +42,7 @@ class Formation(BaseModel):
     code_nsf = models.CharField(max_length=50, blank=True, verbose_name=_("code NSF"))
     code_scolarite = models.CharField(max_length=20, blank=True, verbose_name=_("code scolarité"))
     type_acronym = models.CharField(
-        max_length=20, blank=True, verbose_name=_("sigle du type de formation")
+        max_length=50, blank=True, verbose_name=_("sigle du type de formation")
     )
     type_name = models.CharField(
         max_length=100, blank=True, verbose_name=_("libellé du type de formation")
