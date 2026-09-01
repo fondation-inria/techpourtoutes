@@ -24,7 +24,7 @@ def test_register_mentor_on_jobirl_sends_correct_data_and_exposes_ids(httpx_mock
     assert result.token == "tpt_abc"
     request = httpx_mock.get_request()
     assert request.method == "POST"
-    assert f"Bearer Bearer: {JOBIRL_TEST_API_KEY}" in request.headers["Authorization"]
+    assert request.headers["Authorization"] == f"Bearer: {JOBIRL_TEST_API_KEY}"
     body = request.content.decode()
     assert "alice%40example.com" in body or "alice@example.com" in body
     assert "Alice" in body
