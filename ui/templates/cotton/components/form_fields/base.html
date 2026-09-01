@@ -3,6 +3,7 @@
     label=""
     description=""
     message=""
+    message_class=""
     :errors=[]
     id=""
     class=""
@@ -23,5 +24,5 @@
 
     {{ slot }}
 
-    <c-components.form_fields.messages :field=field :errors=errors :message=message />
+    <c-components.form_fields.messages :field=field :errors=errors :message=message message_class=message_class />
 </div>
