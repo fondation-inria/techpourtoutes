@@ -129,7 +129,7 @@ LOGGING = {
         },
         "techpourtoutes.clients": {
             "handlers": ["console"],
-            "level": "DEBUG" if DEBUG else "INFO",
+            "level": "DEBUG",
             "propagate": False,
         },
         "techpourtoutes.services": {
