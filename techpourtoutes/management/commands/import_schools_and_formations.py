@@ -4,19 +4,28 @@ from django.core.management.base import BaseCommand, CommandError
 
 from techpourtoutes.tasks import (
     flag_training_ambassador_schools_task,
+    import_carif_oref_formations_task,
     import_onisep_formation_actions_task,
     import_onisep_formations_task,
     import_onisep_schools_task,
 )
 
-# Order matters: the actions need both of their ends in place, and the ambassadrice flag needs
-# the schools. The remapping closes the merge for the databases that predate it.
+# Order matters: the actions need both of their ends in place, the ambassadrice flag needs the
+# schools, and the Carif-Oref catalogue hangs onto the établissements Onisep has just given us.
+# The remapping closes the merge for the databases that predate it.
 STEPS = [
     "import_onisep_schools",
     "import_onisep_formations",
     "import_onisep_formation_actions",
     "flag_training_ambassador_schools",
+    "import_carif_oref_formations",
 ]
+
+# `--sample` means "stay offline", and this step has no committed sample to read instead.
+ONLINE_ONLY_STEP = "import_carif_oref_formations"
+
+# The ambassadrice list is the same curated file either way; the catalogue takes no sample.
+STEPS_WITHOUT_A_SAMPLE = {"flag_training_ambassador_schools", ONLINE_ONLY_STEP}
 
 
 class Command(BaseCommand):
@@ -50,7 +59,7 @@ class Command(BaseCommand):
         self._enqueue(sample=options["sample"])
 
     def _import_now(self, options):
-        for step in STEPS:
+        for step in self._steps(sample=options["sample"]):
             self.stdout.write(f"{step}…")
             call_command(step, **self._options_for(step, options))
         self.stdout.write("remap_training_experience_schools…")
@@ -59,18 +68,25 @@ class Command(BaseCommand):
     def _enqueue(self, *, sample):
         """A chain, not a group: every step needs the previous one, and retrying one step
         must not re-download the 110 MB the others already fetched."""
-        chain(
+        tasks = [
             import_onisep_schools_task.si(sample=sample),
             import_onisep_formations_task.si(sample=sample),
             import_onisep_formation_actions_task.si(sample=sample),
             flag_training_ambassador_schools_task.si(),
-        ).delay()
+        ]
+        if not sample:
+            tasks.append(import_carif_oref_formations_task.si())
+        chain(*tasks).delay()
         self.stdout.write(self.style.SUCCESS("  Import enfilé sur le worker."))
 
+    def _steps(self, *, sample):
+        """A sampled run stays offline, so it leaves out the step that cannot."""
+        if not sample:
+            return STEPS
+        return [step for step in STEPS if step != ONLINE_ONLY_STEP]
+
     def _options_for(self, step, options):
-        """Only the Onisep imports have a sample counterpart; the ambassadrice list is the
-        same curated file either way."""
         step_options = {"if_empty": options["if_empty"]}
-        if step != "flag_training_ambassador_schools":
+        if step not in STEPS_WITHOUT_A_SAMPLE:
             step_options["sample"] = options["sample"]
         return step_options

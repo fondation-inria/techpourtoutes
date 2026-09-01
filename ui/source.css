@@ -198,7 +198,7 @@
 /* Declared outside @theme: these are read from inline style attributes, which
    Tailwind cannot see, so theme variable tree-shaking would drop them. */
 :root {
-  --grid-cell: 60px;
+  --grid-cell: 64px;
   --hairline: 0.5px;
   /* The grid starts inside a cell rather than on a line: the first row and the
      first column are shorter than the others */

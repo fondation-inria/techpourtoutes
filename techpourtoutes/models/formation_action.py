@@ -1,19 +1,9 @@
 from django.db import models
-from django.db.models import F, Q
 from django.utils.translation import gettext_lazy as _
 
 from .base import BaseModel
 from .formation import Formation
 from .school import School
-
-
-class FormationActionQuerySet(models.QuerySet):
-    def backing_a_parcours(self):
-        """The links a parcours relies on: the two paths `taught_at` reaches a formation by."""
-        return self.filter(
-            Q(formation__training_experiences__school=F("school"))
-            | Q(formation__training_experiences__school__onisep_id=F("school__parent_onisep_id"))
-        )
 
 
 class FormationAction(BaseModel):
@@ -38,8 +28,6 @@ class FormationAction(BaseModel):
         related_name="actions",
         verbose_name=_("établissement"),
     )
-
-    objects = FormationActionQuerySet.as_manager()
 
     class Meta:
         verbose_name = _("action de formation")
