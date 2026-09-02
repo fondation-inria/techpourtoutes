@@ -23,14 +23,16 @@ STEPS = [
     "flag_recommended_schools",
     "import_carif_oref_formations",
 ]
-# Neither flagging step downloads anything, so neither has a --sample counterpart.
-STEPS_WITHOUT_SAMPLE = ["flag_training_ambassador_schools", "flag_recommended_schools"]
-
 # `--sample` means "stay offline", and this step has no committed sample to read instead.
 ONLINE_ONLY_STEP = "import_carif_oref_formations"
 
-# The ambassadrice list is the same curated file either way; the catalogue takes no sample.
-STEPS_WITHOUT_A_SAMPLE = {"flag_training_ambassador_schools", ONLINE_ONLY_STEP}
+# Neither flagging step downloads anything, and the Carif-Oref catalogue has no committed
+# sample either, so none of these three take a --sample counterpart.
+STEPS_WITHOUT_SAMPLE = {
+    "flag_training_ambassador_schools",
+    "flag_recommended_schools",
+    ONLINE_ONLY_STEP,
+}
 
 
 class Command(BaseCommand):

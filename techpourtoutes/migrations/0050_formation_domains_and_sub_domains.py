@@ -7,14 +7,10 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('techpourtoutes', '0049_formation_domain'),
+        ('techpourtoutes', '0049_add_school_recommended'),
     ]
 
     operations = [
-        migrations.RemoveField(
-            model_name='formation',
-            name='domain',
-        ),
         migrations.AddField(
             model_name='formation',
             name='domains',

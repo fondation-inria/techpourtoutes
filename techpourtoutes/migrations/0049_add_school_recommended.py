@@ -6,7 +6,7 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('techpourtoutes', '0047_move_faveod_id_to_user'),
+        ('techpourtoutes', '0048_alter_formation_type_acronym'),
     ]
 
     operations = [

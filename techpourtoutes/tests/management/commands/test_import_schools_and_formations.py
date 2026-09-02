@@ -86,6 +86,7 @@ def test_the_carif_oref_step_closes_a_real_import():
         "import_onisep_formations",
         "import_onisep_formation_actions",
         "flag_training_ambassador_schools",
+        "flag_recommended_schools",
         "import_carif_oref_formations",
         "remap_training_experience_schools",
     ]
