@@ -1,3 +1,4 @@
+from django.contrib.postgres.fields import ArrayField
 from django.db import models
 from django.db.models import Q
 from django.utils.translation import gettext_lazy as _
@@ -63,7 +64,12 @@ class Formation(BaseModel):
     certification_level_name = models.CharField(
         max_length=50, blank=True, verbose_name=_("libellé du niveau de certification")
     )
-    domain = models.TextField(blank=True, verbose_name=_("domaine de formation"))
+    domains = ArrayField(
+        models.TextField(), default=list, blank=True, verbose_name=_("domaines de formation")
+    )
+    sub_domains = ArrayField(
+        models.TextField(), default=list, blank=True, verbose_name=_("sous-domaines de formation")
+    )
     secondary = models.BooleanField(default=False, verbose_name=_("enseignement secondaire"))
     higher_ed = models.BooleanField(default=False, verbose_name=_("enseignement supérieur"))
     schools = models.ManyToManyField(

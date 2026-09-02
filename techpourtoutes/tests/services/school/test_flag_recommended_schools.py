@@ -3,9 +3,7 @@ import pytest
 from techpourtoutes.models import Formation
 from techpourtoutes.models.formation_action import FormationAction
 from techpourtoutes.models.school import School
-from techpourtoutes.services.school.flag_eligible_schools import (
-    FlagEligibleSchools,
-)
+from techpourtoutes.services.school.flag_recommended_schools import FlagRecommendedSchools
 
 pytestmark = pytest.mark.django_db
 
@@ -37,26 +35,26 @@ def formation_action(db, formation, school):
     FormationAction(formation=formation, school=school).save()
 
 
-def test_eligible_school_is_flagged(school, formation, formation_action):
-    result = FlagEligibleSchools()
+def test_recommended_school_is_flagged(school, formation, formation_action):
+    result = FlagRecommendedSchools()
 
     assert result.success
-    assert School.objects.get(onisep_id=SCHOOL_ONISEP_ID).eligible
+    assert School.objects.get(onisep_id=SCHOOL_ONISEP_ID).recommended
 
 
-def test_uneligible_school_is_flagged(school):
-    uneligible_school = School(onisep_id="0000", name="Lycée truc", higher_ed=False)
-    uneligible_school.save()
-    uneligible_formation = Formation(
+def test_unrecommended_school_is_flagged(school):
+    unrecommended_school = School(onisep_id="0000", name="Lycée truc", higher_ed=False)
+    unrecommended_school.save()
+    unrecommended_formation = Formation(
         onisep_id="7118", name="Bac littéraire", acronym="L", secondary=True
     )
-    uneligible_formation.save()
-    FormationAction(formation=uneligible_formation, school=uneligible_school).save()
+    unrecommended_formation.save()
+    FormationAction(formation=unrecommended_formation, school=unrecommended_school).save()
 
-    result = FlagEligibleSchools()
+    result = FlagRecommendedSchools()
 
     assert result.success
-    assert not School.objects.get(onisep_id="0000").eligible
+    assert not School.objects.get(onisep_id="0000").recommended
 
 
 @pytest.mark.parametrize("bac_techno_code", ["STMG", "STI2D", "STL"])
@@ -78,10 +76,10 @@ def test_technological_school_teaching_the_bac_techno_is_flagged(bac_techno_code
     formation.save()
     FormationAction(formation=formation, school=school).save()
 
-    result = FlagEligibleSchools()
+    result = FlagRecommendedSchools()
 
     assert result.success
-    assert School.objects.get(onisep_id="10408").eligible
+    assert School.objects.get(onisep_id="10408").recommended
 
 
 def test_technological_school_teaching_a_different_bac_techno_is_not_flagged():
@@ -102,10 +100,10 @@ def test_technological_school_teaching_a_different_bac_techno_is_not_flagged():
     formation.save()
     FormationAction(formation=formation, school=school).save()
 
-    result = FlagEligibleSchools()
+    result = FlagRecommendedSchools()
 
     assert result.success
-    assert not School.objects.get(onisep_id="20000").eligible
+    assert not School.objects.get(onisep_id="20000").recommended
 
 
 def test_lycee_pro_teaching_stmg_is_flagged():
@@ -126,10 +124,10 @@ def test_lycee_pro_teaching_stmg_is_flagged():
     formation.save()
     FormationAction(formation=formation, school=school).save()
 
-    result = FlagEligibleSchools()
+    result = FlagRecommendedSchools()
 
     assert result.success
-    assert School.objects.get(onisep_id="30000").eligible
+    assert School.objects.get(onisep_id="30000").recommended
 
 
 @pytest.mark.parametrize("cpge_track", ["MPSI", "BCPST", "TPC"])
@@ -145,10 +143,10 @@ def test_school_teaching_the_cpge_track_is_flagged(cpge_track):
     formation.save()
     FormationAction(formation=formation, school=school).save()
 
-    result = FlagEligibleSchools()
+    result = FlagRecommendedSchools()
 
     assert result.success
-    assert School.objects.get(onisep_id="40000").eligible
+    assert School.objects.get(onisep_id="40000").recommended
 
 
 def test_school_teaching_a_literary_cpge_is_not_flagged():
@@ -163,10 +161,10 @@ def test_school_teaching_a_literary_cpge_is_not_flagged():
     formation.save()
     FormationAction(formation=formation, school=school).save()
 
-    result = FlagEligibleSchools()
+    result = FlagRecommendedSchools()
 
     assert result.success
-    assert not School.objects.get(onisep_id="50000").eligible
+    assert not School.objects.get(onisep_id="50000").recommended
 
 
 def test_school_teaching_a_scientific_cpge_outside_the_track_list_is_not_flagged():
@@ -181,10 +179,10 @@ def test_school_teaching_a_scientific_cpge_outside_the_track_list_is_not_flagged
     formation.save()
     FormationAction(formation=formation, school=school).save()
 
-    result = FlagEligibleSchools()
+    result = FlagRecommendedSchools()
 
     assert result.success
-    assert not School.objects.get(onisep_id="60000").eligible
+    assert not School.objects.get(onisep_id="60000").recommended
 
 
 def test_training_ambassador_school_is_flagged():
@@ -195,10 +193,10 @@ def test_training_ambassador_school_is_flagged():
         training_ambassador_eligible=True,
     ).save()
 
-    result = FlagEligibleSchools()
+    result = FlagRecommendedSchools()
 
     assert result.success
-    assert School.objects.get(onisep_id="70000").eligible
+    assert School.objects.get(onisep_id="70000").recommended
 
 
 @pytest.mark.parametrize(
@@ -210,15 +208,39 @@ def test_lycee_teaching_a_computer_science_formation_is_flagged(type_):
     formation = Formation(
         onisep_id="bts-sio",
         name="BTS services informatiques aux organisations",
-        domain="informatique, Internet/systèmes et réseaux",
+        domains=["informatique", "Internet"],
+        sub_domains=["systèmes et réseaux"],
     )
     formation.save()
     FormationAction(formation=formation, school=school).save()
 
-    result = FlagEligibleSchools()
+    result = FlagRecommendedSchools()
 
     assert result.success
-    assert School.objects.get(onisep_id="80000").eligible
+    assert School.objects.get(onisep_id="80000").recommended
+
+
+def test_lycee_teaching_an_electronics_formation_is_flagged():
+    school = School(
+        onisep_id="120000",
+        name="Lycée avec bac STI2D SIN",
+        status="public",
+        type="lycée général, technologique ou polyvalent",
+    )
+    school.save()
+    formation = Formation(
+        onisep_id="bac-electronique",
+        name="Bac STI2D systèmes d'information et numérique",
+        domains=["électricité", "électronique", "robotique"],
+        sub_domains=["électrotechnique"],
+    )
+    formation.save()
+    FormationAction(formation=formation, school=school).save()
+
+    result = FlagRecommendedSchools()
+
+    assert result.success
+    assert School.objects.get(onisep_id="120000").recommended
 
 
 def test_lycee_teaching_administrateur_reseau_is_flagged_even_without_the_domain():
@@ -232,15 +254,16 @@ def test_lycee_teaching_administrateur_reseau_is_flagged_even_without_the_domain
     formation = Formation(
         onisep_id="fcil-admin-reseau",
         name="FCIL administrateur réseau, infrastructure et système numérique",
-        domain="information-communication, audiovisuel/multimédia",
+        domains=["information-communication", "audiovisuel"],
+        sub_domains=["multimédia"],
     )
     formation.save()
     FormationAction(formation=formation, school=school).save()
 
-    result = FlagEligibleSchools()
+    result = FlagRecommendedSchools()
 
     assert result.success
-    assert School.objects.get(onisep_id="90000").eligible
+    assert School.objects.get(onisep_id="90000").recommended
 
 
 def test_non_lycee_teaching_a_computer_science_formation_is_not_flagged():
@@ -254,15 +277,16 @@ def test_non_lycee_teaching_a_computer_science_formation_is_not_flagged():
     formation = Formation(
         onisep_id="bts-sio-2",
         name="BTS services informatiques aux organisations",
-        domain="informatique, Internet/systèmes et réseaux",
+        domains=["informatique", "Internet"],
+        sub_domains=["systèmes et réseaux"],
     )
     formation.save()
     FormationAction(formation=formation, school=school).save()
 
-    result = FlagEligibleSchools()
+    result = FlagRecommendedSchools()
 
     assert result.success
-    assert not School.objects.get(onisep_id="100000").eligible
+    assert not School.objects.get(onisep_id="100000").recommended
 
 
 def test_lycee_teaching_an_unrelated_formation_is_not_flagged():
@@ -276,12 +300,13 @@ def test_lycee_teaching_an_unrelated_formation_is_not_flagged():
     formation = Formation(
         onisep_id="bts-geometre",
         name="BTS métiers du géomètre-topographe et de la modélisation numérique",
-        domain="construction, architecture, travaux publics/bureau d'études BTP",
+        domains=["construction", "architecture", "travaux publics"],
+        sub_domains=["bureau d'études BTP"],
     )
     formation.save()
     FormationAction(formation=formation, school=school).save()
 
-    result = FlagEligibleSchools()
+    result = FlagRecommendedSchools()
 
     assert result.success
-    assert not School.objects.get(onisep_id="110000").eligible
+    assert not School.objects.get(onisep_id="110000").recommended

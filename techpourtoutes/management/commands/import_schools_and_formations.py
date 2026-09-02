@@ -3,7 +3,7 @@ from django.core.management import call_command
 from django.core.management.base import BaseCommand, CommandError
 
 from techpourtoutes.tasks import (
-    flag_eligible_schools_task,
+    flag_recommended_schools_task,
     flag_training_ambassador_schools_task,
     import_onisep_formation_actions_task,
     import_onisep_formations_task,
@@ -11,17 +11,17 @@ from techpourtoutes.tasks import (
 )
 
 # Order matters: the actions need both of their ends in place, and the ambassadrice flag and the
-# eligibility flag both need the schools and formations. The remapping closes the merge for the
+# recommendation flag both need the schools and formations. The remapping closes the merge for the
 # databases that predate it.
 STEPS = [
     "import_onisep_schools",
     "import_onisep_formations",
     "import_onisep_formation_actions",
     "flag_training_ambassador_schools",
-    "flag_eligible_schools",
+    "flag_recommended_schools",
 ]
 # Neither flagging step downloads anything, so neither has a --sample counterpart.
-STEPS_WITHOUT_SAMPLE = ["flag_training_ambassador_schools", "flag_eligible_schools"]
+STEPS_WITHOUT_SAMPLE = ["flag_training_ambassador_schools", "flag_recommended_schools"]
 
 
 class Command(BaseCommand):
@@ -69,7 +69,7 @@ class Command(BaseCommand):
             import_onisep_formations_task.si(sample=sample),
             import_onisep_formation_actions_task.si(sample=sample),
             flag_training_ambassador_schools_task.si(),
-            flag_eligible_schools_task.si(),
+            flag_recommended_schools_task.si(),
         ).delay()
         self.stdout.write(self.style.SUCCESS("  Import enfilé sur le worker."))
 

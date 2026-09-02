@@ -83,7 +83,7 @@ class School(BaseModel):
     training_ambassador_eligible = models.BooleanField(
         default=False, verbose_name=_("éligible ambassadrice étudiante")
     )
-    eligible = models.BooleanField(default=False, verbose_name=_("éligible"))
+    recommended = models.BooleanField(default=False, verbose_name=_("recommandé"))
     objects = SchoolQuerySet.as_manager()
 
     # Raised by the school search when another school of the same perimeter shares this name.

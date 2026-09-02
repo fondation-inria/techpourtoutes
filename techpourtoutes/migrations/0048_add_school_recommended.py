@@ -12,8 +12,8 @@ class Migration(migrations.Migration):
     operations = [
         migrations.AddField(
             model_name='school',
-            name='eligible',
-            field=models.BooleanField(default=False, verbose_name='éligible'),
+            name='recommended',
+            field=models.BooleanField(default=False, verbose_name='recommandé'),
         ),
         migrations.AlterField(
             model_name='school',

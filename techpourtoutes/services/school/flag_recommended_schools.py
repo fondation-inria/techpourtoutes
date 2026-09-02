@@ -21,28 +21,29 @@ CPGE_CODES = [
     "TPC",
 ]
 LYCEE_TYPES = ["lycée professionnel", "lycée général, technologique ou polyvalent"]
+COMPUTER_SCIENCE_DOMAINS = ["informatique", "Internet", "électricité", "électronique", "robotique"]
 
 
-class FlagEligibleSchools(BaseService):
+class FlagRecommendedSchools(BaseService):
     """Mark the schools matching at least one of 5 criteria: bac pro CIEL, bac
     techno STMG/STI2D/STL, scientific CPGE, training ambassador schools, and lycées teaching
-    a computer-science-related formation. Recomputed from scratch on every call."""
+    a computer-science or electronics-related formation. Recomputed from scratch on every call."""
 
     def perform(self) -> None:
-        eligible_ids = self._eligible_school_ids()
+        recommended_ids = self._recommended_school_ids()
 
-        School.objects.exclude(id__in=eligible_ids).update(eligible=False)
-        School.objects.filter(id__in=eligible_ids).update(eligible=True)
+        School.objects.exclude(id__in=recommended_ids).update(recommended=False)
+        School.objects.filter(id__in=recommended_ids).update(recommended=True)
 
-    def _eligible_school_ids(self):
-        eligible_schools = (
+    def _recommended_school_ids(self):
+        recommended_schools = (
             self._bac_pro_ciel_schools()
             | self._technological_schools()
             | self._cpge_schools()
             | self._training_ambassador_eligible_schools()
             | self._computer_science_lycees()
         )
-        return eligible_schools.values_list("id", flat=True).distinct()
+        return recommended_schools.values_list("id", flat=True).distinct()
 
     def _bac_pro_ciel_schools(self):
         return School.objects.filter(
@@ -77,7 +78,7 @@ class FlagEligibleSchools(BaseService):
         return School.objects.filter(training_ambassador_eligible=True)
 
     def _computer_science_lycees(self):
-        computer_science_matches = Q(formations__domain__icontains="informatique") | Q(
+        computer_science_matches = Q(formations__domains__overlap=COMPUTER_SCIENCE_DOMAINS) | Q(
             formations__name__icontains="administrateur réseau"
         )
 

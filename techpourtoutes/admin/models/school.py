@@ -12,7 +12,7 @@ class SchoolAdmin(ReadOnlyAdminMixin, admin.ModelAdmin):
     list_display = ("name", "acronym", "uai", "postal_code", "city", "secondary", "higher_ed")
     list_display_links = list_display
     search_fields = ("name", "acronym", "uai", "onisep_id")
-    list_filter = ("secondary", "higher_ed", "training_ambassador_eligible", "eligible")
+    list_filter = ("secondary", "higher_ed", "training_ambassador_eligible", "recommended")
     inlines = [TaughtFormationInline]
 
     def changelist_view(self, request, extra_context=None):

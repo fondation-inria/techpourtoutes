@@ -1,9 +1,11 @@
 from techpourtoutes.models import Formation
 from techpourtoutes.services.base import BaseService
 from techpourtoutes.utils.onisep import (
+    domains_from_raw,
     duration_in_years,
     level_from_exit_level,
     onisep_id_from_url,
+    sub_domains_from_raw,
 )
 from techpourtoutes.utils.text import capitalize_first, strip_accents
 
@@ -20,7 +22,8 @@ MAPPED_FIELDS = [
     "code_rncp",
     "certification_level",
     "certification_level_name",
-    "domain",
+    "domains",
+    "sub_domains",
 ]
 
 
@@ -61,5 +64,6 @@ class UpsertFormations(BaseService):
             code_rncp=record.get("code_rncp") or "",
             certification_level=record.get("niveau_de_certification") or "",
             certification_level_name=record.get("libelle_niveau_de_certification") or "",
-            domain=record.get("domainesous-domaine") or "",
+            domains=domains_from_raw(record.get("domainesous-domaine")),
+            sub_domains=sub_domains_from_raw(record.get("domainesous-domaine")),
         )
