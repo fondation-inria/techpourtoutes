@@ -24,6 +24,33 @@ def test_import_maps_every_kept_column(formation_record):
     assert formation.code_rncp == "38506"
     assert formation.certification_level == "4"
     assert formation.certification_level_name == "niveau 4"
+    assert formation.domains == []
+    assert formation.sub_domains == []
+
+
+def test_import_splits_the_domain_field_into_domains_and_sub_domains(formation_record):
+    UpsertFormations(
+        records=[
+            formation_record(
+                **{
+                    "domainesous-domaine": (
+                        "informatique, Internet/systèmes et réseaux | "
+                        "environnement, énergies, propreté/énergies"
+                    )
+                }
+            )
+        ]
+    )
+
+    formation = Formation.objects.get(onisep_id="9701")
+    assert formation.domains == [
+        "informatique",
+        "Internet",
+        "environnement",
+        "énergies",
+        "propreté",
+    ]
+    assert formation.sub_domains == ["systèmes et réseaux", "énergies"]
 
 
 def test_import_reads_a_level_beyond_the_beneficiary_funnel(formation_record):
