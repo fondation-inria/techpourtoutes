@@ -3,6 +3,7 @@ from .create_mentoree import create_mentoree_task
 from .delete_brevo_contact import delete_brevo_contact_task
 from .flag_recommended_schools import flag_recommended_schools_task
 from .flag_training_ambassador_schools import flag_training_ambassador_schools_task
+from .import_carif_oref_formations import import_carif_oref_formations_task
 from .import_onisep_formation_actions import import_onisep_formation_actions_task
 from .import_onisep_formations import import_onisep_formations_task
 from .import_onisep_schools import import_onisep_schools_task
@@ -18,6 +19,7 @@ __all__ = (
     "delete_brevo_contact_task",
     "flag_recommended_schools_task",
     "flag_training_ambassador_schools_task",
+    "import_carif_oref_formations_task",
     "import_onisep_formation_actions_task",
     "import_onisep_formations_task",
     "import_onisep_schools_task",

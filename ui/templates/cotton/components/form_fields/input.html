@@ -4,6 +4,7 @@
     label=""
     description=""
     message=""
+    message_class=""
     :errors=[]
     placeholder=""
     name=""
@@ -15,7 +16,7 @@
     type="text"
 />
 
-<c-components.form-fields.base label=label description=description message=message class=class>
+<c-components.form-fields.base label=label description=description message=message message_class=message_class class=class>
     <input
         type="{{ type }}"
         id="{{ id|default:field.id_for_label }}"

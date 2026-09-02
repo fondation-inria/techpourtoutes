@@ -10,7 +10,9 @@
             <c-components.form_fields.input field=form.last_name />
             <c-components.form_fields.input field=form.phone />
             {% if is_beneficiary %}
-                <c-components.form_fields.input field=form.birth_date type="date" />
+                <c-components.form_fields.input field=form.birth_date type="date" variant="disabled"
+                    message="Pour modifier ce champ, il est possible de nous contacter par mail à bonjour@techpourtoutes.io."
+                    message_class="text-blue-500"/>
             {% endif %}
             <c-components.form_fields.input field=form.postal_code />
             {% if is_pro %}

@@ -207,6 +207,31 @@ def formation_action_record():
 
 
 @pytest.fixture
+def carif_oref_record():
+    """One record of the Carif-Oref apprenticeship catalogue, as the projection returns it."""
+
+    def build(onisep_id="5978", **overrides):
+        return {
+            "onisep_url": f"{ONISEP}/formation/slug/FOR.{onisep_id}",
+            "niveau": "5 (BTS, DEUST...)",
+            "duree": "2",
+            "intitule_rco": "BTS conception des processus de réalisation de produits",
+            "rncp_details": {
+                "nsf_code": "254",
+                "type_certif": "Brevet de technicien supérieur",
+                "code_type_certif": "BTS",
+            },
+            "etablissement_formateur_siret": "38855948600070",
+            "etablissement_formateur_uai": "0681832X",
+            "etablissement_gestionnaire_siret": "38855948600070",
+            "etablissement_gestionnaire_uai": "0681832X",
+            **overrides,
+        }
+
+    return build
+
+
+@pytest.fixture
 def mock_create_mentor():
     instance = MagicMock(success=True, failure=False, errors=[])
     with patch(
