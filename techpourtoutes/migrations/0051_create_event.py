@@ -11,7 +11,7 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('techpourtoutes', '0048_alter_formation_type_acronym'),
+        ('techpourtoutes', '0050_formation_domains_and_sub_domains'),
     ]
 
     operations = [
