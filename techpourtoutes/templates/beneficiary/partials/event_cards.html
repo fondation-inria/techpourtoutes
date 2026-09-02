@@ -1,0 +1,24 @@
+{% for event in events %}
+    <c-components.event-card
+        :event="event"
+        bookmark_action="{{ bookmark_action }}"
+        category_color="bg-{{ event.category_color }}-500"
+    />
+{% empty %}
+    {% if events.number == 1 %}
+        <c-components.card title="Reviens bientôt&nbsp;!">
+            <c-components.text>
+                Aucun événement n'est programmé pour le moment.
+            </c-components.text>
+        </c-components.card>
+    {% endif %}
+{% endfor %}
+{% if events.has_next %}
+    <div class="col-span-full py-4 text-center text-sm text-neutral-500"
+         hx-get="{% url "more_events" %}?page={{ events.next_page_number }}"
+         hx-trigger="intersect once"
+         hx-target="this"
+         hx-swap="outerHTML">
+        Chargement…
+    </div>
+{% endif %}

@@ -1,0 +1,22 @@
+{# Sibling of the card's stretched link, lifted above it so the click never reaches the card. #}
+<button type="button"
+        class="relative z-10 flex items-center justify-center cursor-pointer"
+        aria-pressed="{{ saved|yesno:"true,false" }}"
+        aria-label="{% if saved %}Retirer cet événement de mes favoris{% else %}Enregistrer cet événement{% endif %}"
+        {% if bookmark_action == "toggle" %}
+            hx-post="{% url "toggle_saved_event" event.pk %}"
+            hx-target="this"
+            hx-swap="outerHTML"
+            hx-disabled-elt="this"
+            hx-headers='{"X-CSRFToken": "{{ csrf_token }}"}'
+        {% else %}
+            hx-get="{% url "saved_event_signup_modal" %}"
+            hx-target="#modal-container"
+            hx-swap="innerHTML"
+        {% endif %}>
+    <c-components.icon name="decoration" class="w-10 h-10" />
+    <c-components.icon
+        name="bookmark"
+        class="absolute w-7 h-7 {% if saved %}text-yellow-500{% else %}text-neutral-950{% endif %}"
+    />
+</button>

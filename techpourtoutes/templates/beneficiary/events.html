@@ -1,0 +1,12 @@
+<c-layout.base
+    title="Événements – TechPourToutes"
+    description="Salons, portes ouvertes, hackathons, job datings : tous les événements de la tech à venir, pour t'orienter et rencontrer des professionnelles."
+>
+    <c-components.title title="Événements" title_bg="yellow" class="mb-(--grid-cell)" />
+
+    <div id="events-grid" class="grid w-full grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 -mt-4">
+        {% include "beneficiary/partials/event_cards.html" %}
+    </div>
+
+    <div id="modal-container"></div>
+</c-layout.base>

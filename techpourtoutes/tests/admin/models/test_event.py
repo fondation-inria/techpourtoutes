@@ -34,3 +34,33 @@ def test_event_page_offers_its_history(verified_admin_client, event):
     url = reverse("admin:techpourtoutes_event_change", args=[event.pk])
     content = verified_admin_client.get(url).content.decode()
     assert reverse("admin:techpourtoutes_event_history", args=[event.pk]) in content
+
+
+@pytest.mark.django_db
+def test_event_page_lists_the_beneficiaries_who_saved_it(
+    verified_admin_client, event, beneficiary
+):
+    from techpourtoutes.models import SavedEvent
+
+    SavedEvent.objects.toggle(event=event, beneficiary=beneficiary)
+
+    url = reverse("admin:techpourtoutes_event_change", args=[event.pk])
+    content = verified_admin_client.get(url).content.decode()
+
+    assert "Jade" in content
+    assert "Événements sauvegardés" in content
+
+
+@pytest.mark.django_db
+def test_a_save_is_never_created_by_hand_from_the_event_page(verified_admin_client, event):
+    """A save belongs to the beneficiary who clicked: the admin only ever reads it."""
+    from techpourtoutes.admin.models.saved_event import EventSavedByInline
+
+    url = reverse("admin:techpourtoutes_event_change", args=[event.pk])
+    inline = next(
+        formset.opts
+        for formset in verified_admin_client.get(url).context["inline_admin_formsets"]
+        if isinstance(formset.opts, EventSavedByInline)
+    )
+
+    assert inline.has_add_permission(None, event) is False

@@ -1,9 +1,19 @@
 from django.db import models
 from django.utils.translation import gettext_lazy as _
 
-from .base import BaseModel
+from .base import BaseModel, BaseQuerySet
 from .beneficiary import Beneficiary
 from .event import Event
+
+
+class SavedEventQuerySet(BaseQuerySet):
+    def toggle(self, event, beneficiary):
+        """Put an event aside, or take it back out. True when it is now saved."""
+        deleted, _ = self.filter(event=event, beneficiary=beneficiary).delete()
+        if deleted:
+            return False
+        self.create(event=event, beneficiary=beneficiary)
+        return True
 
 
 class SavedEvent(BaseModel):
@@ -21,6 +31,8 @@ class SavedEvent(BaseModel):
         related_name="saves",
         verbose_name=_("bénéficiaire"),
     )
+
+    objects = SavedEventQuerySet.as_manager()
 
     class Meta:
         verbose_name = _("événement sauvegardé")

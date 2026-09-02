@@ -1,0 +1,30 @@
+<c-vars event="" bookmark_action="" category_color="bg-orange-500" />
+
+{# The whole card is a link: the title's ::after covers it, so the bookmark stays clickable at z-10. #}
+<div class="relative flex flex-col bg-neutral-0 border border-black shadow-[2px_2px_20px_rgba(0,0,0,0.1)]">
+    <div class="flex flex-col gap-4 p-4 text-black {{ category_color }}">
+        <div class="flex justify-end">
+            {% if bookmark_action %}
+                {% include "beneficiary/partials/event_bookmark.html" with saved=event.saved %}
+            {% endif %}
+            <a href="{% url "bientot_disponible" %}?feature=evenements" class="after:absolute after:inset-0"></a>
+        </div>
+        <c-components.badge label="{{ event.subcategory_label }}" background_color="{{ category_color }}" />
+
+        <c-components.title title="{{ event.title }}" variant="h2" style="serif" />
+    </div>
+
+    <div class="flex flex-col flex-1 gap-2 p-4 text-sm">
+        <p class="flex items-center gap-2">
+            <c-components.icon name="{% if event.location_type == "online" %}desktop{% else %}location{% endif %}" class="w-5 h-5 shrink-0" />
+            {% if event.location_type == "online" %}En ligne{% else %}{{ event.city }}{% endif %}
+        </p>
+        <p class="flex items-center gap-2">
+            <c-components.icon name="calendar" class="w-5 h-5 shrink-0" />{{ event.date_range_label }}
+        </p>
+        <p class="flex items-center gap-2">
+            <c-components.icon name="euro-solid" class="w-5 h-5 shrink-0" />{{ event.price_label }}
+        </p>
+        <c-components.icon name="arrow-right-circle" class="w-6 h-6 self-end mt-auto" />
+    </div>
+</div>
