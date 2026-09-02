@@ -2,11 +2,13 @@ import pytest
 
 from techpourtoutes.models.level import Level
 from techpourtoutes.utils.onisep import (
+    domains_from_raw,
     duration_in_years,
     level_from_exit_level,
     onisep_id_from_url,
     read_onisep_csv,
     split_parent_label,
+    sub_domains_from_raw,
 )
 
 
@@ -82,3 +84,43 @@ def test_level_from_exit_level(raw, expected):
 )
 def test_duration_in_years(raw, expected):
     assert duration_in_years(raw) == expected
+
+
+def test_domains_from_raw_splits_pairs_and_composite_domains():
+    raw = "informatique, Internet/systèmes et réseaux | environnement, énergies, propreté/énergies"
+
+    assert domains_from_raw(raw) == [
+        "informatique",
+        "Internet",
+        "environnement",
+        "énergies",
+        "propreté",
+    ]
+
+
+def test_domains_from_raw_deduplicates():
+    raw = "informatique, Internet/systèmes et réseaux | informatique, Internet/bases de données"
+
+    assert domains_from_raw(raw) == ["informatique", "Internet"]
+
+
+@pytest.mark.parametrize("raw", ["", None])
+def test_domains_from_raw_of_an_empty_value(raw):
+    assert domains_from_raw(raw) == []
+
+
+def test_sub_domains_from_raw_splits_pairs():
+    raw = "informatique, Internet/systèmes et réseaux | environnement, énergies, propreté/énergies"
+
+    assert sub_domains_from_raw(raw) == ["systèmes et réseaux", "énergies"]
+
+
+def test_sub_domains_from_raw_deduplicates():
+    raw = "informatique, Internet/systèmes et réseaux | robotique/systèmes et réseaux"
+
+    assert sub_domains_from_raw(raw) == ["systèmes et réseaux"]
+
+
+@pytest.mark.parametrize("raw", ["", None])
+def test_sub_domains_from_raw_of_an_empty_value(raw):
+    assert sub_domains_from_raw(raw) == []

@@ -58,6 +58,32 @@ def level_from_exit_level(value: str | None) -> str:
     return EXIT_LEVELS.get((value or "").strip().lower(), "")
 
 
+def domains_from_raw(value: str | None) -> list[str]:
+    """Onisep stacks several domaine/sous-domaine pairs pipe-separated, and a domaine itself
+    sometimes bundles several topics comma-separated (e.g. "informatique, Internet"). Keep
+    the atomic topics, deduplicated, in appearance order."""
+    domains = []
+    for unit in (value or "").split("|"):
+        domaine = unit.split("/", 1)[0].strip()
+        for topic in domaine.split(","):
+            topic = topic.strip()
+            if topic and topic not in domains:
+                domains.append(topic)
+    return domains
+
+
+def sub_domains_from_raw(value: str | None) -> list[str]:
+    sub_domains = []
+    for unit in (value or "").split("|"):
+        parts = unit.split("/", 1)
+        if len(parts) != 2:
+            continue
+        sub = parts[1].strip()
+        if sub and sub not in sub_domains:
+            sub_domains.append(sub)
+    return sub_domains
+
+
 def duration_in_years(value: str | None) -> int | None:
     """Read a formation duration ("3 ans" -> 3). Onisep only ever expresses it in years."""
     match = DURATION.fullmatch((value or "").strip())
