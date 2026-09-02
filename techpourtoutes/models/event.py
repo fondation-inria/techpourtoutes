@@ -19,33 +19,80 @@ class EventQuerySet(BaseQuerySet):
         """An event that has started but not ended yet is still to come."""
         return self.filter(end_date__gte=timezone.localdate())
 
+    def in_category(self, category):
+        return self._within(Event.SUBCATEGORIES[category])
+
+    def in_subcategory(self, subcategory):
+        return self._within([subcategory])
+
+    def _within(self, subcategories):
+        """`OTHER` also brings back the free text typed when no subcategory fits."""
+        match = models.Q(subcategory__in=subcategories)
+        if Event.Subcategory.OTHER in subcategories:
+            match |= ~models.Q(subcategory__in=Event.Subcategory.values)
+        return self.filter(match)
+
 
 class Event(BaseModel):
     class Category(models.TextChoices):
-        SALON = "salon", _("Salon")
-        JOB_FAIR = "job_fair", _("Forum de l'emploi")
-        SPEED_DATING = "speed_dating", _("Speed dating")
-        JOB_DATING = "job_dating", _("Job dating")
-        AFTERWORK = "afterwork", _("Afterwork")
+        INFORMATION = "information", _("Information")
+        EMPLOYMENT = "employment", _("Emploi")
+        GUIDANCE = "guidance", _("Orientation")
+        SOCIAL = "social", _("Convivial")
+        CHALLENGE = "challenge", _("Challenge")
+
+    class Subcategory(models.TextChoices):
         CONFERENCE = "conference", _("Conférence")
         WORKSHOP = "workshop", _("Atelier")
         WEBINAR = "webinar", _("Webinaire d'informations")
+        ROUND_TABLE = "round_table", _("Table ronde")
+        JOB_FAIR = "job_fair", _("Forum de l'emploi")
+        SPEED_DATING = "speed_dating", _("Speed dating")
+        JOB_DATING = "job_dating", _("Job dating")
+        SALON = "salon", _("Salon")
         OPEN_HOUSE = "open_house", _("Portes ouvertes")
         LEARNING_EXPEDITION = "learning_expedition", _("Learning expédition")
-        JOB_SHADOWING = "job_shadowing", _("Vis-ma-vie")
         VISIT = "visit", _("Visite")
-        HACKATHON = "hackathon", _("Hackathon")
+        JOB_SHADOWING = "job_shadowing", _("Vis-ma-vie")
+        AFTERWORK = "afterwork", _("Afterwork")
         CEREMONY = "ceremony", _("Cérémonie")
-        ROUND_TABLE = "round_table", _("Table ronde")
         OTHER = "other", _("Autre")
+        HACKATHON = "hackathon", _("Hackathon")
+
+    SUBCATEGORIES = {
+        Category.INFORMATION: (
+            Subcategory.CONFERENCE,
+            Subcategory.WORKSHOP,
+            Subcategory.WEBINAR,
+            Subcategory.ROUND_TABLE,
+        ),
+        Category.EMPLOYMENT: (
+            Subcategory.JOB_FAIR,
+            Subcategory.SPEED_DATING,
+            Subcategory.JOB_DATING,
+        ),
+        Category.GUIDANCE: (
+            Subcategory.SALON,
+            Subcategory.OPEN_HOUSE,
+            Subcategory.LEARNING_EXPEDITION,
+            Subcategory.VISIT,
+            Subcategory.JOB_SHADOWING,
+        ),
+        Category.SOCIAL: (
+            Subcategory.AFTERWORK,
+            Subcategory.CEREMONY,
+            Subcategory.OTHER,
+        ),
+        Category.CHALLENGE: (Subcategory.HACKATHON,),
+    }
 
     class LocationType(models.TextChoices):
         PHYSICAL = "physical", _("En présentiel")
         ONLINE = "online", _("En ligne")
 
-    class ReservationType(models.TextChoices):
+    class AccessType(models.TextChoices):
         CANDIDACY = "candidacy", _("Candidature")
-        RESERVATION = "reservation", _("Réservation")
+        REGISTRATION = "registration", _("Inscription")
         OPEN = "open", _("Accès libre")
 
     class Status(models.TextChoices):
@@ -67,8 +114,8 @@ class Event(BaseModel):
     )
     title = models.CharField(verbose_name=_("titre"))
     description = models.TextField(blank=True, verbose_name=_("description"))
-    # A `Category` value, or the free text typed when none of them fits.
-    category = models.CharField(max_length=100, verbose_name=_("catégorie"))
+    # A `Subcategory` value, or the free text typed when none of them fits.
+    subcategory = models.CharField(max_length=100, verbose_name=_("sous-catégorie"))
     start_date = models.DateField(verbose_name=_("date de début"))
     end_date = models.DateField(verbose_name=_("date de fin"))
     start_time = models.TimeField(verbose_name=_("heure de début"))
@@ -85,8 +132,8 @@ class Event(BaseModel):
     ban_id = models.CharField(max_length=30, blank=True, verbose_name=_("identifiant BAN"))
     online_url = models.URLField(blank=True, verbose_name=_("lien de connexion"))
     event_url = models.URLField(blank=True, verbose_name=_("lien vers l'événement"))
-    reservation_type = models.CharField(
-        max_length=20, choices=ReservationType.choices, verbose_name=_("modalité d'inscription")
+    access_type = models.CharField(
+        max_length=20, choices=AccessType.choices, verbose_name=_("modalité d'inscription")
     )
     price = models.DecimalField(
         max_digits=8,
@@ -122,8 +169,24 @@ class Event(BaseModel):
         return self.title
 
     @property
+    def subcategory_label(self):
+        """The free text stands in for the label when the subcategory is not a listed one."""
+        if self.subcategory in self.Subcategory.values:
+            return self.Subcategory(self.subcategory).label
+        return self.subcategory
+
+    @property
+    def category(self):
+        """Free text is an unlisted subcategory, so it belongs where `OTHER` does."""
+        subcategory = self.subcategory
+        if subcategory not in self.Subcategory.values:
+            subcategory = self.Subcategory.OTHER
+        return next(
+            category
+            for category, subcategories in self.SUBCATEGORIES.items()
+            if subcategory in subcategories
+        )
+
+    @property
     def category_label(self):
-        """The free text stands in for the label when the category is not a listed one."""
-        if self.category in self.Category.values:
-            return self.Category(self.category).label
-        return self.category
+        return self.Category(self.category).label

@@ -141,7 +141,7 @@ def event(pro):
         created_by=pro,
         title="Salon des métiers du numérique",
         organizer="Numeum",
-        category=Event.Category.SALON,
+        subcategory=Event.Subcategory.SALON,
         start_date=start,
         end_date=start + timedelta(days=1),
         start_time=time(9, 0),
@@ -154,7 +154,7 @@ def event(pro):
         longitude=2.29009,
         latitude=49.897443,
         ban_id="80021_6590_00008",
-        reservation_type=Event.ReservationType.OPEN,
+        access_type=Event.AccessType.OPEN,
         price=Decimal("0"),
     )
     event.save()

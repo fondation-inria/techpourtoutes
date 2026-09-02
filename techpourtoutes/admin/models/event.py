@@ -17,9 +17,9 @@ class EventAdmin(SimpleHistoryAdmin):
                     "title",
                     "organizer",
                     "description",
-                    "category",
+                    "subcategory",
                     "status",
-                    "reservation_type",
+                    "access_type",
                     "price",
                     "location_type",
                     "online_url",
@@ -61,6 +61,7 @@ class EventAdmin(SimpleHistoryAdmin):
     list_display = (
         "title",
         "category_label",
+        "subcategory_label",
         "start_date",
         "location_type",
         "city",
@@ -69,8 +70,12 @@ class EventAdmin(SimpleHistoryAdmin):
     )
     list_display_links = list_display
     search_fields = ("title", "organizer", "city", "created_by__email")
-    list_filter = ("status", "category", "location_type", "reservation_type")
+    list_filter = ("status", "subcategory", "location_type", "access_type")
 
     @admin.display(description=_("catégorie"))
     def category_label(self, obj):
         return obj.category_label
+
+    @admin.display(description=_("sous-catégorie"))
+    def subcategory_label(self, obj):
+        return obj.subcategory_label

@@ -13,13 +13,13 @@ def build_event(pro, **overrides):
     fields = {
         "title": "Portes ouvertes",
         "organizer": "École 42",
-        "category": Event.Category.OPEN_HOUSE,
+        "subcategory": Event.Subcategory.OPEN_HOUSE,
         "start_date": start,
         "end_date": start,
         "start_time": time(9, 0),
         "end_time": time(18, 0),
         "location_type": Event.LocationType.ONLINE,
-        "reservation_type": Event.ReservationType.OPEN,
+        "access_type": Event.AccessType.OPEN,
         "price": Decimal("0"),
     }
     return Event(created_by=pro, **{**fields, **overrides})
@@ -39,14 +39,80 @@ def test_event_waits_for_validation_when_created(pro):
 
 
 @pytest.mark.django_db
-def test_event_category_label_falls_back_to_the_free_text(pro):
+def test_event_subcategory_label_falls_back_to_the_free_text(pro):
     from techpourtoutes.models import Event
 
-    listed = build_event(pro, category=Event.Category.HACKATHON)
-    free = build_event(pro, category="Rencontre d'anciennes élèves")
+    listed = build_event(pro, subcategory=Event.Subcategory.HACKATHON)
+    free = build_event(pro, subcategory="Rencontre d'anciennes élèves")
 
-    assert listed.category_label == "Hackathon"
-    assert free.category_label == "Rencontre d'anciennes élèves"
+    assert listed.subcategory_label == "Hackathon"
+    assert free.subcategory_label == "Rencontre d'anciennes élèves"
+
+
+def test_every_subcategory_belongs_to_exactly_one_category():
+    from techpourtoutes.models import Event
+
+    listed = [sub for subs in Event.SUBCATEGORIES.values() for sub in subs]
+
+    assert sorted(listed) == sorted(Event.Subcategory.values)
+
+
+@pytest.mark.django_db
+def test_event_category_is_derived_from_its_subcategory(pro):
+    from techpourtoutes.models import Event
+
+    event = build_event(pro, subcategory=Event.Subcategory.JOB_DATING)
+
+    assert event.category == Event.Category.EMPLOYMENT
+    assert event.category_label == "Emploi"
+
+
+@pytest.mark.django_db
+def test_a_free_text_subcategory_lands_in_the_category_holding_other(pro):
+    from techpourtoutes.models import Event
+
+    event = build_event(pro, subcategory="Rencontre d'anciennes élèves")
+
+    assert event.category == Event.Category.SOCIAL
+
+
+@pytest.mark.django_db
+def test_in_subcategory_brings_the_free_text_back_under_other(pro):
+    from techpourtoutes.models import Event
+
+    free = build_event(pro, subcategory="Rencontre d'anciennes élèves")
+    free.save()
+    other = build_event(pro, subcategory=Event.Subcategory.OTHER)
+    other.save()
+    build_event(pro, subcategory=Event.Subcategory.CEREMONY).save()
+
+    assert set(Event.objects.in_subcategory(Event.Subcategory.OTHER)) == {free, other}
+
+
+@pytest.mark.django_db
+def test_in_category_returns_the_events_of_all_its_subcategories(pro):
+    from techpourtoutes.models import Event
+
+    conference = build_event(pro, subcategory=Event.Subcategory.CONFERENCE)
+    conference.save()
+    round_table = build_event(pro, subcategory=Event.Subcategory.ROUND_TABLE)
+    round_table.save()
+    build_event(pro, subcategory=Event.Subcategory.HACKATHON).save()
+
+    assert set(Event.objects.in_category(Event.Category.INFORMATION)) == {conference, round_table}
+
+
+@pytest.mark.django_db
+def test_in_category_includes_the_free_text_where_other_sits(pro):
+    from techpourtoutes.models import Event
+
+    free = build_event(pro, subcategory="Rencontre d'anciennes élèves")
+    free.save()
+    afterwork = build_event(pro, subcategory=Event.Subcategory.AFTERWORK)
+    afterwork.save()
+    build_event(pro, subcategory=Event.Subcategory.VISIT).save()
+
+    assert set(Event.objects.in_category(Event.Category.SOCIAL)) == {free, afterwork}
 
 
 @pytest.mark.django_db

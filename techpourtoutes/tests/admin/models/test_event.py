@@ -5,12 +5,13 @@ CHANGELIST = "admin:techpourtoutes_event_changelist"
 
 
 @pytest.mark.django_db
-def test_event_changelist_shows_the_free_text_category(verified_admin_client, event):
-    event.category = "Rencontre d'anciennes élèves"
+def test_event_changelist_shows_the_free_text_subcategory(verified_admin_client, event):
+    event.subcategory = "Rencontre d'anciennes élèves"
     event.save()
 
     content = verified_admin_client.get(reverse(CHANGELIST)).content.decode()
     assert "Rencontre d&#x27;anciennes élèves" in content
+    assert "Convivial" in content
 
 
 @pytest.mark.django_db
