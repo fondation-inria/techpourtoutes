@@ -39,7 +39,7 @@ def fifteen_events(pro):
 def test_the_next_events_only_load_once_she_scrolls(page, live_server, fifteen_events):
     """Rooting the sentinel on the grid would make it intersect on load and pull in every page."""
     page.goto(f"{live_server.url}/evenements/")
-    cards = page.locator("article")
+    cards = page.locator("#events-grid h2")
     expect(cards).to_have_count(EVENTS_PER_PAGE)
 
     page.mouse.wheel(0, 6000)
