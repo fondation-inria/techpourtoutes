@@ -1,0 +1,12 @@
+<c-components.modal title="Rejoins le club TechPourToutes pour enregistrer cet événement" closable=True>
+    <br>
+    <p class="text-center text-sm">
+        Cet événement est destiné aux filles de 15 à 25 ans qui souhaitent être accompagnée par le
+        programme TechPourToutes. Pour cela, il suffit de se créer un compte.
+    </p>
+    <br>
+    <div class="flex flex-col items-center gap-4">
+        <c-components.button label="Créer un compte" href="{% url "inscription_funnel" %}" />
+        <c-components.button label="Se connecter" variant="secondary" href="{% url "login_request" %}" />
+    </div>
+</c-components.modal>

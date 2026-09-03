@@ -1,7 +1,12 @@
 from django.conf import settings
 from django.contrib import messages
-from django.shortcuts import redirect, render
+from django.contrib.auth.decorators import login_required
+from django.core.paginator import Paginator
+from django.db.models import Exists, OuterRef, Value
+from django.http import Http404
+from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
+from django.views.decorators.http import require_POST
 
 from ..forms import (
     BeneficiaryHigherEducationTrainingExperienceForm,
@@ -10,8 +15,11 @@ from ..forms import (
     EmailNotificationForm,
     StudyStatus,
 )
+from ..models import Event, SavedEvent
 from ..tasks import upsert_email_notification_task
 from ..utils.dates import compute_age
+
+EVENTS_PER_PAGE = 12
 
 # ------------------- pages -------------------
 
@@ -61,6 +69,76 @@ def find_mentor_landing(request):
         "beneficiary/find_mentor_landing.html",
         {"cta_href": cta_href, "cta_label": cta_label, "cta_disabled": cta_disabled},
     )
+
+
+def events(request):
+    return render(request, "beneficiary/events.html", _events_context(request, page=1))
+
+
+def more_events(request):
+    """The infinite-scroll sentinel asks for the next batch, and nothing else."""
+    return render(
+        request,
+        "beneficiary/partials/event_cards.html",
+        _events_context(request, page=request.GET.get("page")),
+    )
+
+
+@require_POST
+@login_required
+def toggle_saved_event(request, pk):
+    beneficiary = _beneficiary_or_404(request)
+    event = get_object_or_404(Event.objects.approved(), pk=pk)
+    return render(
+        request,
+        "beneficiary/partials/event_bookmark.html",
+        {
+            "event": event,
+            "saved": SavedEvent.objects.toggle(event=event, beneficiary=beneficiary),
+            "bookmark_action": "toggle",
+        },
+    )
+
+
+def saved_event_signup_modal(request):
+    return render(request, "beneficiary/partials/event_signup_modal.html", {})
+
+
+# ------------------- events -------------------
+
+
+def _events_context(request, page):
+    beneficiary = getattr(request.user, "beneficiary", None)
+    return {
+        "events": _events_page(beneficiary, page),
+        "bookmark_action": _bookmark_action(request.user, beneficiary),
+    }
+
+
+def _events_page(beneficiary, page):
+    """Only one query: each event carries whether the visitor already bookmarked it."""
+    upcoming = Event.objects.approved().upcoming()
+    if beneficiary is None:
+        upcoming = upcoming.annotate(saved=Value(False))
+    else:
+        upcoming = upcoming.annotate(
+            saved=Exists(SavedEvent.objects.filter(event=OuterRef("pk"), beneficiary=beneficiary))
+        )
+    return Paginator(upcoming, EVENTS_PER_PAGE).get_page(page)
+
+
+def _bookmark_action(user, beneficiary):
+    """Only a beneficiary can save an event; a signed-in pro is not invited to try."""
+    if beneficiary is not None:
+        return "toggle"
+    return "" if user.is_authenticated else "signup"
+
+
+def _beneficiary_or_404(request):
+    beneficiary = getattr(request.user, "beneficiary", None)
+    if beneficiary is None:
+        raise Http404
+    return beneficiary
 
 
 # ------------------- steps shared by both funnels -------------------

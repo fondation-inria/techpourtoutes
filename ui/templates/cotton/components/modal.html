@@ -1,5 +1,20 @@
-<div class="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
+<c-vars closable=False />
+
+<div class="fixed inset-0 z-50 flex items-center justify-center bg-black/40"
+     {% if closable %}hx-on:click="if (event.target === this) document.getElementById('modal-container').innerHTML = ''"{% endif %}>
     <div class="w-full max-w-xl bg-white p-8 mx-2 shadow-lg border border-black">
+        {% if closable %}
+            <div class="flex justify-end mb-4">
+                <c-components.button
+                    variant="icon"
+                    icon="close"
+                    class="text-black"
+                    aria-label="Fermer"
+                    hx-on:click="document.getElementById('modal-container').innerHTML = ''"
+                />
+            </div>
+        {% endif %}
+
         {% if title %}
             <h2 class="text-3xl text-black text-center font-serif font-bold italic">
                 {{ title }}

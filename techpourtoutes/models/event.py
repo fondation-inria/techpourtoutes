@@ -1,6 +1,8 @@
 from django.core.validators import MinValueValidator
 from django.db import models
+from django.template.defaultfilters import floatformat
 from django.utils import timezone
+from django.utils.formats import date_format
 from django.utils.translation import gettext_lazy as _
 from simple_history.models import HistoricalRecords
 
@@ -84,6 +86,14 @@ class Event(BaseModel):
             Subcategory.OTHER,
         ),
         Category.CHALLENGE: (Subcategory.HACKATHON,),
+    }
+
+    CATEGORY_COLORS = {
+        Category.INFORMATION: "orange",
+        Category.EMPLOYMENT: "yellow",
+        Category.GUIDANCE: "green",
+        Category.SOCIAL: "purple",
+        Category.CHALLENGE: "blue",
     }
 
     class LocationType(models.TextChoices):
@@ -190,3 +200,28 @@ class Event(BaseModel):
     @property
     def category_label(self):
         return self.Category(self.category).label
+
+    @property
+    def category_color(self):
+        return self.CATEGORY_COLORS[self.category]
+
+    @property
+    def date_range_label(self):
+        """ "du 12 au 14 juin 2026": what both dates share is only written once."""
+        if self.start_date == self.end_date:
+            return f"le {date_format(self.end_date, 'j F Y')}"
+        return (
+            f"du {date_format(self.start_date, self._range_start_format)} "
+            f"au {date_format(self.end_date, 'j F Y')}"
+        )
+
+    @property
+    def price_label(self):
+        """A no-break space, not an entity: this is text, templates would escape `&nbsp;`."""
+        return "gratuit" if not self.price else f"{floatformat(self.price, '-2')} €"
+
+    @property
+    def _range_start_format(self):
+        if self.start_date.year != self.end_date.year:
+            return "j F Y"
+        return "j" if self.start_date.month == self.end_date.month else "j F"

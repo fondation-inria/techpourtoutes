@@ -12,6 +12,8 @@ SITEMAP_EXCLUDED_URL_NAMES = {
     "search_schools",
     "search_formations",
     "mentoring_signup_skip_modal",
+    "more_events",
+    "saved_event_signup_modal",
     # Auth / account (private)
     "login_request",
     "login_code",

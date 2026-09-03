@@ -1,4 +1,4 @@
-from datetime import time, timedelta
+from datetime import date, time, timedelta
 from decimal import Decimal
 
 import pytest
@@ -113,6 +113,68 @@ def test_in_category_includes_the_free_text_where_other_sits(pro):
     build_event(pro, subcategory=Event.Subcategory.VISIT).save()
 
     assert set(Event.objects.in_category(Event.Category.SOCIAL)) == {free, afterwork}
+
+
+@pytest.mark.django_db
+def test_event_category_color_follows_its_category(pro):
+    from techpourtoutes.models import Event
+
+    colors = {
+        Event.Subcategory.CONFERENCE: "orange",
+        Event.Subcategory.JOB_DATING: "yellow",
+        Event.Subcategory.OPEN_HOUSE: "green",
+        Event.Subcategory.AFTERWORK: "purple",
+        Event.Subcategory.HACKATHON: "blue",
+    }
+
+    for subcategory, color in colors.items():
+        assert build_event(pro, subcategory=subcategory).category_color == color
+
+
+@pytest.mark.django_db
+def test_a_free_text_subcategory_takes_the_color_of_the_category_holding_other(pro):
+    event = build_event(pro, subcategory="Rencontre d'anciennes élèves")
+
+    assert event.category_color == "purple"
+
+
+@pytest.mark.django_db
+def test_date_range_label_names_a_single_day_once(pro):
+    event = build_event(pro, start_date=date(2026, 6, 12), end_date=date(2026, 6, 12))
+
+    assert event.date_range_label == "le 12 juin 2026"
+
+
+@pytest.mark.django_db
+def test_date_range_label_writes_a_shared_month_once(pro):
+    event = build_event(pro, start_date=date(2026, 6, 12), end_date=date(2026, 6, 14))
+
+    assert event.date_range_label == "du 12 au 14 juin 2026"
+
+
+@pytest.mark.django_db
+def test_date_range_label_repeats_the_month_when_it_changes(pro):
+    event = build_event(pro, start_date=date(2026, 6, 30), end_date=date(2026, 7, 2))
+
+    assert event.date_range_label == "du 30 juin au 2 juillet 2026"
+
+
+@pytest.mark.django_db
+def test_date_range_label_repeats_the_year_when_it_changes(pro):
+    event = build_event(pro, start_date=date(2026, 12, 30), end_date=date(2027, 1, 2))
+
+    assert event.date_range_label == "du 30 décembre 2026 au 2 janvier 2027"
+
+
+@pytest.mark.django_db
+def test_price_label_says_free_rather_than_zero(pro):
+    assert build_event(pro, price=Decimal("0")).price_label == "gratuit"
+
+
+@pytest.mark.django_db
+def test_price_label_shows_the_amount_and_hides_empty_cents(pro):
+    assert build_event(pro, price=Decimal("20.50")).price_label == "20,50 €"
+    assert build_event(pro, price=Decimal("20.00")).price_label == "20 €"
 
 
 @pytest.mark.django_db

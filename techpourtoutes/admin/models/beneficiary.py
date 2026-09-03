@@ -9,6 +9,7 @@ from techpourtoutes.models import Beneficiary
 from techpourtoutes.services.beneficiary.create_mentoree import CreateMentoree
 
 from ..filters import MentoringStatusFilter
+from .saved_event import BeneficiarySavedEventInline
 from .training_experience import TrainingExperienceInline
 from .user import PERSONAL_FIELDS, AccountCreationFieldsMixin
 
@@ -63,7 +64,7 @@ class BeneficiaryAdmin(AccountCreationFieldsMixin, admin.ModelAdmin):
     list_display_links = list_display[:-1]
     search_fields = ("first_name", "last_name", "email")
     list_filter = (MentoringStatusFilter, ("created_at", admin.DateFieldListFilter))
-    inlines = [TrainingExperienceInline]
+    inlines = [TrainingExperienceInline, BeneficiarySavedEventInline]
 
     def get_urls(self):
         return [

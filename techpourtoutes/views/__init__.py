@@ -20,7 +20,15 @@ from .auth_views import (
 )
 from .beneficiary.inscription_views import inscription_funnel, mentoring_signup_skip_modal
 from .beneficiary.mentoring_views import add_mentoring
-from .beneficiary_views import beneficiary_home, bientot_disponible, find_mentor_landing
+from .beneficiary_views import (
+    beneficiary_home,
+    bientot_disponible,
+    events,
+    find_mentor_landing,
+    more_events,
+    saved_event_signup_modal,
+    toggle_saved_event,
+)
 from .coalition_views import (
     coalition_home,
     coalition_welcome,
@@ -79,6 +87,7 @@ __all__ = [
     "email_change",
     "email_change_resend",
     "email_change_verify",
+    "events",
     "find_mentor_landing",
     "inscription_funnel",
     "internships_landing",
@@ -90,17 +99,20 @@ __all__ = [
     "mentions_legales",
     "mentor_landing",
     "mentoring_signup_skip_modal",
+    "more_events",
     "notre_manifeste",
     "pourquoi_nous_ecrivons_au_feminin",
     "pro_training_experience_edit",
     "pro_training_experience_info",
     "qui_sommes_nous",
+    "saved_event_signup_modal",
     "schema_pluriannuel",
     "search_formations",
     "search_schools",
     "signature_manifeste",
     "signer_manifeste",
     "sponsor_landing",
+    "toggle_saved_event",
     "training_ambassador_landing",
     "work_ambassador_landing",
     "workshops_landing",

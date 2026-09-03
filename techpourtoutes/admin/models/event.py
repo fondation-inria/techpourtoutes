@@ -4,9 +4,12 @@ from simple_history.admin import SimpleHistoryAdmin
 
 from techpourtoutes.models import Event
 
+from .saved_event import EventSavedByInline
+
 
 @admin.register(Event)
 class EventAdmin(SimpleHistoryAdmin):
+    inlines = [EventSavedByInline]
     readonly_fields = ("created_at", "updated_at")
     fieldsets = (
         (
