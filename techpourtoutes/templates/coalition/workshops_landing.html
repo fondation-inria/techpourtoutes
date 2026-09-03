@@ -10,52 +10,20 @@
             Prenez le temps d'aborder le numérique autrement à l'école&nbsp;: TechPourToutes propose deux formats d'atelier à destination des lycées.
     </c-components.card>
 
-    <c-components.card title="1. Les ateliers Futurs Numériques de Latitudes">
+    <c-components.card title="1. Les ateliers Futurs Numériques par Latitudes">
         <c-components.text>
             4 ateliers gratuits et sans écran, à destination des élèves du secondaire, pour éveiller l'esprit critique et découvrir les métiers du numérique et les enjeux de la mixité.
         </c-components.text>
     </c-components.card>
 
     <div class="grid grid-cols-2 w-full gap-5 lg:gap-10 justify-between max-w-2xl mb">
-        <c-components.card-shadow variant="blue" class="flex flex-1 flex-col gap-3 justify-between">
-            <c-components.title title="L'enquête TechPourToutes" variant="intertitre" class="text-center" />
-            <div class="flex flex-1 justify-center">
-                <c-components.icon name="atelier-latitudes-tech-pour-toutes" variant="png" class="max-w-30 max-h-25" />
-            </div>
-            <p class="text-sm text-center">
-                Découvrir l’enjeu de la diversité de genre et la place des femmes dans le secteur du numérique.
-            </p>
-        </c-components.card-shadow>
-
-        <c-components.card-shadow variant="blue" class="flex flex-1 flex-col gap-3 justify-between">
-            <c-components.title title="Future of Tech" variant="intertitre" class="text-center" />
-            <div class="flex flex-1 justify-center">
-                <c-components.icon name="atelier-latitudes-future-of-tech" variant="png" class="max-w-30 max-h-25" />
-            </div>
-            <p class="text-sm text-center">
-                Découvrir les métiers du numérique et ses impacts sociaux et environnementaux
-            </p>
-        </c-components.card-shadow>
-
-        <c-components.card-shadow variant="blue" class="flex flex-1 flex-col gap-3 justify-between">
-            <c-components.title title="Future of IA" variant="intertitre" class="text-center" />
-            <div class="flex flex-1 justify-center">
-                <c-components.icon name="atelier-latitudes-future-of-ia" variant="png" class="max-w-30 max-h-25" />
-            </div>
-            <p class="text-sm text-center">
-                Découvrir les enjeux et métiers de l'IA
-            </p>
-        </c-components.card-shadow>
-
-        <c-components.card-shadow variant="blue" class="flex flex-1 flex-col gap-3 justify-between">
-            <c-components.title title="Future of Cyber" variant="intertitre" class="text-center" />
-            <div class="flex flex-1 justify-center">
-                <c-components.icon name="atelier-latitudes-future-of-cyber" variant="png" class="max-w-30 max-h-25" />
-            </div>
-            <p class="text-sm text-center">
-                Découvrir l'univers de la cybersécurité et ses enjeux
-            </p>
-        </c-components.card-shadow>
+        <c-components.card-workshop title="L'enquête TechPourToutes" variant="bg-purple-500" icon_name="atelier-latitudes-tech-pour-toutes" description="Découvrir l’enjeu de la diversité de genre et la place des femmes dans le secteur du numérique." />
+        
+        <c-components.card-workshop title="Future of Tech" variant="bg-yellow-500" icon_name="atelier-latitudes-future-of-tech" description="Découvrir les métiers du numérique et ses impacts sociaux et environnementaux." />
+        
+        <c-components.card-workshop title="Future of IA" variant="bg-orange-500" icon_name="atelier-latitudes-future-of-ia" description="Découvrir les enjeux et métiers de l'IA." />
+        
+        <c-components.card-workshop title="Future of Cyber" variant="bg-blue-500" icon_name="atelier-latitudes-future-of-cyber" description="Découvrir l'univers de la cybersécurité et ses enjeux." />
     </div>
 
     <c-components.accordion title="Cette action est menée par" class="mb-5">
@@ -66,9 +34,11 @@
         <c-components.button href="{% url "qui_sommes_nous" %}" label="Découvrir tous les membres du consortium TechPourToutes" variant="tertiary" />
     </c-components.accordion>
 
-    <c-components.card title="2. Les ateliers Chiche&nbsp;! avec Inria">
+    <c-components.card title="2. Le programme «&nbsp;1 scientifique, 1 classe&nbsp;: Chiche&nbsp;!&nbsp;»">
         <c-components.text>
-            Le programme cible les élèves de classes de seconde des lycées d'enseignement général et technologique. Il propose aux enseignantes et enseignants d'accueillir dans leur classe un ou une scientifique du numérique pour parler de son parcours, de son métier et de son expertise scientifique.
+            Le programme «&nbsp;1 scientifique, 1 classe&nbsp;: Chiche&nbsp;!&nbsp;» piloté par le ministère de l'Éducation nationale, France Universités et Inria s'adresse aux élèves de seconde de lycée général et technologique, partout en France.
+
+            Pendant une heure, une scientifique du numérique se déplace dans une classe pour présenter son métier, son parcours, son quotidien et répondre aux questions des élèves. Les objectifs ? Leur faire découvrir le monde de la recherche et de l'ingénierie, bousculer les stéréotypes et susciter des vocations !
         </c-components.text>
     </c-components.card>
 
