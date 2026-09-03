@@ -25,7 +25,6 @@
     --color-white: #fff;
     --spacing: 0.25rem;
     --container-xs: 20rem;
-    --container-sm: 24rem;
     --container-lg: 32rem;
     --container-xl: 36rem;
     --container-2xl: 42rem;
@@ -70,7 +69,6 @@
     --color-neutral-0: #ffffff;
     --color-info-50: #f1f4ff;
     --color-warning-500: #ffab00;
-    --color-mauve-background: #e9e3eb;
     --text-xxs: 0.625rem;
   }
 }
@@ -2690,6 +2688,20 @@
       }
     }
     .checkbox:indeterminate:before {
+      rotate: 0deg;
+      opacity: 100%;
+      translate: 0 -35%;
+      clip-path: polygon(20% 100%, 20% 80%, 50% 80%, 50% 80%, 80% 80%, 80% 100%);
+    }
+    .checkbox[aria-checked="mixed"] {
+      background-color: var( --input-color, var(--color-base-content) );
+    }
+    @supports (color: color-mix(in lab, red, red)) {
+      .checkbox[aria-checked="mixed"] {
+        background-color: var( --input-color, color-mix(in oklab, var(--color-base-content) 20%, #0000) );
+      }
+    }
+    .checkbox[aria-checked="mixed"]:before {
       rotate: 0deg;
       opacity: 100%;
       translate: 0 -35%;
