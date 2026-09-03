@@ -8,7 +8,7 @@ from techpourtoutes.models import Beneficiary
 
 
 class Command(BaseCommand):
-    help = "Renseigne la date de naissance des bénéficiaires sans écraser celles déjà connues"
+    help = "Renseigne la date de naissance des bénéficiaires Faveod"
 
     def add_arguments(self, parser):
         parser.add_argument("csv_file", help="Chemin du fichier CSV, ou '-' pour lire sur stdin")
@@ -23,23 +23,19 @@ class Command(BaseCommand):
         if dry_run:
             self.stdout.write(self.style.WARNING("Dry run — aucune écriture en base."))
 
-        updated = not_found = already_set = invalid = 0
+        updated = not_found = invalid = 0
 
         for row in csv.DictReader(self._read(options["csv_file"])):
-            email = (row.get("e_mail") or "").strip()
+            user_id = (row.get("user_id") or "").strip()
             birth_date = self._parse_birth_date(row.get("birth_date"))
-            if not email or not birth_date:
+            if not user_id or not birth_date:
                 invalid += 1
                 continue
 
-            beneficiary = Beneficiary.objects.filter(email__iexact=email).first()
+            beneficiary = Beneficiary.objects.filter(faveod_id=user_id).first()
             if beneficiary is None:
                 not_found += 1
                 continue
-            if beneficiary.birth_date is not None:
-                already_set += 1
-                continue
-
             beneficiary.birth_date = birth_date
             if not dry_run:
                 beneficiary.save(update_fields=["birth_date"])
@@ -48,7 +44,7 @@ class Command(BaseCommand):
         self.stdout.write(
             self.style.SUCCESS(
                 f"\nTerminé — mis à jour: {updated}, introuvables: {not_found}, "
-                f"déjà renseignées: {already_set}, lignes invalides: {invalid}"
+                f"lignes invalides: {invalid}"
             )
         )
 
