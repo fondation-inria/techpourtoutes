@@ -80,3 +80,18 @@ def test_new_event_notifies_the_moderation_team(event):
     assert event.title in message.body
     assert event.created_by.email in message.body
     assert message.tags == ["interne", "coalition", "nouvel événement"]
+
+
+@pytest.mark.django_db
+@override_settings(
+    EMAIL_BACKEND="django.core.mail.backends.locmem.EmailBackend",
+    NEW_EVENT_RECIPIENTS=["agir@techpourtoutes.io"],
+    SITE_URL="https://example.test",
+)
+def test_new_event_links_to_the_event_in_the_admin(event):
+    ConsortiumMailer.new_event(event=event)
+
+    expected_url = f"https://example.test/admin/techpourtoutes/event/{event.pk}/change/"
+    message = mail.outbox[0]
+    assert expected_url in message.body
+    assert expected_url in message.alternatives[0][0]

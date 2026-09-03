@@ -56,6 +56,19 @@ def test_the_end_date_follows_the_start_date_until_she_changes_it(funnel):
     expect(funnel.get_by_label("Date de fin*")).to_have_value("2026-10-03")
 
 
+def test_the_end_date_follows_a_start_date_typed_digit_by_digit(funnel):
+    """A date input fires `change` on every complete-looking state, so a year typed one digit
+    at a time goes through 0002 before reaching 2026: the end date has to keep following."""
+    choose_subcategory(funnel, "Salon")
+    funnel.get_by_role("button", name="Continuer").click()
+    funnel.get_by_label("Date de début*").press_sequentially("10122026")
+
+    # The order of the segments follows the browser locale; the year is the same in both.
+    start = funnel.get_by_label("Date de début*").input_value()
+    assert start.startswith("2026-")
+    expect(funnel.get_by_label("Date de fin*")).to_have_value(start)
+
+
 def test_the_other_subcategory_reveals_its_free_text_field(funnel):
     free_text = funnel.get_by_label("Veuillez préciser le type d'événement")
     expect(free_text).to_be_hidden()
@@ -97,24 +110,22 @@ def test_an_online_event_is_published_for_validation(funnel):
 
 
 @locmem
-def test_a_physical_event_is_geocoded_through_the_address_search(funnel, httpx_mock):
-    httpx_mock.add_response(
-        json={
-            "features": [
-                {
-                    "properties": {
-                        "id": "80021_6590_00008",
-                        "label": "8 Boulevard du Port 80000 Amiens",
-                        "name": "8 Boulevard du Port",
-                        "postcode": "80000",
-                        "city": "Amiens",
-                        "citycode": "80021",
-                    },
-                    "geometry": {"coordinates": [2.290084, 49.897442]},
-                }
-            ]
-        },
-        is_reusable=True,
+def test_a_physical_event_is_geocoded_through_the_address_search(funnel, mock_geocoding):
+    mock_geocoding(
+        addresses=[
+            {
+                "properties": {
+                    "_type": "address",
+                    "id": "80021_6590_00008",
+                    "label": "8 Boulevard du Port 80000 Amiens",
+                    "name": "8 Boulevard du Port",
+                    "postcode": "80000",
+                    "city": "Amiens",
+                    "citycode": "80021",
+                },
+                "geometry": {"coordinates": [2.290084, 49.897442]},
+            }
+        ]
     )
     choose_subcategory(funnel, "Salon")
     funnel.get_by_role("button", name="Continuer").click()
@@ -123,7 +134,9 @@ def test_a_physical_event_is_geocoded_through_the_address_search(funnel, httpx_m
     funnel.get_by_role("button", name="Continuer").click()
 
     funnel.get_by_text("En présentiel", exact=True).click()
-    funnel.get_by_label("Quelle est l'adresse de l'événement ?*").fill("8 boulevard du port")
+    funnel.get_by_label("Quelle est l'adresse ou le lieu de l'événement ?*").fill(
+        "8 boulevard du port"
+    )
     funnel.get_by_role("option", name="8 Boulevard du Port 80000 Amiens").click()
     funnel.get_by_text("Accès libre", exact=True).click()
     funnel.get_by_role("button", name="Publier").click()
@@ -133,6 +146,44 @@ def test_a_physical_event_is_geocoded_through_the_address_search(funnel, httpx_m
     assert event.city == "Amiens"
     assert event.latitude == 49.897442
     assert event.ban_id == "80021_6590_00008"
+
+
+@locmem
+def test_a_venue_is_published_without_a_street_address(funnel, mock_geocoding):
+    """A POI has no postal address, so the venue name and its commune are all we store."""
+    mock_geocoding(
+        pois=[
+            {
+                "properties": {
+                    "_type": "poi",
+                    "toponym": "Station F",
+                    "postcode": ["75013"],
+                    "city": ["Paris 13e Arrondissement", "Paris"],
+                    "citycode": ["75113", "75056"],
+                },
+                "geometry": {"coordinates": [2.371699, 48.833436]},
+            }
+        ]
+    )
+    choose_subcategory(funnel, "Salon")
+    funnel.get_by_role("button", name="Continuer").click()
+    fill_details(funnel)
+    funnel.get_by_label("Heure de fin*").fill("18:00")
+    funnel.get_by_role("button", name="Continuer").click()
+
+    funnel.get_by_text("En présentiel", exact=True).click()
+    funnel.get_by_label("Quelle est l'adresse ou le lieu de l'événement ?*").fill("station f")
+    funnel.get_by_role("option", name="Station F, Paris 13e Arrondissement").click()
+    funnel.get_by_text("Accès libre", exact=True).click()
+    funnel.get_by_role("button", name="Publier").click()
+
+    expect(funnel.get_by_text("en cours de validation")).to_be_visible()
+    event = Event.objects.get()
+    assert event.poi_name == "Station F"
+    assert event.address == ""
+    assert event.city == "Paris 13e Arrondissement"
+    assert event.latitude == 48.833436
+    assert event.location_label == "Station F 75013 Paris 13e Arrondissement"
 
 
 @locmem

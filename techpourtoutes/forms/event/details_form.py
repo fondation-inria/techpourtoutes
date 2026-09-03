@@ -1,4 +1,5 @@
 from django import forms
+from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
 
 DATE_FORMATS = ["%Y-%m-%d", "%d/%m/%Y"]
@@ -18,13 +19,16 @@ class EventDetailsForm(forms.Form):
 
     def clean(self):
         """Mirrors the `event_ends_after_it_starts` constraint, so the error lands on a field
-        rather than surfacing from `full_clean()` at save time."""
+        rather than surfacing from `full_clean()` at save time. The "not already over" rule stays
+        here alone: a check constraint cannot look at today's date."""
         cleaned_data = super().clean()
         start_date, end_date = cleaned_data.get("start_date"), cleaned_data.get("end_date")
         start_time, end_time = cleaned_data.get("start_time"), cleaned_data.get("end_time")
         if not (start_date and end_date):
             return cleaned_data
-        if end_date < start_date:
+        if end_date < timezone.localdate():
+            self.add_error("end_date", _("L'événement ne peut pas être déjà terminé."))
+        elif end_date < start_date:
             self.add_error("end_date", _("La date de fin doit suivre la date de début."))
         elif end_date == start_date and start_time and end_time and end_time < start_time:
             self.add_error("end_time", _("L'heure de fin doit suivre l'heure de début."))

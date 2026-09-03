@@ -6,6 +6,7 @@
     longitude_field
     latitude_field
     ban_id_field
+    poi_name_field
     api_down_field
     label=""
     description=""
@@ -13,9 +14,10 @@
 />
 
 {# Unlike the school and formation searches, this one queries a live API. When it answers, the #}
-{# seven geocoded values are carried by hidden inputs; when it does not, the three inputs the #}
-{# user can fill by hand take over — the event is then created ungeocoded, and cannot be #}
-{# approved until someone completes its coordinates. #}
+{# geocoded values are carried by hidden inputs; when it does not, the three inputs the user #}
+{# can fill by hand take over — the event is then created ungeocoded, and cannot be approved #}
+{# until someone completes its coordinates. A hit is either a street, which fills the address #}
+{# fields, or a named place, which fills `poi_name` and leaves them empty. #}
 <c-components.form-fields.base :field=address_field :errors=address_field.errors label=label description=description class=class>
     <div x-data="{
             open: false,
@@ -29,7 +31,9 @@
             longitude: '{{ longitude_field.value|default:""|escapejs }}',
             latitude: '{{ latitude_field.value|default:""|escapejs }}',
             banId: '{{ ban_id_field.value|default:""|escapejs }}',
+            poiName: '{{ poi_name_field.value|default:""|escapejs }}',
             select(hit) {
+                this.poiName = hit.poiName;
                 this.address = hit.address;
                 this.postalCode = hit.postalCode;
                 this.city = hit.city;
@@ -42,6 +46,7 @@
                 this.open = false;
             },
             clear() {
+                this.poiName = '';
                 this.address = '';
                 this.postalCode = '';
                 this.city = '';
@@ -58,6 +63,7 @@
                 this.apiDown = true;
                 this.open = false;
                 this.selected = false;
+                this.poiName = '';
                 this.address = this.query;
             }
          }"
@@ -69,6 +75,7 @@
         <input type="hidden" name="{{ longitude_field.html_name }}" :value="longitude">
         <input type="hidden" name="{{ latitude_field.html_name }}" :value="latitude">
         <input type="hidden" name="{{ ban_id_field.html_name }}" :value="banId">
+        <input type="hidden" name="{{ poi_name_field.html_name }}" :value="poiName">
         <input type="hidden" name="{{ api_down_field.html_name }}" :value="apiDown ? 'on' : ''">
 
         <template x-if="!apiDown">
@@ -86,7 +93,7 @@
                        @input="open = true"
                        name="q"
                        autocomplete="off"
-                       placeholder="Rechercher une adresse…"
+                       placeholder="Rechercher une adresse ou un lieu…"
                        hx-get="{% url 'search_addresses' %}"
                        hx-trigger="input changed delay:300ms"
                        hx-target="#address-results"

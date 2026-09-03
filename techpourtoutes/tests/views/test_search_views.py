@@ -455,8 +455,8 @@ ADDRESS_FEATURE = {
 }
 
 
-def test_address_search_renders_a_selectable_row(client, httpx_mock):
-    httpx_mock.add_response(json={"features": [ADDRESS_FEATURE]})
+def test_address_search_renders_a_selectable_row(client, mock_geocoding):
+    mock_geocoding(addresses=[ADDRESS_FEATURE])
 
     response = client.get(reverse("search_addresses"), {"q": "8 boulevard du port"})
 
@@ -464,6 +464,33 @@ def test_address_search_renders_a_selectable_row(client, httpx_mock):
     assert "8 Boulevard du Port 80000 Amiens" in content
     assert "80021_6590_00008" in content
     assert "HX-Trigger" not in response
+
+
+POI_FEATURE = {
+    "properties": {
+        "_type": "poi",
+        "toponym": "Station F",
+        "postcode": ["75013"],
+        "city": ["Paris 13e Arrondissement", "Paris"],
+        "citycode": ["75113", "75056"],
+        "score": 0.31,
+    },
+    "geometry": {"coordinates": [2.371699, 48.833436]},
+}
+
+
+def test_address_search_renders_venues_and_streets_in_one_flat_list(client, mock_geocoding):
+    """Both kinds are selectable rows of the same list — the venue leads because no street
+    here looks like a typed address."""
+    weak = ADDRESS_FEATURE["properties"] | {"score": 0.34}
+    mock_geocoding(addresses=[ADDRESS_FEATURE | {"properties": weak}], pois=[POI_FEATURE])
+
+    content = client.get(reverse("search_addresses"), {"q": "station f paris"}).content.decode()
+
+    assert content.index("Station F") < content.index("8 Boulevard du Port")
+    assert "poiName: 'Station F'" in content
+    assert content.count('role="option"') == 2
+    assert 'role="presentation"' not in content
 
 
 def test_address_search_announces_an_unreachable_api(client, httpx_mock):
@@ -476,8 +503,18 @@ def test_address_search_announces_an_unreachable_api(client, httpx_mock):
     assert "indisponible" in response.content.decode()
 
 
-def test_address_search_says_when_nothing_matches(client, httpx_mock):
-    httpx_mock.add_response(json={"features": []})
+def test_address_search_does_not_announce_a_refused_query_as_an_outage(client, httpx_mock):
+    """A rejected query is the user's, not the API's: manual entry would be the wrong answer."""
+    httpx_mock.add_response(status_code=400)
+
+    response = client.get(reverse("search_addresses"), {"q": "... rue"})
+
+    assert "HX-Trigger" not in response
+    assert "Aucune adresse trouvée" in response.content.decode()
+
+
+def test_address_search_says_when_nothing_matches(client, mock_geocoding):
+    mock_geocoding()
 
     response = client.get(reverse("search_addresses"), {"q": "adresse introuvable"})
 
@@ -485,11 +522,11 @@ def test_address_search_says_when_nothing_matches(client, httpx_mock):
     assert "HX-Trigger" not in response
 
 
-def test_address_search_escapes_reflected_value_for_js_context(client, httpx_mock):
+def test_address_search_escapes_reflected_value_for_js_context(client, mock_geocoding):
     # The label is interpolated into the Alpine `select({...})` call, so a quote has to leave
     # as ' rather than close the JS string. The visible row text stays HTML-escaped.
     properties = ADDRESS_FEATURE["properties"] | {"label": "Rue d'X"}
-    httpx_mock.add_response(json={"features": [ADDRESS_FEATURE | {"properties": properties}]})
+    mock_geocoding(addresses=[ADDRESS_FEATURE | {"properties": properties}])
 
     content = client.get(reverse("search_addresses"), {"q": "rue"}).content.decode()
 

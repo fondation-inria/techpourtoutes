@@ -33,13 +33,14 @@
                     :longitude_field=form.longitude
                     :latitude_field=form.latitude
                     :ban_id_field=form.ban_id
+                    :poi_name_field=form.poi_name
                     :api_down_field=form.address_api_down
-                    label="Quelle est l'adresse de l'événement ?*"
-                    description="Saisissez le numéro, la voie et la ville, puis sélectionnez votre adresse parmi les suggestions" />
+                    label="Quelle est l'adresse ou le lieu de l'événement ?*"
+                    description="Saisissez une adresse ou le nom du lieu, puis sélectionnez-le parmi les suggestions" />
             </div>
 
             <div x-show="locationType == 'online'" x-cloak>
-                <c-components.form_fields.input field=form.online_url type="url" autocomplete="off" />
+                <c-components.form_fields.input field=form.online_url type="url" autocomplete="off" description="Lien pour rejoindre l'événement" />
             </div>
 
             <c-components.form_fields.segmented field=form.access_type :watchable=True />
@@ -86,7 +87,7 @@
                 <span class="pb-3 text-sm">€</span>
             </div>
 
-            <div class="flex justify-center">
+            <div class="flex justify-center mt-4">
                 <c-components.button type="submit" label="Publier" />
             </div>
         </c-patterns.form>

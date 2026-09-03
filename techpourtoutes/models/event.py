@@ -56,8 +56,8 @@ class Event(BaseModel):
         JOB_SHADOWING = "job_shadowing", _("Vis-ma-vie")
         AFTERWORK = "afterwork", _("Afterwork")
         CEREMONY = "ceremony", _("Cérémonie")
-        OTHER = "other", _("Autre")
         HACKATHON = "hackathon", _("Hackathon")
+        OTHER = "other", _("Autre")
 
     SUBCATEGORIES = {
         Category.INFORMATION: (
@@ -123,6 +123,9 @@ class Event(BaseModel):
     location_type = models.CharField(
         max_length=10, choices=LocationType.choices, verbose_name=_("format")
     )
+    # A named place from the Géoplateforme POI index. It holds no street address of its own —
+    # the two datasets have no join key — so it stands in for `address` rather than completing it.
+    poi_name = models.CharField(max_length=255, blank=True, verbose_name=_("nom du lieu"))
     address = models.CharField(max_length=255, blank=True, verbose_name=_("adresse"))
     postal_code = models.CharField(max_length=10, blank=True, verbose_name=_("code postal"))
     city = models.CharField(max_length=100, blank=True, verbose_name=_("commune"))
@@ -172,10 +175,24 @@ class Event(BaseModel):
                     "Un événement en présentiel doit être géocodé avant d'être validé."
                 ),
             ),
+            models.CheckConstraint(
+                condition=~models.Q(status="approved", location_type="physical")
+                | ~models.Q(address="", poi_name=""),
+                name="approved_physical_event_names_a_place",
+                violation_error_message=_(
+                    "Un événement en présentiel doit porter une adresse ou un nom de lieu."
+                ),
+            ),
         ]
 
     def __str__(self):
         return self.title
+
+    @property
+    def location_label(self):
+        """The POI name stands in for the street: it is what people recognise, and a POI
+        never comes with one."""
+        return " ".join(filter(None, [self.poi_name or self.address, self.postal_code, self.city]))
 
     @property
     def subcategory_label(self):

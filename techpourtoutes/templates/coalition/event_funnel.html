@@ -1,3 +1,4 @@
+{% load static %}
 <c-layout.base
     variant="funnel"
     title="Proposer un événement"
@@ -10,6 +11,7 @@
          x-data="{ quitting: false }"
          x-init="document.querySelector('[data-funnel-close]')
                      ?.addEventListener('click', event => { event.preventDefault(); quitting = true })">
+        <img src="{% static 'images/techpourtoutes-logo-new-coalition.png' %}" alt="logo TechPourToutes" class="w-48 shrink-0 mb-8" />
         {% include "coalition/partials/event/subcategory.html" %}
 
         <template x-if="quitting">
@@ -25,7 +27,6 @@
         </template>
     </div>
     <c-slot name="right">
-        {# Deliberately empty: the funnel keeps the two-column layout, right side left blank. #}
         <div class="hidden md:block flex-1"></div>
     </c-slot>
 </c-layout.base>

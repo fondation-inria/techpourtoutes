@@ -3123,6 +3123,50 @@
   .isolate {
     isolation: isolate;
   }
+  .join {
+    display: inline-flex;
+    align-items: stretch;
+    --join-ss: 0;
+    --join-se: 0;
+    --join-es: 0;
+    --join-ee: 0;
+    --join-ml: 0;
+    --join-mt: 0;
+    --join-v: 0;
+    --join-h: 1;
+    @scope (&) {
+       > :where(:focus, :has(:focus)) {
+        z-index: 2;
+      }
+      @media (hover: hover) {
+         > :where(.btn:hover, :has(.btn:hover)) {
+          z-index: 1;
+        }
+      }
+      :where(:scope > :first-child) {
+        --join-ss: var(--radius-field);
+        --join-se: calc(var(--radius-field) * var(--join-v));
+        --join-es: calc(var(--radius-field) * var(--join-h));
+        --join-ee: 0;
+      }
+      :where(:scope > :last-child) {
+        --join-ss: 0;
+        --join-se: calc(var(--radius-field) * var(--join-h));
+        --join-es: calc(var(--radius-field) * var(--join-v));
+        --join-ee: var(--radius-field);
+      }
+      :where(:scope > :only-child) {
+        --join-ss: var(--radius-field);
+        --join-se: var(--radius-field);
+        --join-es: var(--radius-field);
+        --join-ee: var(--radius-field);
+      }
+      :where(:scope > :not(:first-child)) {
+        --join-ml: calc(var(--border, 1px) * -1 * var(--join-h));
+        --join-mt: calc(var(--border, 1px) * -1 * var(--join-v));
+      }
+    }
+  }
   .-z-10 {
     z-index: calc(10 * -1);
   }

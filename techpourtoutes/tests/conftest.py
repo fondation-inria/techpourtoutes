@@ -1,6 +1,22 @@
 from unittest.mock import MagicMock, patch
 
+import httpx
 import pytest
+
+
+@pytest.fixture
+def mock_geocoding(httpx_mock):
+    """The address search asks one Géoplateforme index at a time, so each needs its own
+    payload — matched on the `index` parameter rather than on call order."""
+
+    def register(*, addresses=(), pois=()):
+        def respond(request):
+            wanted = pois if request.url.params["index"] == "poi" else addresses
+            return httpx.Response(200, json={"features": list(wanted)})
+
+        httpx_mock.add_callback(respond, is_reusable=True)
+
+    return register
 
 
 @pytest.fixture

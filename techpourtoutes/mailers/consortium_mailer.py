@@ -1,4 +1,5 @@
 from django.conf import settings
+from django.urls import reverse
 
 from ..models import Pro
 from .base_mailer import BaseMailer
@@ -39,10 +40,13 @@ class ConsortiumMailer(BaseMailer):
 
     @classmethod
     def new_event(cls, *, event):
+        admin_url = settings.SITE_URL + reverse(
+            "admin:techpourtoutes_event_change", args=[event.pk]
+        )
         cls.send_mail(
             subject=f"Un nouvel événement à valider : {event.title}",
             recipient_list=settings.NEW_EVENT_RECIPIENTS,
-            context={"event": event},
+            context={"event": event, "admin_url": admin_url},
             tags=["interne", "coalition", "nouvel événement"],
         )
 

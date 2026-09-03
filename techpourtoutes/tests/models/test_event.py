@@ -148,6 +148,48 @@ def test_event_keeps_an_address_the_geocoding_api_never_resolved(pro):
 
 
 @pytest.mark.django_db
+def test_event_keeps_a_venue_with_no_street_address(pro):
+    """A POI carries a name and a commune, never a street: the address columns stay empty."""
+    from techpourtoutes.models import Event
+
+    event = build_event(
+        pro,
+        location_type=Event.LocationType.PHYSICAL,
+        poi_name="Station F",
+        city="Paris 13e Arrondissement",
+        cog_code="75113",
+        longitude=2.371699,
+        latitude=48.833436,
+    )
+    event.save()
+
+    assert event.address == ""
+    assert event.postal_code == ""
+
+
+@pytest.mark.django_db
+def test_location_label_prefers_the_venue_over_the_address(pro):
+    from techpourtoutes.models import Event
+
+    venue = build_event(
+        pro,
+        location_type=Event.LocationType.PHYSICAL,
+        poi_name="Station F",
+        city="Paris 13e Arrondissement",
+    )
+    address = build_event(
+        pro,
+        location_type=Event.LocationType.PHYSICAL,
+        address="8 Boulevard du Port",
+        postal_code="80000",
+        city="Amiens",
+    )
+
+    assert venue.location_label == "Station F Paris 13e Arrondissement"
+    assert address.location_label == "8 Boulevard du Port 80000 Amiens"
+
+
+@pytest.mark.django_db
 def test_past_and_upcoming_split_events_on_their_end_date(pro):
     from techpourtoutes.models import Event
 
@@ -193,6 +235,42 @@ def test_an_ungeocoded_physical_event_cannot_be_approved(pro):
 
     with pytest.raises(ValidationError):
         event.save()
+
+
+@pytest.mark.django_db
+def test_a_physical_event_naming_neither_address_nor_venue_cannot_be_approved(pro):
+    """Coordinates alone put a pin on a map with nothing to read next to it."""
+    from techpourtoutes.models import Event
+
+    event = build_event(
+        pro,
+        location_type=Event.LocationType.PHYSICAL,
+        longitude=2.371699,
+        latitude=48.833436,
+        status=Event.Status.APPROVED,
+    )
+
+    with pytest.raises(ValidationError):
+        event.save()
+
+
+@pytest.mark.django_db
+def test_a_geocoded_venue_can_be_approved_without_a_street_address(pro):
+    from techpourtoutes.models import Event
+
+    event = build_event(
+        pro,
+        location_type=Event.LocationType.PHYSICAL,
+        poi_name="Station F",
+        city="Paris 13e Arrondissement",
+        cog_code="75113",
+        longitude=2.371699,
+        latitude=48.833436,
+        status=Event.Status.APPROVED,
+    )
+    event.save()
+
+    assert list(Event.objects.approved()) == [event]
 
 
 @pytest.mark.django_db

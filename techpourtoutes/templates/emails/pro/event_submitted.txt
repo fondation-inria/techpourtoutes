@@ -1,9 +1,7 @@
 {% autoescape off %}Bonjour {{ event.created_by.first_name }},
 
 
-Nous avons bien reçu votre événement « {{ event.title }} », proposé par {{ event.organizer }}.
-
-Il est actuellement en cours de validation par notre équipe. Vous recevrez un mail dès qu'il sera validé : il sera alors en ligne et visible automatiquement.
+Votre événement <strong>{{ event.title }}</strong> va être étudié par notre équipe. Vous recevrez un mail dès sa validation et sa mise en ligne.
 
 Pour rappel, voici ce que vous avez renseigné :
 

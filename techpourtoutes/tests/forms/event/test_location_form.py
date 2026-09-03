@@ -16,6 +16,17 @@ GEOCODED = {
     "price": "0",
 }
 
+VENUE = {
+    "location_type": Event.LocationType.PHYSICAL,
+    "poi_name": "Station F",
+    "city": "Paris 13e Arrondissement",
+    "cog_code": "75113",
+    "longitude": "2.371699",
+    "latitude": "48.833436",
+    "access_type": Event.AccessType.OPEN,
+    "price": "0",
+}
+
 ONLINE = {
     "location_type": Event.LocationType.ONLINE,
     "online_url": "https://example.org/live",
@@ -32,11 +43,21 @@ def test_a_geocoded_physical_event_keeps_its_coordinates():
     assert form.cleaned_data["online_url"] == ""
 
 
-def test_a_physical_event_needs_an_address():
+def test_a_physical_event_needs_an_address_or_a_venue():
     form = EventLocationForm(data=GEOCODED | {"address": ""})
 
     assert not form.is_valid()
     assert "address" in form.errors
+
+
+def test_a_venue_stands_in_for_the_street_address():
+    """A POI has no street: its name and its commune are all the API gives."""
+    form = EventLocationForm(data=VENUE)
+
+    assert form.is_valid()
+    assert form.cleaned_data["poi_name"] == "Station F"
+    assert form.cleaned_data["address"] == ""
+    assert form.cleaned_data["latitude"] == 48.833436
 
 
 def test_an_online_event_drops_whatever_address_was_typed_first():
@@ -47,6 +68,13 @@ def test_an_online_event_drops_whatever_address_was_typed_first():
     assert form.cleaned_data["address"] == ""
     assert form.cleaned_data["city"] == ""
     assert form.cleaned_data["latitude"] is None
+
+
+def test_an_online_event_drops_a_venue_picked_first():
+    form = EventLocationForm(data=ONLINE | {"poi_name": "Station F"})
+
+    assert form.is_valid()
+    assert form.cleaned_data["poi_name"] == ""
 
 
 def test_an_online_event_may_omit_its_connection_link():

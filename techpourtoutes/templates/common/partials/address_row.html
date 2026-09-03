@@ -1,6 +1,7 @@
 <button type="button" role="option"
     @click="select({
         label: '{{ address.label|escapejs }}',
+        poiName: '{{ address.poi_name|escapejs }}',
         address: '{{ address.address|escapejs }}',
         postalCode: '{{ address.postal_code|escapejs }}',
         city: '{{ address.city|escapejs }}',

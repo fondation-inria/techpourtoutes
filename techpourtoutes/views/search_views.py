@@ -120,16 +120,18 @@ def search_formations(request):
 def search_addresses(request):
     """Unlike the other two, this one queries a live API: no scope, no pagination.
 
-    A failure is not an error page — the dropdown says so and tells the component to offer
-    manual entry, through the `addressApiDown` trigger.
+    An unreachable API is not an error page — the dropdown says so and tells the component to
+    offer manual entry, through the `addressApiDown` trigger. Only a transient failure earns
+    that: a query the API refuses is the user's to fix, and manual entry would hide it.
     """
     result = SearchAddresses(query=request.GET.get("q", "").strip())
+    api_down = result.failed_with_transient_error
     response = render(
         request,
         "common/partials/address_results.html",
-        {"addresses": result.addresses, "api_down": result.failure},
+        {"addresses": result.addresses, "api_down": api_down},
     )
-    if result.failure:
+    if api_down:
         response["HX-Trigger"] = "addressApiDown"
     return response
 

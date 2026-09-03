@@ -5,7 +5,7 @@ from ...models import Event
 
 # Written by the autocomplete, never typed. `address`, `postal_code` and `city` are left out:
 # they become visible inputs when the geocoding API is unreachable.
-GEOCODED_FIELDS = ("cog_code", "longitude", "latitude", "ban_id")
+GEOCODED_FIELDS = ("poi_name", "cog_code", "longitude", "latitude", "ban_id")
 ADDRESS_FIELDS = ("address", "postal_code", "city", *GEOCODED_FIELDS)
 
 
@@ -16,6 +16,7 @@ class EventLocationForm(forms.Form):
     address = forms.CharField(required=False, label=_("Quelle est l'adresse de l'événement ?*"))
     postal_code = forms.CharField(required=False, label=_("Code postal*"))
     city = forms.CharField(required=False, label=_("Ville*"))
+    poi_name = forms.CharField(required=False, widget=forms.HiddenInput)
     cog_code = forms.CharField(required=False, widget=forms.HiddenInput)
     longitude = forms.FloatField(required=False, widget=forms.HiddenInput)
     latitude = forms.FloatField(required=False, widget=forms.HiddenInput)
@@ -49,11 +50,14 @@ class EventLocationForm(forms.Form):
 
     def _require_address(self, cleaned_data):
         """Without the autocomplete there is nothing to geocode with, so the three parts of the
-        address have to be typed in full."""
-        required = ("address", "postal_code", "city") if self.api_down else ("address",)
-        for field in required:
-            if not cleaned_data.get(field):
-                self.add_error(field, _("Renseignez l'adresse de l'événement."))
+        address have to be typed in full. With it, a place picked from the POI index stands in
+        for the street address the API cannot give it."""
+        if self.api_down:
+            for field in ("address", "postal_code", "city"):
+                if not cleaned_data.get(field):
+                    self.add_error(field, _("Renseignez l'adresse de l'événement."))
+        elif not (cleaned_data.get("address") or cleaned_data.get("poi_name")):
+            self.add_error("address", _("Renseignez l'adresse ou le lieu de l'événement."))
 
     def _clean_registration(self, cleaned_data):
         if cleaned_data.get("access_type") == Event.AccessType.OPEN:
