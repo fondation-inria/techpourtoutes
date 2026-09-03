@@ -36,6 +36,24 @@ class ProMailer(BaseMailer):
         )
 
     @classmethod
+    def event_approved(cls, *, event, comment=""):
+        cls.send_mail(
+            subject="Votre événement est maintenant en ligne",
+            recipient_list=[event.created_by.email],
+            context={"event": event, "comment": comment},
+            tags=["utilisateur", "coalition", "événement publié"],
+        )
+
+    @classmethod
+    def event_rejected(cls, *, event, comment=""):
+        cls.send_mail(
+            subject="Votre événement a été refusé",
+            recipient_list=[event.created_by.email],
+            context={"event": event, "comment": comment},
+            tags=["utilisateur", "coalition", "événement refusé"],
+        )
+
+    @classmethod
     def welcome_training_ambassador(cls, *, pro):
         cls.send_mail(
             subject="Une dernière étape pour devenir ambassadrice étudiante",

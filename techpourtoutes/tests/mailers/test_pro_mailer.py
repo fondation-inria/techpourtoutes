@@ -56,3 +56,39 @@ def test_event_submitted_confirms_the_event_is_awaiting_validation(event):
     assert "en cours de validation" in message.subject
     assert event.title in message.body
     assert message.tags == ["utilisateur", "coalition", "événement soumis"]
+
+
+@pytest.mark.django_db
+@override_settings(EMAIL_BACKEND="django.core.mail.backends.locmem.EmailBackend")
+def test_event_approved_notifies_its_author(event):
+    ProMailer.event_approved(event=event, comment="Bravo !")
+
+    assert len(mail.outbox) == 1
+    message = mail.outbox[0]
+    assert message.to == [event.created_by.email]
+    assert "en ligne" in message.subject
+    assert event.title in message.body
+    assert "Bravo !" in message.body
+    assert message.tags == ["utilisateur", "coalition", "événement publié"]
+
+
+@pytest.mark.django_db
+@override_settings(EMAIL_BACKEND="django.core.mail.backends.locmem.EmailBackend")
+def test_event_approved_comment_is_optional(event):
+    ProMailer.event_approved(event=event)
+
+    assert len(mail.outbox) == 1
+
+
+@pytest.mark.django_db
+@override_settings(EMAIL_BACKEND="django.core.mail.backends.locmem.EmailBackend")
+def test_event_rejected_notifies_its_author(event):
+    ProMailer.event_rejected(event=event, comment="Adresse incomplète.")
+
+    assert len(mail.outbox) == 1
+    message = mail.outbox[0]
+    assert message.to == [event.created_by.email]
+    assert "refusé" in message.subject
+    assert event.title in message.body
+    assert "Adresse incomplète." in message.body
+    assert message.tags == ["utilisateur", "coalition", "événement refusé"]
