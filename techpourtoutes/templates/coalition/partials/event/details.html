@@ -1,0 +1,34 @@
+<div id="funnel-step" class="w-full flex flex-col">
+    <c-layout.partials.messages wrapper_class="w-full flex flex-col gap-y-2" />
+    {% include "coalition/partials/event/back.html" %}
+    <c-components.card nobg=True>
+        <c-patterns.form
+            hx-post="{% url 'event_funnel' %}"
+            hx-target="#funnel-step"
+            hx-swap="outerHTML">
+            <input type="hidden" name="action" value="details">
+            {% include "coalition/partials/event/carried_answers.html" %}
+            <c-components.title title="Proposer un événement" variant="h1" />
+            <p class="description-text-xxs">Les champs suivis d'un astérisque (*) sont obligatoires</p>
+            <c-components.form_fields.input field=form.organizer autocomplete="organization" />
+            <c-components.form_fields.input field=form.title autocomplete="off" />
+            <c-components.form_fields.textarea field=form.description rows="6" />
+            {# The end date follows the start date until she says otherwise. #}
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4"
+                 x-data="{ endEdited: '{{ form.end_date.value|default:''|escapejs }}' !== '' }"
+                 @change="
+                    if ($event.target.name === 'end_date') { endEdited = true; return; }
+                    if ($event.target.name !== 'start_date' || endEdited) return;
+                    $el.querySelector('[name=end_date]').value = $event.target.value;
+                 ">
+                <c-components.form_fields.input field=form.start_date type="date" />
+                <c-components.form_fields.input field=form.start_time type="time" />
+                <c-components.form_fields.input field=form.end_date type="date" />
+                <c-components.form_fields.input field=form.end_time type="time" />
+            </div>
+            <div class="flex justify-center mt-4">
+                <c-components.button type="submit" label="Continuer" />
+            </div>
+        </c-patterns.form>
+    </c-components.card>
+</div>

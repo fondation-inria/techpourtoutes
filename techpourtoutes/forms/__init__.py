@@ -20,6 +20,7 @@ from .beneficiary_inscription import (
 )
 from .email_notification_form import EmailNotificationForm
 from .engagement import EngagementForm, TrainingAmbassadorForm, WorkshopForm
+from .event import EventDetailsForm, EventLocationForm, EventSubcategoryForm
 from .manifeste_signature_form import ManifesteSignatureForm
 
 __all__ = [
@@ -38,6 +39,9 @@ __all__ = [
     "EmailChangeForm",
     "EmailNotificationForm",
     "EngagementForm",
+    "EventSubcategoryForm",
+    "EventDetailsForm",
+    "EventLocationForm",
     "LoginRequestForm",
     "ManifesteSignatureForm",
     "ProEditAccountForm",

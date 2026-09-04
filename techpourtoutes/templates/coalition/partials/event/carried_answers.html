@@ -1,0 +1,5 @@
+{# What the earlier screens collected. Nothing is persisted server-side: the answers only #}
+{# exist in this page, which is why leaving the funnel loses them. #}
+{% for name, value in carried.items %}
+    <input type="hidden" name="{{ name }}" value="{{ value }}">
+{% endfor %}

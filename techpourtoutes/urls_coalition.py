@@ -14,6 +14,7 @@ urlpatterns = [
     path("accueillir-une-stagiaire/", views.internships_landing, name="internships_landing"),
     path("devenir-mecene", views.sponsor_landing, name="sponsor_landing"),
     path("organiser-un-atelier", views.workshops_landing, name="workshops_landing"),
+    path("proposer-un-evenement/", views.event_funnel, name="event_funnel"),
     path("signer-le-manifeste/", views.signer_manifeste, name="signer_manifeste"),
     path("bienvenue-dans-la-coalition/", views.coalition_welcome, name="coalition_welcome"),
     path("signature-manifeste/", views.signature_manifeste, name="signature_manifeste"),

@@ -75,6 +75,11 @@
           {
             "type": "command",
             "command": "python3 $CLAUDE_PROJECT_DIR/.claude/hooks/derived_permissions.py"
+
+          },
+          {
+            "type": "command",
+            "command": "python3 ~/.claude/hooks/write_and_edit_with_native_tools.py"
           }
         ]
       }

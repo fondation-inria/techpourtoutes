@@ -1,0 +1,272 @@
+from decimal import Decimal
+
+import pytest
+from django.core import mail
+from django.test import override_settings
+from playwright.sync_api import expect
+
+from techpourtoutes.models import Event, Pro
+
+# These tests drive a real browser to cover what the view tests cannot: every conditional field
+# of this funnel is revealed client-side, and the answers only exist in the page — a step is
+# submitted with hidden inputs the previous screen rendered.
+
+locmem = override_settings(
+    EMAIL_BACKEND="django.core.mail.backends.locmem.EmailBackend",
+    NEW_EVENT_RECIPIENTS=["agir@techpourtoutes.io"],
+)
+
+
+@pytest.fixture
+def funnel(live_server, page, db):
+    pro = Pro(
+        username="alice@example.com",
+        civility=Pro.Civility.MADAME,
+        first_name="Alice",
+        last_name="Martin",
+        email="alice@example.com",
+        professional_situation=Pro.ProfessionalSituation.WORKING,
+    )
+    pro.save()
+    page.goto(f"{live_server.url}/se-connecter/token/{pro.issue_login_token()}/")
+    page.goto(f"{live_server.url}/coalition/proposer-un-evenement/")
+    return page
+
+
+def choose_subcategory(page, option):
+    page.get_by_label("Quel type d'événement voulez-vous proposer ?").click()
+    page.get_by_role("button", name=option, exact=True).click()
+
+
+def fill_details(page):
+    page.get_by_label("Nom de l'organisateur*").fill("Numeum")
+    page.get_by_label("Nom de l'événement*").fill("Salon des métiers du numérique")
+    page.get_by_label("Description de l'événement*").fill("Une journée de rencontres.")
+    page.get_by_label("Date de début*").fill("2026-10-01")
+    page.get_by_label("Heure de début*").fill("09:00")
+
+
+def test_the_end_date_follows_the_start_date_until_she_changes_it(funnel):
+    choose_subcategory(funnel, "Salon")
+    funnel.get_by_role("button", name="Continuer").click()
+    fill_details(funnel)
+
+    expect(funnel.get_by_label("Date de fin*")).to_have_value("2026-10-01")
+
+    funnel.get_by_label("Date de fin*").fill("2026-10-03")
+    funnel.get_by_label("Date de début*").fill("2026-10-02")
+    expect(funnel.get_by_label("Date de fin*")).to_have_value("2026-10-03")
+
+
+def test_the_end_date_follows_a_start_date_typed_digit_by_digit(funnel):
+    """A date input fires `change` on every complete-looking state, so a year typed one digit
+    at a time goes through 0002 before reaching 2026: the end date has to keep following."""
+    choose_subcategory(funnel, "Salon")
+    funnel.get_by_role("button", name="Continuer").click()
+    funnel.get_by_label("Date de début*").press_sequentially("10122026")
+
+    # The order of the segments follows the browser locale; the year is the same in both.
+    start = funnel.get_by_label("Date de début*").input_value()
+    assert start.startswith("2026-")
+    expect(funnel.get_by_label("Date de fin*")).to_have_value(start)
+
+
+def test_the_other_subcategory_reveals_its_free_text_field(funnel):
+    free_text = funnel.get_by_label("Veuillez préciser le type d'événement")
+    expect(free_text).to_be_hidden()
+
+    choose_subcategory(funnel, "Autre")
+
+    expect(free_text).to_be_visible()
+
+
+def test_leaving_the_funnel_asks_for_confirmation(funnel):
+    funnel.get_by_label("Fermer").click()
+
+    expect(funnel.get_by_text("ne sera pas enregistré")).to_be_visible()
+    funnel.get_by_role("button", name="Annuler").click()
+    expect(funnel.get_by_text("ne sera pas enregistré")).to_be_hidden()
+
+
+@locmem
+def test_an_online_event_is_published_for_validation(funnel):
+    choose_subcategory(funnel, "Webinaire d'informations")
+    funnel.get_by_role("button", name="Continuer").click()
+    fill_details(funnel)
+    funnel.get_by_label("Heure de fin*").fill("18:00")
+    funnel.get_by_role("button", name="Continuer").click()
+
+    funnel.get_by_text("En ligne", exact=True).click()
+    connection = funnel.get_by_label("Quel est le lien de connexion à l'événement ?")
+    expect(connection).to_be_visible()
+    connection.fill("https://example.org/live")
+    funnel.get_by_text("Sans inscription", exact=True).click()
+    funnel.get_by_role("button", name="Publier").click()
+
+    expect(funnel.get_by_text("en cours de validation")).to_be_visible()
+    event = Event.objects.get()
+    assert event.status == Event.Status.PENDING
+    assert event.subcategory == "webinar"
+    assert event.online_url == "https://example.org/live"
+    assert len(mail.outbox) == 2
+
+
+@locmem
+def test_a_physical_event_is_geocoded_through_the_address_search(funnel, mock_geocoding):
+    mock_geocoding(
+        addresses=[
+            {
+                "properties": {
+                    "_type": "address",
+                    "id": "80021_6590_00008",
+                    "label": "8 Boulevard du Port 80000 Amiens",
+                    "name": "8 Boulevard du Port",
+                    "postcode": "80000",
+                    "city": "Amiens",
+                    "citycode": "80021",
+                },
+                "geometry": {"coordinates": [2.290084, 49.897442]},
+            }
+        ]
+    )
+    choose_subcategory(funnel, "Salon")
+    funnel.get_by_role("button", name="Continuer").click()
+    fill_details(funnel)
+    funnel.get_by_label("Heure de fin*").fill("18:00")
+    funnel.get_by_role("button", name="Continuer").click()
+
+    funnel.get_by_text("En présentiel", exact=True).click()
+    funnel.get_by_label("Quelle est l'adresse ou le lieu de l'événement ?*").fill(
+        "8 boulevard du port"
+    )
+    funnel.get_by_role("option", name="8 Boulevard du Port 80000 Amiens").click()
+    funnel.get_by_text("Sans inscription", exact=True).click()
+    funnel.get_by_role("button", name="Publier").click()
+
+    expect(funnel.get_by_text("en cours de validation")).to_be_visible()
+    event = Event.objects.get()
+    assert event.city == "Amiens"
+    assert event.latitude == 49.897442
+    assert event.ban_id == "80021_6590_00008"
+
+
+@locmem
+def test_a_venue_is_published_without_a_street_address(funnel, mock_geocoding):
+    """A POI has no postal address, so the venue name and its commune are all we store."""
+    mock_geocoding(
+        pois=[
+            {
+                "properties": {
+                    "_type": "poi",
+                    "toponym": "Station F",
+                    "postcode": ["75013"],
+                    "city": ["Paris 13e Arrondissement", "Paris"],
+                    "citycode": ["75113", "75056"],
+                },
+                "geometry": {"coordinates": [2.371699, 48.833436]},
+            }
+        ]
+    )
+    choose_subcategory(funnel, "Salon")
+    funnel.get_by_role("button", name="Continuer").click()
+    fill_details(funnel)
+    funnel.get_by_label("Heure de fin*").fill("18:00")
+    funnel.get_by_role("button", name="Continuer").click()
+
+    funnel.get_by_text("En présentiel", exact=True).click()
+    funnel.get_by_label("Quelle est l'adresse ou le lieu de l'événement ?*").fill("station f")
+    funnel.get_by_role("option", name="Station F, Paris 13e Arrondissement").click()
+    funnel.get_by_text("Sans inscription", exact=True).click()
+    funnel.get_by_role("button", name="Publier").click()
+
+    expect(funnel.get_by_text("en cours de validation")).to_be_visible()
+    event = Event.objects.get()
+    assert event.poi_name == "Station F"
+    assert event.address == ""
+    assert event.city == "Paris 13e Arrondissement"
+    assert event.latitude == 48.833436
+    assert event.location_label == "Station F 75013 Paris 13e Arrondissement"
+
+
+@locmem
+def test_a_registration_link_is_demanded_only_when_registration_is_required(funnel):
+    choose_subcategory(funnel, "Salon")
+    funnel.get_by_role("button", name="Continuer").click()
+    fill_details(funnel)
+    funnel.get_by_label("Heure de fin*").fill("18:00")
+    funnel.get_by_role("button", name="Continuer").click()
+
+    expect(funnel.get_by_label("Lien d'inscription*")).to_be_hidden()
+    funnel.get_by_text("Inscription obligatoire", exact=True).click()
+    expect(funnel.get_by_label("Lien d'inscription*")).to_be_visible()
+
+    funnel.get_by_text("Sur candidature", exact=True).click()
+    expect(funnel.get_by_label("Lien de candidature*")).to_be_visible()
+    expect(funnel.get_by_label("Lien d'inscription*")).to_be_hidden()
+
+
+def test_a_paid_event_reveals_its_price(funnel):
+    choose_subcategory(funnel, "Salon")
+    funnel.get_by_role("button", name="Continuer").click()
+    fill_details(funnel)
+    funnel.get_by_label("Heure de fin*").fill("18:00")
+    funnel.get_by_role("button", name="Continuer").click()
+
+    expect(funnel.get_by_label("Tarif*")).to_be_hidden()
+    funnel.get_by_role("button", name="Payant").click()
+    expect(funnel.get_by_label("Tarif*")).to_be_visible()
+
+    funnel.get_by_role("button", name="Gratuit").click()
+    expect(funnel.get_by_label("Tarif*")).to_be_hidden()
+
+
+def reach_the_location_step(page):
+    choose_subcategory(page, "Salon")
+    page.get_by_role("button", name="Continuer").click()
+    fill_details(page)
+    page.get_by_label("Heure de fin*").fill("18:00")
+    page.get_by_role("button", name="Continuer").click()
+    page.get_by_text("Sans inscription", exact=True).click()
+
+
+@locmem
+def test_a_malformed_link_is_refused_by_the_page_not_by_the_browser(funnel):
+    """A `type="url"` input would keep the submission from ever leaving the browser, behind a
+    native bubble we cannot word."""
+    reach_the_location_step(funnel)
+    funnel.get_by_text("En ligne", exact=True).click()
+    funnel.get_by_label("Quel est le lien de connexion à l'événement ?").fill("visio de la salle")
+    funnel.get_by_role("button", name="Publier").click()
+
+    expect(funnel.get_by_text("Saisissez un lien valide")).to_be_visible()
+
+
+@locmem
+def test_a_paid_event_without_a_price_comes_back_on_payant(funnel):
+    """The price is what says the event is paid, so an empty one used to send the toggle back to
+    "Gratuit" — hiding the very field the error was on."""
+    reach_the_location_step(funnel)
+    funnel.get_by_text("En ligne", exact=True).click()
+    funnel.get_by_role("button", name="Payant").click()
+    funnel.get_by_role("button", name="Publier").click()
+
+    expect(funnel.get_by_label("Tarif*")).to_be_visible()
+    expect(funnel.get_by_text("Renseignez le tarif de l'événement.")).to_be_visible()
+
+
+@locmem
+def test_a_price_typed_in_words_is_refused_then_accepted_with_a_comma(funnel):
+    reach_the_location_step(funnel)
+    funnel.get_by_text("En ligne", exact=True).click()
+    funnel.get_by_role("button", name="Payant").click()
+    funnel.get_by_label("Tarif*").fill("douze euros")
+    funnel.get_by_role("button", name="Publier").click()
+
+    expect(funnel.get_by_label("Tarif*")).to_be_visible()
+    expect(funnel.get_by_text("Saisissez un nombre")).to_be_visible()
+
+    funnel.get_by_label("Tarif*").fill("12,50")
+    funnel.get_by_role("button", name="Publier").click()
+
+    expect(funnel.get_by_text("en cours de validation")).to_be_visible()
+    assert Event.objects.get().price == Decimal("12.50")

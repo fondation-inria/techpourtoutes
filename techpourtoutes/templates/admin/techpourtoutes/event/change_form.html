@@ -1,0 +1,49 @@
+{% extends "admin/change_form.html" %}
+
+{% block object-tools %}
+  {{ block.super }}
+  {% if change and not is_popup and original.status == "pending" %}
+    <style>
+      .event-moderation {
+        float: right;
+        clear: both;
+        margin: 8px 0 16px;
+        padding: 16px;
+        border: 1px solid var(--hairline-color);
+        border-radius: 4px;
+        min-width: 360px;
+      }
+      .event-moderation .event-moderation__buttons { display: flex; gap: 8px; }
+      .event-moderation button {
+        flex: 1;
+        padding: 12px;
+        font-size: 1rem;
+        font-weight: bold;
+        color: #fff;
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+      }
+      .event-moderation button[value="approved"] { background: var(--success, #28a745); }
+      .event-moderation button[value="rejected"] { background: var(--error, #ba2121); }
+      .event-moderation textarea { width: 100%; margin-top: 12px; }
+    </style>
+    <div class="event-moderation">
+      <form method="post" action="{% url 'admin:event_moderate' original.pk %}">
+        {% csrf_token %}
+        <div class="event-moderation__buttons">
+          <button type="submit" name="decision" value="approved"
+                  onclick="return confirm('Confirmer la publication de cet événement ?');">
+            Publier
+          </button>
+          <button type="submit" name="decision" value="rejected"
+                  onclick="return confirm('Confirmer le refus de cet événement ?');">
+            Refuser
+          </button>
+        </div>
+        <textarea name="comment" rows="6"
+                  placeholder="Message pour l'organisatrice (optionnel), joint au mail de décision"></textarea>
+      </form>
+    </div>
+  {% endif %}
+{% endblock %}

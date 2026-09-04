@@ -11,6 +11,7 @@ SITEMAP_EXCLUDED_URL_NAMES = {
     # HTMX partials
     "search_schools",
     "search_formations",
+    "search_addresses",
     "mentoring_signup_skip_modal",
     # Auth / account (private)
     "login_request",
@@ -30,6 +31,7 @@ SITEMAP_EXCLUDED_URL_NAMES = {
     "delete_account_modal",
     "delete_account",
     "add_mentoring",
+    "event_funnel",
     # Funnel steps (not landing pages)
     "signature_manifeste",
     "coalition_welcome",

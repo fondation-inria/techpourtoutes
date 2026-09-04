@@ -1,9 +1,9 @@
 from django.contrib import messages
-from django.contrib.auth.decorators import login_required
 from django.http import HttpResponse
 from django.shortcuts import redirect, render
 from django.urls import reverse
 
+from ...decorators import beneficiary_required
 from ...forms import BeneficiaryMentoringSignUpForm, BeneficiaryStudyStatusForm
 from ...services.beneficiary.upsert_beneficiary import UpsertBeneficiary
 from ...utils.dates import adult_birth_date
@@ -20,12 +20,8 @@ from ..beneficiary_views import (
 # record or saved as it comes, and the hidden `action` says which step is coming back.
 
 
-@login_required
+@beneficiary_required
 def add_mentoring(request):
-    if not hasattr(request.user, "beneficiary"):
-        messages.error(request, "Cette page est réservée aux bénéficiaires.")
-        return redirect(reverse("account"))
-
     beneficiary = request.user.beneficiary
     if beneficiary.is_registered_for_mentoring:
         messages.info(request, "Tu es déjà inscrite au programme de mentorat.")

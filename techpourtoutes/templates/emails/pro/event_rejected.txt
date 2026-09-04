@@ -1,0 +1,10 @@
+{% autoescape off %}Bonjour {{ event.created_by.first_name }},
+
+Votre événement {{ event.title }} a été refusé par nos équipes. Pour toutes questions, n'hésitez pas à répondre à ce mail.
+
+{% if comment %}
+Message de l'équipe : {{ comment }}
+{% endif %}
+
+Bonne journée,
+L'équipe TechPourToutes{% endautoescape %}
