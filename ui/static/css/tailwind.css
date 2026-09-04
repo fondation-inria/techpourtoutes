@@ -11,9 +11,7 @@
     --color-orange-500: #FF713D;
     --color-yellow-500: #fad207;
     --color-green-500: #00a25e;
-    --color-blue-50: oklch(97% 0.014 254.604);
     --color-blue-500: #0E6DC7;
-    --color-violet-500: oklch(60.6% 0.25 292.717);
     --color-purple-500: #BD76FF;
     --color-neutral-50: #f8fafc;
     --color-neutral-100: #f1f5f9;
@@ -64,7 +62,6 @@
     --radius-2xl: 1rem;
     --radius-3xl: 1.5rem;
     --ease-out: cubic-bezier(0, 0, 0.2, 1);
-    --ease-in-out: cubic-bezier(0.4, 0, 0.2, 1);
     --default-transition-duration: 150ms;
     --default-transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
     --default-font-family: var(--font-sans);

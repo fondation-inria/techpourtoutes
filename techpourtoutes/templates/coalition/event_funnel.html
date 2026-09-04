@@ -19,9 +19,9 @@
                 <p class="text-sm text-neutral-950 text-center mt-4">
                     En quittant, votre formulaire ne sera pas enregistré.
                 </p>
-                <div class="flex flex-wrap justify-center gap-4 mt-6">
-                    <c-components.button type="button" variant="secondary" @click="quitting = false" label="Annuler" />
-                    <c-components.button href="{% url 'account' %}" label="Quitter" />
+                <div class="flex flex-col w-full justify-center gap-4 mt-6">
+                    <div class="flex justify-center"><c-components.button href="{% url 'account' %}" label="Quitter la création" /></div>
+                    <div class="flex justify-center"><c-components.button type="button" variant="secondary" @click="quitting = false" label="Annuler" /></div>
                 </div>
             </c-components.modal>
         </template>
