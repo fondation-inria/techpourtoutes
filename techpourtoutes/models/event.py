@@ -91,7 +91,7 @@ class Event(BaseModel):
         ONLINE = "online", _("En ligne")
 
     class AccessType(models.TextChoices):
-        OPEN = "open", _("Accès libre")
+        OPEN = "open", _("Sans inscription")
         REGISTRATION = "registration", _("Inscription obligatoire")
         CANDIDACY = "candidacy", _("Sur candidature")
 

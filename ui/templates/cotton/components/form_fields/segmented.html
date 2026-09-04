@@ -25,7 +25,7 @@
                     {% if watchable %}@change="$el.dispatchEvent(new CustomEvent('segmented-change', { bubbles: true, detail: { name: '{{ field.html_name|escapejs }}', value: '{{ opt_value|escapejs }}' } }))"{% endif %}
                     class="peer sr-only"
                 />
-                <span class="inline-block border border-neutral-300 px-4 py-2 text-sm text-neutral-950 -ml-px peer-checked:bg-primary/20 peer-checked:border-primary peer-checked:relative peer-focus-visible:outline peer-focus-visible:outline-blue-500 {% if field.errors or errors or variant == "error" %}border-error{% endif %}">
+                <span class="inline-block border border-neutral-300 rounded px-4 py-2 text-sm text-neutral-950 -ml-px peer-checked:bg-primary/20 peer-checked:border-primary peer-checked:relative peer-focus-visible:outline peer-focus-visible:outline-blue-500 {% if field.errors or errors or variant == "error" %}border-error{% endif %}">
                     {{ opt_label }}
                 </span>
             </label>

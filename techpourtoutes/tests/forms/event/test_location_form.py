@@ -132,11 +132,43 @@ def test_an_open_event_drops_a_registration_link_typed_first():
     assert form.cleaned_data["registration_url"] == ""
 
 
-def test_a_paid_event_keeps_its_price():
-    form = EventLocationForm(data=GEOCODED | {"price": "12.50"})
+def test_a_malformed_connection_link_names_the_expected_format():
+    """The input is a plain text field, so the browser lets it through: the message telling her
+    what a link looks like has to come from here."""
+    form = EventLocationForm(data=ONLINE | {"online_url": "visio de la salle"})
 
-    assert form.is_valid()
-    assert form.cleaned_data["price"] == Decimal("12.50")
+    assert not form.is_valid()
+    assert "www.techpourtoutes.io" in form.errors["online_url"][0]
+
+
+def test_a_malformed_registration_link_names_the_expected_format():
+    """A link that failed to parse leaves the field empty, which used to read as a missing one:
+    she was told to fill in what she had just filled in."""
+    form = EventLocationForm(
+        data=GEOCODED
+        | {"access_type": Event.AccessType.REGISTRATION, "registration_url": "sur place"}
+    )
+
+    assert not form.is_valid()
+    assert len(form.errors["registration_url"]) == 1
+    assert "www.techpourtoutes.io" in form.errors["registration_url"][0]
+
+
+def test_a_paid_event_keeps_its_price():
+    """The comma is the separator she is offered as an example, and the dot the one a keypad
+    hands her: both mean twelve fifty."""
+    for typed in ("12,50", "12.50"):
+        form = EventLocationForm(data=GEOCODED | {"price": typed})
+
+        assert form.is_valid()
+        assert form.cleaned_data["price"] == Decimal("12.50")
+
+
+def test_a_price_typed_in_words_names_the_expected_format():
+    form = EventLocationForm(data=GEOCODED | {"price": "douze euros"})
+
+    assert not form.is_valid()
+    assert "12,50" in form.errors["price"][0]
 
 
 def test_a_negative_price_is_refused():

@@ -8,6 +8,11 @@ from ...models import Event
 GEOCODED_FIELDS = ("poi_name", "cog_code", "longitude", "latitude", "ban_id")
 ADDRESS_FIELDS = ("address", "postal_code", "city", *GEOCODED_FIELDS)
 
+# Their inputs are plain text: the browser is not the one to say what a link or a price looks
+# like, so its native bubble never fires and these messages are rendered under the field instead.
+URL_ERRORS = {"invalid": _("Saisissez un lien valide, par exemple www.techpourtoutes.io")}
+PRICE_ERRORS = {"invalid": _("Saisissez un nombre (par exemple 20 ou 12,50)")}
+
 
 class EventLocationForm(forms.Form):
     location_type = forms.ChoiceField(
@@ -26,12 +31,20 @@ class EventLocationForm(forms.Form):
         required=False,
         label=_("Quel est le lien de connexion à l'événement ?"),
         help_text=_("Lien pour rejoindre l'événement"),
+        error_messages=URL_ERRORS,
     )
     access_type = forms.ChoiceField(
         choices=Event.AccessType.choices, label=_("Quelles sont les modalités d'inscription ?*")
     )
-    registration_url = forms.URLField(required=False)
-    price = forms.DecimalField(max_digits=8, decimal_places=2, min_value=0, label=_("Tarif*"))
+    registration_url = forms.URLField(required=False, error_messages=URL_ERRORS)
+    price = forms.DecimalField(
+        max_digits=8,
+        decimal_places=2,
+        min_value=0,
+        localize=True,
+        label=_("Tarif*"),
+        error_messages=PRICE_ERRORS | {"required": _("Renseignez le tarif de l'événement.")},
+    )
 
     def clean(self):
         cleaned_data = super().clean()
@@ -60,9 +73,14 @@ class EventLocationForm(forms.Form):
             self.add_error("address", _("Renseignez l'adresse ou le lieu de l'événement."))
 
     def _clean_registration(self, cleaned_data):
+        """A link that failed to parse is dropped from `cleaned_data`, so the field looks empty
+        here: `has_error` is what tells a missing link from a malformed one, which has already
+        said what is wrong with it."""
         if cleaned_data.get("access_type") == Event.AccessType.OPEN:
             cleaned_data["registration_url"] = ""
-        elif cleaned_data.get("access_type") and not cleaned_data.get("registration_url"):
+        elif cleaned_data.get("access_type") and not (
+            cleaned_data.get("registration_url") or self.has_error("registration_url")
+        ):
             self.add_error("registration_url", _("Renseignez le lien d'inscription."))
 
     @property

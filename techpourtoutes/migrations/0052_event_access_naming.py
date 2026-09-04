@@ -13,7 +13,7 @@ class Migration(migrations.Migration):
     ]
 
     ACCESS_CHOICES = [
-        ("open", "Accès libre"),
+        ("open", "Sans inscription"),
         ("registration", "Inscription obligatoire"),
         ("candidacy", "Sur candidature"),
     ]

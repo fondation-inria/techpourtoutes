@@ -1,3 +1,5 @@
+from decimal import Decimal
+
 import pytest
 from django.core import mail
 from django.test import override_settings
@@ -98,7 +100,7 @@ def test_an_online_event_is_published_for_validation(funnel):
     connection = funnel.get_by_label("Quel est le lien de connexion à l'événement ?")
     expect(connection).to_be_visible()
     connection.fill("https://example.org/live")
-    funnel.get_by_text("Accès libre", exact=True).click()
+    funnel.get_by_text("Sans inscription", exact=True).click()
     funnel.get_by_role("button", name="Publier").click()
 
     expect(funnel.get_by_text("en cours de validation")).to_be_visible()
@@ -138,7 +140,7 @@ def test_a_physical_event_is_geocoded_through_the_address_search(funnel, mock_ge
         "8 boulevard du port"
     )
     funnel.get_by_role("option", name="8 Boulevard du Port 80000 Amiens").click()
-    funnel.get_by_text("Accès libre", exact=True).click()
+    funnel.get_by_text("Sans inscription", exact=True).click()
     funnel.get_by_role("button", name="Publier").click()
 
     expect(funnel.get_by_text("en cours de validation")).to_be_visible()
@@ -174,7 +176,7 @@ def test_a_venue_is_published_without_a_street_address(funnel, mock_geocoding):
     funnel.get_by_text("En présentiel", exact=True).click()
     funnel.get_by_label("Quelle est l'adresse ou le lieu de l'événement ?*").fill("station f")
     funnel.get_by_role("option", name="Station F, Paris 13e Arrondissement").click()
-    funnel.get_by_text("Accès libre", exact=True).click()
+    funnel.get_by_text("Sans inscription", exact=True).click()
     funnel.get_by_role("button", name="Publier").click()
 
     expect(funnel.get_by_text("en cours de validation")).to_be_visible()
@@ -216,3 +218,55 @@ def test_a_paid_event_reveals_its_price(funnel):
 
     funnel.get_by_role("button", name="Gratuit").click()
     expect(funnel.get_by_label("Tarif*")).to_be_hidden()
+
+
+def reach_the_location_step(page):
+    choose_subcategory(page, "Salon")
+    page.get_by_role("button", name="Continuer").click()
+    fill_details(page)
+    page.get_by_label("Heure de fin*").fill("18:00")
+    page.get_by_role("button", name="Continuer").click()
+    page.get_by_text("Sans inscription", exact=True).click()
+
+
+@locmem
+def test_a_malformed_link_is_refused_by_the_page_not_by_the_browser(funnel):
+    """A `type="url"` input would keep the submission from ever leaving the browser, behind a
+    native bubble we cannot word."""
+    reach_the_location_step(funnel)
+    funnel.get_by_text("En ligne", exact=True).click()
+    funnel.get_by_label("Quel est le lien de connexion à l'événement ?").fill("visio de la salle")
+    funnel.get_by_role("button", name="Publier").click()
+
+    expect(funnel.get_by_text("Saisissez un lien valide")).to_be_visible()
+
+
+@locmem
+def test_a_paid_event_without_a_price_comes_back_on_payant(funnel):
+    """The price is what says the event is paid, so an empty one used to send the toggle back to
+    "Gratuit" — hiding the very field the error was on."""
+    reach_the_location_step(funnel)
+    funnel.get_by_text("En ligne", exact=True).click()
+    funnel.get_by_role("button", name="Payant").click()
+    funnel.get_by_role("button", name="Publier").click()
+
+    expect(funnel.get_by_label("Tarif*")).to_be_visible()
+    expect(funnel.get_by_text("Renseignez le tarif de l'événement.")).to_be_visible()
+
+
+@locmem
+def test_a_price_typed_in_words_is_refused_then_accepted_with_a_comma(funnel):
+    reach_the_location_step(funnel)
+    funnel.get_by_text("En ligne", exact=True).click()
+    funnel.get_by_role("button", name="Payant").click()
+    funnel.get_by_label("Tarif*").fill("douze euros")
+    funnel.get_by_role("button", name="Publier").click()
+
+    expect(funnel.get_by_label("Tarif*")).to_be_visible()
+    expect(funnel.get_by_text("Saisissez un nombre")).to_be_visible()
+
+    funnel.get_by_label("Tarif*").fill("12,50")
+    funnel.get_by_role("button", name="Publier").click()
+
+    expect(funnel.get_by_text("en cours de validation")).to_be_visible()
+    assert Event.objects.get().price == Decimal("12.50")

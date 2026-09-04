@@ -9,7 +9,7 @@
             x-data="{
                 locationType: '{{ form.location_type.value|default:''|escapejs }}',
                 accessType: '{{ form.access_type.value|default:''|escapejs }}',
-                paid: '{{ form.price.value|default:''|escapejs }}' !== '' && '{{ form.price.value|default:'0'|escapejs }}' !== '0',
+                paid: {{ form.price.errors|yesno:'true,false' }} || !['', '0'].includes('{{ form.price.value|default_if_none:''|escapejs }}'),
                 setFree() { this.paid = false; this.$refs.price.value = '0'; },
                 setPaid() { this.paid = true; if (this.$refs.price.value === '0') this.$refs.price.value = ''; }
             }"
@@ -39,8 +39,10 @@
                     description="Saisissez une adresse ou le nom du lieu, puis sélectionnez-le parmi les suggestions" />
             </div>
 
+            {# Text, not `type="url"`: the browser would hold the submission back behind a native #}
+            {# bubble, where the form has its own message naming the format it expects. #}
             <div x-show="locationType == 'online'" x-cloak>
-                <c-components.form_fields.input field=form.online_url type="url" autocomplete="off" description="Lien pour rejoindre l'événement" />
+                <c-components.form_fields.input field=form.online_url autocomplete="off" description="Lien pour rejoindre l'événement" />
             </div>
 
             <c-components.form_fields.segmented field=form.access_type :watchable=True />
@@ -49,7 +51,7 @@
             <template x-if="accessType == 'registration'">
                 <div>
                     <c-components.form_fields.input
-                        field=form.registration_url type="url" autocomplete="off"
+                        field=form.registration_url autocomplete="off"
                         label="Lien d'inscription*"
                         description="La plateforme ne gère pas les inscriptions pour le moment, veuillez indiquer un lien externe." />
                 </div>
@@ -57,7 +59,7 @@
             <template x-if="accessType == 'candidacy'">
                 <div>
                     <c-components.form_fields.input
-                        field=form.registration_url type="url" autocomplete="off"
+                        field=form.registration_url autocomplete="off"
                         label="Lien de candidature*"
                         description="La plateforme ne gère pas les dossiers de candidature, veuillez indiquer un lien externe." />
                 </div>
@@ -76,15 +78,18 @@
             </div>
 
             {# `x-show`, not `x-if`: the price must be submitted even when the event is free. #}
-            <div x-show="paid" x-cloak class="flex items-end gap-2">
+            <div x-show="paid" x-cloak class="flex">
                 <c-components.form_fields.base :field=form.price label="Tarif*" description="Le tarif s'affichera sur l'événement à titre informatif">
-                    <input type="number" step="0.01" min="0" x-ref="price"
-                           id="{{ form.price.id_for_label }}"
-                           name="{{ form.price.html_name }}"
-                           value="{{ form.price.value|default:'0' }}"
-                           class="field-base {% if form.price.errors %}field-error{% else %}field-default{% endif %}" />
+                    <div class="flex items-center gap-2">
+                        {# Text, not `type="number"`, for the same reason as the links above. #}
+                        <input type="text" inputmode="decimal" x-ref="price"
+                               id="{{ form.price.id_for_label }}"
+                               name="{{ form.price.html_name }}"
+                               value="{{ form.price.value|default_if_none:'0' }}"
+                               class="field-base shrink-0 {% if form.price.errors %}field-error{% else %}field-default{% endif %}" />
+                        <span class="text-sm">€</span>
+                    </div>
                 </c-components.form-fields.base>
-                <span class="pb-3 text-sm">€</span>
             </div>
 
             <div class="flex justify-center mt-4">
