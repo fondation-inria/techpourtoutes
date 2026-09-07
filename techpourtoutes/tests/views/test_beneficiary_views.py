@@ -317,6 +317,7 @@ def test_toggle_saves_the_event_for_the_beneficiary(client, beneficiary, salon):
     assert response.status_code == 200
     assert SavedEvent.objects.count() == 1
     assert b'aria-pressed="true"' in response.content
+    assert b"text-blue-500" in response.content
 
 
 @pytest.mark.django_db
@@ -331,6 +332,17 @@ def test_toggling_twice_takes_the_event_back_out(client, beneficiary, salon):
 
     assert SavedEvent.objects.count() == 0
     assert b'aria-pressed="false"' in response.content
+
+
+@pytest.mark.django_db
+def test_toggling_twice_leaves_the_bookmark_transparent_again(client, beneficiary, salon):
+    client.force_login(beneficiary)
+    url = reverse("toggle_saved_event", args=[salon.pk])
+    client.post(url)
+
+    response = client.post(url)
+
+    assert b"text-blue-500" not in response.content
 
 
 @pytest.mark.django_db

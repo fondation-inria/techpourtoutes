@@ -14,9 +14,8 @@
             hx-target="#modal-container"
             hx-swap="innerHTML"
         {% endif %}>
-    <c-components.icon name="decoration" class="w-10 h-10" />
-    <c-components.icon
-        name="bookmark"
-        class="absolute w-7 h-7 {% if saved %}text-yellow-500{% else %}text-neutral-950{% endif %}"
-    />
+    <c-components.icon name="bookmark_with_decoration" class="w-10 h-10" />
+    {% if saved %}
+        <c-components.icon name="bookmark" class="absolute w-10 h-10 text-blue-500" />
+    {% endif %}
 </button>

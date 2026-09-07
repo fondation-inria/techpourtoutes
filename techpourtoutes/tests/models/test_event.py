@@ -124,7 +124,7 @@ def test_event_category_color_follows_its_category(pro):
         Event.Subcategory.JOB_DATING: "yellow",
         Event.Subcategory.OPEN_HOUSE: "green",
         Event.Subcategory.AFTERWORK: "purple",
-        Event.Subcategory.HACKATHON: "blue",
+        Event.Subcategory.HACKATHON: "purple",
     }
 
     for subcategory, color in colors.items():

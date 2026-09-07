@@ -3151,9 +3151,6 @@
   .top-4 {
     top: calc(var(--spacing) * 4);
   }
-  .top-5 {
-    top: calc(var(--spacing) * 5);
-  }
   .right-0 {
     right: 0px;
   }
@@ -3165,9 +3162,6 @@
   }
   .right-4 {
     right: calc(var(--spacing) * 4);
-  }
-  .right-5 {
-    right: calc(var(--spacing) * 5);
   }
   .left-1\/2 {
     left: calc(1 / 2 * 100%);
@@ -3366,6 +3360,7 @@
   }
   @layer daisyui.l1.l2.l3 {
     .breadcrumbs {
+      margin-inline-start: calc(0.25rem * -1);
       max-width: 100%;
       overflow-x: auto;
       padding-block: calc(0.25rem * 2);
@@ -3374,6 +3369,7 @@
       display: flex;
       min-height: min-content;
       align-items: center;
+      padding-inline-start: 0.25rem;
       white-space: nowrap;
     }
     .breadcrumbs > menu  > li {
@@ -3423,6 +3419,7 @@
       display: flex;
       min-height: min-content;
       align-items: center;
+      padding-inline-start: 0.25rem;
       white-space: nowrap;
     }
     .breadcrumbs > ul  > li {
@@ -3472,6 +3469,7 @@
       display: flex;
       min-height: min-content;
       align-items: center;
+      padding-inline-start: 0.25rem;
       white-space: nowrap;
     }
     .breadcrumbs > ol  > li {

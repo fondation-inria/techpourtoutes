@@ -41,7 +41,6 @@ class Event(BaseModel):
         EMPLOYMENT = "employment", _("Emploi")
         GUIDANCE = "guidance", _("Orientation")
         SOCIAL = "social", _("Convivial")
-        CHALLENGE = "challenge", _("Challenge")
 
     class Subcategory(models.TextChoices):
         CONFERENCE = "conference", _("Conférence")
@@ -84,8 +83,8 @@ class Event(BaseModel):
             Subcategory.AFTERWORK,
             Subcategory.CEREMONY,
             Subcategory.OTHER,
+            Subcategory.HACKATHON,
         ),
-        Category.CHALLENGE: (Subcategory.HACKATHON,),
     }
 
     CATEGORY_COLORS = {
@@ -93,7 +92,6 @@ class Event(BaseModel):
         Category.EMPLOYMENT: "yellow",
         Category.GUIDANCE: "green",
         Category.SOCIAL: "purple",
-        Category.CHALLENGE: "blue",
     }
 
     class LocationType(models.TextChoices):
