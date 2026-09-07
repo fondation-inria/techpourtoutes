@@ -32,6 +32,31 @@ def test_pro_form_duplicate_email(valid_pro_data):
 
 
 @pytest.mark.django_db
+def test_pro_form_duplicate_email_ignoring_case(valid_pro_data):
+    from techpourtoutes.forms import EngagementForm
+
+    form = EngagementForm(data=valid_pro_data)
+    assert form.is_valid()
+    form.save()
+
+    variant = {**valid_pro_data, "email": valid_pro_data["email"].upper()}
+    form2 = EngagementForm(data=variant)
+    assert not form2.is_valid()
+    assert "email" in form2.errors
+
+
+@pytest.mark.django_db
+def test_pro_form_save_stores_the_email_lowercased(valid_pro_data):
+    from techpourtoutes.forms import EngagementForm
+
+    form = EngagementForm(data={**valid_pro_data, "email": "Alice@Example.COM"})
+    assert form.is_valid(), form.errors
+    pro = form.save()
+
+    assert pro.email == "alice@example.com"
+
+
+@pytest.mark.django_db
 def test_pro_form_save_creates_pro(valid_pro_data):
     from techpourtoutes.forms import EngagementForm
     from techpourtoutes.models import Pro
