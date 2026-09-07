@@ -3,9 +3,11 @@ from django.contrib.auth import get_user_model
 from django.db.models import Q
 from django.utils.translation import gettext_lazy as _
 
+from ..fields import EmailField
+
 
 class EmailChangeForm(forms.Form):
-    email = forms.EmailField(label=_("Nouvelle adresse mail"))
+    email = EmailField(label=_("Nouvelle adresse mail"))
 
     def __init__(self, *args, user=None, **kwargs):
         self.user = user
