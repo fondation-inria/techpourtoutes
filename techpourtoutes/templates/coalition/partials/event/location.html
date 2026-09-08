@@ -9,13 +9,12 @@
             x-data="{
                 locationType: '{{ form.location_type.value|default:''|escapejs }}',
                 accessType: '{{ form.access_type.value|default:''|escapejs }}',
-                paid: {{ form.price.errors|yesno:'true,false' }} || !['', '0'].includes('{{ form.price.value|default_if_none:''|escapejs }}'),
-                setFree() { this.paid = false; this.$refs.price.value = '0'; },
-                setPaid() { this.paid = true; if (this.$refs.price.value === '0') this.$refs.price.value = ''; }
+                pricing: '{{ form.pricing.value|default:''|escapejs }}'
             }"
             @segmented-change="
                 if ($event.detail.name === 'location_type') locationType = $event.detail.value;
                 if ($event.detail.name === 'access_type') accessType = $event.detail.value;
+                if ($event.detail.name === 'pricing') pricing = $event.detail.value;
             ">
             <input type="hidden" name="action" value="location">
             {% include "coalition/partials/event/carried_answers.html" %}
@@ -65,32 +64,23 @@
                 </div>
             </template>
 
-            <div class="flex flex-col gap-2">
-                <span class="label-text-sm">L'événement est-il gratuit ?*</span>
-                <div role="radiogroup" class="inline-flex flex-wrap w-fit">
-                    <button type="button" @click="setFree()"
-                            :class="paid ? 'border-neutral-300' : 'bg-primary/20 border-primary relative'"
-                            class="inline-block border px-4 py-2 text-sm text-neutral-950 -ml-px cursor-pointer">Gratuit</button>
-                    <button type="button" @click="setPaid()"
-                            :class="paid ? 'bg-primary/20 border-primary relative' : 'border-neutral-300'"
-                            class="inline-block border px-4 py-2 text-sm text-neutral-950 -ml-px cursor-pointer">Payant</button>
-                </div>
-            </div>
+            <c-components.form_fields.segmented field=form.pricing :watchable=True />
 
-            {# `x-show`, not `x-if`: the price must be submitted even when the event is free. #}
-            <div x-show="paid" x-cloak class="flex">
-                <c-components.form_fields.base :field=form.price label="Tarif*" description="Le tarif s'affichera sur l'événement à titre informatif">
-                    <div class="flex items-center gap-2">
-                        {# Text, not `type="number"`, for the same reason as the links above. #}
-                        <input type="text" inputmode="decimal" x-ref="price"
-                               id="{{ form.price.id_for_label }}"
-                               name="{{ form.price.html_name }}"
-                               value="{{ form.price.value|default_if_none:'0' }}"
-                               class="field-base shrink-0 {% if form.price.errors %}field-error{% else %}field-default{% endif %}" />
-                        <span class="text-sm">€</span>
-                    </div>
-                </c-components.form-fields.base>
-            </div>
+            <template x-if="pricing == 'paid'">
+                <div class="flex">
+                    <c-components.form_fields.base :field=form.price label="Tarif*" description="Le tarif s'affichera sur l'événement à titre informatif">
+                        <div class="flex items-center gap-2">
+                            {# Text, not `type="number"`, for the same reason as the links above. #}
+                            <input type="text" inputmode="decimal"
+                                   id="{{ form.price.id_for_label }}"
+                                   name="{{ form.price.html_name }}"
+                                   value="{{ form.price.value|default_if_none:'' }}"
+                                   class="field-base shrink-0 {% if form.price.errors %}field-error{% else %}field-default{% endif %}" />
+                            <span class="text-sm">€</span>
+                        </div>
+                    </c-components.form-fields.base>
+                </div>
+            </template>
 
             <div class="flex justify-center mt-4">
                 <c-components.button type="submit" label="Publier" />

@@ -34,7 +34,7 @@ LOCATION = {
     "latitude": "49.897443",
     "ban_id": "80021_6590_00008",
     "access_type": Event.AccessType.OPEN,
-    "price": "0",
+    "pricing": "free",
 }
 
 
@@ -101,6 +101,21 @@ def test_a_valid_details_screen_leads_to_the_location_screen(client, pro):
 
     assert 'name="action" value="location"' in content
     assert "Où se déroule" in content
+
+
+@pytest.mark.django_db
+def test_the_price_question_is_asked_by_the_shared_segmented_component(client, pro):
+    """Gratuit/Payant is a field of its own, so it renders as radios like the two questions
+    above it rather than as buttons wired to the price input."""
+    client.force_login(pro)
+
+    content = client.post(
+        FUNNEL_URL, {"action": "details", **SUBCATEGORY, **DETAILS}
+    ).content.decode()
+
+    assert "est-il gratuit" in content
+    assert 'name="pricing"' in content
+    assert 'value="paid"' in content
 
 
 @pytest.mark.django_db

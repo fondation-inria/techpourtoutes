@@ -23,9 +23,10 @@ class CreateEvent(BaseService):
         ConsortiumMailer.new_event(event=self.event)
 
     def _location(self, location_form):
-        """`address_api_down` says how the address was obtained, not what to store."""
+        """`address_api_down` says how the address was obtained and `pricing` which branch she
+        answered: the event stores neither."""
         return {
             field: value
             for field, value in location_form.cleaned_data.items()
-            if field != "address_api_down"
+            if field not in ("address_api_down", "pricing")
         }

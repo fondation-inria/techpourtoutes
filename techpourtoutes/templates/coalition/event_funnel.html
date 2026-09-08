@@ -6,11 +6,17 @@
     footer=False
     back="{% url 'account' %}">
     {# Nothing is saved before the last screen, so leaving throws the answers away: the close #}
-    {# button is intercepted to say so. `back` keeps it working if Alpine never boots. #}
+    {# button is intercepted to say so, until the last screen announces there is nothing left #}
+    {# to lose. `back` keeps it working if Alpine never boots. #}
     <div class="w-full md:max-w-xl flex flex-col py-8"
-         x-data="{ quitting: false }"
+         x-data="{ quitting: false, submitted: false }"
+         @funnel-submitted="submitted = true"
          x-init="document.querySelector('[data-funnel-close]')
-                     ?.addEventListener('click', event => { event.preventDefault(); quitting = true })">
+                     ?.addEventListener('click', event => {
+                         if (submitted) return;
+                         event.preventDefault();
+                         quitting = true;
+                     })">
         <img src="{% static 'images/techpourtoutes-logo-new-coalition.png' %}" alt="logo TechPourToutes" class="w-48 shrink-0 mb-8" />
         {% include "coalition/partials/event/subcategory.html" %}
 

@@ -1,4 +1,5 @@
 from django import forms
+from django.db import models
 from django.utils.translation import gettext_lazy as _
 
 from ...models import Event
@@ -7,6 +8,14 @@ from ...models import Event
 # they become visible inputs when the geocoding API is unreachable.
 GEOCODED_FIELDS = ("poi_name", "cog_code", "longitude", "latitude", "ban_id")
 ADDRESS_FIELDS = ("address", "postal_code", "city", *GEOCODED_FIELDS)
+
+
+class Pricing(models.TextChoices):
+    """Form-only: the event stores the price it amounts to, not the answer she gave."""
+
+    FREE = "free", _("Gratuit")
+    PAID = "paid", _("Payant")
+
 
 # Their inputs are plain text: the browser is not the one to say what a link or a price looks
 # like, so its native bubble never fires and these messages are rendered under the field instead.
@@ -37,19 +46,22 @@ class EventLocationForm(forms.Form):
         choices=Event.AccessType.choices, label=_("Quelles sont les modalités d'inscription ?*")
     )
     registration_url = forms.URLField(required=False, error_messages=URL_ERRORS)
+    pricing = forms.ChoiceField(choices=Pricing.choices, label=_("L'événement est-il gratuit ?*"))
     price = forms.DecimalField(
+        required=False,
         max_digits=8,
         decimal_places=2,
         min_value=0,
         localize=True,
         label=_("Tarif*"),
-        error_messages=PRICE_ERRORS | {"required": _("Renseignez le tarif de l'événement.")},
+        error_messages=PRICE_ERRORS,
     )
 
     def clean(self):
         cleaned_data = super().clean()
         self._clean_location(cleaned_data)
         self._clean_registration(cleaned_data)
+        self._clean_price(cleaned_data)
         return cleaned_data
 
     def _clean_location(self, cleaned_data):
@@ -82,6 +94,16 @@ class EventLocationForm(forms.Form):
             cleaned_data.get("registration_url") or self.has_error("registration_url")
         ):
             self.add_error("registration_url", _("Renseignez le lien d'inscription."))
+
+    def _clean_price(self, cleaned_data):
+        """A free event costs zero whatever the field was left at, and a paid one has to name
+        its price — unless it already said what is wrong with the one that was typed."""
+        if cleaned_data.get("pricing") == Pricing.FREE:
+            cleaned_data["price"] = 0
+        elif cleaned_data.get("pricing") == Pricing.PAID and not (
+            cleaned_data.get("price") is not None or self.has_error("price")
+        ):
+            self.add_error("price", _("Renseignez le tarif de l'événement."))
 
     @property
     def api_down(self):

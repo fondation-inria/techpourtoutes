@@ -89,6 +89,21 @@ def test_leaving_the_funnel_asks_for_confirmation(funnel):
 
 
 @locmem
+def test_leaving_a_submitted_event_closes_straight_away(funnel):
+    """The confirmation is there to say the answers are about to be lost: once they are saved
+    there is nothing left to warn about."""
+    account_url = funnel.url.replace("/coalition/proposer-un-evenement/", "/mon-compte/")
+    reach_the_location_step(funnel)
+    funnel.get_by_text("En ligne", exact=True).click()
+    funnel.get_by_role("button", name="Publier").click()
+    expect(funnel.get_by_text("en cours de validation")).to_be_visible()
+
+    funnel.get_by_label("Fermer").click()
+
+    expect(funnel).to_have_url(account_url)
+
+
+@locmem
 def test_an_online_event_is_published_for_validation(funnel):
     choose_subcategory(funnel, "Webinaire d'informations")
     funnel.get_by_role("button", name="Continuer").click()
@@ -101,6 +116,7 @@ def test_an_online_event_is_published_for_validation(funnel):
     expect(connection).to_be_visible()
     connection.fill("https://example.org/live")
     funnel.get_by_text("Sans inscription", exact=True).click()
+    funnel.get_by_text("Gratuit", exact=True).click()
     funnel.get_by_role("button", name="Publier").click()
 
     expect(funnel.get_by_text("en cours de validation")).to_be_visible()
@@ -141,6 +157,7 @@ def test_a_physical_event_is_geocoded_through_the_address_search(funnel, mock_ge
     )
     funnel.get_by_role("option", name="8 Boulevard du Port 80000 Amiens").click()
     funnel.get_by_text("Sans inscription", exact=True).click()
+    funnel.get_by_text("Gratuit", exact=True).click()
     funnel.get_by_role("button", name="Publier").click()
 
     expect(funnel.get_by_text("en cours de validation")).to_be_visible()
@@ -177,6 +194,7 @@ def test_a_venue_is_published_without_a_street_address(funnel, mock_geocoding):
     funnel.get_by_label("Quelle est l'adresse ou le lieu de l'événement ?*").fill("station f")
     funnel.get_by_role("option", name="Station F, Paris 13e Arrondissement").click()
     funnel.get_by_text("Sans inscription", exact=True).click()
+    funnel.get_by_text("Gratuit", exact=True).click()
     funnel.get_by_role("button", name="Publier").click()
 
     expect(funnel.get_by_text("en cours de validation")).to_be_visible()
@@ -213,10 +231,10 @@ def test_a_paid_event_reveals_its_price(funnel):
     funnel.get_by_role("button", name="Continuer").click()
 
     expect(funnel.get_by_label("Tarif*")).to_be_hidden()
-    funnel.get_by_role("button", name="Payant").click()
+    funnel.get_by_text("Payant", exact=True).click()
     expect(funnel.get_by_label("Tarif*")).to_be_visible()
 
-    funnel.get_by_role("button", name="Gratuit").click()
+    funnel.get_by_text("Gratuit", exact=True).click()
     expect(funnel.get_by_label("Tarif*")).to_be_hidden()
 
 
@@ -227,6 +245,7 @@ def reach_the_location_step(page):
     page.get_by_label("Heure de fin*").fill("18:00")
     page.get_by_role("button", name="Continuer").click()
     page.get_by_text("Sans inscription", exact=True).click()
+    page.get_by_text("Gratuit", exact=True).click()
 
 
 @locmem
@@ -243,11 +262,11 @@ def test_a_malformed_link_is_refused_by_the_page_not_by_the_browser(funnel):
 
 @locmem
 def test_a_paid_event_without_a_price_comes_back_on_payant(funnel):
-    """The price is what says the event is paid, so an empty one used to send the toggle back to
-    "Gratuit" — hiding the very field the error was on."""
+    """ "Payant" is an answer of its own, so it survives the round trip and the field the error
+    is on stays visible."""
     reach_the_location_step(funnel)
     funnel.get_by_text("En ligne", exact=True).click()
-    funnel.get_by_role("button", name="Payant").click()
+    funnel.get_by_text("Payant", exact=True).click()
     funnel.get_by_role("button", name="Publier").click()
 
     expect(funnel.get_by_label("Tarif*")).to_be_visible()
@@ -258,7 +277,7 @@ def test_a_paid_event_without_a_price_comes_back_on_payant(funnel):
 def test_a_price_typed_in_words_is_refused_then_accepted_with_a_comma(funnel):
     reach_the_location_step(funnel)
     funnel.get_by_text("En ligne", exact=True).click()
-    funnel.get_by_role("button", name="Payant").click()
+    funnel.get_by_text("Payant", exact=True).click()
     funnel.get_by_label("Tarif*").fill("douze euros")
     funnel.get_by_role("button", name="Publier").click()
 

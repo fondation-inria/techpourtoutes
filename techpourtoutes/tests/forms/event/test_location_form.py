@@ -13,7 +13,7 @@ GEOCODED = {
     "latitude": "49.897443",
     "ban_id": "80021_6590_00008",
     "access_type": Event.AccessType.OPEN,
-    "price": "0",
+    "pricing": "free",
 }
 
 VENUE = {
@@ -24,14 +24,14 @@ VENUE = {
     "longitude": "2.371699",
     "latitude": "48.833436",
     "access_type": Event.AccessType.OPEN,
-    "price": "0",
+    "pricing": "free",
 }
 
 ONLINE = {
     "location_type": Event.LocationType.ONLINE,
     "online_url": "https://example.org/live",
     "access_type": Event.AccessType.OPEN,
-    "price": "0",
+    "pricing": "free",
 }
 
 
@@ -90,7 +90,7 @@ def test_a_manual_address_demands_all_three_fields():
             "address_api_down": "on",
             "address": "Salle des fêtes",
             "access_type": Event.AccessType.OPEN,
-            "price": "0",
+            "pricing": "free",
         }
     )
 
@@ -108,7 +108,7 @@ def test_a_complete_manual_address_is_accepted_without_coordinates():
             "postal_code": "80000",
             "city": "Amiens",
             "access_type": Event.AccessType.OPEN,
-            "price": "0",
+            "pricing": "free",
         }
     )
 
@@ -154,25 +154,47 @@ def test_a_malformed_registration_link_names_the_expected_format():
     assert "www.techpourtoutes.io" in form.errors["registration_url"][0]
 
 
+def test_a_free_event_is_stored_at_zero():
+    """`pricing` is the answer she gives; the price column is what it amounts to."""
+    form = EventLocationForm(data=GEOCODED)
+
+    assert form.is_valid()
+    assert form.cleaned_data["price"] == 0
+
+
+def test_a_free_event_drops_a_price_typed_first():
+    form = EventLocationForm(data=GEOCODED | {"price": "12,50"})
+
+    assert form.is_valid()
+    assert form.cleaned_data["price"] == 0
+
+
+def test_a_paid_event_demands_its_price():
+    form = EventLocationForm(data=GEOCODED | {"pricing": "paid"})
+
+    assert not form.is_valid()
+    assert "price" in form.errors
+
+
 def test_a_paid_event_keeps_its_price():
     """The comma is the separator she is offered as an example, and the dot the one a keypad
     hands her: both mean twelve fifty."""
     for typed in ("12,50", "12.50"):
-        form = EventLocationForm(data=GEOCODED | {"price": typed})
+        form = EventLocationForm(data=GEOCODED | {"pricing": "paid", "price": typed})
 
         assert form.is_valid()
         assert form.cleaned_data["price"] == Decimal("12.50")
 
 
 def test_a_price_typed_in_words_names_the_expected_format():
-    form = EventLocationForm(data=GEOCODED | {"price": "douze euros"})
+    form = EventLocationForm(data=GEOCODED | {"pricing": "paid", "price": "douze euros"})
 
     assert not form.is_valid()
     assert "12,50" in form.errors["price"][0]
 
 
 def test_a_negative_price_is_refused():
-    form = EventLocationForm(data=GEOCODED | {"price": "-1"})
+    form = EventLocationForm(data=GEOCODED | {"pricing": "paid", "price": "-1"})
 
     assert not form.is_valid()
     assert "price" in form.errors

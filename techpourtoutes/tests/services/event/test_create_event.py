@@ -36,7 +36,7 @@ def valid_forms(**overrides):
             "latitude": "49.897443",
             "ban_id": "80021_6590_00008",
             "access_type": Event.AccessType.OPEN,
-            "price": "0",
+            "pricing": "free",
         }
     )
     assert subcategory.is_valid() and details.is_valid() and location.is_valid()
