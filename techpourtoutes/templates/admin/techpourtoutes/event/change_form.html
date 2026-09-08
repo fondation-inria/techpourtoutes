@@ -2,7 +2,7 @@
 
 {% block object-tools %}
   {{ block.super }}
-  {% if change and not is_popup and original.status == "pending" %}
+  {% if awaiting_decision and not is_popup %}
     <style>
       .event-moderation {
         float: right;
@@ -24,26 +24,23 @@
         border-radius: 4px;
         cursor: pointer;
       }
-      .event-moderation button[value="approved"] { background: var(--success, #28a745); }
-      .event-moderation button[value="rejected"] { background: var(--error, #ba2121); }
+      .event-moderation button[name="_publish"] { background: var(--success, #28a745); }
+      .event-moderation button[name="_reject"] { background: var(--error, #ba2121); }
       .event-moderation textarea { width: 100%; margin-top: 12px; }
     </style>
     <div class="event-moderation">
-      <form method="post" action="{% url 'admin:event_moderate' original.pk %}">
-        {% csrf_token %}
-        <div class="event-moderation__buttons">
-          <button type="submit" name="decision" value="approved"
-                  onclick="return confirm('Confirmer la publication de cet événement ?');">
-            Publier
-          </button>
-          <button type="submit" name="decision" value="rejected"
-                  onclick="return confirm('Confirmer le refus de cet événement ?');">
-            Refuser
-          </button>
-        </div>
-        <textarea name="comment" rows="6"
-                  placeholder="Message pour l'organisatrice (optionnel), joint au mail de décision"></textarea>
-      </form>
+      <div class="event-moderation__buttons">
+        <button type="submit" form="event_form" name="_publish" value="1"
+                onclick="return confirm('Confirmer la publication de cet événement ?');">
+          Publier
+        </button>
+        <button type="submit" form="event_form" name="_reject" value="1"
+                onclick="return confirm('Confirmer le refus de cet événement ?');">
+          Refuser
+        </button>
+      </div>
+      <textarea form="event_form" name="comment" rows="6"
+                placeholder="Message pour l'organisatrice (optionnel), joint au mail de décision"></textarea>
     </div>
   {% endif %}
 {% endblock %}

@@ -1,21 +1,57 @@
 from django import forms
-from django.contrib import admin, messages
+from django.contrib import admin
 from django.contrib.admin.views.main import ChangeList
-from django.shortcuts import get_object_or_404, redirect
-from django.urls import path, reverse
+from django.http import JsonResponse
+from django.urls import path
 from django.utils.translation import gettext_lazy as _
-from django.views.decorators.http import require_POST
 from simple_history.admin import SimpleHistoryAdmin
 
 from techpourtoutes.models import Event
 from techpourtoutes.services.event.moderate_event import ModerateEvent
+from techpourtoutes.services.geoplateforme_api.search_addresses import SearchAddresses
 
-from ..fields import SubcategoryField
+from ..fields import AddressSearchWidget, SubcategoryField
+
+# The submit buttons the moderation panel adds to the change form, and what each decides.
+_DECISIONS = {
+    "_publish": Event.Status.APPROVED,
+    "_reject": Event.Status.REJECTED,
+}
 
 _DECISION_LABELS = {
     Event.Status.APPROVED: _("publié"),
     Event.Status.REJECTED: _("refusé"),
 }
+
+# Written by the address search, never typed: a place named by hand is what the moderation is
+# there to replace, and a half-typed one would carry the coordinates of the last search.
+# `readonly` rather than `ModelAdmin.readonly_fields`, which would drop them from the form —
+# Django then skips every constraint referencing them, approval's two among them.
+SEARCH_ONLY_FIELDS = (
+    "poi_name",
+    "address",
+    "postal_code",
+    "city",
+    "cog_code",
+    "longitude",
+    "latitude",
+    "ban_id",
+)
+
+
+def _decision_from(data):
+    return next((status for key, status in _DECISIONS.items() if key in data), None)
+
+
+def _option(hit):
+    """The dropdown tells its options apart by id, and silently declines to reselect the one it
+    already holds: identify the place, never its rank, or the top hit of every search looks
+    like the selected one. A hit always carries coordinates — the search drops those without."""
+    return {
+        "id": f"{hit['longitude']},{hit['latitude']} {hit['label']}",
+        "text": hit["label"],
+        **hit,
+    }
 
 
 class _DecidedEventChangeList(ChangeList):
@@ -33,6 +69,12 @@ class _DecidedEventChangeList(ChangeList):
 
 class EventAdminForm(forms.ModelForm):
     subcategory = SubcategoryField(label=_("Sous-catégorie"))
+    address_search = forms.CharField(
+        required=False,
+        label=_("Rechercher une adresse ou un lieu"),
+        help_text=_("Sélectionnez un résultat pour renseigner les champs ci-dessous."),
+        widget=AddressSearchWidget,
+    )
 
     class Meta:
         model = Event
@@ -52,6 +94,7 @@ class EventAdminForm(forms.ModelForm):
             "start_time",
             "end_date",
             "end_time",
+            "poi_name",
             "address",
             "postal_code",
             "city",
@@ -60,6 +103,31 @@ class EventAdminForm(forms.ModelForm):
             "latitude",
             "ban_id",
         )
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        # Read before `_post_clean` moves the instance to the status a decision aims at.
+        self.awaiting_decision = self.instance.status == Event.Status.PENDING
+        for name in SEARCH_ONLY_FIELDS:
+            self.fields[name].widget.attrs["readonly"] = True
+
+    @property
+    def decision(self):
+        """Publier and Refuser are submit buttons of this very form, so the decision arrives
+        with the edited fields and goes through the validation any other save goes through."""
+        return _decision_from(self.data)
+
+    def _post_clean(self):
+        """The status the decision aims at has to be on the instance before it is validated:
+        it is what the approval constraints hinge on."""
+        if self.decision:
+            self.instance.status = self.decision
+        super()._post_clean()
+
+    def _get_validation_exclusions(self):
+        """`status` is not a form field while the event is pending, and Django skips every
+        constraint referencing an excluded field — here, both approval constraints."""
+        return super()._get_validation_exclusions() - {"status"}
 
 
 @admin.register(Event)
@@ -100,6 +168,8 @@ class EventAdmin(SimpleHistoryAdmin):
             "Lieu",
             {
                 "fields": (
+                    "address_search",
+                    "poi_name",
                     "address",
                     "postal_code",
                     "city",
@@ -163,25 +233,41 @@ class EventAdmin(SimpleHistoryAdmin):
         }
         return super().changelist_view(request, extra_context=extra_context)
 
+    def render_change_form(self, request, context, add=False, change=False, form_url="", obj=None):
+        """`original` carries the status the submitted decision aimed at, not the one on file:
+        a decision the form refused has to be offered again, next to what it refused."""
+        context["awaiting_decision"] = change and context["adminform"].form.awaiting_decision
+        return super().render_change_form(request, context, add, change, form_url, obj)
+
+    def save_model(self, request, obj, form, change):
+        """A decision saves the event like any other change, then tells its author."""
+        if form.decision:
+            ModerateEvent(event=obj, status=form.decision, comment=request.POST.get("comment", ""))
+        else:
+            super().save_model(request, obj, form, change)
+
+    def response_change(self, request, obj):
+        """A decision is not just any change: say which one was taken."""
+        decision = _decision_from(request.POST)
+        if decision:
+            self.message_user(
+                request, f"L'événement « {obj.title} » a été {_DECISION_LABELS[decision]}."
+            )
+            return self.response_post_save_change(request, obj)
+        return super().response_change(request, obj)
+
     def get_urls(self):
         return [
             path(
-                "<uuid:event_id>/moderer/",
-                self.admin_site.admin_view(require_POST(self.moderate)),
-                name="event_moderate",
+                "recherche-adresses/",
+                self.admin_site.admin_view(self.search_addresses),
+                name="event_search_addresses",
             ),
             *super().get_urls(),
         ]
 
-    def moderate(self, request, event_id):
-        event = get_object_or_404(Event, pk=event_id)
-        status = request.POST.get("decision")
-        comment = request.POST.get("comment", "")
-        result = ModerateEvent(event=event, status=status, comment=comment)
-        if result.failure:
-            for error in result.errors:
-                messages.error(request, error)
-        else:
-            label = _DECISION_LABELS.get(status, status)
-            messages.success(request, f"L'événement « {event.title} » a été {label}.")
-        return redirect(reverse("admin:techpourtoutes_event_change", args=[event.pk]))
+    def search_addresses(self, request):
+        """The public autocomplete answers HTML to htmx; select2 wants JSON, and the moderation
+        wants the endpoint behind the admin's own permission check."""
+        result = SearchAddresses(query=request.GET.get("q", "").strip())
+        return JsonResponse({"results": [_option(hit) for hit in result.addresses]})

@@ -1,5 +1,3 @@
-from django.core.exceptions import ValidationError
-
 from techpourtoutes.mailers import ProMailer
 from techpourtoutes.models import Event
 
@@ -13,12 +11,10 @@ _MAILER_BY_STATUS = {
 
 class ModerateEvent(BaseService):
     """Applies the moderator's decision and tells its author, carrying along whatever comment
-    she attached — a save may still refuse an ungeocoded event before either happens."""
+    she attached. What the decision may not do — approving an ungeocoded event — is refused by
+    the admin form that submits it, before the decision ever gets here."""
 
     def perform(self, *, event, status, comment=""):
         event.status = status
-        try:
-            event.save()
-        except ValidationError as error:
-            self.fail(", ".join(error.messages))
+        event.save()
         _MAILER_BY_STATUS[status](event=event, comment=comment)

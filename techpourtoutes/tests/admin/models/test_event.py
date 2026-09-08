@@ -8,10 +8,55 @@ from django.urls import reverse
 from techpourtoutes.models import Event
 
 CHANGELIST = "admin:techpourtoutes_event_changelist"
+SEARCH_ADDRESSES = "admin:event_search_addresses"
+
+locmem = override_settings(EMAIL_BACKEND="django.core.mail.backends.locmem.EmailBackend")
+
+AMIENS_HIT = {
+    "label": "8 Boulevard du Port 80000 Amiens",
+    "poi_name": "",
+    "address": "8 Boulevard du Port",
+    "postal_code": "80000",
+    "city": "Amiens",
+    "cog_code": "80021",
+    "longitude": 2.29009,
+    "latitude": 49.897443,
+    "ban_id": "80021_6590_00008",
+}
 
 
-def _moderate_url(event):
-    return reverse("admin:event_moderate", args=[event.pk])
+def _change_url(event):
+    return reverse("admin:techpourtoutes_event_change", args=[event.pk])
+
+
+def _change_form_data(event, **overrides):
+    """Everything the change form posts back, so a decision travels with real field values."""
+    return {
+        "created_by": str(event.created_by.pk),
+        "title": event.title,
+        "organizer": event.organizer,
+        "description": event.description,
+        "subcategory_0": event.subcategory,
+        "subcategory_1": "",
+        "access_type": event.access_type,
+        "registration_url": event.registration_url,
+        "price": str(event.price),
+        "location_type": event.location_type,
+        "online_url": event.online_url,
+        "start_date": event.start_date.strftime("%Y-%m-%d"),
+        "start_time": event.start_time.strftime("%H:%M"),
+        "end_date": event.end_date.strftime("%Y-%m-%d"),
+        "end_time": event.end_time.strftime("%H:%M"),
+        "poi_name": event.poi_name,
+        "address": event.address,
+        "postal_code": event.postal_code,
+        "city": event.city,
+        "cog_code": event.cog_code,
+        "longitude": "" if event.longitude is None else event.longitude,
+        "latitude": "" if event.latitude is None else event.latitude,
+        "ban_id": event.ban_id,
+        **overrides,
+    }
 
 
 def _decided(event, status):
@@ -95,65 +140,185 @@ def test_status_field_is_hidden_while_pending(verified_admin_client, event):
 
 
 @pytest.mark.django_db
-def test_moderation_buttons_shown_only_while_pending(verified_admin_client, event):
-    url = reverse("admin:techpourtoutes_event_change", args=[event.pk])
-    content = verified_admin_client.get(url).content.decode()
-    assert _moderate_url(event) in content
-    assert "Publier" in content
-    assert "Refuser" in content
+def test_moderation_buttons_submit_the_change_form_and_show_only_while_pending(
+    verified_admin_client, event
+):
+    """They save: they belong to the change form, whatever their place on the page."""
+    content = verified_admin_client.get(_change_url(event)).content.decode()
+    assert 'name="_publish"' in content
+    assert 'name="_reject"' in content
+    assert content.count('form="event_form"') == 3  # the two buttons and the comment
 
     _decided(event, Event.Status.APPROVED)
-    content = verified_admin_client.get(url).content.decode()
-    assert _moderate_url(event) not in content
+    content = verified_admin_client.get(_change_url(event)).content.decode()
+    assert 'name="_publish"' not in content
 
 
 @pytest.mark.django_db
-@override_settings(EMAIL_BACKEND="django.core.mail.backends.locmem.EmailBackend")
-def test_publishing_calls_moderate_event_and_redirects(verified_admin_client, event):
-    instance = MagicMock(success=True, failure=False, errors=[])
-    with patch("techpourtoutes.admin.models.event.ModerateEvent", return_value=instance) as mock:
-        response = verified_admin_client.post(
-            _moderate_url(event), {"decision": Event.Status.APPROVED, "comment": "Bravo !"}
-        )
+@locmem
+def test_publishing_runs_the_same_checks_as_a_save(verified_admin_client, event):
+    """A decision is a save: the geocoding constraint is reported on the form, not after it."""
+    data = _change_form_data(event, longitude="", latitude="", _publish="")
 
-    mock.assert_called_once_with(event=event, status=Event.Status.APPROVED, comment="Bravo !")
+    response = verified_admin_client.post(_change_url(event), data)
+
+    assert response.status_code == 200
+    content = response.content.decode()
+    assert "doit être géocodé" in content
+    assert 'name="_publish"' in content  # still offered, next to what it refused
+    event.refresh_from_db()
+    assert event.status == Event.Status.PENDING
+    assert not mail.outbox
+
+
+@pytest.mark.django_db
+@locmem
+def test_publishing_reports_a_field_error_instead_of_deciding(verified_admin_client, event):
+    data = _change_form_data(event, end_date=event.start_date.strftime("%Y-%m-%d"), _publish="")
+    data["end_time"] = "08:00"
+
+    response = verified_admin_client.post(_change_url(event), data)
+
+    assert response.status_code == 200
+    assert "doit suivre son début" in response.content.decode()
+    event.refresh_from_db()
+    assert event.status == Event.Status.PENDING
+    assert not mail.outbox
+
+
+@pytest.mark.django_db
+@locmem
+def test_publishing_saves_the_edits_it_travels_with(verified_admin_client, event):
+    """The geocoding a moderator completed is part of the very submit that publishes."""
+    data = _change_form_data(event, address="12 rue Neuve", _publish="", comment="Bravo !")
+
+    response = verified_admin_client.post(_change_url(event), data)
+
     assert response.status_code == 302
-    assert response["Location"] == reverse("admin:techpourtoutes_event_change", args=[event.pk])
-    assert not mail.outbox  # the mailer lives in ModerateEvent, mocked away here
+    event.refresh_from_db()
+    assert event.status == Event.Status.APPROVED
+    assert event.address == "12 rue Neuve"
+    assert mail.outbox[0].to == [event.created_by.email]
+    assert "Bravo !" in mail.outbox[0].body
 
 
 @pytest.mark.django_db
+@locmem
+def test_publishing_a_named_place_without_a_street_address(verified_admin_client, event):
+    """A POI hit carries no street: `poi_name` stands in for it, so the form has to offer it."""
+    data = _change_form_data(event, address="", poi_name="Station F", _publish="")
+
+    response = verified_admin_client.post(_change_url(event), data)
+
+    assert response.status_code == 302
+    event.refresh_from_db()
+    assert event.status == Event.Status.APPROVED
+    assert event.poi_name == "Station F"
+
+
+@pytest.mark.django_db
+@locmem
 def test_rejecting_passes_the_comment_along(verified_admin_client, event):
-    instance = MagicMock(success=True, failure=False, errors=[])
-    with patch("techpourtoutes.admin.models.event.ModerateEvent", return_value=instance) as mock:
-        verified_admin_client.post(
-            _moderate_url(event),
-            {"decision": Event.Status.REJECTED, "comment": "Adresse incomplète."},
-        )
+    data = _change_form_data(event, _reject="", comment="Adresse incomplète.")
 
-    mock.assert_called_once_with(
-        event=event, status=Event.Status.REJECTED, comment="Adresse incomplète."
-    )
+    verified_admin_client.post(_change_url(event), data)
+
+    event.refresh_from_db()
+    assert event.status == Event.Status.REJECTED
+    assert "Adresse incomplète." in mail.outbox[0].body
 
 
 @pytest.mark.django_db
+@locmem
 def test_the_comment_is_optional(verified_admin_client, event):
-    instance = MagicMock(success=True, failure=False, errors=[])
-    with patch("techpourtoutes.admin.models.event.ModerateEvent", return_value=instance) as mock:
-        verified_admin_client.post(_moderate_url(event), {"decision": Event.Status.APPROVED})
+    verified_admin_client.post(_change_url(event), _change_form_data(event, _publish=""))
 
-    mock.assert_called_once_with(event=event, status=Event.Status.APPROVED, comment="")
+    event.refresh_from_db()
+    assert event.status == Event.Status.APPROVED
+    assert len(mail.outbox) == 1
 
 
 @pytest.mark.django_db
-def test_moderation_failure_is_shown_and_the_page_reloads(verified_admin_client, event):
-    instance = MagicMock(success=False, failure=True, errors=["Événement non géocodé."])
-    with patch("techpourtoutes.admin.models.event.ModerateEvent", return_value=instance):
-        response = verified_admin_client.post(
-            _moderate_url(event), {"decision": Event.Status.APPROVED}, follow=True
-        )
+@locmem
+def test_a_plain_save_decides_nothing(verified_admin_client, event):
+    verified_admin_client.post(_change_url(event), _change_form_data(event, title="Nouveau titre"))
 
-    assert "Événement non géocodé." in response.content.decode()
+    event.refresh_from_db()
+    assert event.status == Event.Status.PENDING
+    assert event.title == "Nouveau titre"
+    assert not mail.outbox
+
+
+@pytest.mark.django_db
+def test_the_change_form_offers_the_address_search(verified_admin_client, event):
+    content = verified_admin_client.get(_change_url(event)).content.decode()
+
+    assert 'id="id_address_search"' in content
+    assert reverse(SEARCH_ADDRESSES) in content
+
+
+@pytest.mark.django_db
+def test_the_place_is_written_by_the_search_only(verified_admin_client, event):
+    """A hand-named place is exactly what the address search is there to replace — but the
+    fields stay form fields, or the constraints hinging on them would go unchecked."""
+    form = verified_admin_client.get(_change_url(event)).context["adminform"].form
+
+    place = ("poi_name", "address", "postal_code", "city")
+    geocoding = ("cog_code", "longitude", "latitude", "ban_id")
+    for name in place + geocoding:
+        assert form.fields[name].widget.attrs.get("readonly"), name
+
+
+@pytest.mark.django_db
+def test_the_address_search_answers_the_geocoded_hits_as_json(verified_admin_client):
+    with patch(
+        "techpourtoutes.admin.models.event.SearchAddresses",
+        return_value=MagicMock(addresses=[AMIENS_HIT]),
+    ) as mock:
+        response = verified_admin_client.get(reverse(SEARCH_ADDRESSES), {"q": "8 bd du port"})
+
+    mock.assert_called_once_with(query="8 bd du port")
+    result = response.json()["results"][0]
+    assert result["text"] == "8 Boulevard du Port 80000 Amiens"
+    assert result["latitude"] == 49.897443
+    assert result["address"] == "8 Boulevard du Port"
+
+
+@pytest.mark.django_db
+def test_a_hit_is_identified_by_its_place_not_by_its_rank(verified_admin_client):
+    """The dropdown declines to reselect the option it already holds, so a rank would strand
+    the moderator on her first pick: every later search offers another place at that rank."""
+    poi = {
+        "label": "Station F, Paris 13e Arrondissement",
+        "poi_name": "Station F",
+        "address": "",
+        "postal_code": "75013",
+        "city": "Paris 13e Arrondissement",
+        "cog_code": "75113",
+        "longitude": 2.371699,
+        "latitude": 48.833436,
+        "ban_id": "",
+    }
+
+    def search(addresses):
+        with patch(
+            "techpourtoutes.admin.models.event.SearchAddresses",
+            return_value=MagicMock(addresses=addresses),
+        ):
+            return verified_admin_client.get(reverse(SEARCH_ADDRESSES), {"q": "f"}).json()
+
+    leading = search([poi])["results"][0]
+    trailing = search([AMIENS_HIT, poi])["results"][1]
+
+    assert leading["id"] == trailing["id"]
+    assert leading["id"] != search([AMIENS_HIT])["results"][0]["id"]
+
+
+@pytest.mark.django_db
+def test_the_address_search_is_staff_only(client):
+    response = client.get(reverse(SEARCH_ADDRESSES), {"q": "8 bd du port"})
+
+    assert response.status_code == 302
 
 
 @pytest.mark.django_db
@@ -185,34 +350,9 @@ def test_a_free_text_subcategory_selects_other_and_fills_the_text_input(
 def test_the_subcategory_field_is_wired_into_a_full_save(verified_admin_client, event):
     """One round trip through the real admin form, proving the custom field is connected —
     its own validation rules are exhaustively covered at the field level."""
-    url = reverse("admin:techpourtoutes_event_change", args=[event.pk])
-    data = {
-        "created_by": str(event.created_by.pk),
-        "title": event.title,
-        "organizer": event.organizer,
-        "description": event.description,
-        "subcategory_0": "hackathon",
-        "subcategory_1": "",
-        "status": event.status,
-        "access_type": event.access_type,
-        "registration_url": event.registration_url,
-        "price": str(event.price),
-        "location_type": event.location_type,
-        "online_url": event.online_url,
-        "start_date": event.start_date.strftime("%Y-%m-%d"),
-        "start_time": event.start_time.strftime("%H:%M"),
-        "end_date": event.end_date.strftime("%Y-%m-%d"),
-        "end_time": event.end_time.strftime("%H:%M"),
-        "address": event.address,
-        "postal_code": event.postal_code,
-        "city": event.city,
-        "cog_code": event.cog_code,
-        "longitude": event.longitude,
-        "latitude": event.latitude,
-        "ban_id": event.ban_id,
-    }
+    data = _change_form_data(event, subcategory_0="hackathon")
 
-    response = verified_admin_client.post(url, data)
+    response = verified_admin_client.post(_change_url(event), data)
 
     assert response.status_code == 302
     event.refresh_from_db()
