@@ -105,6 +105,18 @@ def test_login_request_post_with_known_email_sends_code(client, pro):
 
 @pytest.mark.django_db
 @override_settings(EMAIL_BACKEND="django.core.mail.backends.locmem.EmailBackend")
+def test_login_request_post_with_known_email_in_another_case_sends_code(client, pro):
+    response = client.post(reverse("login_request"), data={"email": pro.email.upper()})
+
+    assert response.status_code == 302
+    assert len(mail.outbox) == 1
+    assert mail.outbox[0].to == [pro.email]
+    pro.refresh_from_db()
+    assert pro.login_code_hash != ""
+
+
+@pytest.mark.django_db
+@override_settings(EMAIL_BACKEND="django.core.mail.backends.locmem.EmailBackend")
 @patch("techpourtoutes.models.user.generate_numeric_code", return_value="123456")
 def test_login_request_post_email_contains_the_code(_code, client, pro):
     client.post(reverse("login_request"), data={"email": pro.email})

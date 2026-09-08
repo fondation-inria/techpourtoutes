@@ -124,8 +124,8 @@ class User(BaseModel, AbstractUser):
         return instance
 
     def save(self, *args, **kwargs):
-        if not self.username:
-            self.username = self.email
+        self.email = self.email.lower()
+        self.username = (self.username or self.email).lower()
         super().save(*args, **kwargs)
 
     @property

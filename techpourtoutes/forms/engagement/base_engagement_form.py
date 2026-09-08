@@ -6,6 +6,7 @@ from django.utils.html import format_html
 from django.utils.translation import gettext_lazy as _
 
 from ...models import Pro, User
+from ..fields import EmailField
 
 
 class BaseEngagementForm(forms.Form):
@@ -35,7 +36,7 @@ class BaseEngagementForm(forms.Form):
     civility = forms.ChoiceField(label=_("Votre civilité*"), choices=User.Civility.choices)
     first_name = forms.CharField(label=_("Votre prénom*"))
     last_name = forms.CharField(label=_("Votre nom*"))
-    email = forms.EmailField(
+    email = EmailField(
         label=_("Votre adresse mail*"),
         error_messages={"invalid": _("Saisissez une adresse mail valide.")},
     )
