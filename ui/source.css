@@ -189,6 +189,8 @@
   --shadow-bottom-and-right-lg: 6px 6px 0 0 var(--color-primary);
   --shadow-right: 4px 0 0 0 var(--color-primary);
   --shadow-thin-bottom: 0 1px 0 0;
+  --shadow-large-bottom: 0 4px 0 0;
+  --shadow-box: 2px 2px 20px rgba(0, 0, 0, 0.1);
 
   /* Typography sizes (Global.json) */
   --text-xxs: 0.625rem;

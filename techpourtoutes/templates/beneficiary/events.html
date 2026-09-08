@@ -8,5 +8,7 @@
         {% include "beneficiary/partials/event_cards.html" %}
     </div>
 
+    <c-components.pagination :page="events" class="mt-(--grid-cell) self-center" />
+
     <div id="modal-container"></div>
 </c-layout.base>

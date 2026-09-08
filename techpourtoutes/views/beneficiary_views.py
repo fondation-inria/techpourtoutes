@@ -19,7 +19,7 @@ from ..models import Event, SavedEvent
 from ..tasks import upsert_email_notification_task
 from ..utils.dates import compute_age
 
-EVENTS_PER_PAGE = 12
+EVENTS_PER_PAGE = 15
 
 # ------------------- pages -------------------
 
@@ -72,14 +72,9 @@ def find_mentor_landing(request):
 
 
 def events(request):
-    return render(request, "beneficiary/events.html", _events_context(request, page=1))
-
-
-def more_events(request):
-    """The infinite-scroll sentinel asks for the next batch, and nothing else."""
     return render(
         request,
-        "beneficiary/partials/event_cards.html",
+        "beneficiary/events.html",
         _events_context(request, page=request.GET.get("page")),
     )
 

@@ -266,41 +266,37 @@ def test_a_connected_pro_gets_no_bookmark_at_all(client, pro, salon):
 
 
 @pytest.mark.django_db
-def test_events_page_shows_twelve_events_and_a_sentinel(client, pro):
-    for index in range(13):
+def test_events_page_shows_fifteen_events_and_a_link_to_the_next_page(client, pro):
+    for index in range(16):
         approved_event(pro, title=f"Événement {index:02d}").save()
 
     response = client.get(EVENTS_URL)
 
-    assert len(response.context["events"].object_list) == 12
-    assert reverse("more_events").encode() in response.content
+    assert len(response.context["events"].object_list) == 15
+    assert b'href="?page=2"' in response.content
 
 
 @pytest.mark.django_db
-def test_more_events_returns_the_next_batch_without_the_page_shell(client, pro):
-    for index in range(13):
+def test_events_page_serves_the_page_asked_for(client, pro):
+    for index in range(16):
         approved_event(pro, title=f"Événement {index:02d}").save()
 
-    response = client.get(reverse("more_events"), {"page": 2})
+    response = client.get(EVENTS_URL, {"page": 2})
 
     assert response.status_code == 200
+    assert response.context["events"].number == 2
     assert len(response.context["events"].object_list) == 1
-    assert b"<html" not in response.content
+    assert b'aria-current="page"' in response.content
 
 
 @pytest.mark.django_db
-def test_more_events_stops_offering_a_sentinel_on_the_last_page(client, pro):
-    for index in range(13):
-        approved_event(pro, title=f"Événement {index:02d}").save()
-
-    content = client.get(reverse("more_events"), {"page": 2}).content
-
-    assert reverse("more_events").encode() not in content
+def test_events_page_hides_the_pagination_when_one_page_is_enough(client, salon):
+    assert b"join-item" not in client.get(EVENTS_URL).content
 
 
 @pytest.mark.django_db
-def test_more_events_falls_back_to_the_first_page_on_a_bogus_number(client, salon):
-    response = client.get(reverse("more_events"), {"page": "banane"})
+def test_events_page_falls_back_to_the_first_page_on_a_bogus_number(client, salon):
+    response = client.get(EVENTS_URL, {"page": "banane"})
 
     assert response.status_code == 200
     assert response.context["events"].number == 1

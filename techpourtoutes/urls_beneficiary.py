@@ -14,7 +14,6 @@ urlpatterns = [
     ),
     path("bientot-disponible/", views.bientot_disponible, name="bientot_disponible"),
     path("evenements/", views.events, name="events"),
-    path("evenements/suite/", views.more_events, name="more_events"),
     path(
         "evenements/rejoindre-le-club/",
         views.saved_event_signup_modal,

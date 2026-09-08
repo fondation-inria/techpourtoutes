@@ -45,7 +45,7 @@ class Event(BaseModel):
     class Subcategory(models.TextChoices):
         CONFERENCE = "conference", _("Conférence")
         WORKSHOP = "workshop", _("Atelier")
-        WEBINAR = "webinar", _("Webinaire d'informations")
+        WEBINAR = "webinar", _("Webinaire d'info")
         ROUND_TABLE = "round_table", _("Table ronde")
         JOB_FAIR = "job_fair", _("Forum de l'emploi")
         SPEED_DATING = "speed_dating", _("Speed dating")

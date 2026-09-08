@@ -87,9 +87,6 @@ class Command(BaseCommand):
 
     def _create_events(self):
         """Approved and upcoming, one a week: enough of them to scroll past the first page."""
-        if Event.objects.exists():
-            self.stdout.write("  Events already exist, skipping.")
-            return
         pro = Pro.objects.get(email=settings.SEED_ADMIN_EMAIL)
         today = timezone.localdate()
         for week, (lasts, fields) in enumerate(EVENT_SEEDS, start=1):
@@ -113,7 +110,7 @@ EVENT_SEEDS = [
     (
         0,
         {
-            "title": "Webinaire : les métiers de la cybersécurité",
+            "title": "Webinaire : les métiers de la cybersécurité à l'ère de l'IA",
             "organizer": "ANSSI",
             "subcategory": Event.Subcategory.WEBINAR,
             "location_type": Event.LocationType.ONLINE,

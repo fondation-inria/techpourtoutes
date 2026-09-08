@@ -25,7 +25,6 @@ from .beneficiary_views import (
     bientot_disponible,
     events,
     find_mentor_landing,
-    more_events,
     saved_event_signup_modal,
     toggle_saved_event,
 )
@@ -99,7 +98,6 @@ __all__ = [
     "mentions_legales",
     "mentor_landing",
     "mentoring_signup_skip_modal",
-    "more_events",
     "notre_manifeste",
     "pourquoi_nous_ecrivons_au_feminin",
     "pro_training_experience_edit",
