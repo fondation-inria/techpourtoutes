@@ -82,6 +82,19 @@ def index_events(request):
     )
 
 
+def show_event(request, pk):
+    beneficiary = getattr(request.user, "beneficiary", None)
+    event = get_object_or_404(Event.objects.approved(), pk=pk)
+    return render(
+        request,
+        "beneficiary/show_event.html",
+        {
+            "event": event,
+            "bookmark_action": _bookmark_action(request.user, beneficiary),
+        },
+    )
+
+
 @require_POST
 @login_required
 def update_saved_event(request, pk):
