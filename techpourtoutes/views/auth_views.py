@@ -20,7 +20,7 @@ from ..utils.text import mask_email
 @rate_limit("RATELIMIT_LOGIN", keys=("email",))
 def login_request(request):
     if request.user.is_authenticated:
-        return redirect(reverse("account"))
+        return redirect(reverse("show_account"))
 
     if request.method == "POST":
         form = LoginRequestForm(data=request.POST)
@@ -58,7 +58,7 @@ def login_request(request):
 
 def login_code(request):
     if request.user.is_authenticated:
-        return redirect(reverse("account"))
+        return redirect(reverse("show_account"))
     email = request.session.get("login_email")
     if not email:
         return redirect("login_request")
@@ -75,7 +75,7 @@ def login_code(request):
             user.backend = "django.contrib.auth.backends.ModelBackend"
             login(request, user)
             messages.success(request, f"Bienvenue sur le compte {user.email} !")
-            return redirect(next_url or reverse("account"))
+            return redirect(next_url or reverse("show_account"))
         form.add_error("code", "Code invalide ou expiré.")
 
     return render(
@@ -110,7 +110,7 @@ def login_verify(request, token):
     user.backend = "django.contrib.auth.backends.ModelBackend"
     login(request, user)
     messages.success(request, f"Vous accédez au compte {user.email}. Bienvenue !")
-    return redirect(next_url or reverse("account"))
+    return redirect(next_url or reverse("show_account"))
 
 
 @login_required
@@ -119,14 +119,14 @@ def login_to_jobirl(request):
     result = RefreshAccessToken(user=account)
     if result.failure:
         messages.error(request, result.errors[0])
-        return redirect(reverse("account"))
+        return redirect(reverse("show_account"))
 
     return redirect(f"{settings.JOBIRL_URL}/techpourtoutes/auth/{result.token}")
 
 
 @require_POST
 @login_required
-def logout_view(request):
+def destroy_session(request):
     logout(request)
     messages.success(request, "Au revoir - Déconnexion réalisée avec succès")
     return redirect("/")

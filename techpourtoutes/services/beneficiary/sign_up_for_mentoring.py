@@ -9,7 +9,7 @@ from .create_mentoree import CreateMentoree
 class SignUpForMentoring(BaseService):
     def perform(self, *, beneficiary, is_minor, mentoring_signup_data):
         if is_minor:
-            ConsortiumMailer.new_mentoring_signup(
+            ConsortiumMailer.mentoree_signed_up(
                 beneficiary=beneficiary, mentoring_signup_data=mentoring_signup_data
             )
             return

@@ -15,7 +15,7 @@
     <div class="border-t border-black p-3">
         <ul class="flex flex-col gap-1 mb-3">
         {% if request.user.is_authenticated %}
-            <c-components.nav-link href="{% url "account" %}" label="Mon compte" icon="se-connecter-{% if is_coalition_page %}pro{% else %}beneficiary{% endif %}"/>
+            <c-components.nav-link href="{% url "show_account" %}" label="Mon compte" icon="se-connecter-{% if is_coalition_page %}pro{% else %}beneficiary{% endif %}"/>
         {% else %}
             <c-components.nav-link href="{% url "login_request" %}?back={{ request.get_full_path|urlencode }}" label="Se connecter" icon="se-connecter-{% if is_coalition_page %}pro{% else %}beneficiary{% endif %}"/>
             {% endif %}

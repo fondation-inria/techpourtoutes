@@ -63,12 +63,12 @@ def test_create_mentor_existing_pro_sends_new_engagement(pro):
 
     with (
         patch(REGISTER, return_value=_registered()),
-        patch.object(ProMailer, "new_engagement") as new_engagement,
+        patch.object(ProMailer, "engagement_added") as engagement_added,
         patch.object(ProMailer, "welcome") as welcome,
     ):
         CreateMentor(pro=pro)
 
-    new_engagement.assert_called_once_with(pro=pro)
+    engagement_added.assert_called_once_with(pro=pro)
     welcome.assert_not_called()
 
 

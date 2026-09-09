@@ -33,7 +33,7 @@ _STEPS = ("email", "identity", "study_status", "training_experience", "mentoring
 
 def inscription_funnel(request):
     if request.user.is_authenticated:
-        return redirect(reverse("account"))
+        return redirect(reverse("show_account"))
 
     # The funnel is stateless server-side: the accumulated answers live in the browser's
     # sessionStorage (Alpine) and travel with every POST. GET only renders the shell, which
@@ -41,7 +41,7 @@ def inscription_funnel(request):
     if request.method != "POST":
         return render(
             request,
-            "beneficiary/inscription_funnel.html",
+            "beneficiary/funnels/inscription_funnel.html",
             {"wants_mentor": request.GET.get("wants_mentor") == "1"},
         )
 
@@ -57,10 +57,10 @@ def inscription_funnel(request):
     return handler(request)
 
 
-def mentoring_signup_skip_modal(request):
+def show_skip_mentoring_signup_modal(request):
     return render(
         request,
-        "beneficiary/partials/inscription/skip_mentoring_signup_modal.html",
+        "beneficiary/funnels/partials/inscription/show_skip_mentoring_signup_modal.html",
         {"action": _previous_step("mentoring_signup")},
     )
 
@@ -129,7 +129,7 @@ def _handle_code(request):
         # required because django-axes is configured
         user.backend = "django.contrib.auth.backends.ModelBackend"
         login(request, user)
-        return HttpResponse(headers={"HX-Redirect": reverse("account")})
+        return HttpResponse(headers={"HX-Redirect": reverse("show_account")})
     return _render_step_with_error(request, "code", _CODE_ERROR, email=email)
 
 
@@ -218,7 +218,9 @@ def _destination_view_for_existing_user(user, data):
     if hasattr(user, "pro"):
         return "coalition_home"
     if _wants_mentor(data) and hasattr(user, "beneficiary"):
-        return "account" if user.beneficiary.is_registered_for_mentoring else "add_mentoring"
+        return (
+            "show_account" if user.beneficiary.is_registered_for_mentoring else "mentoring_funnel"
+        )
     return "home"
 
 
@@ -326,7 +328,7 @@ _FORM_BUILDERS = {
 
 def _render_step(request, step, *, form=None, **extra):
     context = _step_context(request, step, form, **extra)
-    return render(request, f"beneficiary/partials/inscription/{step}.html", context)
+    return render(request, f"beneficiary/funnels/partials/inscription/{step}.html", context)
 
 
 def _render_step_with_error(request, step, error, **extra):
@@ -336,7 +338,7 @@ def _render_step_with_error(request, step, error, **extra):
 
 
 def _render_age_dead_end(request, template):
-    response = render(request, f"beneficiary/partials/inscription/{template}.html", {})
+    response = render(request, f"beneficiary/funnels/partials/inscription/{template}.html", {})
     response["HX-Trigger"] = "funnelReset"
     return response
 
