@@ -196,8 +196,10 @@ def test_index_events_lists_from_the_nearest_to_the_furthest(client, pro):
 
 
 @pytest.mark.django_db
-def test_index_events_cards_link_to_the_placeholder_detail_page(client, salon):
-    assert b"/bientot-disponible/?feature=evenements" in client.get(INDEX_EVENTS_URL).content
+def test_index_events_cards_link_to_the_event_detail_page(client, salon):
+    content = client.get(INDEX_EVENTS_URL).content
+
+    assert reverse("show_event", args=[salon.pk]).encode() in content
 
 
 @pytest.mark.django_db

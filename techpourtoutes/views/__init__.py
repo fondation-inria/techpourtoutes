@@ -30,6 +30,7 @@ from .beneficiary_views import (
     index_events,
     new_mentoree,
     new_upcoming_feature_notification,
+    show_event,
     update_saved_event,
 )
 from .coalition_views import (
@@ -131,6 +132,7 @@ __all__ = [
     "search_formations",
     "search_schools",
     "show_account",
+    "show_event",
     "show_user",
     "show_user_email",
     "show_user_email_verification",

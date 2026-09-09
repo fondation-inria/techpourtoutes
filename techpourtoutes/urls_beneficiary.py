@@ -33,4 +33,9 @@ urlpatterns = [
         views.update_saved_event,
         name="update_saved_event",
     ),
+    path(
+        "evenements/<uuid:pk>/",
+        views.show_event,
+        name="show_event",
+    ),
 ]
