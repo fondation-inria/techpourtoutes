@@ -62,7 +62,7 @@ def _create_event(request):
         return interrupt.response
 
     CreateEvent(pro=request.user.pro, forms=forms)
-    return render(request, "coalition/partials/event/submitted.html", {})
+    return render(request, "coalition/funnels/partials/event/submitted.html", {})
 
 
 def _validate(request, step):
@@ -74,10 +74,10 @@ def _validate(request, step):
 
 def _render_step(request, step, *, form=None):
     # The shell carries the first screen; every later step is swapped in on its own.
-    partial = f"coalition/partials/event/{step}.html"
+    partial = f"coalition/funnels/partials/event/{step}.html"
     return render(
         request,
-        partial if request.method == "POST" else "coalition/event_funnel.html",
+        partial if request.method == "POST" else "coalition/funnels/event_funnel.html",
         {
             "step": step,
             "form": form or _STEP_FORMS[step](initial=request.POST.dict()),

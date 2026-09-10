@@ -38,7 +38,7 @@ def test_a_beneficiary_is_turned_away_from_a_pro_page(beneficiary):
     request, response = call(pro_view, beneficiary)
 
     assert response.status_code == 302
-    assert response["Location"] == reverse("account")
+    assert response["Location"] == reverse("show_account")
     assert "réservée aux professionnelles" in str(list(request._messages)[0])
 
 
@@ -47,7 +47,7 @@ def test_a_pro_is_turned_away_from_a_beneficiary_page(pro):
     request, response = call(beneficiary_view, pro)
 
     assert response.status_code == 302
-    assert response["Location"] == reverse("account")
+    assert response["Location"] == reverse("show_account")
     assert "réservée aux bénéficiaires" in str(list(request._messages)[0])
 
 

@@ -1,0 +1,166 @@
+<c-layout.base title="Devenir ambassadrice étudiante – TechPourToutes" description="Devenir ambassadrice étudiante TechPourToutes, c'est s'engager concrètement pour l'égalité de genre dans la tech et développer des compétences clés pour la suite de son parcours.">
+    <c-components.title title="Ambassadrice étudiante" title_bg="yellow" />
+    <div class="flex flex-wrap gap-2 md:gap-4">
+        <c-components.badge label="1 an" />
+        <c-components.badge label="En présentiel" />
+        <c-components.badge label="À distance" />
+    </div>
+
+    <c-components.card>
+            Vous êtes étudiante et vous souhaitez vous engager concrètement pour l'égalité de genre dans l'enseignement supérieur et le monde professionnel&nbsp;? Devenez ambassadrice étudiante TechPourToutes&nbsp;!
+    </c-components.card>
+
+    <div class="flex justify-center w-full md:hidden">
+        <c-components.button href="#training-ambassador-card" label="Je deviens ambassadrice" />
+    </div>
+
+    <c-components.card title="Des missions concrètes">
+        <c-components.title title="1. Vous devenez le contact étudiant de référence de votre établissement concernant le programme TechPourToutes" variant="intertitre" class="my-3" />
+        <c-components.list>
+            Vous faites connaître à votre communauté étudiante et aux autres associations le programme TechPourToutes
+            Vous travaillez avec l’équipe des référentes et référents égalité de votre établissement ainsi qu’un responsable de formation pour intégrer TechPourToutes dans la programmation d’actions prévues lorsque cela est possible sur les questions d’égalité, féminisation, VSS...
+            Vous participez à des réunions avec les autres membres relais du programme au sein de votre établissement (référentes égalité, responsable de formation, association étudiantes si existantes...)
+            Vous êtes une interlocutrice TechPourToutes auprès des partenaires de votre établissement (entreprises, lycées, organisations professionnelles...)
+            Vous participez à l'organisation d'événements au sein de votre établissement qui s'inscrivent dans les ambitions du programme&nbsp;: conférences, tables rondes, podcasts...
+        </c-components.list>
+        <p>
+            <span class="italic">Si vous souhaitez aller plus loin&nbsp;:</span>
+            <br>
+            <c-components.list>
+                Le consortium national de TechPourToutes peut vous joindre pour participer à des événements en fonction de vos disponibilités et vos envies
+            </c-components.list>
+        </p>
+
+        <c-components.title title="2. Vous échangez avec des lycéennes ou des étudiantes en réorientation" variant="intertitre" class="my-3" />
+        <c-components.list>
+            Vous présentez le programme dans les lycées partenaires de votre établissement
+            Vous échangez avec des lycéennes ou des étudiantes inscrites au programme pour répondre à leurs questions sur la plateforme en ligne TechPourToutes et partagez votre expérience dans les études supérieures
+            Vous représentez votre école et parlez de TechPourToutes lors de salons étudiants et journées portes ouvertes
+        </c-components.list>
+        <p>
+            <span class="italic">Si vous souhaitez aller plus loin&nbsp;:</span>
+            <br>
+            <c-components.list>
+                Vous pouvez mentorer une lycéenne via le programme de mentorat géré par notre association partenaire Job IRL qui vous accompagnera dans ce rôle
+                Vous pouvez vous former et animer des ateliers de découverte des filières et de sensibilisation auprès de lycéennes et collégiennes comme par exemple les ateliers menés par notre association partenaire Latitudes
+            </c-components.list>
+        </p>
+
+        <c-components.title title="3. Vous participez à un réseau étudiant engagé" variant="intertitre" class="mt-3" />
+        <c-components.text>
+            Vous participez à des événements ambassadrices TechPourToutes, l'occasion de rencontrer d'autres étudiantes engagées et les partenaires du programme.
+
+            Pour toutes ces démarches, notre équipe est là pour vous aider et mettre à votre disposition différents supports de communication. Vous bénéficierez également de l’ensemble des éléments de communication et supports pour votre mission.
+        </c-components.text>
+    </c-components.card>
+
+    <c-components.card title="Un engagement qui a du sens...">
+        <c-components.text>
+            L'objectif ? La mixité dans les métiers techniques du numérique !
+
+            Aujourd'hui, 67&nbsp;% des femmes ne se sentent pas légitimes de faire des études en informatique, entre autre car elles manquent de représentations féminines et car elles sont deux fois moins nombreuses à être encouragées par leurs parents à travailler dans le numérique que les garçons. Vous qui avez fait ce choix, vous êtes les mieux placées pour encourager plus de filles à changer la façon dont le numérique est fait.
+        </c-components.text>
+    </c-components.card>
+
+    <c-components.card title="...et que vous pourrez valoriser dans votre parcours">
+        <c-components.text>
+            Être ambassadrice TechPourToutes, c'est développer des compétences clés pour la suite de votre parcours&nbsp;:
+        </c-components.text>
+        <c-components.list>
+            Prise de parole en public
+            Travail en équipe
+            Mobilisation de communauté
+            Esprit d'initiative
+            Pédagogie et transmission
+            Sens de l'engagement
+        </c-components.list>
+    </c-components.card>
+
+    <c-components.accordion title="Cette action est menée par">
+        <c-components.text>
+            la Conférence des Grandes Écoles, France Universités et la Conférence des Directeurs des Écoles Françaises d'Ingénieurs.
+
+        </c-components.text>
+        <c-components.button href="{% url "qui_sommes_nous" %}" label="Découvrir tous les membres du consortium TechPourToutes" variant="tertiary" />
+    </c-components.accordion>
+
+    <c-slot name="decorations">
+        <c-components.codex-letter letter="A" row="6" col="16" class="text-purple-500" />
+    </c-slot>
+
+
+    <c-slot name="right">
+        <div class="flex flex-col items-center px-4 md:mt-[100px] md:self-start"
+             x-data="{ showForm: {{ form.is_bound|yesno:'true,false' }} }"
+             :class="{ 'md:sticky md:top-14 xl:top-8': !showForm }">
+            <c-components.starburst-title title="Rejoignez la coalition&nbsp;!" />
+            <div id="training-ambassador-card">
+                <div x-show="!showForm" {% if not pro or "training_ambassador" not in pro.engagements %}@click.prevent="showForm = true; $nextTick(() => { $refs.formCard.scrollIntoView({ behavior: 'smooth', block: 'start' }) })" class="cursor-pointer"{% endif %}>
+                    <c-components.card-shadow id="training-ambassador-member-card" class="w-[320px] my-5">
+                        <div class="flex gap-5">
+                            <div>
+                                {% if pro %}
+                                    <p class="font-medium pb-3">{{ pro.first_name }}</p>
+                                    <p class="font-medium pb-3">{{ pro.last_name }}</p>
+                                {% else %}
+                                    <p class="font-light pb-3">Prénom</p>
+                                    <p class="font-light pb-3">Nom</p>
+                                {% endif %}
+                                <p class="font-medium">Ambassadrice TechPourToutes</p>
+                            </div>
+                        </div>
+                        {% if not pro or "training_ambassador" not in pro.engagements %}
+                            <div class="flex justify-center mt-3">
+                                <c-components.button href="" label="Je deviens ambassadrice" />
+                            </div>
+                        {% endif %}
+                    </c-components.card-shadow>
+                </div>
+                <div x-ref="formCard" x-show="showForm" x-cloak
+                    x-transition:enter="transition ease-out duration-300 origin-top"
+                    x-transition:enter-start="scale-y-20"
+                    x-transition:enter-end="scale-y-100"
+                />
+                    <c-components.card-shadow id="training-ambassador-form-card" class="w-[320px] my-5 p-5 relative">
+                        <c-patterns.form url="{% url 'create_training_ambassador' %}">
+                            <c-components.title title="Engagement ambassadrice" variant="h3" />
+                            <p class="description-text-xxs">Les champs suivis d'un astérisque (*) sont obligatoires.</p>
+                            <c-components.form_fields.radio field=form.civility />
+                            <c-components.form_fields.input field=form.first_name autocomplete="given-name" />
+                            <c-components.form_fields.input field=form.last_name autocomplete="family-name" />
+                            <c-components.form_fields.input field=form.email autocomplete="email" variant="{% if pro %}disabled{% endif %}" />
+                            <c-components.form_fields.input field=form.phone autocomplete="tel" />
+                            <c-components.form_fields.school_search
+                                name_field=form.school_label
+                                id_field=form.school_id
+                                not_found_field=form.school_not_found
+                                scope="training_ambassador"
+                                label="Établissement*"
+                                description="Recherchez par nom"
+                            />
+                            <c-components.form_fields.formation_search
+                                name_field=form.formation_label
+                                id_field=form.formation_id
+                                not_found_field=form.formation_not_found
+                                school_id_field=form.school_id
+                                scope="higher_ed"
+                                label="Formation*"
+                                description="Recherchez par nom"
+                            />
+                            {% if not pro %}
+                                <c-components.form_fields.checkbox field=form.terms_accepted />
+                                <c-components.form_fields.checkbox field=form.manifeste_accepted />
+                            {% endif %}
+                            {% if form.newsletter_consent %}
+                                <c-components.form_fields.checkbox field=form.newsletter_consent />
+                            {% endif %}
+                            <div class="flex justify-center">
+                                <c-components.button type="submit" label="Je deviens ambassadrice" />
+                            </div>
+                        </c-patterns.form>
+                    </c-components.card-shadow>
+                </div>
+            </div>
+        </div>
+    </c-slot>
+</c-layout.base>

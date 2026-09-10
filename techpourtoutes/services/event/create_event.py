@@ -20,7 +20,7 @@ class CreateEvent(BaseService):
         )
         self.event.save()
         ProMailer.event_submitted(event=self.event)
-        ConsortiumMailer.new_event(event=self.event)
+        ConsortiumMailer.event_submitted(event=self.event)
 
     def _location(self, location_form):
         """`address_api_down` says how the address was obtained and `pricing` which branch she

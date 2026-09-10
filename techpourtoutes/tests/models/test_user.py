@@ -353,13 +353,13 @@ def test_read_email_change_token_rejects_other_user(pro, inactive_user):
 
 
 @pytest.mark.django_db
-def test_email_change_verify_url_carries_token(pro):
+def test_update_email_verification_url_carries_token(pro):
     from urllib.parse import urlencode
 
     from django.urls import reverse
 
     token = pro.issue_email_change_token("nouvelle@example.com", "current")
-    url = pro.email_change_verify_url(token)
+    url = pro.update_email_verification_url(token)
 
-    assert url.startswith(reverse("email_change_verify"))
+    assert url.startswith(reverse("show_user_email_verification"))
     assert urlencode({"token": token}) in url

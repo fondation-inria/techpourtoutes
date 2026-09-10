@@ -21,11 +21,11 @@ from ..beneficiary_views import (
 
 
 @beneficiary_required
-def add_mentoring(request):
+def mentoring_funnel(request):
     beneficiary = request.user.beneficiary
     if beneficiary.is_registered_for_mentoring:
         messages.info(request, "Tu es déjà inscrite au programme de mentorat.")
-        return redirect(reverse("account"))
+        return redirect(reverse("show_account"))
 
     if request.method != "POST":
         return _start_mentoring(request, beneficiary)
@@ -68,7 +68,7 @@ def _submit_mentoring_signup(request, beneficiary):
     )
     require_legal_representative(form, is_minor(_beneficiary_birth_date(beneficiary, form)))
     if form.is_valid() and _sign_up_for_mentoring(request, beneficiary, form):
-        return HttpResponse(headers={"HX-Redirect": reverse("account")})
+        return HttpResponse(headers={"HX-Redirect": reverse("show_account")})
     return _mentoring_signup_step(request, beneficiary, form)
 
 
@@ -123,7 +123,11 @@ def _mentoring_signup_step(request, beneficiary, form=None):
 
 def _render_mentoring_step(request, step, **context):
     # The shell carries the first screen; every later step is swapped in on its own.
-    template = "add_mentoring.html" if request.method == "GET" else "partials/mentoring/step.html"
+    template = (
+        "funnels/mentoring_funnel.html"
+        if request.method == "GET"
+        else "funnels/partials/mentoring/step.html"
+    )
     return render(
         request,
         f"beneficiary/{template}",

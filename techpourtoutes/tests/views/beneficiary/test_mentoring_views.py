@@ -19,7 +19,7 @@ def _birth_date_for_age(age):
 
 
 @pytest.mark.django_db
-def test_add_mentoring_requires_login(client):
+def test_mentoring_funnel_requires_login(client):
     response = client.get(ADD_MENTORING_URL)
 
     assert response.status_code == 302
@@ -27,19 +27,19 @@ def test_add_mentoring_requires_login(client):
 
 
 @pytest.mark.django_db
-def test_add_mentoring_redirects_non_beneficiary_with_error(client, pro):
+def test_mentoring_funnel_redirects_non_beneficiary_with_error(client, pro):
     client.force_login(pro)
 
     response = client.get(ADD_MENTORING_URL, follow=True)
 
     assert response.status_code == 200
-    assert response.redirect_chain[-1][0] == reverse("account")
+    assert response.redirect_chain[-1][0] == reverse("show_account")
     messages_list = [str(m) for m in response.context["messages"]]
     assert any("réservée aux bénéficiaires" in m for m in messages_list)
 
 
 @pytest.mark.django_db
-def test_add_mentoring_redirects_when_already_registered(client, beneficiary):
+def test_mentoring_funnel_redirects_when_already_registered(client, beneficiary):
     beneficiary.jobirl_user_id = 42
     beneficiary.save()
     client.force_login(beneficiary)
@@ -47,11 +47,11 @@ def test_add_mentoring_redirects_when_already_registered(client, beneficiary):
     response = client.get(ADD_MENTORING_URL, follow=True)
 
     assert response.status_code == 200
-    assert response.redirect_chain[-1][0] == reverse("account")
+    assert response.redirect_chain[-1][0] == reverse("show_account")
 
 
 @pytest.mark.django_db
-def test_add_mentoring_get_renders_form_for_adult(client, beneficiary, beneficiary_experience):
+def test_mentoring_funnel_get_renders_form_for_adult(client, beneficiary, beneficiary_experience):
     client.force_login(beneficiary)
 
     response = client.get(ADD_MENTORING_URL)
@@ -62,7 +62,7 @@ def test_add_mentoring_get_renders_form_for_adult(client, beneficiary, beneficia
 
 
 @pytest.mark.django_db
-def test_add_mentoring_get_renders_form_for_minor(client, beneficiary, beneficiary_experience):
+def test_mentoring_funnel_get_renders_form_for_minor(client, beneficiary, beneficiary_experience):
     beneficiary.birth_date = _birth_date_for_age(16)
     beneficiary.save()
     client.force_login(beneficiary)
@@ -75,7 +75,7 @@ def test_add_mentoring_get_renders_form_for_minor(client, beneficiary, beneficia
 
 
 @pytest.mark.django_db
-def test_add_mentoring_post_valid_adult_signs_up_and_redirects(
+def test_mentoring_funnel_post_valid_adult_signs_up_and_redirects(
     client, beneficiary, beneficiary_experience
 ):
     client.force_login(beneficiary)
@@ -89,13 +89,13 @@ def test_add_mentoring_post_valid_adult_signs_up_and_redirects(
             ADD_MENTORING_URL, {"action": "mentoring_signup", "phone": "0612345678"}
         )
 
-    assert response["HX-Redirect"] == reverse("account")
+    assert response["HX-Redirect"] == reverse("show_account")
     beneficiary.refresh_from_db()
     assert beneficiary.phone == "+33612345678"
 
 
 @pytest.mark.django_db
-def test_add_mentoring_post_missing_legal_representative_fields_for_minor(
+def test_mentoring_funnel_post_missing_legal_representative_fields_for_minor(
     client, beneficiary, beneficiary_experience
 ):
     beneficiary.birth_date = _birth_date_for_age(16)
@@ -113,7 +113,7 @@ def test_add_mentoring_post_missing_legal_representative_fields_for_minor(
 
 
 @pytest.mark.django_db
-def test_add_mentoring_get_asks_for_the_birth_date_when_the_account_has_none(
+def test_mentoring_funnel_get_asks_for_the_birth_date_when_the_account_has_none(
     client, beneficiary, beneficiary_experience
 ):
     beneficiary.birth_date = None
@@ -129,7 +129,7 @@ def test_add_mentoring_get_asks_for_the_birth_date_when_the_account_has_none(
 
 
 @pytest.mark.django_db
-def test_add_mentoring_ships_the_legal_representative_fields_for_alpine_to_reveal(
+def test_mentoring_funnel_ships_the_legal_representative_fields_for_alpine_to_reveal(
     client, beneficiary, beneficiary_experience
 ):
     beneficiary.birth_date = None
@@ -147,7 +147,7 @@ def test_add_mentoring_ships_the_legal_representative_fields_for_alpine_to_revea
 
 
 @pytest.mark.django_db
-def test_add_mentoring_post_saves_the_submitted_birth_date_of_an_adult(
+def test_mentoring_funnel_post_saves_the_submitted_birth_date_of_an_adult(
     client, beneficiary, beneficiary_experience
 ):
     beneficiary.birth_date = None
@@ -168,13 +168,13 @@ def test_add_mentoring_post_saves_the_submitted_birth_date_of_an_adult(
             },
         )
 
-    assert response["HX-Redirect"] == reverse("account")
+    assert response["HX-Redirect"] == reverse("show_account")
     beneficiary.refresh_from_db()
     assert beneficiary.birth_date == birth_date
 
 
 @pytest.mark.django_db
-def test_add_mentoring_post_without_a_birth_date_when_the_account_has_none(
+def test_mentoring_funnel_post_without_a_birth_date_when_the_account_has_none(
     client, beneficiary, beneficiary_experience
 ):
     beneficiary.birth_date = None
@@ -192,7 +192,7 @@ def test_add_mentoring_post_without_a_birth_date_when_the_account_has_none(
 
 
 @pytest.mark.django_db
-def test_add_mentoring_post_with_a_minor_birth_date_requires_a_legal_representative(
+def test_mentoring_funnel_post_with_a_minor_birth_date_requires_a_legal_representative(
     client, beneficiary, beneficiary_experience
 ):
     beneficiary.birth_date = None
@@ -216,7 +216,7 @@ def test_add_mentoring_post_with_a_minor_birth_date_requires_a_legal_representat
 
 
 @pytest.mark.django_db
-def test_add_mentoring_post_service_failure_shows_error(
+def test_mentoring_funnel_post_service_failure_shows_error(
     client, beneficiary, beneficiary_experience
 ):
     client.force_login(beneficiary)
@@ -254,7 +254,7 @@ def _parcours_post(school, formation):
 
 
 @pytest.mark.django_db
-def test_add_mentoring_starts_on_the_study_status_when_the_account_has_no_parcours(
+def test_mentoring_funnel_starts_on_the_study_status_when_the_account_has_no_parcours(
     client, beneficiary
 ):
     client.force_login(beneficiary)
@@ -266,7 +266,7 @@ def test_add_mentoring_starts_on_the_study_status_when_the_account_has_no_parcou
 
 
 @pytest.mark.django_db
-def test_add_mentoring_starts_on_the_signup_when_the_account_has_a_parcours(
+def test_mentoring_funnel_starts_on_the_signup_when_the_account_has_a_parcours(
     client, beneficiary, beneficiary_experience
 ):
     client.force_login(beneficiary)
@@ -278,7 +278,7 @@ def test_add_mentoring_starts_on_the_signup_when_the_account_has_a_parcours(
 
 
 @pytest.mark.django_db
-def test_add_mentoring_study_status_step_advances_to_the_parcours(client, beneficiary):
+def test_mentoring_funnel_study_status_step_advances_to_the_parcours(client, beneficiary):
     client.force_login(beneficiary)
 
     response = client.post(
@@ -290,7 +290,7 @@ def test_add_mentoring_study_status_step_advances_to_the_parcours(client, benefi
 
 
 @pytest.mark.django_db
-def test_add_mentoring_study_status_step_without_an_answer_stays_put(client, beneficiary):
+def test_mentoring_funnel_study_status_step_without_an_answer_stays_put(client, beneficiary):
     client.force_login(beneficiary)
 
     response = client.post(ADD_MENTORING_URL, {"action": "study_status"})
@@ -300,7 +300,7 @@ def test_add_mentoring_study_status_step_without_an_answer_stays_put(client, ben
 
 
 @pytest.mark.django_db
-def test_add_mentoring_parcours_step_with_an_incomplete_answer_stays_put(
+def test_mentoring_funnel_parcours_step_with_an_incomplete_answer_stays_put(
     client, beneficiary, school, formation
 ):
     client.force_login(beneficiary)
@@ -316,7 +316,7 @@ def test_add_mentoring_parcours_step_with_an_incomplete_answer_stays_put(
 
 
 @pytest.mark.django_db
-def test_add_mentoring_parcours_step_saves_it_and_advances_to_the_signup(
+def test_mentoring_funnel_parcours_step_saves_it_and_advances_to_the_signup(
     client, beneficiary, school, formation
 ):
     client.force_login(beneficiary)
@@ -331,7 +331,7 @@ def test_add_mentoring_parcours_step_saves_it_and_advances_to_the_signup(
 
 
 @pytest.mark.django_db
-def test_add_mentoring_parcours_step_with_a_forged_study_status_returns_to_the_question(
+def test_mentoring_funnel_parcours_step_with_a_forged_study_status_returns_to_the_question(
     client, beneficiary, school, formation
 ):
     client.force_login(beneficiary)

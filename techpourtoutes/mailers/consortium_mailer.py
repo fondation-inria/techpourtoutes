@@ -9,7 +9,7 @@ class ConsortiumMailer(BaseMailer):
     from_email = "TechPourToutes <agir@techpourtoutes.io>"
 
     @classmethod
-    def new_pro(cls, *, pro, engagement):
+    def pro_signed_up(cls, *, pro, engagement):
         recipient_list = {
             Pro.Engagement.INTERNSHIPS: settings.COALITION_INTERNSHIPS_RECIPIENTS,
             Pro.Engagement.WORK_AMBASSADOR: settings.COALITION_WORK_AMBASSADOR_RECIPIENTS,
@@ -25,7 +25,7 @@ class ConsortiumMailer(BaseMailer):
         )
 
     @classmethod
-    def new_training_ambassador(cls, *, pro, training_experience):
+    def training_ambassador_signed_up(cls, *, pro, training_experience):
         engagement_label = Pro.Engagement("training_ambassador").label
         cls.send_mail(
             subject=f"Une nouvelle demande pour {engagement_label}",
@@ -39,7 +39,7 @@ class ConsortiumMailer(BaseMailer):
         )
 
     @classmethod
-    def new_event(cls, *, event):
+    def event_submitted(cls, *, event):
         admin_url = settings.SITE_URL + reverse(
             "admin:techpourtoutes_event_change", args=[event.pk]
         )
@@ -51,7 +51,7 @@ class ConsortiumMailer(BaseMailer):
         )
 
     @classmethod
-    def new_mentoring_signup(cls, *, beneficiary, mentoring_signup_data):
+    def mentoree_signed_up(cls, *, beneficiary, mentoring_signup_data):
         cls.send_mail(
             subject="Nouvelle attestation à envoyer",
             recipient_list=settings.NEW_MENTORING_SIGNUP_RECIPIENTS,

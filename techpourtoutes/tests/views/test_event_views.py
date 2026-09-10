@@ -1,11 +1,11 @@
 import pytest
 from django.core import mail
 from django.test import override_settings
-from django.urls import reverse
+from django.urls import reverse, reverse_lazy
 
 from techpourtoutes.models import Event
 
-FUNNEL_URL = "/coalition/proposer-un-evenement/"
+FUNNEL_URL = reverse_lazy("event_funnel")
 
 locmem = override_settings(
     EMAIL_BACKEND="django.core.mail.backends.locmem.EmailBackend",
@@ -50,7 +50,7 @@ def test_the_funnel_is_reserved_to_pros(client, beneficiary):
 
     response = client.get(FUNNEL_URL, follow=True)
 
-    assert response.redirect_chain[-1][0] == reverse("account")
+    assert response.redirect_chain[-1][0] == reverse("show_account")
     assert any("réservée aux professionnelles" in str(m) for m in response.context["messages"])
 
 

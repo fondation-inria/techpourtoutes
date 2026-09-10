@@ -20,7 +20,7 @@ def _role_required(role, message):
         def wrapper(request, *args, **kwargs):
             if not hasattr(request.user, role):
                 messages.error(request, message)
-                return redirect(reverse("account"))
+                return redirect(reverse("show_account"))
             return view(request, *args, **kwargs)
 
         return wrapper

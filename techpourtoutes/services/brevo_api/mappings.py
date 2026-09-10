@@ -65,7 +65,7 @@ def brevo_attributes_for_manifeste_signatory(
     }
 
 
-def brevo_attributes_for_email_notification(*, email) -> dict:
+def brevo_attributes_for_upcoming_feature_notification(*, email) -> dict:
     return {FIELD_TO_BREVO_ATTR["email"]: email}
 
 

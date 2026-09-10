@@ -14,9 +14,9 @@ class VerifyEmailChangeCode(BaseService):
         if stage == "current":
             new_code = user.set_email_change_code()
             AuthMailer.change_email(user=user, code=new_code, new_email=new_email)
-            self.redirect_url = user.email_change_verify_url(
+            self.redirect_url = user.update_email_verification_url(
                 user.issue_email_change_token(new_email, "new")
             )
         else:
             user.apply_email_change(new_email)
-            self.redirect_url = reverse("account")
+            self.redirect_url = reverse("show_account")

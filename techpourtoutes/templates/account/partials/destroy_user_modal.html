@@ -1,0 +1,37 @@
+{% load politeness %}
+<c-components.modal title="{% politeness "Voulez-vous" "Veux-tu" %} vraiment supprimer {% politeness "votre" "ton" %} compte ?">
+    <br>
+    <p class="text-center text-sm">
+        Cette action est irréversible. Pour confirmer, {% politeness "veuillez cocher" "coche" %} la case{% politeness "" " ci-dessous" %}.
+    </p>
+    <br>
+    <div class="flex justify-center">
+        <c-patterns.form
+            url="{% url 'destroy_user' %}"
+            hx-post="{% url 'destroy_user' %}"
+            hx-target="#modal-container"
+            hx-swap="innerHTML"
+            class="max-w-lg"
+        >
+            <c-components.form_fields.checkbox
+                field=form.confirm_delete
+                full_width=True
+                label_class="text-sm"
+            />
+            <div class="flex flex-col items-center gap-4">
+                <c-components.button
+                    label="Supprimer définitivement mon compte"
+                    variant="primary_danger"
+                    type="submit"
+                    class="mt-2"
+                />
+                <c-components.button
+                    label="Annuler"
+                    type="button"
+                    variant="tertiary"
+                    hx-on:click="document.getElementById('modal-container').innerHTML = ''"
+                />
+            </div>
+        </c-patterns.form>
+    </div>
+</c-components.modal>
