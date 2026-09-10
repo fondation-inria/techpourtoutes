@@ -23,9 +23,9 @@ urlpatterns = [
         name="create_training_ambassador",
     ),
     path("accueillir-une-stagiaire/", views.new_internship, name="new_internship"),
-    path("devenir-mecene", views.new_sponsor, name="new_sponsor"),
+    path("devenir-mecene/", views.new_sponsor, name="new_sponsor"),
     path("devenir-mecene/inscription/", views.create_sponsor, name="create_sponsor"),
-    path("organiser-un-atelier", views.new_workshop_request, name="new_workshop_request"),
+    path("organiser-un-atelier/", views.new_workshop_request, name="new_workshop_request"),
     path(
         "organiser-un-atelier/demande/",
         views.create_workshop_request,
@@ -39,7 +39,7 @@ urlpatterns = [
         name="create_manifeste_signature",
     ),
     path(
-        "signer-le-manifeste/merci",
+        "signer-le-manifeste/merci/",
         views.show_manifeste_signature,
         name="show_manifeste_signature",
     ),
