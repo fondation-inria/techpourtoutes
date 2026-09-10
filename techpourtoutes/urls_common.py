@@ -13,7 +13,7 @@ urlpatterns = [
     path("mon-compte/profil/modifier/", views.edit_user, name="edit_user"),
     path("mon-compte/profil/update/", views.update_user, name="update_user"),
     path(
-        "mon-compte/profil/communication/update",
+        "mon-compte/profil/communication/update/",
         views.update_user_communication,
         name="update_user_communication",
     ),
@@ -83,11 +83,11 @@ urlpatterns = [
     path("se-deconnecter/", views.destroy_session, name="destroy_session"),
     path("mon-compte-mentorat/", views.login_to_jobirl, name="login_to_jobirl"),
     path(
-        "mon-compte/profil/supprimer/confirmation",
+        "mon-compte/profil/supprimer/confirmation/",
         views.destroy_user_modal,
         name="destroy_user_modal",
     ),
-    path("mon-compte/profil/supprimer", views.destroy_user, name="destroy_user"),
+    path("mon-compte/profil/supprimer/", views.destroy_user, name="destroy_user"),
     path("recherche-etablissements/", views.search_schools, name="search_schools"),
     path("recherche-formations/", views.search_formations, name="search_formations"),
     # Static
