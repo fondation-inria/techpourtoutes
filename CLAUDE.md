@@ -162,6 +162,21 @@ They are filed in two kinds of package: one per external API (`brevo_api/`, `job
 
 **Views:** Function-based views only.
 
+**View naming:** `<action>_<resource>`, where the action is the Rails REST verb — `index`, `show`, `new`, `create`, `edit`, `update`, `destroy`: `index_events`, `show_pro_training_experience`, `edit_user`, `destroy_beneficiary_training_experience`. Two extra actions cover what REST has no single word for:
+
+- `upsert_<resource>` — one view that both creates and updates.
+- `show_<resource>_form` — one view that renders both the `new` and the `edit` form.
+
+The URL name matches the view name, so `reverse()` and the function are one word apart.
+
+**One route, one view.** Two `path()` entries never share a function, and no view branches on `request.method`: a form is two routes, `edit_user` (GET) rendering it and `update_user` (POST) saving it, `new_mentor` (GET) and `create_mentor` (POST) likewise. What the pair has in common goes into a private helper — `new_beneficiary_training_experience` and `create_beneficiary_training_experience` both call `_render_beneficiary_training_experience_form`.
+
+Endpoints serving a partial name the partial as their resource: `destroy_user_modal`, `show_skip_mentoring_signup_modal`.
+
+Exceptions can be made in rare occasions, like for static pages (static_views, `home`, `coalition_welcome`...), search_views, robot_views, `login_*` methods in auth_views or `inscription_funnel`. Think thoroughly before diverging the convention and always mention it.
+
+**Templates take the name of the view that renders them** — and when a route was split in two, that is always the GET half: `new_mentor` and `create_mentor` both render `coalition/new_mentor.html`, `edit_pro_training_experience` and `update_pro_training_experience` both render `account/partials/edit_pro_training_experience.html`. Modals follow the rule too (`destroy_user_modal.html`). The partials a view merely composes into its page are named for what they show, not for a view (`account/partials/show_username.html`, `pro_cards.html`).
+
 **Workshop request flow:** `workshops_landing` uses `WorkshopForm`, creates a `Pro` with the `workshops` engagement, persists one `WorkshopRequest` per selected workshop type, sends the welcome email, and enqueues the n8n notification task. The chosen school's **UAI** is not stored on the `Pro`: it is a form-only field (`structure_uai`) handed to the task alongside the workshop types, and reaches Latitudes as `identifiant_etablissement`.
 
 **School autocomplete:** one endpoint, `search_schools`, parameterised by a `scope` query param. `views/search_views.py` holds the `SCOPES` registry, where each scope decides four things: which subset of `School` it searches, whether a numeric token matches the postal code, the ordering, and the template rendering one row of the dropdown. Adding a périmètre means adding an entry, not a view. The single cotton component is `ui/templates/cotton/components/form_fields/school_search.html`; its `key` var says whether the selected school's UUID or its UAI lands in the hidden id field.
@@ -198,6 +213,7 @@ They are filed in two kinds of package: one per external API (`brevo_api/`, `job
 - Use `pytest` with `@pytest.mark.django_db` for any test touching the database
 - Use Django's built-in `client` fixture for view tests; use `reverse()` for URLs
 - No factory_boy — use plain model instantiation or pytest fixtures
+- Name a view's tests after the view: `test_update_user_valid_saves_and_returns_info_card`, not `test_account_edit_...`
 
 ### Test layout
 

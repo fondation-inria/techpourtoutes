@@ -35,6 +35,6 @@ class CreateMentor(BaseService):
 
     def _trigger_onboarding(self, already_registered):
         if already_registered:
-            ProMailer.new_engagement(pro=self.pro)
+            ProMailer.engagement_added(pro=self.pro)
         else:
             ProMailer.welcome(pro=self.pro, token=self.pro.issue_login_token())

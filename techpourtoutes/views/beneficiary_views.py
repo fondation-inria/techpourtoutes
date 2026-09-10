@@ -2,15 +2,16 @@ from django.conf import settings
 from django.contrib import messages
 from django.shortcuts import redirect, render
 from django.urls import reverse
+from django.views.decorators.http import require_POST
 
 from ..forms import (
     BeneficiaryHigherEducationTrainingExperienceForm,
     BeneficiaryHighSchoolTrainingExperienceForm,
     BeneficiaryLastDiplomaTrainingExperienceForm,
-    EmailNotificationForm,
     StudyStatus,
+    UpcomingFeatureNotificationForm,
 )
-from ..tasks import upsert_email_notification_task
+from ..tasks import create_upcoming_feature_notification_task
 from ..utils.dates import compute_age
 
 # ------------------- pages -------------------
@@ -20,30 +21,33 @@ def beneficiary_home(request):
     return render(request, "beneficiary/beneficiary_home.html", {})
 
 
-def bientot_disponible(request):
-    if request.method == "POST":
-        form = EmailNotificationForm(data=request.POST)
-        if form.is_valid():
-            if settings.BREVO_SYNC_ENABLED:
-                upsert_email_notification_task.delay(email=form.cleaned_data["email"])
-            messages.success(
-                request,
-                "Merci, nous te préviendrons dès que cette fonctionnalité sera disponible.",
-            )
-            return redirect("bientot_disponible")
+def new_upcoming_feature_notification(request):
+    return _render_upcoming_feature_notification_form(request, UpcomingFeatureNotificationForm())
+
+
+@require_POST
+def create_upcoming_feature_notification(request):
+    form = UpcomingFeatureNotificationForm(data=request.POST)
+    if not form.is_valid():
         messages.error(
             request,
             "Des erreurs empêchent la validation du formulaire, "
             "merci de les corriger et de réessayer à nouveau.",
         )
-    else:
-        form = EmailNotificationForm()
-    return render(request, "beneficiary/bientot_disponible.html", {"form": form})
+        return _render_upcoming_feature_notification_form(request, form)
+
+    if settings.BREVO_SYNC_ENABLED:
+        create_upcoming_feature_notification_task.delay(email=form.cleaned_data["email"])
+    messages.success(
+        request,
+        "Merci, nous te préviendrons dès que cette fonctionnalité sera disponible.",
+    )
+    return redirect("new_upcoming_feature_notification")
 
 
-def find_mentor_landing(request):
+def new_mentoree(request):
     beneficiary = getattr(request.user, "beneficiary", None)
-    cta_href = reverse("add_mentoring")
+    cta_href = reverse("mentoring_funnel")
     cta_label = "S'inscrire au mentorat"
     cta_disabled = False
     if not request.user.is_authenticated:
@@ -58,9 +62,13 @@ def find_mentor_landing(request):
             cta_disabled = True
     return render(
         request,
-        "beneficiary/find_mentor_landing.html",
+        "beneficiary/new_mentoree.html",
         {"cta_href": cta_href, "cta_label": cta_label, "cta_disabled": cta_disabled},
     )
+
+
+def _render_upcoming_feature_notification_form(request, form):
+    return render(request, "beneficiary/new_upcoming_feature_notification.html", {"form": form})
 
 
 # ------------------- steps shared by both funnels -------------------

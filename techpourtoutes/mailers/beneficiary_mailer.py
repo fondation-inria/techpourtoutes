@@ -15,7 +15,7 @@ class BeneficiaryMailer(BaseMailer):
             context={
                 "beneficiary": beneficiary,
                 "booking_url": settings.BENEFICIARY_BOOKING_URL,
-                "account_url": f"{settings.SITE_URL}{reverse('account')}",
+                "account_url": f"{settings.SITE_URL}{reverse('show_account')}",
             },
             tags=["utilisateur", "beneficiaire", "mail de bienvenue"],
         )

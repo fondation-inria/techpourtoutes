@@ -1,0 +1,18 @@
+{% load politeness %}
+<c-layout.base>
+    <c-components.title title="Mon compte" title_bg="yellow" />
+
+    <div class="grid w-full grid-cols-1 md:grid-cols-2 gap-6">
+        <c-components.card-link color="white" title="Profil" button="Modifier" href="{% url "show_user" %}">
+            {% politeness "Retrouvez vos" "Retrouve tes" %} informations personnelles et {% politeness "vos" "tes" %} préférences de compte.
+        </c-components.card-link>
+            
+        {% if is_beneficiary %}
+            {% include "account/partials/beneficiary_cards.html" %}
+        {% endif %}
+
+        {% if is_pro %}
+            {% include "account/partials/pro_cards.html" %}
+        {% endif %}
+    </div>
+</c-layout.base>

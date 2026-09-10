@@ -1,0 +1,125 @@
+<c-layout.base title="Pitcher mon métier – TechPourToutes" description="Partagez votre parcours professionnel durant des échanges ponctuels et inspirez les jeunes femmes à s'orienter vers la tech en devenant ambassadrice métier TechPourToutes.">
+    <c-components.title title="Pitcher mon métier" title_bg="yellow" />
+    <div class="flex flex-wrap gap-2 md:gap-4">
+        <c-components.badge label="Ponctuel" />
+        <c-components.badge label="30 minutes" />
+        <c-components.badge label="À distance" />
+    </div>
+
+    <c-components.card title="Qui peut devenir ambassadrice métier&nbsp;?">
+            <br>
+            Nous avons <c-components.inline-link label="fait le choix de féminiser les termes sur le site TechPourToutes" href="{% url "pourquoi_nous_ecrivons_au_feminin" %}"/> par cohérence avec notre objectif de visibiliser la place des femmes dans le numérique et plus largement de contribuer à la mixité dans ce secteur. Pour autant, <span class="font-bold">les ambassadeurs sont bien évidemment les bienvenus&nbsp;!</span> Tous les parcours, linéaires, créatifs, faits de reconversion ou de choix audacieux sont instructifs et permettront aux lycéennes et étudiantes de découvrir de nouveaux métiers et de se projeter dans un monde du travail en constante évolution.
+            <br><br>
+            Trois prérequis :
+            <ul class="steps steps-vertical">
+                <li class="step step-secondary text-left">Avoir plus de 20 ans</li>
+                <li class="step step-secondary text-left">Travailler ou avoir travaillé dans le secteur numérique, dans un métier technique ou non</li>
+                <li class="step step-secondary text-left"><span>Adhérer au <c-components.inline-link label="manifeste TechPourToutes" href="{% url "notre_manifeste" %}"/></span></li>
+            </ul>
+    </c-components.card>
+
+    <div class="flex justify-center w-full md:hidden">
+        <c-components.button href="#work-ambassador-card" label="Je deviens ambassadrice" />
+    </div>
+
+    <c-components.card title="Un engagement adapté à vos disponibilités">
+        <c-components.text>
+            Les échanges avec les filles ont une durée par défaut de 30 minutes. Vous pouvez bien sûr les prolonger si vous le souhaitez. Ils peuvent être très ponctuels, une fois dans l'année, ou plus fréquents en fonction de votre disponibilité et du nombre de filles qui souhaitent échanger avec vous.
+        </c-components.text>
+    </c-components.card>
+
+    <c-components.card title="De la représentation à l'action">
+        <c-components.text>
+            Pas de décorum et de dîner de l'ambassadeur chez TechPourToutes, être ambassadrice ou ambassadeur métier, c'est avoir un impact direct sur les lycéennes et étudiantes pour les aider à construire leur projet professionnel. En leur partageant votre parcours et vos choix, en racontant votre quotidien au travail, vous ouvrez le champ des représentations, vous les inspirez, vous les aidez à se projeter dans la suite de leur parcours.
+        </c-components.text>
+    </c-components.card>
+
+    <c-components.accordion title="L'ambassadrice est-elle la femme de l'ambassadeur ou une personne avec une existence propre&nbsp;?">
+        <c-components.text>
+            Bien qu'une femme fut nommée "ambassadrice extraordinaire" dès 1645, le Dictionnaire de l'Académie française précisait lui en 1718 que l'ambassadrice était la "femme d'un ambassadeur". Ce n'est qu'en 2019 que l'Académie française revient sur sa position et permet "la féminisation des noms de métiers et de professions". Quelques années après l'Annuaire diplomatique qui employait déjà le terme d'"ambassadrice" dès le tournant du siècle.
+
+            Alors à la suite de toutes les Renée Crespin du Bec, ingénieuse émissaire du cardinal Mazarin et première ambassadrice, pour nous une ambassadrice est une fière représentante de son métier et participe à la mixité dans les métiers du numérique - au même titre que les ambassadeurs métiers&nbsp;!
+
+        </c-components.text>
+        <c-components.button href="https://fr.wikipedia.org/wiki/Ambassadeur" label="Source&nbsp;: Wikipedia" icon="external-link" variant="tertiary" target="_blank" />
+    </c-components.accordion>
+
+    <c-components.accordion title="Cette action est menée par">
+        <c-components.text>
+            la Fondation Inria, pilote du programme TechPourToutes.
+
+        </c-components.text>
+        <c-components.button href="{% url "qui_sommes_nous" %}" label="Découvrir tous les membres du consortium TechPourToutes" variant="tertiary" />
+    </c-components.accordion>
+
+    <c-slot name="decorations">
+        <c-components.codex-letter letter="P" row="6" col="16" class="text-orange-500" />
+    </c-slot>
+
+    <c-slot name="right">
+        <div class="flex flex-col items-center px-4 md:mt-[100px] md:self-start"
+             x-data="{ showForm: {{ form.is_bound|yesno:'true,false' }}, situation: '{{ form.professional_situation.value|default:'' }}' }"
+             @select-change="situation = $event.detail.value"
+             :class="{ 'md:sticky md:top-14 xl:top-8': !showForm }">
+            <c-components.starburst-title title="Rejoignez la coalition&nbsp;!" />
+            <div id="work-ambassador-card">
+                <div x-show="!showForm" {% if not pro or "work_ambassador" not in pro.engagements %}@click.prevent="showForm = true; $nextTick(() => { $refs.formCard.scrollIntoView({ behavior: 'smooth', block: 'start' }) })" class="cursor-pointer"{% endif %}>
+                    <c-components.card-shadow id="work-ambassador-member-card" class="w-[320px] my-5">
+                        <div class="flex gap-5">
+                            <div>
+                                {% if pro %}
+                                    <p class="font-medium pb-3">{{ pro.first_name }}</p>
+                                    <p class="font-medium pb-3">{{ pro.last_name }}</p>
+                                {% else %}
+                                    <p class="font-light pb-3">Prénom</p>
+                                    <p class="font-light pb-3">Nom</p>
+                                {% endif %}
+                                <p class="font-medium">Ambassadrice TechPourToutes</p>
+                            </div>
+                        </div>
+                        {% if not pro or "work_ambassador" not in pro.engagements %}
+                            <div class="flex justify-center mt-3">
+                                <c-components.button href="" label="Je deviens ambassadrice" />
+                            </div>
+                        {% endif %}
+                    </c-components.card-shadow>
+                </div>
+                <div x-ref="formCard" x-show="showForm" x-cloak
+                    x-transition:enter="transition ease-out duration-300 origin-top"
+                    x-transition:enter-start="scale-y-20"
+                    x-transition:enter-end="scale-y-100"
+                />
+                    <c-components.card-shadow id="work-ambassador-form-card" class="w-[320px] my-5 p-5 relative">
+                        <c-patterns.form url="{% url 'create_work_ambassador' %}">
+                            <c-components.title title="Engagement ambassadrice" variant="h3" />
+                            <p class="description-text-xxs">Les champs suivis d'un astérisque (*) sont obligatoires.</p>
+                            <c-components.form_fields.radio field=form.civility />
+                            <c-components.form_fields.input field=form.first_name autocomplete="given-name" />
+                            <c-components.form_fields.input field=form.last_name autocomplete="family-name" />
+                            <c-components.form_fields.input field=form.email autocomplete="email" variant="{% if pro %}disabled{% endif %}" />
+                            <c-components.form_fields.input field=form.phone autocomplete="tel" />
+                            <c-components.form_fields.input field=form.postal_code autocomplete="postal-code" />
+                            <c-components.form_fields.select field=form.professional_situation :watchable=True />
+                            <div x-show="situation != ''" x-cloak>
+                                <c-components.form_fields.input field=form.job_title autocomplete="organization-title" />
+                            </div>
+                            <div x-show="situation == 'working'" x-cloak>
+                                <c-components.form_fields.input field=form.structure_name autocomplete="organization" />
+                            </div>
+                            {% if not pro %}
+                                <c-components.form_fields.checkbox field=form.terms_accepted />
+                                <c-components.form_fields.checkbox field=form.manifeste_accepted />
+                            {% endif %}
+                            {% if form.newsletter_consent %}
+                                <c-components.form_fields.checkbox field=form.newsletter_consent />
+                            {% endif %}
+                            <div class="flex justify-center">
+                                <c-components.button type="submit" label="Je deviens ambassadrice" />
+                            </div>
+                        </c-patterns.form>
+                    </c-components.card-shadow>
+                </div>
+            </div>
+        </div>
+    </c-slot>
+</c-layout.base>

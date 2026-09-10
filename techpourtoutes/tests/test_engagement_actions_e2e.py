@@ -24,7 +24,7 @@ def test_mentor_signup_creates_pro_and_sends_welcome_email(
             json={"response": "success", "datas": {"id": 42, "token": "tok-abc"}},
         )
 
-        page.goto(f"{live_server.url}{reverse('mentor_landing')}")
+        page.goto(f"{live_server.url}{reverse('new_mentor')}")
         _reveal_form(page, "mentor-member-card")
 
         _fill_identity(
@@ -46,7 +46,7 @@ def test_mentor_signup_creates_pro_and_sends_welcome_email(
 
 
 def test_work_ambassador_signup_creates_pro_and_sends_welcome_email(page, live_server, mailoutbox):
-    page.goto(f"{live_server.url}{reverse('work_ambassador_landing')}")
+    page.goto(f"{live_server.url}{reverse('new_work_ambassador')}")
     _reveal_form(page, "work-ambassador-member-card")
 
     _fill_identity(page, first_name="Bea", last_name="Dupuis", email="bea.ambassador@example.com")
@@ -68,7 +68,7 @@ def test_work_ambassador_signup_creates_pro_and_sends_welcome_email(page, live_s
 
 
 def test_sponsor_signup_creates_pro_and_sends_welcome_email(page, live_server, mailoutbox):
-    page.goto(f"{live_server.url}{reverse('sponsor_landing')}")
+    page.goto(f"{live_server.url}{reverse('new_sponsor')}")
     _reveal_form(page, "sponsor-member-card")
 
     _fill_identity(
@@ -90,7 +90,7 @@ def test_sponsor_signup_creates_pro_and_sends_welcome_email(page, live_server, m
 def test_training_ambassador_signup_creates_pro_and_training_experience(
     page, live_server, higher_ed_school, higher_ed_formation, mailoutbox
 ):
-    page.goto(f"{live_server.url}{reverse('training_ambassador_landing')}")
+    page.goto(f"{live_server.url}{reverse('new_training_ambassador')}")
     _reveal_form(page, "training-ambassador-member-card")
 
     _fill_identity(page, first_name="Dina", last_name="Faure", email="dina.training@example.com")
@@ -115,7 +115,7 @@ def test_training_ambassador_signup_creates_pro_and_training_experience(
 
 def test_workshops_signup_creates_pro_and_workshop_requests(page, live_server, school, mailoutbox):
     with patch("techpourtoutes.views.coalition_views.notify_workshop_request_task"):
-        page.goto(f"{live_server.url}{reverse('workshops_landing')}")
+        page.goto(f"{live_server.url}{reverse('new_workshop_request')}")
         page.locator("#latitudes-cta").click()
 
         _fill_identity(

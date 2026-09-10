@@ -1,5 +1,4 @@
 import pytest
-from django.test import override_settings
 from django.urls import reverse
 
 LEGAL_URL_NAMES = [
@@ -15,7 +14,6 @@ A_PROPOS_URL_NAMES = [
     "qui_sommes_nous",
     "pourquoi_nous_ecrivons_au_feminin",
     "contact",
-    "signature_manifeste",
 ]
 
 
@@ -23,15 +21,6 @@ A_PROPOS_URL_NAMES = [
 @pytest.mark.parametrize("url_name", LEGAL_URL_NAMES + A_PROPOS_URL_NAMES)
 def test_static_page_returns_200(client, url_name):
     assert client.get(reverse(url_name)).status_code == 200
-
-
-@pytest.mark.django_db
-@override_settings(SITE_URL="https://example.test")
-def test_signature_manifeste_linkedin_share_url(client):
-    response = client.get(reverse("signature_manifeste"))
-    assert response.context["linkedin_share_url"] == (
-        "https://www.linkedin.com/sharing/share-offsite/?url=https://example.test/notre-manifeste/"
-    )
 
 
 @pytest.mark.django_db

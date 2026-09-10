@@ -8,7 +8,7 @@ class ProMailer(BaseMailer):
     from_email = "TechPourToutes <agir@techpourtoutes.io>"
 
     @classmethod
-    def new_engagement(cls, *, pro):
+    def engagement_added(cls, *, pro):
         cls.send_mail(
             subject="Votre nouvelle demande d'engagement auprès de TechPourToutes",
             recipient_list=[pro.email],
