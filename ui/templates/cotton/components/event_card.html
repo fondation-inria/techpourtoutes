@@ -5,9 +5,9 @@
     <div class="flex flex-col gap-4 p-4 text-black {{ category_color }}">
         <div class="flex justify-end">
             {% if bookmark_action %}
-                {% include "beneficiary/partials/event_bookmark.html" with saved=event.saved %}
+                {% include "beneficiary/partials/update_saved_event.html" with saved=event.saved %}
             {% endif %}
-            <a href="{% url "bientot_disponible" %}?feature=evenements" class="after:absolute after:inset-0"></a>
+            <a href="{% url "new_upcoming_feature_notification" %}?feature=evenements" class="after:absolute after:inset-0"></a>
         </div>
         <div class="flex justify-center">
             <c-components.badge label="{{ event.subcategory_label }}" background_color="{{ category_color }}" />

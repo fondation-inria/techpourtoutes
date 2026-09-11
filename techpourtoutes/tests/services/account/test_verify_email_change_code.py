@@ -41,7 +41,7 @@ def test_verify_current_advances_and_mails_new(pro, mailoutbox):
     result = VerifyEmailChangeCode(user=pro, payload=payload, code=code)
 
     assert result.success
-    assert reverse("email_change_verify") in result.redirect_url
+    assert reverse("show_user_email_verification") in result.redirect_url
     pro.refresh_from_db()
     assert pro.email_change_code_hash != previous_hash
     assert len(mailoutbox) == 1
@@ -56,7 +56,7 @@ def test_verify_new_applies_change(pro, mailoutbox):
     result = VerifyEmailChangeCode(user=pro, payload=payload, code=code)
 
     assert result.success
-    assert result.redirect_url == reverse("account")
+    assert result.redirect_url == reverse("show_account")
     pro.refresh_from_db()
     assert pro.email == "new@example.com"
     assert pro.username == "new@example.com"

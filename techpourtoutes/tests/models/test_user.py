@@ -27,6 +27,42 @@ def test_user_full_name_shouts_the_last_name():
     assert user.full_name == "Ada LOVELACE"
 
 
+def _save_user(**fields):
+    from techpourtoutes.models import User
+
+    user = User(first_name="Alice", last_name="Martin", **fields)
+    user.set_unusable_password()
+    user.save()
+    user.refresh_from_db()
+    return user
+
+
+@pytest.mark.django_db
+def test_save_lowercases_the_email():
+    assert _save_user(email="Alice@Example.COM").email == "alice@example.com"
+
+
+@pytest.mark.django_db
+def test_save_lowercases_the_username_derived_from_the_email():
+    assert _save_user(email="Alice@Example.COM").username == "alice@example.com"
+
+
+@pytest.mark.django_db
+def test_save_lowercases_an_explicit_username():
+    """The unique constraint sits on username, so it must not keep a case of its own."""
+    user = _save_user(username="Alice@Example.COM", email="Alice@Example.COM")
+
+    assert user.username == "alice@example.com"
+
+
+@pytest.mark.django_db
+def test_saving_a_case_variant_of_an_existing_email_is_rejected(pro):
+    from django.core.exceptions import ValidationError
+
+    with pytest.raises(ValidationError):
+        _save_user(email=pro.email.upper())
+
+
 @pytest.mark.django_db
 def test_issue_login_token_returns_plaintext_and_stores_hash(pro):
     plaintext = pro.issue_login_token()
@@ -317,13 +353,13 @@ def test_read_email_change_token_rejects_other_user(pro, inactive_user):
 
 
 @pytest.mark.django_db
-def test_email_change_verify_url_carries_token(pro):
+def test_update_email_verification_url_carries_token(pro):
     from urllib.parse import urlencode
 
     from django.urls import reverse
 
     token = pro.issue_email_change_token("nouvelle@example.com", "current")
-    url = pro.email_change_verify_url(token)
+    url = pro.update_email_verification_url(token)
 
-    assert url.startswith(reverse("email_change_verify"))
+    assert url.startswith(reverse("show_user_email_verification"))
     assert urlencode({"token": token}) in url

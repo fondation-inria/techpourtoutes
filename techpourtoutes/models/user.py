@@ -124,8 +124,8 @@ class User(BaseModel, AbstractUser):
         return instance
 
     def save(self, *args, **kwargs):
-        if not self.username:
-            self.username = self.email
+        self.email = self.email.lower()
+        self.username = (self.username or self.email).lower()
         super().save(*args, **kwargs)
 
     @property
@@ -248,8 +248,8 @@ class User(BaseModel, AbstractUser):
             return None
         return payload
 
-    def email_change_verify_url(self, token: str) -> str:
-        return f"{reverse('email_change_verify')}?{urlencode({'token': token})}"
+    def update_email_verification_url(self, token: str) -> str:
+        return f"{reverse('show_user_email_verification')}?{urlencode({'token': token})}"
 
     def soft_delete(self):
         self.is_active = False

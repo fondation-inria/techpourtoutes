@@ -7,9 +7,9 @@ from django.urls import reverse
 
 
 @pytest.mark.django_db
-def test_account_page_lists_a_card_per_training_experience(client, pro, experience):
+def test_show_user_lists_a_card_per_pro_training_experience(client, pro, experience):
     client.force_login(pro)
-    content = client.get(reverse("account_detail")).content.decode()
+    content = client.get(reverse("show_user")).content.decode()
     assert f"training-experience-{experience.pk}" in content
     assert "Master Informatique" in content
     assert "Bac +3" in content
@@ -17,22 +17,22 @@ def test_account_page_lists_a_card_per_training_experience(client, pro, experien
 
 
 @pytest.mark.django_db
-def test_training_experience_edit_get_prefills_form(client, pro, experience):
+def test_edit_pro_training_experience_get_prefills_form(client, pro, experience):
     client.force_login(pro)
-    response = client.get(reverse("pro_training_experience_edit", args=[experience.pk]))
+    response = client.get(reverse("edit_pro_training_experience", args=[experience.pk]))
     assert response.status_code == 200
     assert response.context["form"].initial["formation_label"] == "Master Informatique"
     assert response.context["form"].initial["level"] == "bac_3"
 
 
 @pytest.mark.django_db
-def test_training_experience_edit_post_updates_experience(client, pro, experience):
+def test_update_pro_training_experience_updates_experience(client, pro, experience):
     other = _another_school()
     ingenieur = _another_formation()
     client.force_login(pro)
 
     response = client.post(
-        reverse("pro_training_experience_edit", args=[experience.pk]),
+        reverse("update_pro_training_experience", args=[experience.pk]),
         data={
             "school_id": str(other.id),
             "level": "bac_5",
@@ -48,7 +48,7 @@ def test_training_experience_edit_post_updates_experience(client, pro, experienc
 
 
 @pytest.mark.django_db
-def test_training_experience_cannot_be_edited_by_another_pro(client, experience):
+def test_edit_pro_training_experience_rejects_another_pro(client, experience):
     from techpourtoutes.models import Pro
 
     intruder = Pro(
@@ -63,7 +63,7 @@ def test_training_experience_cannot_be_edited_by_another_pro(client, experience)
     intruder.save()
     client.force_login(intruder)
 
-    response = client.get(reverse("pro_training_experience_edit", args=[experience.pk]))
+    response = client.get(reverse("edit_pro_training_experience", args=[experience.pk]))
     assert response.status_code == 404
 
 
@@ -86,17 +86,17 @@ def _another_formation():
 
 
 @pytest.mark.django_db
-def test_account_page_lists_a_card_per_beneficiary_training_experience(
+def test_show_user_lists_a_card_per_beneficiary_training_experience(
     client, beneficiary, beneficiary_experience
 ):
     client.force_login(beneficiary)
-    content = client.get(reverse("account_detail")).content.decode()
+    content = client.get(reverse("show_user")).content.decode()
     assert f"beneficiary-training-experience-{beneficiary_experience.pk}" in content
     assert "Spécialité mathématiques" in content
 
 
 @pytest.mark.django_db
-def test_account_page_places_current_year_placeholder_after_future_experience(client, beneficiary):
+def test_show_user_places_current_year_placeholder_after_future_experience(client, beneficiary):
     from techpourtoutes.models import Level, TrainingExperience
     from techpourtoutes.utils.school_year import next_school_year_start_date
 
@@ -110,7 +110,7 @@ def test_account_page_places_current_year_placeholder_after_future_experience(cl
     )
     client.force_login(beneficiary)
 
-    content = client.get(reverse("account_detail")).content.decode()
+    content = client.get(reverse("show_user")).content.decode()
 
     assert content.index(f'id="beneficiary-training-experience-{next_year.pk}"') < content.index(
         'id="beneficiary-training-experience-current-year"'
@@ -118,21 +118,21 @@ def test_account_page_places_current_year_placeholder_after_future_experience(cl
 
 
 @pytest.mark.django_db
-def test_beneficiary_training_experience_add_get_returns_empty_form(client, beneficiary):
+def test_new_beneficiary_training_experience_get_returns_empty_form(client, beneficiary):
     client.force_login(beneficiary)
-    response = client.get(reverse("beneficiary_training_experience_add"))
+    response = client.get(reverse("new_beneficiary_training_experience"))
     assert response.status_code == 200
     assert response.context["form"].initial == {}
 
 
 @pytest.mark.django_db
-def test_beneficiary_training_experience_add_post_creates_experience(
+def test_create_beneficiary_training_experience_creates_experience(
     client, beneficiary, school, formation
 ):
     client.force_login(beneficiary)
 
     response = client.post(
-        reverse("beneficiary_training_experience_add"),
+        reverse("create_beneficiary_training_experience"),
         data={
             "period_label": "2024-2025",
             "level": "seconde",
@@ -159,7 +159,7 @@ def test_beneficiary_missing_formation_is_saved_reported_and_displayed(
     client.force_login(beneficiary)
 
     response = client.post(
-        reverse("beneficiary_training_experience_add"),
+        reverse("create_beneficiary_training_experience"),
         data={
             "period_label": "2024-2025",
             "level": "seconde",
@@ -185,7 +185,7 @@ def test_beneficiary_missing_formation_is_saved_reported_and_displayed(
 
 
 @pytest.mark.django_db
-def test_beneficiary_training_experience_add_post_repositions_card_before_older_experience(
+def test_create_beneficiary_training_experience_repositions_card_before_older_experience(
     client, beneficiary, school, formation
 ):
     from techpourtoutes.models import Level, TrainingExperience
@@ -201,7 +201,7 @@ def test_beneficiary_training_experience_add_post_repositions_card_before_older_
     client.force_login(beneficiary)
 
     response = client.post(
-        reverse("beneficiary_training_experience_add"),
+        reverse("create_beneficiary_training_experience"),
         data={
             "period_label": "2022-2023",
             "level": "premiere",
@@ -224,13 +224,13 @@ def test_beneficiary_training_experience_add_post_repositions_card_before_older_
 
 
 @pytest.mark.django_db
-def test_beneficiary_training_experience_add_post_appends_when_it_is_the_earliest(
+def test_create_beneficiary_training_experience_appends_when_it_is_the_earliest(
     client, beneficiary, beneficiary_experience, school, formation
 ):
     client.force_login(beneficiary)
 
     response = client.post(
-        reverse("beneficiary_training_experience_add"),
+        reverse("create_beneficiary_training_experience"),
         data={
             "period_label": "2020-2021",
             "level": "seconde",
@@ -245,7 +245,7 @@ def test_beneficiary_training_experience_add_post_appends_when_it_is_the_earlies
 
 
 @pytest.mark.django_db
-def test_beneficiary_training_experience_edit_post_repositions_when_period_changes(
+def test_update_beneficiary_training_experience_repositions_when_period_changes(
     client, beneficiary, beneficiary_experience, school, formation
 ):
     from techpourtoutes.models import Level, TrainingExperience
@@ -261,7 +261,7 @@ def test_beneficiary_training_experience_edit_post_repositions_when_period_chang
     client.force_login(beneficiary)
 
     response = client.post(
-        reverse("beneficiary_training_experience_edit", args=[beneficiary_experience.pk]),
+        reverse("update_beneficiary_training_experience", args=[beneficiary_experience.pk]),
         data={
             "period_label": "2021-2022",
             "level": "premiere",
@@ -279,32 +279,32 @@ def test_beneficiary_training_experience_edit_post_repositions_when_period_chang
 
 
 @pytest.mark.django_db
-def test_beneficiary_training_experience_add_requires_beneficiary_account(client, pro):
+def test_new_beneficiary_training_experience_requires_beneficiary_account(client, pro):
     client.force_login(pro)
-    response = client.get(reverse("beneficiary_training_experience_add"))
+    response = client.get(reverse("new_beneficiary_training_experience"))
     assert response.status_code == 404
 
 
 @pytest.mark.django_db
-def test_beneficiary_training_experience_edit_get_prefills_form(
+def test_edit_beneficiary_training_experience_get_prefills_form(
     client, beneficiary, beneficiary_experience
 ):
     client.force_login(beneficiary)
     response = client.get(
-        reverse("beneficiary_training_experience_edit", args=[beneficiary_experience.pk])
+        reverse("edit_beneficiary_training_experience", args=[beneficiary_experience.pk])
     )
     assert response.status_code == 200
     assert response.context["form"].initial["formation_label"] == "Spécialité mathématiques"
 
 
 @pytest.mark.django_db
-def test_beneficiary_training_experience_edit_post_updates_experience(
+def test_update_beneficiary_training_experience_updates_experience(
     client, beneficiary, beneficiary_experience, higher_ed_school, higher_ed_formation
 ):
     client.force_login(beneficiary)
 
     response = client.post(
-        reverse("beneficiary_training_experience_edit", args=[beneficiary_experience.pk]),
+        reverse("update_beneficiary_training_experience", args=[beneficiary_experience.pk]),
         data={
             "period_label": "2024-2025",
             "level": "bac_1",
@@ -320,7 +320,7 @@ def test_beneficiary_training_experience_edit_post_updates_experience(
 
 
 @pytest.mark.django_db
-def test_beneficiary_training_experience_cannot_be_edited_by_another_beneficiary(
+def test_edit_beneficiary_training_experience_rejects_another_beneficiary(
     client, beneficiary_experience
 ):
     from datetime import date
@@ -338,24 +338,22 @@ def test_beneficiary_training_experience_cannot_be_edited_by_another_beneficiary
     client.force_login(intruder)
 
     response = client.get(
-        reverse("beneficiary_training_experience_edit", args=[beneficiary_experience.pk])
+        reverse("edit_beneficiary_training_experience", args=[beneficiary_experience.pk])
     )
     assert response.status_code == 404
 
 
 @pytest.mark.django_db
-def test_beneficiary_training_experience_cannot_be_edited_by_a_pro(
-    client, beneficiary_experience, pro
-):
+def test_edit_beneficiary_training_experience_rejects_a_pro(client, beneficiary_experience, pro):
     client.force_login(pro)
     response = client.get(
-        reverse("beneficiary_training_experience_edit", args=[beneficiary_experience.pk])
+        reverse("edit_beneficiary_training_experience", args=[beneficiary_experience.pk])
     )
     assert response.status_code == 404
 
 
 @pytest.mark.django_db
-def test_beneficiary_training_experience_delete_removes_experience(
+def test_destroy_beneficiary_training_experience_removes_experience(
     client, beneficiary, beneficiary_experience
 ):
     from techpourtoutes.models import Level, TrainingExperience
@@ -372,7 +370,7 @@ def test_beneficiary_training_experience_delete_removes_experience(
     client.force_login(beneficiary)
 
     response = client.post(
-        reverse("beneficiary_training_experience_delete", args=[beneficiary_experience.pk])
+        reverse("destroy_beneficiary_training_experience", args=[beneficiary_experience.pk])
     )
 
     assert response.status_code == 200
@@ -380,7 +378,7 @@ def test_beneficiary_training_experience_delete_removes_experience(
 
 
 @pytest.mark.django_db
-def test_beneficiary_training_experience_delete_rejects_current_school_year(client, beneficiary):
+def test_destroy_beneficiary_training_experience_rejects_current_school_year(client, beneficiary):
     from techpourtoutes.models import Level, TrainingExperience
     from techpourtoutes.utils.school_year import current_school_year_start_date
 
@@ -394,14 +392,14 @@ def test_beneficiary_training_experience_delete_rejects_current_school_year(clie
     )
     client.force_login(beneficiary)
 
-    response = client.post(reverse("beneficiary_training_experience_delete", args=[current.pk]))
+    response = client.post(reverse("destroy_beneficiary_training_experience", args=[current.pk]))
 
     assert response.status_code == 403
     assert beneficiary.training_experiences.filter(pk=current.pk).exists()
 
 
 @pytest.mark.django_db
-def test_beneficiary_training_experience_delete_rejects_last_remaining_experience(
+def test_destroy_beneficiary_training_experience_rejects_last_remaining_experience(
     client, beneficiary, beneficiary_experience
 ):
     from django.contrib.messages import get_messages
@@ -409,18 +407,18 @@ def test_beneficiary_training_experience_delete_rejects_last_remaining_experienc
     client.force_login(beneficiary)
 
     response = client.post(
-        reverse("beneficiary_training_experience_delete", args=[beneficiary_experience.pk])
+        reverse("destroy_beneficiary_training_experience", args=[beneficiary_experience.pk])
     )
 
     assert response.status_code == 200
-    assert response["HX-Redirect"] == reverse("account")
+    assert response["HX-Redirect"] == reverse("show_account")
     assert beneficiary.training_experiences.filter(pk=beneficiary_experience.pk).exists()
     stored = [str(m) for m in get_messages(response.wsgi_request)]
     assert any("Au moins une formation doit être renseignée." in m for m in stored)
 
 
 @pytest.mark.django_db
-def test_beneficiary_training_experience_cannot_be_deleted_by_another_beneficiary(
+def test_destroy_beneficiary_training_experience_rejects_another_beneficiary(
     client, beneficiary_experience
 ):
     from datetime import date
@@ -438,7 +436,7 @@ def test_beneficiary_training_experience_cannot_be_deleted_by_another_beneficiar
     client.force_login(intruder)
 
     response = client.post(
-        reverse("beneficiary_training_experience_delete", args=[beneficiary_experience.pk])
+        reverse("destroy_beneficiary_training_experience", args=[beneficiary_experience.pk])
     )
 
     assert response.status_code == 404
@@ -448,13 +446,13 @@ def test_beneficiary_training_experience_cannot_be_deleted_by_another_beneficiar
 
 
 @pytest.mark.django_db
-def test_beneficiary_training_experience_cannot_be_deleted_by_a_pro(
+def test_destroy_beneficiary_training_experience_rejects_a_pro(
     client, beneficiary_experience, pro
 ):
     client.force_login(pro)
 
     response = client.post(
-        reverse("beneficiary_training_experience_delete", args=[beneficiary_experience.pk])
+        reverse("destroy_beneficiary_training_experience", args=[beneficiary_experience.pk])
     )
 
     assert response.status_code == 404
@@ -464,7 +462,7 @@ def test_beneficiary_training_experience_cannot_be_deleted_by_a_pro(
 
 
 @pytest.mark.django_db
-def test_beneficiary_training_experience_edit_forms_have_unique_search_result_ids(
+def test_edit_beneficiary_training_experience_forms_have_unique_search_result_ids(
     client, beneficiary, beneficiary_experience, school
 ):
     from techpourtoutes.models import Level, TrainingExperience
@@ -480,10 +478,10 @@ def test_beneficiary_training_experience_edit_forms_have_unique_search_result_id
     client.force_login(beneficiary)
 
     first = client.get(
-        reverse("beneficiary_training_experience_edit", args=[beneficiary_experience.pk])
+        reverse("edit_beneficiary_training_experience", args=[beneficiary_experience.pk])
     ).content.decode()
     second = client.get(
-        reverse("beneficiary_training_experience_edit", args=[other.pk])
+        reverse("edit_beneficiary_training_experience", args=[other.pk])
     ).content.decode()
 
     assert f'id="school-results-{beneficiary_experience.pk}"' in first
@@ -493,24 +491,22 @@ def test_beneficiary_training_experience_edit_forms_have_unique_search_result_id
 
 
 @pytest.mark.django_db
-def test_account_page_shows_not_enrolled_status_when_no_current_year_experience(
-    client, beneficiary
-):
+def test_show_user_shows_not_enrolled_status_when_no_current_year_experience(client, beneficiary):
     client.force_login(beneficiary)
 
-    content = client.get(reverse("account_detail")).content.decode()
+    content = client.get(reverse("show_user")).content.decode()
 
     assert "Je ne suis pas inscrite dans une formation" in content
     assert re.search(r'<input[^>]*id="id_not_enrolled"[^>]*>', content) is None
 
 
 @pytest.mark.django_db
-def test_beneficiary_training_experience_add_get_current_year_returns_checked_form(
+def test_new_beneficiary_training_experience_get_current_year_returns_checked_form(
     client, beneficiary
 ):
     client.force_login(beneficiary)
 
-    response = client.get(reverse("beneficiary_training_experience_add"), {"current_year": "true"})
+    response = client.get(reverse("new_beneficiary_training_experience"), {"current_year": "true"})
 
     assert response.status_code == 200
     content = response.content.decode()
@@ -520,7 +516,7 @@ def test_beneficiary_training_experience_add_get_current_year_returns_checked_fo
 
 
 @pytest.mark.django_db
-def test_account_page_does_not_duplicate_existing_current_year_experience(client, beneficiary):
+def test_show_user_does_not_duplicate_existing_current_year_experience(client, beneficiary):
     from techpourtoutes.models import Level, TrainingExperience
     from techpourtoutes.utils.school_year import current_school_year_start_date
 
@@ -534,20 +530,20 @@ def test_account_page_does_not_duplicate_existing_current_year_experience(client
     )
     client.force_login(beneficiary)
 
-    content = client.get(reverse("account_detail")).content.decode()
+    content = client.get(reverse("show_user")).content.decode()
 
     assert content.count(f'id="beneficiary-training-experience-{current.pk}"') == 1
     assert re.search(r'<input[^>]*id="id_not_enrolled"[^>]*>', content) is None
 
 
 @pytest.mark.django_db
-def test_beneficiary_training_experience_add_post_current_year_not_enrolled_creates_nothing(
+def test_create_beneficiary_training_experience_current_year_not_enrolled_creates_nothing(
     client, beneficiary
 ):
     client.force_login(beneficiary)
 
     response = client.post(
-        reverse("beneficiary_training_experience_add") + "?current_year=true",
+        reverse("create_beneficiary_training_experience") + "?current_year=true",
         data={"not_enrolled": "on"},
     )
 
@@ -559,7 +555,7 @@ def test_beneficiary_training_experience_add_post_current_year_not_enrolled_crea
 
 
 @pytest.mark.django_db
-def test_beneficiary_training_experience_add_post_current_year_creates_experience(
+def test_create_beneficiary_training_experience_current_year_creates_experience(
     client, beneficiary, school, formation
 ):
     from techpourtoutes.utils.school_year import current_school_year_start_date
@@ -567,7 +563,7 @@ def test_beneficiary_training_experience_add_post_current_year_creates_experienc
     client.force_login(beneficiary)
 
     response = client.post(
-        reverse("beneficiary_training_experience_add") + "?current_year=true",
+        reverse("create_beneficiary_training_experience") + "?current_year=true",
         data={
             "level": "seconde",
             "formation_id": str(formation.pk),
@@ -584,7 +580,7 @@ def test_beneficiary_training_experience_add_post_current_year_creates_experienc
 
 
 @pytest.mark.django_db
-def test_beneficiary_training_experience_edit_post_not_enrolled_deletes_current_year_experience(
+def test_update_beneficiary_training_experience_not_enrolled_deletes_current_year_experience(
     client, beneficiary, beneficiary_experience
 ):
     from techpourtoutes.models import Level, TrainingExperience
@@ -601,7 +597,7 @@ def test_beneficiary_training_experience_edit_post_not_enrolled_deletes_current_
     client.force_login(beneficiary)
 
     response = client.post(
-        reverse("beneficiary_training_experience_edit", args=[current.pk]),
+        reverse("update_beneficiary_training_experience", args=[current.pk]),
         data={"not_enrolled": "on"},
     )
 
@@ -613,16 +609,16 @@ def test_beneficiary_training_experience_edit_post_not_enrolled_deletes_current_
 
 
 @pytest.mark.django_db
-def test_beneficiary_training_experience_edit_form_targets_itself_via_htmx(
+def test_edit_beneficiary_training_experience_form_targets_itself_via_htmx(
     client, beneficiary, beneficiary_experience
 ):
     client.force_login(beneficiary)
 
     for response in (
-        client.get(reverse("beneficiary_training_experience_add")),
-        client.get(reverse("beneficiary_training_experience_add"), {"current_year": "true"}),
+        client.get(reverse("new_beneficiary_training_experience")),
+        client.get(reverse("new_beneficiary_training_experience"), {"current_year": "true"}),
         client.get(
-            reverse("beneficiary_training_experience_edit", args=[beneficiary_experience.pk])
+            reverse("edit_beneficiary_training_experience", args=[beneficiary_experience.pk])
         ),
     ):
         content = response.content.decode()
@@ -635,18 +631,18 @@ def test_beneficiary_training_experience_card_modifier_targets_closest_ancestor(
 ):
     client.force_login(beneficiary)
 
-    content = client.get(reverse("account_detail")).content.decode()
+    content = client.get(reverse("show_user")).content.decode()
 
     assert "hx-target=\"closest [id^='beneficiary-training-experience-']\"" in content
     assert 'hx-target="#beneficiary-training-experience-' not in content
 
 
 @pytest.mark.django_db
-def test_beneficiary_training_experience_add_forms_get_distinct_dom_ids(client, beneficiary):
+def test_new_beneficiary_training_experience_forms_get_distinct_dom_ids(client, beneficiary):
     client.force_login(beneficiary)
 
-    first = client.get(reverse("beneficiary_training_experience_add"))
-    second = client.get(reverse("beneficiary_training_experience_add"))
+    first = client.get(reverse("new_beneficiary_training_experience"))
+    second = client.get(reverse("new_beneficiary_training_experience"))
 
     first_dom_id = first.context["form"].dom_id
     second_dom_id = second.context["form"].dom_id
@@ -664,22 +660,22 @@ def test_beneficiary_training_experience_current_year_and_new_year_forms_do_not_
     client.force_login(beneficiary)
 
     current_year_content = client.get(
-        reverse("beneficiary_training_experience_add"), {"current_year": "true"}
+        reverse("new_beneficiary_training_experience"), {"current_year": "true"}
     ).content.decode()
-    new_year_content = client.get(reverse("beneficiary_training_experience_add")).content.decode()
+    new_year_content = client.get(reverse("new_beneficiary_training_experience")).content.decode()
 
     assert 'id="id_current-year_level"' in current_year_content
     assert 'id="id_current-year_level"' not in new_year_content
 
 
 @pytest.mark.django_db
-def test_beneficiary_training_experience_add_invalid_post_rerenders_form_with_consistent_ids(
+def test_create_beneficiary_training_experience_invalid_rerenders_form_with_consistent_ids(
     client, beneficiary
 ):
     client.force_login(beneficiary)
 
     response = client.post(
-        reverse("beneficiary_training_experience_add"),
+        reverse("create_beneficiary_training_experience"),
         data={"period_label": "2024-2025"},
     )
 
@@ -692,13 +688,13 @@ def test_beneficiary_training_experience_add_invalid_post_rerenders_form_with_co
 
 
 @pytest.mark.django_db
-def test_beneficiary_training_experience_add_invalid_post_keeps_current_year_form(
+def test_create_beneficiary_training_experience_invalid_keeps_current_year_form(
     client, beneficiary
 ):
     client.force_login(beneficiary)
 
     response = client.post(
-        reverse("beneficiary_training_experience_add") + "?current_year=true",
+        reverse("create_beneficiary_training_experience") + "?current_year=true",
         data={"not_enrolled": ""},
     )
 
@@ -711,7 +707,7 @@ def test_beneficiary_training_experience_add_invalid_post_keeps_current_year_for
 
 
 @pytest.mark.django_db
-def test_beneficiary_training_experience_edit_forms_get_distinct_dom_ids(
+def test_edit_beneficiary_training_experience_forms_get_distinct_dom_ids(
     client, beneficiary, beneficiary_experience, school
 ):
     from techpourtoutes.models import Level, TrainingExperience
@@ -727,10 +723,10 @@ def test_beneficiary_training_experience_edit_forms_get_distinct_dom_ids(
     client.force_login(beneficiary)
 
     first = client.get(
-        reverse("beneficiary_training_experience_edit", args=[beneficiary_experience.pk])
+        reverse("edit_beneficiary_training_experience", args=[beneficiary_experience.pk])
     ).content.decode()
     second = client.get(
-        reverse("beneficiary_training_experience_edit", args=[other.pk])
+        reverse("edit_beneficiary_training_experience", args=[other.pk])
     ).content.decode()
 
     assert f'id="id_{beneficiary_experience.pk}_level"' in first
@@ -751,7 +747,7 @@ def test_editing_an_out_of_scope_parcours_reopens_its_free_text_fields(client, p
     client.force_login(pro)
 
     content = client.get(
-        reverse("pro_training_experience_edit", args=[experience.pk])
+        reverse("edit_pro_training_experience", args=[experience.pk])
     ).content.decode()
 
     assert content.count("notFound: 'True' !== ''") == 2
@@ -777,6 +773,6 @@ def test_a_parcours_without_a_linked_formation_shows_the_name_she_typed(
     )
     client.force_login(beneficiary)
 
-    content = client.get(reverse("account_detail")).content.decode()
+    content = client.get(reverse("show_user")).content.decode()
 
     assert 'Formation : <span class="font-medium">Spécialité mathématiques</span>' in content

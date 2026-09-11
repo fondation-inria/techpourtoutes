@@ -10,16 +10,16 @@ COMMON_PAGE_NAMES = [
 
 COALITION_PAGE_NAMES = [
     "coalition_home",
-    "mentor_landing",
-    "work_ambassador_landing",
-    "training_ambassador_landing",
-    "internships_landing",
-    "sponsor_landing",
-    "workshops_landing",
-    "signer_manifeste",
+    "new_mentor",
+    "new_work_ambassador",
+    "new_training_ambassador",
+    "new_internship",
+    "new_sponsor",
+    "new_workshop_request",
+    "new_manifeste_signature",
 ]
 
-BENEFICIARY_PAGE_NAMES = ["home", "find_mentor_landing", "events"]
+BENEFICIARY_PAGE_NAMES = ["home", "new_mentoree", "index_events"]
 
 
 class StaticViewSitemap(Sitemap):

@@ -27,8 +27,8 @@ def test_welcome_includes_account_login_url(pro):
 
 @pytest.mark.django_db
 @override_settings(EMAIL_BACKEND="django.core.mail.backends.locmem.EmailBackend")
-def test_new_engagement_sends_email_to_pro(pro):
-    ProMailer.new_engagement(pro=pro)
+def test_engagement_added_sends_email_to_pro(pro):
+    ProMailer.engagement_added(pro=pro)
 
     assert len(mail.outbox) == 1
     message = mail.outbox[0]

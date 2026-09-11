@@ -424,7 +424,7 @@ def test_school_search_escapes_reflected_value_for_js_context(client):
     # into the Alpine x-data JS strings. escapejs emits ' for a single quote (safe in
     # the JS context); plain HTML autoescaping would emit &#x27; which the browser decodes
     # back to a real quote, breaking out of the string.
-    response = client.post(reverse("workshops_landing"), {"school_label": "Test'X"})
+    response = client.post(reverse("create_workshop_request"), {"school_label": "Test'X"})
 
     assert response.status_code == 200
     content = response.content.decode()
@@ -434,7 +434,7 @@ def test_school_search_escapes_reflected_value_for_js_context(client):
 
 @pytest.mark.django_db
 def test_higher_ed_school_search_escapes_reflected_value_for_js_context(client):
-    response = client.post(reverse("training_ambassador_landing"), {"school_label": "Test'X"})
+    response = client.post(reverse("create_training_ambassador"), {"school_label": "Test'X"})
 
     assert response.status_code == 200
     content = response.content.decode()

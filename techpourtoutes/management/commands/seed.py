@@ -296,4 +296,17 @@ EVENT_SEEDS = [
             "price": Decimal("18.90"),
         },
     ),
+    (
+        4,
+        {
+            "title": "Vis-ma-vie d'ingénieure IA",
+            "organizer": "Thales",
+            "subcategory": Event.Subcategory.JOB_SHADOWING,
+            "location_type": Event.LocationType.PHYSICAL,
+            "address": "4 avenue des Louvresses",
+            "postal_code": "35000",
+            "city": "Rennes",
+            "price": Decimal("0"),
+        },
+    ),
 ]

@@ -10,8 +10,8 @@ from techpourtoutes.models import Beneficiary, Pro
 
 
 @pytest.mark.django_db
-def test_account_requires_login(client):
-    response = client.get(reverse("account"))
+def test_show_account_requires_login(client):
+    response = client.get(reverse("show_account"))
 
     assert response.status_code == 302
     assert reverse("login_request") in response["Location"]
@@ -19,67 +19,67 @@ def test_account_requires_login(client):
 
 
 @pytest.mark.django_db
-def test_account_renders_when_authenticated(client, pro):
+def test_show_account_renders_when_authenticated(client, pro):
     client.force_login(pro)
 
-    response = client.get(reverse("account"))
+    response = client.get(reverse("show_account"))
 
     assert response.status_code == 200
 
 
 @pytest.mark.django_db
-def test_account_shows_forum_link_when_engaged_as_training_ambassador(client, pro):
+def test_show_account_shows_forum_link_when_engaged_as_training_ambassador(client, pro):
     pro.engagements = [Pro.Engagement.TRAINING_AMBASSADOR]
     pro.save()
     client.force_login(pro)
 
-    response = client.get(reverse("account"))
+    response = client.get(reverse("show_account"))
 
     assert b"Rejoindre le forum" in response.content
 
 
 @pytest.mark.django_db
-def test_account_info_requires_login(client):
-    response = client.get(reverse("account_info"))
+def test_show_user_info_requires_login(client):
+    response = client.get(reverse("show_user_info"))
 
     assert response.status_code == 302
     assert reverse("login_request") in response["Location"]
 
 
 @pytest.mark.django_db
-def test_account_info_returns_info_card(client, pro):
+def test_show_user_info_returns_info_card(client, pro):
     client.force_login(pro)
 
-    response = client.get(reverse("account_info"))
+    response = client.get(reverse("show_user_info"))
 
     assert response.status_code == 200
     assert "Alice" in response.content.decode()
 
 
 @pytest.mark.django_db
-def test_account_edit_requires_login(client):
-    response = client.get(reverse("account_edit"))
+def test_edit_user_requires_login(client):
+    response = client.get(reverse("edit_user"))
 
     assert response.status_code == 302
     assert reverse("login_request") in response["Location"]
 
 
 @pytest.mark.django_db
-def test_account_edit_get_renders_form(client, pro):
+def test_edit_user_get_renders_form(client, pro):
     client.force_login(pro)
 
-    response = client.get(reverse("account_edit"))
+    response = client.get(reverse("edit_user"))
 
     assert response.status_code == 200
     assert "form" in response.context
 
 
 @pytest.mark.django_db
-def test_account_edit_post_valid_saves_and_returns_info_card(client, pro):
+def test_update_user_valid_saves_and_returns_info_card(client, pro):
     client.force_login(pro)
 
     response = client.post(
-        reverse("account_edit"),
+        reverse("update_user"),
         data={
             "first_name": "Béatrice",
             "last_name": "Dupont",
@@ -99,11 +99,11 @@ def test_account_edit_post_valid_saves_and_returns_info_card(client, pro):
 
 
 @pytest.mark.django_db
-def test_account_edit_post_invalid_returns_form_with_errors(client, pro):
+def test_update_user_invalid_returns_form_with_errors(client, pro):
     client.force_login(pro)
 
     response = client.post(
-        reverse("account_edit"),
+        reverse("update_user"),
         data={"postal_code": "not-a-postcode"},
     )
 
@@ -112,20 +112,20 @@ def test_account_edit_post_invalid_returns_form_with_errors(client, pro):
 
 
 @pytest.mark.django_db
-def test_account_info_displays_beneficiary_birth_date(client, beneficiary):
+def test_show_user_info_displays_beneficiary_birth_date(client, beneficiary):
     client.force_login(beneficiary)
 
-    response = client.get(reverse("account_info"))
+    response = client.get(reverse("show_user_info"))
 
     assert response.status_code == 200
     assert "15/03/2008" in response.content.decode()
 
 
 @pytest.mark.django_db
-def test_account_edit_get_renders_form_for_beneficiary(client, beneficiary):
+def test_edit_user_get_renders_form_for_beneficiary(client, beneficiary):
     client.force_login(beneficiary)
 
-    response = client.get(reverse("account_edit"))
+    response = client.get(reverse("edit_user"))
 
     assert response.status_code == 200
     assert response.context["form"].initial["first_name"] == "Jade"
@@ -134,11 +134,11 @@ def test_account_edit_get_renders_form_for_beneficiary(client, beneficiary):
 
 
 @pytest.mark.django_db
-def test_account_edit_post_valid_saves_beneficiary_and_returns_info_card(client, beneficiary):
+def test_update_user_valid_saves_beneficiary_and_returns_info_card(client, beneficiary):
     client.force_login(beneficiary)
 
     response = client.post(
-        reverse("account_edit"),
+        reverse("update_user"),
         data={"first_name": "Léa", "last_name": "Petit", "birth_date": "2008-03-15"},
     )
 
@@ -148,27 +148,27 @@ def test_account_edit_post_valid_saves_beneficiary_and_returns_info_card(client,
 
 
 @pytest.mark.django_db
-def test_delete_account_get_not_allowed(client, pro):
+def test_destroy_user_get_not_allowed(client, pro):
     client.force_login(pro)
 
-    response = client.get(reverse("delete_account"))
+    response = client.get(reverse("destroy_user"))
 
     assert response.status_code == 405
 
 
 @pytest.mark.django_db
-def test_delete_account_requires_login(client):
-    response = client.post(reverse("delete_account"))
+def test_destroy_user_requires_login(client):
+    response = client.post(reverse("destroy_user"))
 
     assert response.status_code == 302
     assert reverse("login_request") in response["Location"]
 
 
 @pytest.mark.django_db
-def test_delete_account_with_invalid_form_rerenders_modal(client, pro):
+def test_destroy_user_with_invalid_form_rerenders_modal(client, pro):
     client.force_login(pro)
 
-    response = client.post(reverse("delete_account"), data={})
+    response = client.post(reverse("destroy_user"), data={})
 
     assert response.status_code == 200
     assert "form" in response.context
@@ -178,9 +178,9 @@ def test_delete_account_with_invalid_form_rerenders_modal(client, pro):
     assert pro.is_active
 
 
-@patch("techpourtoutes.views.account_views.SoftDeleteAccount")
+@patch("techpourtoutes.views.account_views.SoftDeleteUser")
 @pytest.mark.django_db
-def test_delete_account_post_valid_logs_out_redirects_and_shows_success_message(
+def test_destroy_user_post_valid_logs_out_redirects_and_shows_success_message(
     mock_service,
     client,
     pro,
@@ -190,7 +190,7 @@ def test_delete_account_post_valid_logs_out_redirects_and_shows_success_message(
     mock_service.return_value.failure = False
 
     response = client.post(
-        reverse("delete_account"),
+        reverse("destroy_user"),
         data={"confirm_delete": True},
     )
 
@@ -205,9 +205,9 @@ def test_delete_account_post_valid_logs_out_redirects_and_shows_success_message(
     assert any("Le compte a bien été supprimé." in m for m in stored)
 
 
-@patch("techpourtoutes.views.account_views.SoftDeleteAccount")
+@patch("techpourtoutes.views.account_views.SoftDeleteUser")
 @pytest.mark.django_db
-def test_delete_account_post_valid_calls_service_with_beneficiary_instance(
+def test_destroy_user_post_valid_calls_service_with_beneficiary_instance(
     mock_service,
     client,
     beneficiary,
@@ -217,7 +217,7 @@ def test_delete_account_post_valid_calls_service_with_beneficiary_instance(
     mock_service.return_value.failure = False
 
     client.post(
-        reverse("delete_account"),
+        reverse("destroy_user"),
         data={"confirm_delete": True},
     )
 
@@ -235,10 +235,10 @@ def _token_from_hx_redirect(response):
 
 
 @pytest.mark.django_db
-def test_email_change_get_renders_inline_form(client, pro):
+def test_edit_user_email_get_renders_inline_form(client, pro):
     client.force_login(pro)
 
-    response = client.get(reverse("email_change"))
+    response = client.get(reverse("edit_user_email"))
 
     assert response.status_code == 200
     assert "form" in response.context
@@ -246,10 +246,10 @@ def test_email_change_get_renders_inline_form(client, pro):
 
 
 @pytest.mark.django_db
-def test_account_email_get_renders_display_section(client, pro):
+def test_show_user_email_get_renders_display_section(client, pro):
     client.force_login(pro)
 
-    response = client.get(reverse("account_email"))
+    response = client.get(reverse("show_user_email"))
 
     assert response.status_code == 200
     assert "Changer mon adresse mail" in response.content.decode()
@@ -257,22 +257,22 @@ def test_account_email_get_renders_display_section(client, pro):
 
 @patch("techpourtoutes.models.user.generate_numeric_code", return_value="123456")
 @pytest.mark.django_db
-def test_email_change_post_valid_mails_current_and_hx_redirects(_code, client, pro):
+def test_create_user_email_change_valid_mails_current_and_hx_redirects(_code, client, pro):
     client.force_login(pro)
 
-    response = client.post(reverse("email_change"), data={"email": "new@example.com"})
+    response = client.post(reverse("create_user_email_change"), data={"email": "new@example.com"})
 
     assert response.status_code == 200
-    assert reverse("email_change_verify") in response["HX-Redirect"]
+    assert reverse("show_user_email_verification") in response["HX-Redirect"]
     assert len(mail.outbox) == 1
     assert mail.outbox[0].to == [pro.email]
 
 
 @pytest.mark.django_db
-def test_email_change_post_invalid_rerenders_with_errors(client, pro):
+def test_create_user_email_change_invalid_rerenders_with_errors(client, pro):
     client.force_login(pro)
 
-    response = client.post(reverse("email_change"), data={"email": pro.email})
+    response = client.post(reverse("create_user_email_change"), data={"email": pro.email})
 
     assert response.status_code == 200
     assert response.context["form"].errors
@@ -280,34 +280,34 @@ def test_email_change_post_invalid_rerenders_with_errors(client, pro):
 
 
 @pytest.mark.django_db
-def test_email_change_verify_get_shows_masked_recipient(client, pro):
+def test_show_user_email_verification_shows_masked_recipient(client, pro):
     client.force_login(pro)
     token = pro.issue_email_change_token("new@example.com", "current")
 
-    response = client.get(reverse("email_change_verify"), data={"token": token})
+    response = client.get(reverse("show_user_email_verification"), data={"token": token})
 
     assert response.status_code == 200
     assert "a***e@example.com" in response.content.decode()
 
 
 @pytest.mark.django_db
-def test_email_change_verify_bad_token_redirects_to_account(client, pro):
+def test_show_user_email_verification_bad_token_redirects_to_account(client, pro):
     client.force_login(pro)
 
-    response = client.get(reverse("email_change_verify"), data={"token": "garbage"})
+    response = client.get(reverse("show_user_email_verification"), data={"token": "garbage"})
 
     assert response.status_code == 302
-    assert response.url == reverse("account")
+    assert response.url == reverse("show_account")
 
 
 @patch("techpourtoutes.models.user.generate_numeric_code", return_value="123456")
 @pytest.mark.django_db
-def test_email_change_verify_wrong_code_rerenders(_code, client, pro):
+def test_update_user_email_wrong_code_rerenders(_code, client, pro):
     client.force_login(pro)
     pro.set_email_change_code()
     token = pro.issue_email_change_token("new@example.com", "current")
 
-    response = client.post(reverse("email_change_verify"), data={"token": token, "code": "000000"})
+    response = client.post(reverse("update_user_email"), data={"token": token, "code": "000000"})
 
     assert response.status_code == 200
     pro.refresh_from_db()
@@ -316,25 +316,25 @@ def test_email_change_verify_wrong_code_rerenders(_code, client, pro):
 
 @patch("techpourtoutes.models.user.generate_numeric_code", return_value="123456")
 @pytest.mark.django_db
-def test_email_change_full_flow_updates_email(_code, client, pro):
+def test_update_user_email_full_flow_updates_email(_code, client, pro):
     client.force_login(pro)
 
-    start = client.post(reverse("email_change"), data={"email": "new@example.com"})
+    start = client.post(reverse("create_user_email_change"), data={"email": "new@example.com"})
     current_token = _token_from_hx_redirect(start)
 
     verify_current = client.post(
-        reverse("email_change_verify"), data={"token": current_token, "code": "123456"}
+        reverse("update_user_email"), data={"token": current_token, "code": "123456"}
     )
     assert verify_current.status_code == 302
     assert mail.outbox[-1].to == ["new@example.com"]
     new_token = _token_from_redirect(verify_current)
 
     verify_new = client.post(
-        reverse("email_change_verify"), data={"token": new_token, "code": "123456"}
+        reverse("update_user_email"), data={"token": new_token, "code": "123456"}
     )
 
     assert verify_new.status_code == 302
-    assert verify_new.url == reverse("account")
+    assert verify_new.url == reverse("show_account")
     pro.refresh_from_db()
     assert pro.email == "new@example.com"
     assert pro.username == "new@example.com"
@@ -344,12 +344,12 @@ def test_email_change_full_flow_updates_email(_code, client, pro):
 
 @patch("techpourtoutes.models.user.generate_numeric_code", return_value="123456")
 @pytest.mark.django_db
-def test_email_change_resend_remails(_code, client, pro):
+def test_create_user_email_code_remails(_code, client, pro):
     client.force_login(pro)
     pro.set_email_change_code()
     token = pro.issue_email_change_token("new@example.com", "current")
 
-    response = client.post(reverse("email_change_resend"), data={"token": token})
+    response = client.post(reverse("create_user_email_code"), data={"token": token})
 
     assert response.status_code == 302
     assert len(mail.outbox) == 1
@@ -359,21 +359,21 @@ def test_email_change_resend_remails(_code, client, pro):
 
 
 @pytest.mark.django_db
-def test_account_page_shows_communication_checkbox_checked_when_synced(client, pro):
+def test_show_account_shows_communication_checkbox_checked_when_synced(client, pro):
     client.force_login(pro)
-    content = client.get(reverse("account_detail")).content.decode()
+    content = client.get(reverse("show_user")).content.decode()
     assert "Je veux recevoir ponctuellement des nouvelles de TechPourToutes" in content
     assert "account-communication-card" in content
     assert "checked" in content
 
 
 @pytest.mark.django_db
-def test_account_communication_opt_in_enables_brevo_sync(client, pro):
+def test_update_user_communication_opt_in_enables_brevo_sync(client, pro):
     pro.brevo_sync_enabled = False
     pro.save()
     client.force_login(pro)
 
-    response = client.post(reverse("account_communication"), data={"newsletter_consent": "on"})
+    response = client.post(reverse("update_user_communication"), data={"newsletter_consent": "on"})
 
     assert response.status_code == 200
     pro.refresh_from_db()
@@ -381,10 +381,10 @@ def test_account_communication_opt_in_enables_brevo_sync(client, pro):
 
 
 @pytest.mark.django_db
-def test_account_communication_opt_out_disables_brevo_sync(client, pro):
+def test_update_user_communication_opt_out_disables_brevo_sync(client, pro):
     client.force_login(pro)
 
-    response = client.post(reverse("account_communication"), data={})
+    response = client.post(reverse("update_user_communication"), data={})
 
     assert response.status_code == 200
     pro.refresh_from_db()
@@ -392,20 +392,20 @@ def test_account_communication_opt_out_disables_brevo_sync(client, pro):
 
 
 @pytest.mark.django_db(transaction=True)
-def test_account_communication_opt_out_dispatches_delete(client, pro):
+def test_update_user_communication_opt_out_dispatches_delete(client, pro):
     client.force_login(pro)
 
     with patch("techpourtoutes.signals.delete_brevo_contact_task") as delete_task:
-        client.post(reverse("account_communication"), data={})
+        client.post(reverse("update_user_communication"), data={})
 
     delete_task.delay.assert_called_once_with(ext_id=str(pro.pk), list_id=42)
 
 
 @pytest.mark.django_db
-def test_account_communication_works_for_beneficiary(client, beneficiary):
+def test_update_user_communication_works_for_beneficiary(client, beneficiary):
     client.force_login(beneficiary)
 
-    response = client.post(reverse("account_communication"), data={"newsletter_consent": "on"})
+    response = client.post(reverse("update_user_communication"), data={"newsletter_consent": "on"})
 
     assert response.status_code == 200
     beneficiary.refresh_from_db()

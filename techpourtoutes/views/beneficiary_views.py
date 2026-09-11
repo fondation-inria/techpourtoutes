@@ -12,11 +12,11 @@ from ..forms import (
     BeneficiaryHigherEducationTrainingExperienceForm,
     BeneficiaryHighSchoolTrainingExperienceForm,
     BeneficiaryLastDiplomaTrainingExperienceForm,
-    EmailNotificationForm,
     StudyStatus,
+    UpcomingFeatureNotificationForm,
 )
 from ..models import Event, SavedEvent
-from ..tasks import upsert_email_notification_task
+from ..tasks import create_upcoming_feature_notification_task
 from ..utils.dates import compute_age
 
 EVENTS_PER_PAGE = 15
@@ -28,30 +28,33 @@ def beneficiary_home(request):
     return render(request, "beneficiary/beneficiary_home.html", {})
 
 
-def bientot_disponible(request):
-    if request.method == "POST":
-        form = EmailNotificationForm(data=request.POST)
-        if form.is_valid():
-            if settings.BREVO_SYNC_ENABLED:
-                upsert_email_notification_task.delay(email=form.cleaned_data["email"])
-            messages.success(
-                request,
-                "Merci, nous te préviendrons dès que cette fonctionnalité sera disponible.",
-            )
-            return redirect("bientot_disponible")
+def new_upcoming_feature_notification(request):
+    return _render_upcoming_feature_notification_form(request, UpcomingFeatureNotificationForm())
+
+
+@require_POST
+def create_upcoming_feature_notification(request):
+    form = UpcomingFeatureNotificationForm(data=request.POST)
+    if not form.is_valid():
         messages.error(
             request,
             "Des erreurs empêchent la validation du formulaire, "
             "merci de les corriger et de réessayer à nouveau.",
         )
-    else:
-        form = EmailNotificationForm()
-    return render(request, "beneficiary/bientot_disponible.html", {"form": form})
+        return _render_upcoming_feature_notification_form(request, form)
+
+    if settings.BREVO_SYNC_ENABLED:
+        create_upcoming_feature_notification_task.delay(email=form.cleaned_data["email"])
+    messages.success(
+        request,
+        "Merci, nous te préviendrons dès que cette fonctionnalité sera disponible.",
+    )
+    return redirect("new_upcoming_feature_notification")
 
 
-def find_mentor_landing(request):
+def new_mentoree(request):
     beneficiary = getattr(request.user, "beneficiary", None)
-    cta_href = reverse("add_mentoring")
+    cta_href = reverse("mentoring_funnel")
     cta_label = "S'inscrire au mentorat"
     cta_disabled = False
     if not request.user.is_authenticated:
@@ -66,27 +69,27 @@ def find_mentor_landing(request):
             cta_disabled = True
     return render(
         request,
-        "beneficiary/find_mentor_landing.html",
+        "beneficiary/new_mentoree.html",
         {"cta_href": cta_href, "cta_label": cta_label, "cta_disabled": cta_disabled},
     )
 
 
-def events(request):
+def index_events(request):
     return render(
         request,
-        "beneficiary/events.html",
+        "beneficiary/index_events.html",
         _events_context(request, page=request.GET.get("page")),
     )
 
 
 @require_POST
 @login_required
-def toggle_saved_event(request, pk):
+def update_saved_event(request, pk):
     beneficiary = _beneficiary_or_404(request)
     event = get_object_or_404(Event.objects.approved(), pk=pk)
     return render(
         request,
-        "beneficiary/partials/event_bookmark.html",
+        "beneficiary/partials/update_saved_event.html",
         {
             "event": event,
             "saved": SavedEvent.objects.toggle(event=event, beneficiary=beneficiary),
@@ -95,8 +98,12 @@ def toggle_saved_event(request, pk):
     )
 
 
-def saved_event_signup_modal(request):
-    return render(request, "beneficiary/partials/event_signup_modal.html", {})
+def create_saved_event_modal(request):
+    return render(request, "beneficiary/partials/create_saved_event_modal.html", {})
+
+
+def _render_upcoming_feature_notification_form(request, form):
+    return render(request, "beneficiary/new_upcoming_feature_notification.html", {"form": form})
 
 
 # ------------------- events -------------------

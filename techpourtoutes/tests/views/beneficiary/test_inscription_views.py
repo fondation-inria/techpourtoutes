@@ -209,11 +209,11 @@ def test_existing_registered_beneficiary_email_with_wants_mentor_logs_in_to_acco
 
     assert "se-connecter" in response["HX-Redirect"]
     assert f"back={quote('/', safe='')}" in response["HX-Redirect"]
-    assert f"next={quote(reverse('account'), safe='')}" in response["HX-Redirect"]
+    assert f"next={quote(reverse('show_account'), safe='')}" in response["HX-Redirect"]
 
 
 @pytest.mark.django_db
-def test_existing_unregistered_beneficiary_email_with_wants_mentor_logs_in_to_add_mentoring(
+def test_existing_unregistered_beneficiary_email_with_wants_mentor_logs_in_to_mentoring_funnel(
     client, beneficiary
 ):
     response = client.post(
@@ -442,7 +442,7 @@ def test_skipping_the_mentoring_screen_creates_beneficiary_without_mentoring_sig
 
 
 @pytest.mark.django_db
-def test_skip_modal_submits_the_step_preceding_the_mentoring_screen(client):
+def test_show_skip_mentoring_signup_modal_submits_the_step_preceding_the_mentoring_screen(client):
     response = client.get(SKIP_MODAL_URL)
 
     # Skipping makes the step before the mentoring screen the last one, and it is already filled.

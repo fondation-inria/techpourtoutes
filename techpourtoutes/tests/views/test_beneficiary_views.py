@@ -6,54 +6,61 @@ from django.test import override_settings
 from django.urls import reverse
 from django.utils import timezone
 
-BIENTOT_DISPONIBLE_URL = "/bientot-disponible/"
+NEW_UPCOMING_FEATURE_NOTIFICATION_URL = "/bientot-disponible/"
+CREATE_UPCOMING_FEATURE_NOTIFICATION_URL = "/bientot-disponible/inscription/"
 
 
 @pytest.mark.django_db
-def test_bientot_disponible_get_returns_200(client):
-    assert client.get(BIENTOT_DISPONIBLE_URL).status_code == 200
+def test_new_upcoming_feature_notification_get_returns_200(client):
+    assert client.get(NEW_UPCOMING_FEATURE_NOTIFICATION_URL).status_code == 200
 
 
 @pytest.mark.django_db
 @override_settings(BREVO_SYNC_ENABLED=True)
-def test_bientot_disponible_post_valid_pushes_brevo_contact_and_redirects(client):
+def test_create_upcoming_feature_notification_valid_pushes_brevo_contact_and_redirects(client):
     with patch(
-        "techpourtoutes.views.beneficiary_views.upsert_email_notification_task"
+        "techpourtoutes.views.beneficiary_views.create_upcoming_feature_notification_task"
     ) as mock_task:
-        response = client.post(BIENTOT_DISPONIBLE_URL, data={"email": "hedy@example.com"})
+        response = client.post(
+            CREATE_UPCOMING_FEATURE_NOTIFICATION_URL, data={"email": "hedy@example.com"}
+        )
 
     assert response.status_code == 302
-    assert response.url == BIENTOT_DISPONIBLE_URL
+    assert response.url == NEW_UPCOMING_FEATURE_NOTIFICATION_URL
     mock_task.delay.assert_called_once_with(email="hedy@example.com")
 
 
 @pytest.mark.django_db
 @override_settings(BREVO_SYNC_ENABLED=False)
-def test_bientot_disponible_post_skips_task_when_sync_disabled(client):
+def test_create_upcoming_feature_notification_skips_task_when_sync_disabled(client):
     with patch(
-        "techpourtoutes.views.beneficiary_views.upsert_email_notification_task"
+        "techpourtoutes.views.beneficiary_views.create_upcoming_feature_notification_task"
     ) as mock_task:
-        response = client.post(BIENTOT_DISPONIBLE_URL, data={"email": "hedy@example.com"})
+        response = client.post(
+            CREATE_UPCOMING_FEATURE_NOTIFICATION_URL, data={"email": "hedy@example.com"}
+        )
 
     assert response.status_code == 302
     mock_task.delay.assert_not_called()
 
 
 @pytest.mark.django_db
-def test_bientot_disponible_post_invalid_rerenders_with_errors(client):
-    response = client.post(BIENTOT_DISPONIBLE_URL, data={"email": "not-an-email"})
+def test_create_upcoming_feature_notification_invalid_rerenders_with_errors(client):
+    response = client.post(
+        CREATE_UPCOMING_FEATURE_NOTIFICATION_URL, data={"email": "not-an-email"}
+    )
     assert response.status_code == 200
     assert response.context["form"].errors
     messages = list(response.context["messages"])
     assert len(messages) > 0
 
 
-FIND_MENTOR_LANDING_URL = "/trouver-une-mentore/"
+NEW_MENTOREE_URL = "/trouver-une-mentore/"
 
 
 @pytest.mark.django_db
-def test_find_mentor_landing_cta_for_anonymous_user(client):
-    response = client.get(FIND_MENTOR_LANDING_URL)
+def test_new_mentoree_cta_for_anonymous_user(client):
+    response = client.get(NEW_MENTOREE_URL)
 
     assert response.status_code == 200
     assert response.context["cta_href"] == "/inscription/?wants_mentor=1"
@@ -62,10 +69,10 @@ def test_find_mentor_landing_cta_for_anonymous_user(client):
 
 
 @pytest.mark.django_db
-def test_find_mentor_landing_cta_for_connected_unregistered_beneficiary(client, beneficiary):
+def test_new_mentoree_cta_for_connected_unregistered_beneficiary(client, beneficiary):
     client.force_login(beneficiary)
 
-    response = client.get(FIND_MENTOR_LANDING_URL)
+    response = client.get(NEW_MENTOREE_URL)
 
     assert response.status_code == 200
     assert response.context["cta_href"] == "/devenir-mentoree/"
@@ -74,12 +81,12 @@ def test_find_mentor_landing_cta_for_connected_unregistered_beneficiary(client, 
 
 
 @pytest.mark.django_db
-def test_find_mentor_landing_cta_for_connected_registered_beneficiary(client, beneficiary):
+def test_new_mentoree_cta_for_connected_registered_beneficiary(client, beneficiary):
     beneficiary.jobirl_user_id = 42
     beneficiary.save()
     client.force_login(beneficiary)
 
-    response = client.get(FIND_MENTOR_LANDING_URL)
+    response = client.get(NEW_MENTOREE_URL)
 
     assert response.status_code == 200
     assert response.context["cta_href"] == reverse("login_to_jobirl")
@@ -88,14 +95,12 @@ def test_find_mentor_landing_cta_for_connected_registered_beneficiary(client, be
 
 
 @pytest.mark.django_db
-def test_find_mentor_landing_cta_disabled_for_registration_pending_jobirl_account(
-    client, beneficiary
-):
+def test_new_mentoree_cta_disabled_for_registration_pending_jobirl_account(client, beneficiary):
     beneficiary.legal_representative_email = "parent.durand@example.com"
     beneficiary.save()
     client.force_login(beneficiary)
 
-    response = client.get(FIND_MENTOR_LANDING_URL)
+    response = client.get(NEW_MENTOREE_URL)
 
     assert response.status_code == 200
     assert response.context["cta_label"] == "Rejoindre mon espace mentorat"
@@ -103,12 +108,10 @@ def test_find_mentor_landing_cta_disabled_for_registration_pending_jobirl_accoun
 
 
 @pytest.mark.django_db
-def test_find_mentor_landing_cta_for_connected_non_beneficiary_points_to_add_mentoring(
-    client, pro
-):
+def test_new_mentoree_cta_for_connected_non_beneficiary_points_to_mentoring_funnel(client, pro):
     client.force_login(pro)
 
-    response = client.get(FIND_MENTOR_LANDING_URL)
+    response = client.get(NEW_MENTOREE_URL)
 
     assert response.status_code == 200
     assert response.context["cta_href"] == "/devenir-mentoree/"
@@ -116,7 +119,7 @@ def test_find_mentor_landing_cta_for_connected_non_beneficiary_points_to_add_men
     assert response.context["cta_disabled"] is False
 
 
-EVENTS_URL = "/evenements/"
+INDEX_EVENTS_URL = "/evenements/"
 
 
 def approved_event(pro, **overrides):
@@ -135,32 +138,32 @@ def salon(pro):
 
 
 @pytest.mark.django_db
-def test_events_page_is_open_to_anonymous_visitors(client, salon):
-    response = client.get(EVENTS_URL)
+def test_index_events_is_open_to_anonymous_visitors(client, salon):
+    response = client.get(INDEX_EVENTS_URL)
 
     assert response.status_code == 200
     assert salon.title.encode() in response.content
 
 
 @pytest.mark.django_db
-def test_events_page_hides_events_awaiting_validation(client, event):
+def test_index_events_hides_events_awaiting_validation(client, event):
     """The `event` fixture is PENDING: only approved events reach the page."""
-    response = client.get(EVENTS_URL)
+    response = client.get(INDEX_EVENTS_URL)
 
     assert event.title.encode() not in response.content
 
 
 @pytest.mark.django_db
-def test_events_page_hides_rejected_events(client, pro):
+def test_index_events_hides_rejected_events(client, pro):
     from techpourtoutes.models import Event
 
     approved_event(pro, title="Forum annulé", status=Event.Status.REJECTED).save()
 
-    assert b"Forum annul" not in client.get(EVENTS_URL).content
+    assert b"Forum annul" not in client.get(INDEX_EVENTS_URL).content
 
 
 @pytest.mark.django_db
-def test_events_page_hides_past_events(client, pro):
+def test_index_events_hides_past_events(client, pro):
     today = timezone.localdate()
     approved_event(
         pro,
@@ -169,11 +172,11 @@ def test_events_page_hides_past_events(client, pro):
         end_date=today - timedelta(days=1),
     ).save()
 
-    assert b"an dernier" not in client.get(EVENTS_URL).content
+    assert b"an dernier" not in client.get(INDEX_EVENTS_URL).content
 
 
 @pytest.mark.django_db
-def test_events_are_listed_from_the_nearest_to_the_furthest(client, pro):
+def test_index_events_lists_from_the_nearest_to_the_furthest(client, pro):
     today = timezone.localdate()
     for title, days in [("Dans deux mois", 60), ("Dans cinq jours", 5), ("Dans un mois", 30)]:
         approved_event(
@@ -183,7 +186,7 @@ def test_events_are_listed_from_the_nearest_to_the_furthest(client, pro):
             end_date=today + timedelta(days=days),
         ).save()
 
-    content = client.get(EVENTS_URL).content
+    content = client.get(INDEX_EVENTS_URL).content
 
     assert (
         content.index(b"Dans cinq jours")
@@ -193,35 +196,35 @@ def test_events_are_listed_from_the_nearest_to_the_furthest(client, pro):
 
 
 @pytest.mark.django_db
-def test_every_card_links_to_the_placeholder_detail_page(client, salon):
-    assert b"/bientot-disponible/?feature=evenements" in client.get(EVENTS_URL).content
+def test_index_events_cards_link_to_the_placeholder_detail_page(client, salon):
+    assert b"/bientot-disponible/?feature=evenements" in client.get(INDEX_EVENTS_URL).content
 
 
 @pytest.mark.django_db
-def test_events_page_marks_the_events_a_beneficiary_already_saved(client, beneficiary, salon):
+def test_index_events_marks_the_events_a_beneficiary_already_saved(client, beneficiary, salon):
     from techpourtoutes.models import SavedEvent
 
     SavedEvent.objects.toggle(event=salon, beneficiary=beneficiary)
     client.force_login(beneficiary)
 
-    response = client.get(EVENTS_URL)
+    response = client.get(INDEX_EVENTS_URL)
 
     assert response.context["events"][0].saved is True
     assert b'aria-pressed="true"' in response.content
 
 
 @pytest.mark.django_db
-def test_events_page_leaves_an_unsaved_event_unmarked(client, beneficiary, salon):
+def test_index_events_leaves_an_unsaved_event_unmarked(client, beneficiary, salon):
     client.force_login(beneficiary)
 
-    response = client.get(EVENTS_URL)
+    response = client.get(INDEX_EVENTS_URL)
 
     assert response.context["events"][0].saved is False
     assert b'aria-pressed="false"' in response.content
 
 
 @pytest.mark.django_db
-def test_the_saved_flag_costs_no_query_per_event(client, beneficiary, pro):
+def test_index_events_saved_flag_costs_no_query_per_event(client, beneficiary, pro):
     """Four events must cost what one costs: the flag is annotated, never fetched per row."""
     from django.db import connection
     from django.test.utils import CaptureQueriesContext
@@ -229,59 +232,59 @@ def test_the_saved_flag_costs_no_query_per_event(client, beneficiary, pro):
     approved_event(pro, title="Événement 0").save()
     client.force_login(beneficiary)
     with CaptureQueriesContext(connection) as one_event:
-        client.get(EVENTS_URL)
+        client.get(INDEX_EVENTS_URL)
 
     for index in range(1, 4):
         approved_event(pro, title=f"Événement {index}").save()
     with CaptureQueriesContext(connection) as four_events:
-        client.get(EVENTS_URL)
+        client.get(INDEX_EVENTS_URL)
 
     assert len(four_events.captured_queries) == len(one_event.captured_queries)
 
 
 @pytest.mark.django_db
-def test_a_beneficiary_bookmark_posts_to_the_toggle_endpoint(client, beneficiary, salon):
+def test_index_events_bookmark_posts_to_update_saved_event(client, beneficiary, salon):
     client.force_login(beneficiary)
 
-    content = client.get(EVENTS_URL).content
+    content = client.get(INDEX_EVENTS_URL).content
 
-    assert reverse("toggle_saved_event", args=[salon.pk]).encode() in content
-
-
-@pytest.mark.django_db
-def test_an_anonymous_bookmark_opens_the_signup_modal(client, salon):
-    content = client.get(EVENTS_URL).content
-
-    assert reverse("saved_event_signup_modal").encode() in content
+    assert reverse("update_saved_event", args=[salon.pk]).encode() in content
 
 
 @pytest.mark.django_db
-def test_a_connected_pro_gets_no_bookmark_at_all(client, pro, salon):
+def test_index_events_anonymous_bookmark_opens_the_signup_modal(client, salon):
+    content = client.get(INDEX_EVENTS_URL).content
+
+    assert reverse("create_saved_event_modal").encode() in content
+
+
+@pytest.mark.django_db
+def test_index_events_gives_a_connected_pro_no_bookmark_at_all(client, pro, salon):
     client.force_login(pro)
 
-    content = client.get(EVENTS_URL).content
+    content = client.get(INDEX_EVENTS_URL).content
 
-    assert reverse("saved_event_signup_modal").encode() not in content
+    assert reverse("create_saved_event_modal").encode() not in content
     assert b"#bookmark" not in content
 
 
 @pytest.mark.django_db
-def test_events_page_shows_fifteen_events_and_a_link_to_the_next_page(client, pro):
+def test_index_events_shows_fifteen_events_and_a_link_to_the_next_page(client, pro):
     for index in range(16):
         approved_event(pro, title=f"Événement {index:02d}").save()
 
-    response = client.get(EVENTS_URL)
+    response = client.get(INDEX_EVENTS_URL)
 
     assert len(response.context["events"].object_list) == 15
     assert b'href="?page=2"' in response.content
 
 
 @pytest.mark.django_db
-def test_events_page_serves_the_page_asked_for(client, pro):
+def test_index_events_serves_the_page_asked_for(client, pro):
     for index in range(16):
         approved_event(pro, title=f"Événement {index:02d}").save()
 
-    response = client.get(EVENTS_URL, {"page": 2})
+    response = client.get(INDEX_EVENTS_URL, {"page": 2})
 
     assert response.status_code == 200
     assert response.context["events"].number == 2
@@ -290,25 +293,25 @@ def test_events_page_serves_the_page_asked_for(client, pro):
 
 
 @pytest.mark.django_db
-def test_events_page_hides_the_pagination_when_one_page_is_enough(client, salon):
-    assert b"join-item" not in client.get(EVENTS_URL).content
+def test_index_events_hides_the_pagination_when_one_page_is_enough(client, salon):
+    assert b"join-item" not in client.get(INDEX_EVENTS_URL).content
 
 
 @pytest.mark.django_db
-def test_events_page_falls_back_to_the_first_page_on_a_bogus_number(client, salon):
-    response = client.get(EVENTS_URL, {"page": "banane"})
+def test_index_events_falls_back_to_the_first_page_on_a_bogus_number(client, salon):
+    response = client.get(INDEX_EVENTS_URL, {"page": "banane"})
 
     assert response.status_code == 200
     assert response.context["events"].number == 1
 
 
 @pytest.mark.django_db
-def test_toggle_saves_the_event_for_the_beneficiary(client, beneficiary, salon):
+def test_update_saved_event_saves_the_event_for_the_beneficiary(client, beneficiary, salon):
     from techpourtoutes.models import SavedEvent
 
     client.force_login(beneficiary)
 
-    response = client.post(reverse("toggle_saved_event", args=[salon.pk]))
+    response = client.post(reverse("update_saved_event", args=[salon.pk]))
 
     assert response.status_code == 200
     assert SavedEvent.objects.count() == 1
@@ -317,11 +320,11 @@ def test_toggle_saves_the_event_for_the_beneficiary(client, beneficiary, salon):
 
 
 @pytest.mark.django_db
-def test_toggling_twice_takes_the_event_back_out(client, beneficiary, salon):
+def test_update_saved_event_twice_takes_the_event_back_out(client, beneficiary, salon):
     from techpourtoutes.models import SavedEvent
 
     client.force_login(beneficiary)
-    url = reverse("toggle_saved_event", args=[salon.pk])
+    url = reverse("update_saved_event", args=[salon.pk])
     client.post(url)
 
     response = client.post(url)
@@ -331,9 +334,9 @@ def test_toggling_twice_takes_the_event_back_out(client, beneficiary, salon):
 
 
 @pytest.mark.django_db
-def test_toggling_twice_leaves_the_bookmark_transparent_again(client, beneficiary, salon):
+def test_update_saved_event_twice_leaves_the_bookmark_transparent(client, beneficiary, salon):
     client.force_login(beneficiary)
-    url = reverse("toggle_saved_event", args=[salon.pk])
+    url = reverse("update_saved_event", args=[salon.pk])
     client.post(url)
 
     response = client.post(url)
@@ -342,49 +345,49 @@ def test_toggling_twice_leaves_the_bookmark_transparent_again(client, beneficiar
 
 
 @pytest.mark.django_db
-def test_toggle_rejects_a_get(client, beneficiary, salon):
+def test_update_saved_event_rejects_a_get(client, beneficiary, salon):
     client.force_login(beneficiary)
 
-    response = client.get(reverse("toggle_saved_event", args=[salon.pk]))
+    response = client.get(reverse("update_saved_event", args=[salon.pk]))
 
     assert response.status_code == 405
 
 
 @pytest.mark.django_db
-def test_toggle_requires_a_login(client, salon):
-    response = client.post(reverse("toggle_saved_event", args=[salon.pk]))
+def test_update_saved_event_requires_a_login(client, salon):
+    response = client.post(reverse("update_saved_event", args=[salon.pk]))
 
     assert response.status_code == 302
     assert reverse("login_request") in response["Location"]
 
 
 @pytest.mark.django_db
-def test_toggle_is_closed_to_pros(client, pro, salon):
+def test_update_saved_event_is_closed_to_pros(client, pro, salon):
     from techpourtoutes.models import SavedEvent
 
     client.force_login(pro)
 
-    response = client.post(reverse("toggle_saved_event", args=[salon.pk]))
+    response = client.post(reverse("update_saved_event", args=[salon.pk]))
 
     assert response.status_code == 404
     assert SavedEvent.objects.count() == 0
 
 
 @pytest.mark.django_db
-def test_toggle_ignores_an_event_awaiting_validation(client, beneficiary, event):
+def test_update_saved_event_ignores_an_event_awaiting_validation(client, beneficiary, event):
     from techpourtoutes.models import SavedEvent
 
     client.force_login(beneficiary)
 
-    response = client.post(reverse("toggle_saved_event", args=[event.pk]))
+    response = client.post(reverse("update_saved_event", args=[event.pk]))
 
     assert response.status_code == 404
     assert SavedEvent.objects.count() == 0
 
 
 @pytest.mark.django_db
-def test_signup_modal_offers_signing_up_and_logging_in(client):
-    response = client.get(reverse("saved_event_signup_modal"))
+def test_create_saved_event_modal_offers_signing_up_and_logging_in(client):
+    response = client.get(reverse("create_saved_event_modal"))
 
     assert response.status_code == 200
     assert b"Rejoins le club TechPourToutes" in response.content

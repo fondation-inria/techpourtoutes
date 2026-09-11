@@ -87,7 +87,7 @@ def test_login_request_get_while_authenticated_redirects_to_account(client, pro)
     response = client.get(reverse("login_request"))
 
     assert response.status_code == 302
-    assert response["Location"] == reverse("account")
+    assert response["Location"] == reverse("show_account")
 
 
 @pytest.mark.django_db
@@ -97,6 +97,18 @@ def test_login_request_post_with_known_email_sends_code(client, pro):
 
     assert response.status_code == 302
     assert response["Location"] == reverse("login_code")
+    assert len(mail.outbox) == 1
+    assert mail.outbox[0].to == [pro.email]
+    pro.refresh_from_db()
+    assert pro.login_code_hash != ""
+
+
+@pytest.mark.django_db
+@override_settings(EMAIL_BACKEND="django.core.mail.backends.locmem.EmailBackend")
+def test_login_request_post_with_known_email_in_another_case_sends_code(client, pro):
+    response = client.post(reverse("login_request"), data={"email": pro.email.upper()})
+
+    assert response.status_code == 302
     assert len(mail.outbox) == 1
     assert mail.outbox[0].to == [pro.email]
     pro.refresh_from_db()
@@ -195,10 +207,10 @@ def test_login_request_post_with_inactive_user_sends_nothing(client, inactive_us
 def test_sidebar_login_link_carries_current_page_as_back(client):
     from urllib.parse import quote
 
-    response = client.get(reverse("mentor_landing"))
+    response = client.get(reverse("new_mentor"))
 
     assert response.status_code == 200
-    expected_href = f"{reverse('login_request')}?back={quote(reverse('mentor_landing'))}"
+    expected_href = f"{reverse('login_request')}?back={quote(reverse('new_mentor'))}"
     assert expected_href in response.content.decode()
 
 
@@ -236,7 +248,7 @@ def test_login_code_while_authenticated_redirects_to_account(client, pro):
     response = client.get(reverse("login_code"))
 
     assert response.status_code == 302
-    assert response["Location"] == reverse("account")
+    assert response["Location"] == reverse("show_account")
 
 
 @pytest.mark.django_db
@@ -247,7 +259,7 @@ def test_login_code_post_valid_logs_user_in(client, pro):
     response = client.post(reverse("login_code"), data={"code": code})
 
     assert response.status_code == 302
-    assert response["Location"] == reverse("account")
+    assert response["Location"] == reverse("show_account")
     assert client.session.get("_auth_user_id") == str(pro.pk)
     assert "login_email" not in client.session
     pro.refresh_from_db()
@@ -323,7 +335,7 @@ def test_login_verify_with_valid_token_logs_user_in(client, pro):
     response = client.get(reverse("login_verify", args=[plaintext]))
 
     assert response.status_code == 302
-    assert response["Location"] == reverse("account")
+    assert response["Location"] == reverse("show_account")
     assert client.session.get("_auth_user_id") == str(pro.pk)
 
 
@@ -354,7 +366,7 @@ def test_login_verify_strips_external_next(client, pro):
     response = client.get(reverse("login_verify", args=[plaintext]) + "?next=https://evil.com/")
 
     assert response.status_code == 302
-    assert response["Location"] == reverse("account")
+    assert response["Location"] == reverse("show_account")
 
 
 @pytest.mark.django_db
@@ -423,11 +435,11 @@ def test_login_verify_invalid_token_preserves_next(client):
 
 
 @pytest.mark.django_db
-def test_logout_post_logs_user_out(client, pro):
+def test_destroy_session_logs_user_out(client, pro):
     client.force_login(pro)
     assert client.session.get("_auth_user_id") == str(pro.pk)
 
-    response = client.post(reverse("logout"))
+    response = client.post(reverse("destroy_session"))
 
     assert response.status_code == 302
     assert response["Location"] == "/"
@@ -435,20 +447,20 @@ def test_logout_post_logs_user_out(client, pro):
 
 
 @pytest.mark.django_db
-def test_logout_adds_success_message(client, pro):
+def test_destroy_session_adds_success_message(client, pro):
     client.force_login(pro)
 
-    response = client.post(reverse("logout"))
+    response = client.post(reverse("destroy_session"))
 
     stored = [str(m) for m in get_messages(response.wsgi_request)]
     assert any("Au revoir - Déconnexion réalisée avec succès" in m for m in stored)
 
 
 @pytest.mark.django_db
-def test_logout_get_not_allowed(client, pro):
+def test_destroy_session_get_not_allowed(client, pro):
     client.force_login(pro)
 
-    response = client.get(reverse("logout"))
+    response = client.get(reverse("destroy_session"))
 
     assert response.status_code == 405
 
@@ -489,7 +501,7 @@ def test_login_to_jobirl_shows_error_on_service_failure(client, pro):
     stored = [str(m) for m in get_messages(response.wsgi_request)]
     assert any("Erreur de connexion à Jobirl" in m for m in stored)
     assert response.status_code == 302
-    assert response["Location"] == reverse("account")
+    assert response["Location"] == reverse("show_account")
 
 
 @pytest.mark.django_db

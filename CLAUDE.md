@@ -95,7 +95,7 @@ make icons    # rebuild SVG sprite
 make seed     # seed DB with minimal dev data (idempotent)
 ```
 
-Seed creates: one `Pro` with superuser role — `admin@techpourtoutes.io` / `admin` — and one `Beneficiary` with a `TrainingExperience` — `beneficiary@techpourtoutes.io` / `beneficiary`. It also imports the Onisep samples committed under `data/onisep/` (~100 coherent rows per file) rather than downloading the full datasets.
+Seed creates: one `Pro` with superuser role — `admin@techpourtoutes.io` / `admin` — one `Beneficiary` with a `TrainingExperience` — `beneficiary@techpourtoutes.io` / `beneficiary` — and 16 approved upcoming `Event`s covering every subcategory but `OTHER`, so every card colour and the pagination show up. It also imports the Onisep samples committed under `data/onisep/` (~100 coherent rows per file) rather than downloading the full datasets.
 
 ## Architecture
 
@@ -120,12 +120,16 @@ Django 6 + PostgreSQL project. Locale is French (fr-FR), timezone Europe/Paris.
 - `TrainingExperience` — one parcours, i.e. one school year of one user. Both `school` and `formation` are nullable, because the catalogue does not hold everything: what the user typed then lands in `out_of_scope_school_name` / `out_of_scope_formation_name` (the latter is the former `course`, renamed). A `CheckConstraint` per side enforces **exactly one** of the two — a record or a name, never both, never neither — so `school_label` / `formation_label` always have something to display and no template needs a fallback. Writing one side blanks the other (`TrainingExperienceFormMixin.save_training`).
 - `Level` (`models/level.py`) — the study levels shared by `TrainingExperience` and `Formation.exit_level`. `TrainingExperience.LEVELS` is the subset the beneficiary funnel offers; the extra members (CAP, bac +6 to +9) only describe imported formations.
 - `WorkshopRequest` — one row per workshop type requested by a `Pro`, with an optional shared remark. The workshop landing form can create multiple rows from one submission.
+- `Event` — one event submitted by a `Pro`, moderated in the admin (`status` pending / approved / rejected, tracked by `HistoricalRecords`). `subcategory` holds either a `Subcategory` value or the free text typed when none of them fits, so `category` is not a column: it is derived from the subcategory through the `SUBCATEGORIES` map — free text lands where `OTHER` does — and drives `category_color`, the colour of the card. A `CheckConstraint` enforces that an event ends after it starts. `EventQuerySet` composes `approved()`, `upcoming()` (one that has started but not ended is still to come), `past()`, `in_category()` / `in_subcategory()`.
+- `SavedEvent` — one event a `Beneficiary` put aside, unique per pair. `SavedEvent.objects.toggle(event=…, beneficiary=…)` deletes the row or creates it, and returns whether the event is now saved.
 
 **Relationships:**
 - `Pro` inherits from `User` (Django multi-table inheritance — one DB row per table).
 - `WorkshopRequest` belongs to `Pro` through `pro.workshop_requests`.
 - `Formation` and `School` are many-to-many through `FormationAction` (`formation.schools`, `school.formations`).
 - `TrainingExperience` points at a single `School` with `on_delete=SET_NULL`, so re-importing never destroys a user's parcours.
+- `Event` belongs to the `Pro` who submitted it (`pro.events`).
+- `Event` and `Beneficiary` are many-to-many through `SavedEvent` (`event.saved_by`, `beneficiary.saved_events`).
 
 **Onisep imports:** `import_schools_and_formations` is the master command — it chains the school, formation, action and ambassador-flag steps in that order, then remaps the parcours left by the school merge. It runs with `--if-empty --sample` in the Procfile `postdeploy` (so a fresh review app gets the committed samples, while already-populated staging/prod are a no-op), and monthly through `cron.json` (Scalingo scheduler) with `--async` — that pass is the real import.
 
@@ -147,7 +151,7 @@ They are filed in two kinds of package: one per external API (`brevo_api/`, `job
 
 **`BaseApiService`** (`services/base_api.py`) extends `BaseService` for the services that actually talk to an external API, and for those only — an orchestrator that merely relays their failure (`ImportSchools`, `SyncBrevoContact`, `UpsertManifesteSignatory`…) stays a `BaseService`. Subclasses set `status_code` / `network_error` from the response and then fail as usual: the kind is never declared by hand, it is derived from what came back (no answer, 429, 5xx ⇒ `TRANSIENT`). The service says what the failure *was*; the Celery task decides what to do with it, through `raise_failure(result)` (`tasks/_retry.py`), which picks between `TransientError` and `RuntimeError`.
 
-**Mailers:** `techpourtoutes/mailers.py` — class-based, no inheritance. Each mailer exposes `@classmethod` methods that call `send_mail` with rendered txt+html templates (`ProMailer`, `ConsortiumMailer`, `AuthMailer`, `AccountMailer`).
+**Mailers:** `techpourtoutes/mailers/` — one module per mailer, each a `BaseMailer` subclass. Each mailer exposes `@classmethod` methods that call `send_mail` with rendered txt+html templates (`ProMailer`, `ConsortiumMailer`, `AuthMailer`, `AccountMailer`).
 
 **Jobirl integration:** External mentoring platform. Services live in `techpourtoutes/services/jobirl_api/`. Use `JobirlApiBaseService` (extends `BaseApiService`) for requests — it wraps `JobirlClient` (`techpourtoutes/clients/jobirl.py`) and exposes `result.jobirl_response_body` (the `datas` key from the response) on success.
 
@@ -162,7 +166,24 @@ They are filed in two kinds of package: one per external API (`brevo_api/`, `job
 
 **Views:** Function-based views only.
 
-**Workshop request flow:** `workshops_landing` uses `WorkshopForm`, creates a `Pro` with the `workshops` engagement, persists one `WorkshopRequest` per selected workshop type, sends the welcome email, and enqueues the n8n notification task. The chosen school's **UAI** is not stored on the `Pro`: it is a form-only field (`structure_uai`) handed to the task alongside the workshop types, and reaches Latitudes as `identifiant_etablissement`.
+**View naming:** `<action>_<resource>`, where the action is the Rails REST verb — `index`, `show`, `new`, `create`, `edit`, `update`, `destroy`: `index_events`, `show_pro_training_experience`, `edit_user`, `destroy_beneficiary_training_experience`. Two extra actions cover what REST has no single word for:
+
+- `upsert_<resource>` — one view that both creates and updates.
+- `show_<resource>_form` — one view that renders both the `new` and the `edit` form.
+
+The URL name matches the view name, so `reverse()` and the function are one word apart.
+
+**One route, one view.** Two `path()` entries never share a function, and no view branches on `request.method`: a form is two routes, `edit_user` (GET) rendering it and `update_user` (POST) saving it, `new_mentor` (GET) and `create_mentor` (POST) likewise. What the pair has in common goes into a private helper — `new_beneficiary_training_experience` and `create_beneficiary_training_experience` both call `_render_beneficiary_training_experience_form`.
+
+Endpoints serving a partial name the partial as their resource: `destroy_user_modal`, `show_skip_mentoring_signup_modal`.
+
+Exceptions can be made in rare occasions, like for static pages (static_views, `home`, `coalition_welcome`...), search_views, robot_views, `login_*` methods in auth_views or `inscription_funnel`. Think thoroughly before diverging the convention and always mention it.
+
+**Templates take the name of the view that renders them** — and when a route was split in two, that is always the GET half: `new_mentor` and `create_mentor` both render `coalition/new_mentor.html`, `edit_pro_training_experience` and `update_pro_training_experience` both render `account/partials/edit_pro_training_experience.html`. Modals follow the rule too (`destroy_user_modal.html`). The partials a view merely composes into its page are named for what they show, not for a view (`account/partials/show_username.html`, `pro_cards.html`).
+
+**Workshop request flow:** `create_workshop_request` uses `WorkshopForm`, creates a `Pro` with the `workshops` engagement, persists one `WorkshopRequest` per selected workshop type, sends the welcome email, and enqueues the n8n notification task. The chosen school's **UAI** is not stored on the `Pro`: it is a form-only field (`structure_uai`) handed to the task alongside the workshop types, and reaches Latitudes as `identifiant_etablissement`.
+
+**Events listing:** `index_events` lists the approved upcoming events, `EVENTS_PER_PAGE` at a time. Whether the visitor already bookmarked an event is annotated on the queryset (`Exists`), never fetched per card, so the page costs the same number of queries whatever the number of events. Who gets which bookmark is decided once, by `_bookmark_action`, and the card knows nothing but that word: a beneficiary posts to `update_saved_event`, which swaps the button with the partial of the same name; an anonymous visitor opens `create_saved_event_modal`, inviting her to join the club; a signed-in pro gets no bookmark at all. Paging is the shared `<c-components.pagination>` component, fed by the `elided_pages` filter (`templatetags/pagination.py`) because the eliding arguments cannot be passed from a template.
 
 **School autocomplete:** one endpoint, `search_schools`, parameterised by a `scope` query param. `views/search_views.py` holds the `SCOPES` registry, where each scope decides four things: which subset of `School` it searches, whether a numeric token matches the postal code, the ordering, and the template rendering one row of the dropdown. Adding a périmètre means adding an entry, not a view. The single cotton component is `ui/templates/cotton/components/form_fields/school_search.html`; its `key` var says whether the selected school's UUID or its UAI lands in the hidden id field.
 
@@ -198,6 +219,7 @@ They are filed in two kinds of package: one per external API (`brevo_api/`, `job
 - Use `pytest` with `@pytest.mark.django_db` for any test touching the database
 - Use Django's built-in `client` fixture for view tests; use `reverse()` for URLs
 - No factory_boy — use plain model instantiation or pytest fixtures
+- Name a view's tests after the view: `test_update_user_valid_saves_and_returns_info_card`, not `test_account_edit_...`
 
 ### Test layout
 

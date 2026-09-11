@@ -1,4 +1,3 @@
-from django.conf import settings
 from django.shortcuts import redirect, render
 
 
@@ -28,17 +27,6 @@ def a_propos(request):
 
 def notre_manifeste(request):
     return render(request, "static/notre_manifeste.html", {})
-
-
-def signature_manifeste(request):
-    manifeste_url = f"{settings.SITE_URL}/notre-manifeste/"
-    return render(
-        request,
-        "static/signature_manifeste.html",
-        {
-            "linkedin_share_url": f"https://www.linkedin.com/sharing/share-offsite/?url={manifeste_url}"
-        },
-    )
 
 
 def qui_sommes_nous(request):

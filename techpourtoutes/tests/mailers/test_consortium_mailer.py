@@ -22,8 +22,8 @@ from techpourtoutes.models import Pro
         (Pro.Engagement.SPONSOR, "sponsor@example.com"),
     ],
 )
-def test_new_pro_routes_to_engagement_recipient(pro, engagement, recipient):
-    ConsortiumMailer.new_pro(pro=pro, engagement=engagement)
+def test_pro_signed_up_routes_to_engagement_recipient(pro, engagement, recipient):
+    ConsortiumMailer.pro_signed_up(pro=pro, engagement=engagement)
 
     assert len(mail.outbox) == 1
     message = mail.outbox[0]
@@ -36,7 +36,7 @@ def test_new_pro_routes_to_engagement_recipient(pro, engagement, recipient):
     EMAIL_BACKEND="django.core.mail.backends.locmem.EmailBackend",
     COALITION_TRAINING_AMBASSADOR_RECIPIENTS=["training@example.com"],
 )
-def test_new_training_ambassador_includes_experience_in_body(pro, higher_ed_school):
+def test_training_ambassador_signed_up_includes_experience_in_body(pro, higher_ed_school):
     from techpourtoutes.models import Formation, TrainingExperience
 
     formation = Formation(onisep_id="9701", name="Master IA")
@@ -44,7 +44,7 @@ def test_new_training_ambassador_includes_experience_in_body(pro, higher_ed_scho
     experience = TrainingExperience.objects.create(
         user=pro, school=higher_ed_school, formation=formation
     )
-    ConsortiumMailer.new_training_ambassador(pro=pro, training_experience=experience)
+    ConsortiumMailer.training_ambassador_signed_up(pro=pro, training_experience=experience)
 
     message = mail.outbox[0]
     assert message.to == ["training@example.com"]
@@ -57,8 +57,8 @@ def test_new_training_ambassador_includes_experience_in_body(pro, higher_ed_scho
     EMAIL_BACKEND="django.core.mail.backends.locmem.EmailBackend",
     COALITION_WORK_AMBASSADOR_RECIPIENTS=["ambassador@example.com"],
 )
-def test_new_pro_includes_pro_details_in_body(pro):
-    ConsortiumMailer.new_pro(pro=pro, engagement=Pro.Engagement.WORK_AMBASSADOR)
+def test_pro_signed_up_includes_pro_details_in_body(pro):
+    ConsortiumMailer.pro_signed_up(pro=pro, engagement=Pro.Engagement.WORK_AMBASSADOR)
 
     body = mail.outbox[0].body
     assert pro.first_name in body
