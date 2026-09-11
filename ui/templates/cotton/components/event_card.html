@@ -7,7 +7,9 @@
             {% if bookmark_action %}
                 {% include "beneficiary/partials/update_saved_event.html" with saved=event.saved %}
             {% endif %}
-            <a href="{% url "new_upcoming_feature_notification" %}?feature=evenements" class="after:absolute after:inset-0"></a>
+            <a href="{% url "new_upcoming_feature_notification" %}?feature=evenements"
+               aria-label="Voir l'événement {{ event.title }}"
+               class="after:absolute after:inset-0 focus-visible:outline-none focus-visible:after:outline-2 focus-visible:after:outline-blue-500 focus-visible:after:outline-offset-2"></a>
         </div>
         <div class="flex justify-center">
             <c-components.badge label="{{ event.subcategory_label }}" background_color="{{ category_color }}" />
