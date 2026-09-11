@@ -8,7 +8,7 @@ from techpourtoutes.services.account.soft_delete_user import SoftDeleteUser
 
 @pytest.mark.django_db
 @override_settings(EMAIL_BACKEND="django.core.mail.backends.locmem.EmailBackend")
-def test_soft_delete_account_deactivates_pro(pro):
+def test_soft_delete_user_deactivates_pro(pro):
     SoftDeleteUser(user=pro)
 
     pro.refresh_from_db()
@@ -17,7 +17,7 @@ def test_soft_delete_account_deactivates_pro(pro):
 
 @pytest.mark.django_db
 @override_settings(EMAIL_BACKEND="django.core.mail.backends.locmem.EmailBackend")
-def test_soft_delete_account_sends_vous_confirmation_and_internal_notice_for_pro(pro):
+def test_soft_delete_user_sends_vous_confirmation_and_internal_notice_for_pro(pro):
     pro.jobirl_user_id = 12345
     pro.jobirl_user_token = "tok-abc"
     pro.save()
@@ -34,7 +34,7 @@ def test_soft_delete_account_sends_vous_confirmation_and_internal_notice_for_pro
 
 @pytest.mark.django_db
 @override_settings(EMAIL_BACKEND="django.core.mail.backends.locmem.EmailBackend")
-def test_soft_delete_account_sends_internal_notice_for_pro_with_workshops_engagement(pro):
+def test_soft_delete_user_sends_internal_notice_for_pro_with_workshops_engagement(pro):
     pro.add_engagement(Pro.Engagement.WORKSHOPS)
     pro.save()
 
@@ -48,7 +48,7 @@ def test_soft_delete_account_sends_internal_notice_for_pro_with_workshops_engage
 
 @pytest.mark.django_db
 @override_settings(EMAIL_BACKEND="django.core.mail.backends.locmem.EmailBackend")
-def test_soft_delete_account_sends_two_internal_notices_for_pro_with_jobirl_and_workshops(pro):
+def test_soft_delete_user_sends_two_internal_notices_for_pro_with_jobirl_and_workshops(pro):
     pro.jobirl_user_id = 12345
     pro.jobirl_user_token = "tok-abc"
     pro.add_engagement(Pro.Engagement.WORKSHOPS)
@@ -65,7 +65,7 @@ def test_soft_delete_account_sends_two_internal_notices_for_pro_with_jobirl_and_
 
 @pytest.mark.django_db
 @override_settings(EMAIL_BACKEND="django.core.mail.backends.locmem.EmailBackend")
-def test_soft_delete_account_deactivates_beneficiary(beneficiary):
+def test_soft_delete_user_deactivates_beneficiary(beneficiary):
     SoftDeleteUser(user=beneficiary)
 
     beneficiary.refresh_from_db()
@@ -74,7 +74,7 @@ def test_soft_delete_account_deactivates_beneficiary(beneficiary):
 
 @pytest.mark.django_db
 @override_settings(EMAIL_BACKEND="django.core.mail.backends.locmem.EmailBackend")
-def test_soft_delete_account_sends_only_tu_confirmation_for_beneficiary(beneficiary):
+def test_soft_delete_user_sends_only_tu_confirmation_for_beneficiary(beneficiary):
     SoftDeleteUser(user=beneficiary)
 
     assert len(mail.outbox) == 1
@@ -86,7 +86,7 @@ def test_soft_delete_account_sends_only_tu_confirmation_for_beneficiary(benefici
 
 @pytest.mark.django_db
 @override_settings(EMAIL_BACKEND="django.core.mail.backends.locmem.EmailBackend")
-def test_soft_delete_account_sends_internal_notice_for_beneficiary_with_jobirl_account(
+def test_soft_delete_user_sends_internal_notice_for_beneficiary_with_jobirl_account(
     beneficiary,
 ):
     beneficiary.jobirl_user_id = 6789

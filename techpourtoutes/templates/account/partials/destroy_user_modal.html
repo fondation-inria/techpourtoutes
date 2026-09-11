@@ -29,7 +29,7 @@
                     label="Annuler"
                     type="button"
                     variant="tertiary"
-                    hx-on:click="document.getElementById('modal-container').innerHTML = ''"
+                    hx-on:click="this.closest('dialog').close()"
                 />
             </div>
         </c-patterns.form>

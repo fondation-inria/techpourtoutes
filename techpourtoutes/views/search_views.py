@@ -5,6 +5,7 @@ from django.http import HttpResponseBadRequest
 from django.shortcuts import render
 
 from ..models import Formation, School
+from ..services.geoplateforme_api.search_addresses import SearchAddresses
 
 PAGE_SIZE = 20
 
@@ -114,6 +115,25 @@ def search_formations(request):
             "unique_id": request.GET.get("unique_id", ""),
         },
     )
+
+
+def search_addresses(request):
+    """Unlike the other two, this one queries a live API: no scope, no pagination.
+
+    An unreachable API is not an error page — the dropdown says so and tells the component to
+    offer manual entry, through the `addressApiDown` trigger. Only a transient failure earns
+    that: a query the API refuses is the user's to fix, and manual entry would hide it.
+    """
+    result = SearchAddresses(query=request.GET.get("q", "").strip())
+    api_down = result.failed_with_transient_error
+    response = render(
+        request,
+        "common/partials/address_results.html",
+        {"addresses": result.addresses, "api_down": api_down},
+    )
+    if api_down:
+        response["HX-Trigger"] = "addressApiDown"
+    return response
 
 
 # ------------------- private -------------------

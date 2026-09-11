@@ -22,7 +22,7 @@ from techpourtoutes.models import Pro
         (Pro.Engagement.SPONSOR, "sponsor@example.com"),
     ],
 )
-def test_new_pro_routes_to_engagement_recipient(pro, engagement, recipient):
+def test_pro_signed_up_routes_to_engagement_recipient(pro, engagement, recipient):
     ConsortiumMailer.pro_signed_up(pro=pro, engagement=engagement)
 
     assert len(mail.outbox) == 1
@@ -36,7 +36,7 @@ def test_new_pro_routes_to_engagement_recipient(pro, engagement, recipient):
     EMAIL_BACKEND="django.core.mail.backends.locmem.EmailBackend",
     COALITION_TRAINING_AMBASSADOR_RECIPIENTS=["training@example.com"],
 )
-def test_new_training_ambassador_includes_experience_in_body(pro, higher_ed_school):
+def test_training_ambassador_signed_up_includes_experience_in_body(pro, higher_ed_school):
     from techpourtoutes.models import Formation, TrainingExperience
 
     formation = Formation(onisep_id="9701", name="Master IA")
@@ -57,10 +57,41 @@ def test_new_training_ambassador_includes_experience_in_body(pro, higher_ed_scho
     EMAIL_BACKEND="django.core.mail.backends.locmem.EmailBackend",
     COALITION_WORK_AMBASSADOR_RECIPIENTS=["ambassador@example.com"],
 )
-def test_new_pro_includes_pro_details_in_body(pro):
+def test_pro_signed_up_includes_pro_details_in_body(pro):
     ConsortiumMailer.pro_signed_up(pro=pro, engagement=Pro.Engagement.WORK_AMBASSADOR)
 
     body = mail.outbox[0].body
     assert pro.first_name in body
     assert pro.last_name in body
     assert pro.email in body
+
+
+@pytest.mark.django_db
+@override_settings(
+    EMAIL_BACKEND="django.core.mail.backends.locmem.EmailBackend",
+    NEW_EVENT_RECIPIENTS=["agir@techpourtoutes.io"],
+)
+def test_event_submitted_notifies_the_moderation_team(event):
+    ConsortiumMailer.event_submitted(event=event)
+
+    assert len(mail.outbox) == 1
+    message = mail.outbox[0]
+    assert message.to == ["agir@techpourtoutes.io"]
+    assert event.title in message.body
+    assert event.created_by.email in message.body
+    assert message.tags == ["interne", "coalition", "nouvel événement"]
+
+
+@pytest.mark.django_db
+@override_settings(
+    EMAIL_BACKEND="django.core.mail.backends.locmem.EmailBackend",
+    NEW_EVENT_RECIPIENTS=["agir@techpourtoutes.io"],
+    SITE_URL="https://example.test",
+)
+def test_event_submitted_links_to_the_event_in_the_admin(event):
+    ConsortiumMailer.event_submitted(event=event)
+
+    expected_url = f"https://example.test/admin/techpourtoutes/event/{event.pk}/change/"
+    message = mail.outbox[0]
+    assert expected_url in message.body
+    assert expected_url in message.alternatives[0][0]

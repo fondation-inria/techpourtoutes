@@ -19,6 +19,7 @@ from .beneficiary_inscription import (
     StudyStatus,
 )
 from .engagement import EngagementForm, TrainingAmbassadorForm, WorkshopForm
+from .event import EventDetailsForm, EventLocationForm, EventSubcategoryForm
 from .manifeste_signature_form import ManifesteSignatureForm
 from .upcoming_feature_notification_form import UpcomingFeatureNotificationForm
 
@@ -38,6 +39,9 @@ __all__ = [
     "EmailChangeForm",
     "UpcomingFeatureNotificationForm",
     "EngagementForm",
+    "EventSubcategoryForm",
+    "EventDetailsForm",
+    "EventLocationForm",
     "LoginRequestForm",
     "ManifesteSignatureForm",
     "ProEditAccountForm",
