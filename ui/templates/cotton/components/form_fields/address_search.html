@@ -1,0 +1,145 @@
+<c-vars
+    address_field
+    postal_code_field
+    city_field
+    cog_code_field
+    longitude_field
+    latitude_field
+    ban_id_field
+    poi_name_field
+    api_down_field
+    label=""
+    description=""
+    class=""
+/>
+
+{# Unlike the school and formation searches, this one queries a live API. When it answers, the #}
+{# geocoded values are carried by hidden inputs; when it does not, the three inputs the user #}
+{# can fill by hand take over — the event is then created ungeocoded, and cannot be approved #}
+{# until someone completes its coordinates. A hit is either a street, which fills the address #}
+{# fields, or a named place, which fills `poi_name` and leaves them empty. #}
+<c-components.form-fields.base :field=address_field :errors=address_field.errors label=label description=description class=class>
+    <div x-data="{
+            open: false,
+            apiDown: '{{ api_down_field.value|default:""|escapejs }}' !== '',
+            selected: '{{ address_field.value|default:""|escapejs }}' !== '' && '{{ latitude_field.value|default:""|escapejs }}' !== '',
+            query: '{{ address_field.value|default:""|escapejs }}',
+            address: '{{ address_field.value|default:""|escapejs }}',
+            postalCode: '{{ postal_code_field.value|default:""|escapejs }}',
+            city: '{{ city_field.value|default:""|escapejs }}',
+            cogCode: '{{ cog_code_field.value|default:""|escapejs }}',
+            longitude: '{{ longitude_field.value|default:""|escapejs }}',
+            latitude: '{{ latitude_field.value|default:""|escapejs }}',
+            banId: '{{ ban_id_field.value|default:""|escapejs }}',
+            poiName: '{{ poi_name_field.value|default:""|escapejs }}',
+            select(hit) {
+                this.poiName = hit.poiName;
+                this.address = hit.address;
+                this.postalCode = hit.postalCode;
+                this.city = hit.city;
+                this.cogCode = hit.cogCode;
+                this.longitude = hit.longitude;
+                this.latitude = hit.latitude;
+                this.banId = hit.banId;
+                this.query = hit.label;
+                this.selected = true;
+                this.open = false;
+            },
+            clear() {
+                this.poiName = '';
+                this.address = '';
+                this.postalCode = '';
+                this.city = '';
+                this.cogCode = '';
+                this.longitude = '';
+                this.latitude = '';
+                this.banId = '';
+                this.query = '';
+                this.selected = false;
+                this.open = true;
+                this.$nextTick(() => this.$refs.searchInput.focus());
+            },
+            goManual() {
+                this.apiDown = true;
+                this.open = false;
+                this.selected = false;
+                this.poiName = '';
+                this.address = this.query;
+            }
+         }"
+         @address-api-down.window="goManual()"
+         @click.outside="open = false"
+         @keydown.escape="open = false"
+         class="relative">
+        <input type="hidden" name="{{ cog_code_field.html_name }}" :value="cogCode">
+        <input type="hidden" name="{{ longitude_field.html_name }}" :value="longitude">
+        <input type="hidden" name="{{ latitude_field.html_name }}" :value="latitude">
+        <input type="hidden" name="{{ ban_id_field.html_name }}" :value="banId">
+        <input type="hidden" name="{{ poi_name_field.html_name }}" :value="poiName">
+        <input type="hidden" name="{{ api_down_field.html_name }}" :value="apiDown ? 'on' : ''">
+
+        <template x-if="!apiDown">
+            <div x-init="htmx.process($el)">
+                <input type="hidden" name="{{ address_field.html_name }}" :value="address">
+                <input type="hidden" name="{{ postal_code_field.html_name }}" :value="postalCode">
+                <input type="hidden" name="{{ city_field.html_name }}" :value="city">
+                <input type="text"
+                       x-show="!selected"
+                       x-cloak
+                       x-ref="searchInput"
+                       id="{{ address_field.id_for_label }}"
+                       x-model="query"
+                       @focus="open = true"
+                       @input="open = true"
+                       name="q"
+                       autocomplete="off"
+                       placeholder="Rechercher une adresse ou un lieu…"
+                       hx-get="{% url 'search_addresses' %}"
+                       hx-trigger="input changed delay:300ms"
+                       hx-target="#address-results"
+                       hx-swap="innerHTML"
+                       class="field-base {% if address_field.errors %}field-error{% else %}field-default{% endif %}" />
+                <div x-show="selected" x-cloak
+                     class="field-base field-default flex items-start justify-between gap-2">
+                    <span class="wrap-break-word" x-text="query"></span>
+                    <c-components.button type="button" @click="clear()"
+                            variant="icon"
+                            icon="close"
+                            icon_size_class="w-3 h-3"
+                            class="shrink-0 text-black p-1 rounded-sm"
+                            aria-label="Effacer l'adresse" />
+                </div>
+                <ul x-show="open && !selected" x-cloak
+                    id="address-results"
+                    class="absolute z-10 mt-1 w-full bg-neutral-50 rounded shadow-thin-bottom shadow-black max-h-60 overflow-y-auto"
+                    role="listbox"></ul>
+            </div>
+        </template>
+
+        {# Plain inputs rather than `form_fields.input`: that component drops unknown attributes, #}
+        {# and these three need `x-model` so what was already typed survives the switch. #}
+        <template x-if="apiDown">
+            <div class="flex flex-col gap-4">
+                <p class="description-text-xxs">
+                    La recherche d'adresse est momentanément indisponible&nbsp;: saisissez votre
+                    adresse complète.
+                </p>
+                <c-components.form-fields.base :field=address_field label="Adresse*">
+                    <input type="text" name="{{ address_field.html_name }}" x-model="address"
+                           autocomplete="off" id="{{ address_field.id_for_label }}"
+                           class="field-base {% if address_field.errors %}field-error{% else %}field-default{% endif %}" />
+                </c-components.form-fields.base>
+                <c-components.form-fields.base :field=postal_code_field label="Code postal*">
+                    <input type="text" name="{{ postal_code_field.html_name }}" x-model="postalCode"
+                           autocomplete="off" id="{{ postal_code_field.id_for_label }}"
+                           class="field-base {% if postal_code_field.errors %}field-error{% else %}field-default{% endif %}" />
+                </c-components.form-fields.base>
+                <c-components.form-fields.base :field=city_field label="Ville*">
+                    <input type="text" name="{{ city_field.html_name }}" x-model="city"
+                           autocomplete="off" id="{{ city_field.id_for_label }}"
+                           class="field-base {% if city_field.errors %}field-error{% else %}field-default{% endif %}" />
+                </c-components.form-fields.base>
+            </div>
+        </template>
+    </div>
+</c-components.form-fields.base>

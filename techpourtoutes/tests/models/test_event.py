@@ -1,4 +1,4 @@
-from datetime import time, timedelta
+from datetime import date, time, timedelta
 from decimal import Decimal
 
 import pytest
@@ -116,6 +116,68 @@ def test_in_category_includes_the_free_text_where_other_sits(pro):
 
 
 @pytest.mark.django_db
+def test_event_category_color_follows_its_category(pro):
+    from techpourtoutes.models import Event
+
+    colors = {
+        Event.Subcategory.CONFERENCE: "orange",
+        Event.Subcategory.JOB_DATING: "yellow",
+        Event.Subcategory.OPEN_HOUSE: "green",
+        Event.Subcategory.AFTERWORK: "purple",
+        Event.Subcategory.HACKATHON: "purple",
+    }
+
+    for subcategory, color in colors.items():
+        assert build_event(pro, subcategory=subcategory).category_color == color
+
+
+@pytest.mark.django_db
+def test_a_free_text_subcategory_takes_the_color_of_the_category_holding_other(pro):
+    event = build_event(pro, subcategory="Rencontre d'anciennes élèves")
+
+    assert event.category_color == "purple"
+
+
+@pytest.mark.django_db
+def test_date_range_label_names_a_single_day_once(pro):
+    event = build_event(pro, start_date=date(2026, 6, 12), end_date=date(2026, 6, 12))
+
+    assert event.date_range_label == "le 12 juin 2026"
+
+
+@pytest.mark.django_db
+def test_date_range_label_writes_a_shared_month_once(pro):
+    event = build_event(pro, start_date=date(2026, 6, 12), end_date=date(2026, 6, 14))
+
+    assert event.date_range_label == "du 12 au 14 juin 2026"
+
+
+@pytest.mark.django_db
+def test_date_range_label_repeats_the_month_when_it_changes(pro):
+    event = build_event(pro, start_date=date(2026, 6, 30), end_date=date(2026, 7, 2))
+
+    assert event.date_range_label == "du 30 juin au 2 juillet 2026"
+
+
+@pytest.mark.django_db
+def test_date_range_label_repeats_the_year_when_it_changes(pro):
+    event = build_event(pro, start_date=date(2026, 12, 30), end_date=date(2027, 1, 2))
+
+    assert event.date_range_label == "du 30 décembre 2026 au 2 janvier 2027"
+
+
+@pytest.mark.django_db
+def test_price_label_says_free_rather_than_zero(pro):
+    assert build_event(pro, price=Decimal("0")).price_label == "gratuit"
+
+
+@pytest.mark.django_db
+def test_price_label_shows_the_amount_and_hides_empty_cents(pro):
+    assert build_event(pro, price=Decimal("20.50")).price_label == "20,50 €"
+    assert build_event(pro, price=Decimal("20.00")).price_label == "20 €"
+
+
+@pytest.mark.django_db
 def test_event_rejects_an_end_date_before_its_start_date(pro):
     start = timezone.localdate() + timedelta(days=30)
 
@@ -148,6 +210,48 @@ def test_event_keeps_an_address_the_geocoding_api_never_resolved(pro):
 
 
 @pytest.mark.django_db
+def test_event_keeps_a_venue_with_no_street_address(pro):
+    """A POI carries a name and a commune, never a street: the address columns stay empty."""
+    from techpourtoutes.models import Event
+
+    event = build_event(
+        pro,
+        location_type=Event.LocationType.PHYSICAL,
+        poi_name="Station F",
+        city="Paris 13e Arrondissement",
+        cog_code="75113",
+        longitude=2.371699,
+        latitude=48.833436,
+    )
+    event.save()
+
+    assert event.address == ""
+    assert event.postal_code == ""
+
+
+@pytest.mark.django_db
+def test_location_label_prefers_the_venue_over_the_address(pro):
+    from techpourtoutes.models import Event
+
+    venue = build_event(
+        pro,
+        location_type=Event.LocationType.PHYSICAL,
+        poi_name="Station F",
+        city="Paris 13e Arrondissement",
+    )
+    address = build_event(
+        pro,
+        location_type=Event.LocationType.PHYSICAL,
+        address="8 Boulevard du Port",
+        postal_code="80000",
+        city="Amiens",
+    )
+
+    assert venue.location_label == "Station F Paris 13e Arrondissement"
+    assert address.location_label == "8 Boulevard du Port 80000 Amiens"
+
+
+@pytest.mark.django_db
 def test_past_and_upcoming_split_events_on_their_end_date(pro):
     from techpourtoutes.models import Event
 
@@ -177,6 +281,79 @@ def test_approved_returns_only_the_validated_events(pro):
     build_event(pro).save()
 
     assert list(Event.objects.approved()) == [approved]
+
+
+@pytest.mark.django_db
+def test_an_ungeocoded_physical_event_cannot_be_approved(pro):
+    """Nothing may go live on a map without coordinates: the admin has to geocode it first."""
+    from techpourtoutes.models import Event
+
+    event = build_event(
+        pro,
+        location_type=Event.LocationType.PHYSICAL,
+        address="Salle des fêtes, derrière la mairie",
+        status=Event.Status.APPROVED,
+    )
+
+    with pytest.raises(ValidationError):
+        event.save()
+
+
+@pytest.mark.django_db
+def test_a_physical_event_naming_neither_address_nor_venue_cannot_be_approved(pro):
+    """Coordinates alone put a pin on a map with nothing to read next to it."""
+    from techpourtoutes.models import Event
+
+    event = build_event(
+        pro,
+        location_type=Event.LocationType.PHYSICAL,
+        longitude=2.371699,
+        latitude=48.833436,
+        status=Event.Status.APPROVED,
+    )
+
+    with pytest.raises(ValidationError):
+        event.save()
+
+
+@pytest.mark.django_db
+def test_a_geocoded_venue_can_be_approved_without_a_street_address(pro):
+    from techpourtoutes.models import Event
+
+    event = build_event(
+        pro,
+        location_type=Event.LocationType.PHYSICAL,
+        poi_name="Station F",
+        city="Paris 13e Arrondissement",
+        cog_code="75113",
+        longitude=2.371699,
+        latitude=48.833436,
+        status=Event.Status.APPROVED,
+    )
+    event.save()
+
+    assert list(Event.objects.approved()) == [event]
+
+
+@pytest.mark.django_db
+def test_a_geocoded_physical_event_can_be_approved(event):
+    from techpourtoutes.models import Event
+
+    event.status = Event.Status.APPROVED
+    event.save()
+
+    assert list(Event.objects.approved()) == [event]
+
+
+@pytest.mark.django_db
+def test_an_online_event_can_be_approved_without_coordinates(pro):
+    from techpourtoutes.models import Event
+
+    event = build_event(pro, status=Event.Status.APPROVED)
+    event.save()
+
+    assert event.latitude is None
+    assert list(Event.objects.approved()) == [event]
 
 
 @pytest.mark.django_db

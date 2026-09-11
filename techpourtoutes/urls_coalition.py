@@ -31,6 +31,7 @@ urlpatterns = [
         views.create_workshop_request,
         name="create_workshop_request",
     ),
+    path("proposer-un-evenement/", views.event_funnel, name="event_funnel"),
     path("bienvenue-dans-la-coalition/", views.coalition_welcome, name="coalition_welcome"),
     path("signer-le-manifeste/", views.new_manifeste_signature, name="new_manifeste_signature"),
     path(

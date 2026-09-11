@@ -1,0 +1,14 @@
+{% autoescape off %}Bonjour,
+
+{{ event.created_by.full_name }} de {{ event.created_by.structure_name }} vient de publier un nouvel événement : {{ admin_url }}
+
+- Titre : {{ event.title }}
+- Organisateur : {{ event.organizer }}
+- Type : {{ event.category_label }}
+- Dates : du {{ event.start_date|date:"d/m/Y" }} à {{ event.start_time|time:"H\hi" }} au {{ event.end_date|date:"d/m/Y" }} à {{ event.end_time|time:"H\hi" }}
+- Adresse mail de contact : {{ event.created_by.email }}
+{% if event.location_type == "physical" and not event.latitude %}
+L'API d'adresse a eu un souci au moment de la création de l'événement et l'adresse est donc non géocodée : l'événement ne pourra pas être validé tant que vous n'aurez pas compléter ces coordonnées.
+{% endif %}
+Bonne journée,
+{% endautoescape %}

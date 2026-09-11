@@ -58,7 +58,7 @@ def test_create_mentor_sends_welcome_email(valid_pro_model_data):
     assert "Bienvenue" in mail.outbox[0].subject
 
 
-def test_create_mentor_existing_pro_sends_new_engagement(pro):
+def test_create_mentor_existing_pro_sends_engagement_added(pro):
     from techpourtoutes.mailers import ProMailer
 
     with (

@@ -1,0 +1,14 @@
+{% autoescape off %}Bonjour {{ event.created_by.first_name }},
+
+
+Votre événement <strong>{{ event.title }}</strong> va être étudié par notre équipe. Vous recevrez un mail dès sa validation et sa mise en ligne.
+
+Pour rappel, voici ce que vous avez renseigné :
+
+- Type : {{ event.category_label }}
+- Dates : du {{ event.start_date|date:"d/m/Y" }} à {{ event.start_time|time:"H\hi" }} au {{ event.end_date|date:"d/m/Y" }} à {{ event.end_time|time:"H\hi" }}
+- Format : {{ event.get_location_type_display }}
+
+
+Bonne journée,
+L'équipe TechPourToutes{% endautoescape %}
