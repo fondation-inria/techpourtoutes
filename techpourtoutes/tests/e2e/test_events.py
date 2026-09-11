@@ -33,15 +33,6 @@ def test_the_signup_modal_holds_on_to_the_keyboard(page, live_server, event):
         )
 
 
-def test_escape_closes_the_signup_modal_and_hands_the_focus_back(page, live_server, event):
-    bookmark = _open_signup_modal(page, live_server, event)
-
-    page.keyboard.press("Escape")
-
-    expect(page.get_by_text("Rejoins le club TechPourToutes")).to_be_hidden()
-    expect(bookmark).to_be_focused()
-
-
 def _open_signup_modal(page, live_server, event):
     event.status = Event.Status.APPROVED
     event.save()

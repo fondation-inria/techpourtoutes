@@ -31,7 +31,10 @@ def _change_url(event):
 
 def _change_form_data(event, **overrides):
     """Everything the change form posts back, so a decision travels with real field values."""
+    saves_total = event.saves.count()
     return {
+        "saves-TOTAL_FORMS": str(saves_total),
+        "saves-INITIAL_FORMS": str(saves_total),
         "created_by": str(event.created_by.pk),
         "title": event.title,
         "organizer": event.organizer,
@@ -326,6 +329,11 @@ def test_a_listed_subcategory_offers_its_label_selected(verified_admin_client, e
     event.subcategory = Event.Subcategory.HACKATHON
     event.save()
 
+    url = reverse("admin:techpourtoutes_event_change", args=[event.pk])
+    content = verified_admin_client.get(url).content.decode()
+
+    assert '<option value="hackathon" selected>Hackathon</option>' in content
+
 
 @pytest.mark.django_db
 def test_event_page_lists_the_beneficiaries_who_saved_it(
@@ -338,7 +346,8 @@ def test_event_page_lists_the_beneficiaries_who_saved_it(
     url = reverse("admin:techpourtoutes_event_change", args=[event.pk])
     content = verified_admin_client.get(url).content.decode()
 
-    assert '<option value="hackathon" selected>Hackathon</option>' in content
+    assert "Jade" in content
+    assert "Événements sauvegardés" in content
 
 
 @pytest.mark.django_db

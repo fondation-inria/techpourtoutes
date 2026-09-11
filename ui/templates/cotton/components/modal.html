@@ -4,7 +4,8 @@
     tabindex="-1"
     class="focus:outline-none open:flex fixed inset-0 z-50 w-full h-full max-w-none max-h-none items-center justify-center bg-black/40"
     {% if title %}aria-labelledby="modal-title"{% endif %}
-    hx-on::load="this.showModal(); this.focus()"
+    hx-on::load="if (!this.open) { this.showModal(); this.focus() }"
+    x-init="if (!$el.open) { $el.showModal(); $el.focus() }"
     hx-on:close="this.remove()"
     {% if closable %}hx-on:click="if (event.target === this) this.close()"{% endif %}>
     <div class="w-full max-w-xl bg-white p-8 mx-2 shadow-lg border border-black">

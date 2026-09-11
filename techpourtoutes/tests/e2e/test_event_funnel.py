@@ -105,7 +105,7 @@ def test_leaving_a_submitted_event_closes_straight_away(funnel):
 
 @locmem
 def test_an_online_event_is_published_for_validation(funnel):
-    choose_subcategory(funnel, "Webinaire d'informations")
+    choose_subcategory(funnel, "Webinaire d'info")
     funnel.get_by_role("button", name="Continuer").click()
     fill_details(funnel)
     funnel.get_by_label("Heure de fin*").fill("18:00")
