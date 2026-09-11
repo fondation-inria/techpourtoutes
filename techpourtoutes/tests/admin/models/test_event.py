@@ -326,6 +326,15 @@ def test_a_listed_subcategory_offers_its_label_selected(verified_admin_client, e
     event.subcategory = Event.Subcategory.HACKATHON
     event.save()
 
+
+@pytest.mark.django_db
+def test_event_page_lists_the_beneficiaries_who_saved_it(
+    verified_admin_client, event, beneficiary
+):
+    from techpourtoutes.models import SavedEvent
+
+    SavedEvent.objects.toggle(event=event, beneficiary=beneficiary)
+
     url = reverse("admin:techpourtoutes_event_change", args=[event.pk])
     content = verified_admin_client.get(url).content.decode()
 
@@ -357,3 +366,18 @@ def test_the_subcategory_field_is_wired_into_a_full_save(verified_admin_client, 
     assert response.status_code == 302
     event.refresh_from_db()
     assert event.subcategory == "hackathon"
+
+
+@pytest.mark.django_db
+def test_a_save_is_never_created_by_hand_from_the_event_page(verified_admin_client, event):
+    """A save belongs to the beneficiary who clicked: the admin only ever reads it."""
+    from techpourtoutes.admin.models.saved_event import EventSavedByInline
+
+    url = reverse("admin:techpourtoutes_event_change", args=[event.pk])
+    inline = next(
+        formset.opts
+        for formset in verified_admin_client.get(url).context["inline_admin_formsets"]
+        if isinstance(formset.opts, EventSavedByInline)
+    )
+
+    assert inline.has_add_permission(None, event) is False

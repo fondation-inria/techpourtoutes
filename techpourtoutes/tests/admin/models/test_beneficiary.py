@@ -58,3 +58,16 @@ def test_beneficiary_page_lists_training_experiences(
     content = verified_admin_client.get(url).content.decode()
     assert "Spécialité mathématiques" in content
     assert "Lycée Voltaire" in content
+
+
+@pytest.mark.django_db
+def test_beneficiary_page_lists_the_events_she_saved(verified_admin_client, beneficiary, event):
+    from techpourtoutes.models import SavedEvent
+
+    SavedEvent.objects.toggle(event=event, beneficiary=beneficiary)
+
+    url = reverse("admin:techpourtoutes_beneficiary_change", args=[beneficiary.pk])
+    content = verified_admin_client.get(url).content.decode()
+
+    assert "Salon des métiers du numérique" in content
+    assert "Événements sauvegardés" in content

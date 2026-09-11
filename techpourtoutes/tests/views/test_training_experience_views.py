@@ -7,7 +7,7 @@ from django.urls import reverse
 
 
 @pytest.mark.django_db
-def test_show_account_detail_lists_a_card_per_pro_training_experience(client, pro, experience):
+def test_show_user_lists_a_card_per_pro_training_experience(client, pro, experience):
     client.force_login(pro)
     content = client.get(reverse("show_user")).content.decode()
     assert f"training-experience-{experience.pk}" in content
@@ -86,7 +86,7 @@ def _another_formation():
 
 
 @pytest.mark.django_db
-def test_show_account_detail_lists_a_card_per_beneficiary_training_experience(
+def test_show_user_lists_a_card_per_beneficiary_training_experience(
     client, beneficiary, beneficiary_experience
 ):
     client.force_login(beneficiary)
@@ -96,9 +96,7 @@ def test_show_account_detail_lists_a_card_per_beneficiary_training_experience(
 
 
 @pytest.mark.django_db
-def test_show_account_detail_places_current_year_placeholder_after_future_experience(
-    client, beneficiary
-):
+def test_show_user_places_current_year_placeholder_after_future_experience(client, beneficiary):
     from techpourtoutes.models import Level, TrainingExperience
     from techpourtoutes.utils.school_year import next_school_year_start_date
 
@@ -284,7 +282,8 @@ def test_update_beneficiary_training_experience_repositions_when_period_changes(
 def test_new_beneficiary_training_experience_requires_beneficiary_account(client, pro):
     client.force_login(pro)
     response = client.get(reverse("new_beneficiary_training_experience"))
-    assert response.status_code == 404
+    assert response.status_code == 302
+    assert response["Location"] == reverse("show_account")
 
 
 @pytest.mark.django_db
@@ -493,9 +492,7 @@ def test_edit_beneficiary_training_experience_forms_have_unique_search_result_id
 
 
 @pytest.mark.django_db
-def test_show_account_detail_shows_not_enrolled_status_when_no_current_year_experience(
-    client, beneficiary
-):
+def test_show_user_shows_not_enrolled_status_when_no_current_year_experience(client, beneficiary):
     client.force_login(beneficiary)
 
     content = client.get(reverse("show_user")).content.decode()
@@ -520,9 +517,7 @@ def test_new_beneficiary_training_experience_get_current_year_returns_checked_fo
 
 
 @pytest.mark.django_db
-def test_show_account_detail_does_not_duplicate_existing_current_year_experience(
-    client, beneficiary
-):
+def test_show_user_does_not_duplicate_existing_current_year_experience(client, beneficiary):
     from techpourtoutes.models import Level, TrainingExperience
     from techpourtoutes.utils.school_year import current_school_year_start_date
 

@@ -11,6 +11,7 @@ from techpourtoutes.services.event.moderate_event import ModerateEvent
 from techpourtoutes.services.geoplateforme_api.search_addresses import SearchAddresses
 
 from ..fields import AddressSearchWidget, SubcategoryField
+from .saved_event import EventSavedByInline
 
 # The submit buttons the moderation panel adds to the change form, and what each decides.
 _DECISIONS = {
@@ -133,6 +134,7 @@ class EventAdminForm(forms.ModelForm):
 @admin.register(Event)
 class EventAdmin(SimpleHistoryAdmin):
     form = EventAdminForm
+    inlines = [EventSavedByInline]
     readonly_fields = ("created_at", "updated_at")
     fieldsets = (
         (

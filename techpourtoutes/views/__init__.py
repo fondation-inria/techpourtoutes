@@ -25,9 +25,12 @@ from .beneficiary.inscription_views import inscription_funnel, show_skip_mentori
 from .beneficiary.mentoring_views import mentoring_funnel
 from .beneficiary_views import (
     beneficiary_home,
+    create_saved_event_modal,
     create_upcoming_feature_notification,
+    index_events,
     new_mentoree,
     new_upcoming_feature_notification,
+    update_saved_event,
 )
 from .coalition_views import (
     coalition_home,
@@ -87,6 +90,7 @@ __all__ = [
     "create_beneficiary_training_experience",
     "create_manifeste_signature",
     "create_mentor",
+    "create_saved_event_modal",
     "create_sponsor",
     "create_training_ambassador",
     "create_upcoming_feature_notification",
@@ -101,6 +105,7 @@ __all__ = [
     "edit_user_email",
     "edit_beneficiary_training_experience",
     "edit_pro_training_experience",
+    "index_events",
     "new_internship",
     "inscription_funnel",
     "login_code",
@@ -134,6 +139,7 @@ __all__ = [
     "show_pro_training_experience",
     "show_skip_mentoring_signup_modal",
     "show_manifeste_signature",
+    "update_saved_event",
     "update_user",
     "update_user_communication",
     "update_user_email",
