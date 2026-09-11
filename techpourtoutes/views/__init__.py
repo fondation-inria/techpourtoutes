@@ -31,6 +31,7 @@ from .beneficiary_views import (
     new_mentoree,
     new_upcoming_feature_notification,
     show_event,
+    show_participation_modal,
     update_saved_event,
 )
 from .coalition_views import (
@@ -138,6 +139,7 @@ __all__ = [
     "show_user_email_verification",
     "show_user_info",
     "show_beneficiary_training_experience",
+    "show_participation_modal",
     "show_pro_training_experience",
     "show_skip_mentoring_signup_modal",
     "show_manifeste_signature",

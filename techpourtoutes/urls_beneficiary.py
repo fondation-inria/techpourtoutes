@@ -34,6 +34,11 @@ urlpatterns = [
         name="update_saved_event",
     ),
     path(
+        "evenements/<uuid:pk>/participer/",
+        views.show_participation_modal,
+        name="show_participation_modal",
+    ),
+    path(
         "evenements/<uuid:pk>/",
         views.show_event,
         name="show_event",

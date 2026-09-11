@@ -2,15 +2,108 @@
     title="{{ event.title }}"
     description="{{ event.description }}"
 >
-    <div class="bg-yellow-500">
-            <c-components.button href="#" variant="tertiary" class="w-fit px-4 hover:bg-white/20! active:bg-orange-500! text-neutral-900! font-normal">
+    <div class="relative w-full -mt-8">
+        <div class="absolute inset-y-0 left-1/2 w-[100cqw] -ml-[50cqw] bg-yellow-500">
+            <c-components.button href="{% url "index_events" %}" variant="tertiary" class="w-fit m-2 p-4 hover:bg-white/20! active:bg-orange-500! text-neutral-900! font-normal">
                 <span class="flex items-center gap-1">
                     <c-components.icon name="chevron-down" class="w-4 h-4 rotate-90" />
                     Retour
                 </span>
             </c-components.button>
-
-        <c-components.title title="{{ event.title }}" class="mb-(--grid-cell)" />
+        </div>
+        <div class="relative flex flex-col gap-4 mt-14 mb-2.5">
+            <div class="md:hidden">
+                {% if bookmark_action and not event.has_ended %}
+                    {% include "beneficiary/partials/update_saved_event.html" with label=True %}
+                {% endif %}
+            </div>
+            <c-components.title title="{{ event.title }}" />
+        </div>
     </div>
 
+    <div class="w-full flex flex-wrap items-center justify-between gap-4">
+        <div class="flex flex-wrap w-full justify-between items-center gap-2">
+            <div class="flex flex-wrap items-center gap-2 flex-1">
+                <c-components.badge label="{{ event.subcategory_label }}" background_color="bg-{{ event.category_color }}-500" />
+                {% if event.location_type == "physical" %}
+                    <c-components.badge label="{{ event.city }}" background_color="bg-neutral-0" />
+                {% endif %}
+            </div>
+            {% if not event.has_ended and event.access_type != "open" %}
+                <div class="flex flex-wrap items-center gap-3">
+                    <c-components.button
+                        label="{% if event.access_type == "candidacy" %}Candidater{% else %}Participer{% endif %}"
+                        icon="external-link"
+                        hx-get="{% url "show_participation_modal" event.pk %}"
+                        hx-target="#modal-container"
+                        hx-swap="innerHTML"
+                    />
+                </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <div class="flex justify-between w-full">
+        <c-components.card class="w-full md:w-[48%]">
+            <div class="flex flex-col gap-4 text-sm">
+                <div class="flex gap-3">
+                    <c-components.icon name="organizer" class="w-6 h-6 shrink-0" />
+                    <div>
+                        <p class="font-bold text-lg">Organisateur</p>
+                        <p>{{ event.organizer }}</p>
+                    </div>
+                </div>
+                <div class="flex gap-3">
+                    <c-components.icon name="{% if event.location_type == "online" %}desktop{% else %}location{% endif %}" class="w-6 h-6 shrink-0" />
+                    <div>
+                        {% if event.location_type == "online" %}
+                            <p class="font-bold text-lg">En ligne</p>
+                            {% if event.online_url %}
+                                <c-components.inline-link href="{{ event.online_url }}" label="{{ event.online_url }}" target="_blank" rel="noopener noreferrer" />
+                            {% endif %}
+                        {% else %}
+                            <p class="font-bold text-lg">Adresse</p>
+                            <p>{{ event.location_label }}</p>
+                        {% endif %}
+                    </div>
+                </div>
+                <div class="flex gap-3">
+                    <c-components.icon name="calendar" class="w-6 h-6 shrink-0" />
+                    <div>
+                        <p class="font-bold text-lg">Date et heure</p>
+                        <p>{{ event.date_range_label }}</p>
+                        <p>entre {{ event.start_time|time:"G" }} et {{ event.end_time|time:"G" }} heures</p>
+                    </div>
+                </div>
+                <div class="flex gap-3">
+                    <c-components.icon name="euro-solid" class="w-6 h-6 shrink-0" />
+                    <div>
+                        <p class="font-bold text-lg">Tarif</p>
+                        <p>{{ event.price_label }}</p>
+                    </div>
+                </div>
+                <div class="flex gap-3">
+                    <c-components.icon name="clipboard" class="w-6 h-6 shrink-0" />
+                    <div>
+                        <p class="font-bold text-lg">Conditions de participation</p>
+                        <p>{{ event.get_access_type_display }}</p>
+                    </div>
+                </div>
+            </div>
+        </c-components.card>
+        <div class="hidden md:flex md:w-[48%] md:justify-end md:items-start">
+            {% if bookmark_action and not event.has_ended %}
+                {% include "beneficiary/partials/update_saved_event.html" with label=True %}
+            {% endif %}
+        </div>
+    </div>
+
+    {% if event.description %}
+        <c-components.card class="w-full">
+            <h3 class="font-bold text-lg">Description</h3>
+            <c-components.text>{{ event.description }}</c-components.text>
+        </c-components.card>
+    {% endif %}
+
+    <div id="modal-container"></div>
 </c-layout.base>
