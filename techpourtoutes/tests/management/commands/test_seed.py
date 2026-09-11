@@ -68,3 +68,29 @@ def test_seed_creates_one_approved_upcoming_event_per_category():
 
     events = Event.objects.approved().upcoming()
     assert {event.category for event in events} == set(Event.Category)
+
+
+@pytest.mark.django_db
+def test_seed_events_have_multiline_descriptions():
+    from techpourtoutes.models import Event
+
+    with override_settings(SEED_ENABLED=True):
+        call_command("seed")
+
+    events = Event.objects.all()
+    assert events.exists()
+    for event in events:
+        assert "\n\n" in event.description
+
+
+@pytest.mark.django_db
+def test_seed_includes_events_that_require_registration_or_candidacy():
+    """A few seeded events carry a real registration link, so the participation CTA is testable."""
+    from techpourtoutes.models import Event
+
+    with override_settings(SEED_ENABLED=True):
+        call_command("seed")
+
+    non_open = Event.objects.exclude(access_type=Event.AccessType.OPEN)
+    assert non_open.exists()
+    assert all(event.registration_url for event in non_open)

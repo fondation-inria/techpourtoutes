@@ -357,6 +357,36 @@ def test_an_online_event_can_be_approved_without_coordinates(pro):
 
 
 @pytest.mark.django_db
+def test_has_ended_is_false_before_the_end_date(pro):
+    tomorrow = timezone.localdate() + timedelta(days=1)
+
+    event = build_event(pro, start_date=tomorrow, end_date=tomorrow)
+
+    assert event.has_ended is False
+
+
+@pytest.mark.django_db
+def test_has_ended_is_true_after_the_end_date(pro):
+    yesterday = timezone.localdate() - timedelta(days=1)
+
+    event = build_event(pro, start_date=yesterday, end_date=yesterday)
+
+    assert event.has_ended is True
+
+
+@pytest.mark.django_db
+def test_has_ended_checks_the_time_when_the_event_ends_today(pro):
+    """A date-only comparison would miss this: the event ends today, earlier than now."""
+    today = timezone.localdate()
+
+    event = build_event(
+        pro, start_date=today, end_date=today, start_time=time(0, 0), end_time=time(0, 1)
+    )
+
+    assert event.has_ended is True
+
+
+@pytest.mark.django_db
 def test_event_history_records_the_validation(event):
     from techpourtoutes.models import Event
 

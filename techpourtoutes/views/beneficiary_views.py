@@ -90,6 +90,7 @@ def show_event(request, pk):
         "beneficiary/show_event.html",
         {
             "event": event,
+            "saved": _is_saved(beneficiary, event),
             "bookmark_action": _bookmark_action(request.user, beneficiary),
         },
     )
@@ -100,19 +101,38 @@ def show_event(request, pk):
 def update_saved_event(request, pk):
     beneficiary = _beneficiary_or_404(request)
     event = get_object_or_404(Event.objects.approved(), pk=pk)
+    label = request.POST.get("label") == "true"
+    saved = SavedEvent.objects.toggle(event=event, beneficiary=beneficiary)
+    messages.success(request, "Événement enregistré" if saved else "Événement retiré")
     return render(
         request,
         "beneficiary/partials/update_saved_event.html",
         {
             "event": event,
-            "saved": SavedEvent.objects.toggle(event=event, beneficiary=beneficiary),
+            "saved": saved,
             "bookmark_action": "toggle",
+            "label": label,
         },
     )
 
 
 def create_saved_event_modal(request):
     return render(request, "beneficiary/partials/create_saved_event_modal.html", {})
+
+
+def show_participation_modal(request, pk):
+    beneficiary = getattr(request.user, "beneficiary", None)
+    event = get_object_or_404(Event.objects.approved(), pk=pk)
+    return render(
+        request,
+        "beneficiary/partials/show_participation_modal.html",
+        {
+            "event": event,
+            "is_candidacy": event.access_type == Event.AccessType.CANDIDACY,
+            "saved": _is_saved(beneficiary, event),
+            "bookmark_action": _bookmark_action(request.user, beneficiary),
+        },
+    )
 
 
 def _render_upcoming_feature_notification_form(request, form):
@@ -147,6 +167,13 @@ def _bookmark_action(user, beneficiary):
     if beneficiary is not None:
         return "toggle"
     return "" if user.is_authenticated else "signup"
+
+
+def _is_saved(beneficiary, event):
+    return (
+        beneficiary is not None
+        and SavedEvent.objects.filter(event=event, beneficiary=beneficiary).exists()
+    )
 
 
 def _beneficiary_or_404(request):

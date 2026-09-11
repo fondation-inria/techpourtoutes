@@ -1,21 +1,58 @@
 {# Sibling of the card's stretched link, lifted above it so the click never reaches the card. #}
-<button type="button"
-        class="relative z-10 flex items-center justify-center cursor-pointer"
-        aria-pressed="{{ saved|yesno:"true,false" }}"
-        aria-label="{% if saved %}Retirer cet événement de mes favoris{% else %}Enregistrer cet événement{% endif %}"
-        {% if bookmark_action == "toggle" %}
+<div class="relative z-10 flex flex-col items-end gap-1">
+    {% if label and bookmark_action == "toggle" %}
+        <c-components.button
+            variant="secondary"
+            icon_position="start"
+            icon="{% if saved %}bookmark{% else %}bookmark_outline{% endif %}"
+            icon_size_class="w-5 h-5 {% if saved %}text-blue-500{% else %}text-black{% endif %}"
+            label="{% if saved %}Retirer de mes événements{% else %}Ajouter à mes événements{% endif %}"
+            aria-pressed="{{ saved|yesno:"true,false" }}"
+            aria-label="{% if saved %}Retirer cet événement de mes favoris{% else %}Enregistrer cet événement{% endif %}"
             hx-post="{% url "update_saved_event" event.pk %}"
-            hx-target="this"
+            hx-vals='{"label": "true"}'
+            hx-target="closest div"
             hx-swap="outerHTML"
             hx-disabled-elt="this"
             hx-headers='{"X-CSRFToken": "{{ csrf_token }}"}'
-        {% else %}
+        />
+    {% elif label %}
+        <c-components.button
+            variant="secondary"
+            icon_position="start"
+            icon="bookmark_outline"
+            icon_size_class="w-5 h-5 text-black"
+            label="Ajouter à mes événements"
+            aria-label="Enregistrer cet événement"
             hx-get="{% url "create_saved_event_modal" %}"
             hx-target="#modal-container"
             hx-swap="innerHTML"
-        {% endif %}>
-    <c-components.icon name="bookmark_with_decoration" class="w-10 h-10" />
-    {% if saved %}
-        <c-components.icon name="bookmark" class="absolute w-10 h-10 text-blue-500" />
+        />
+    {% else %}
+        <button type="button"
+                class="relative flex items-center justify-center cursor-pointer"
+                aria-pressed="{{ saved|yesno:"true,false" }}"
+                aria-label="{% if saved %}Retirer cet événement de mes favoris{% else %}Enregistrer cet événement{% endif %}"
+                {% if bookmark_action == "toggle" %}
+                    hx-post="{% url "update_saved_event" event.pk %}"
+                    hx-target="closest div"
+                    hx-swap="outerHTML"
+                    hx-disabled-elt="this"
+                    hx-headers='{"X-CSRFToken": "{{ csrf_token }}"}'
+                {% else %}
+                    hx-get="{% url "create_saved_event_modal" %}"
+                    hx-target="#modal-container"
+                    hx-swap="innerHTML"
+                {% endif %}>
+            <span class="relative flex items-center justify-center w-10 h-10">
+                <c-components.icon name="bookmark_with_decoration" class="w-10 h-10" />
+                {% if saved %}
+                    <c-components.icon name="bookmark" class="absolute w-10 h-10 text-blue-500" />
+                {% endif %}
+            </span>
+        </button>
     {% endif %}
-</button>
+</div>
+{% if messages %}
+    <c-layout.partials.messages oob_swap="true" />
+{% endif %}

@@ -395,3 +395,287 @@ def test_create_saved_event_modal_offers_signing_up_and_logging_in(client):
     assert b"Rejoins le club TechPourToutes" in response.content
     assert reverse("inscription_funnel").encode() in response.content
     assert reverse("login_request").encode() in response.content
+
+
+@pytest.mark.django_db
+def test_show_event_renders_the_event(client, salon):
+    response = client.get(reverse("show_event", args=[salon.pk]))
+
+    assert response.status_code == 200
+    assert salon.title.encode() in response.content
+
+
+@pytest.mark.django_db
+def test_show_event_hides_events_awaiting_validation(client, event):
+    response = client.get(reverse("show_event", args=[event.pk]))
+
+    assert response.status_code == 404
+
+
+@pytest.mark.django_db
+def test_show_event_shows_the_city_tag_and_address_for_a_physical_event(client, pro):
+    from techpourtoutes.models import Event
+
+    physical = approved_event(
+        pro,
+        location_type=Event.LocationType.PHYSICAL,
+        address="8 Boulevard du Port",
+        postal_code="80000",
+        city="Amiens",
+        longitude=2.29009,
+        latitude=49.897443,
+    )
+    physical.save()
+
+    content = client.get(reverse("show_event", args=[physical.pk])).content.decode()
+
+    assert "Amiens" in content
+    assert "Adresse" in content
+    assert "8 Boulevard du Port" in content
+
+
+@pytest.mark.django_db
+def test_show_event_hides_the_city_tag_and_shows_online_for_an_online_event(client, pro):
+    from techpourtoutes.models import Event
+
+    online = approved_event(
+        pro,
+        location_type=Event.LocationType.ONLINE,
+        city="",
+        online_url="https://meet.example.com/abc",
+    )
+    online.save()
+
+    content = client.get(reverse("show_event", args=[online.pk])).content.decode()
+
+    assert "En ligne" in content
+    assert "Adresse" not in content
+    assert "https://meet.example.com/abc" in content
+
+
+@pytest.mark.django_db
+def test_show_event_shows_no_cta_for_an_open_event(client, pro):
+    from techpourtoutes.models import Event
+
+    open_event = approved_event(pro, access_type=Event.AccessType.OPEN)
+    open_event.save()
+
+    content = client.get(reverse("show_event", args=[open_event.pk])).content
+
+    assert reverse("show_participation_modal", args=[open_event.pk]).encode() not in content
+
+
+@pytest.mark.django_db
+def test_show_event_shows_a_participate_cta_for_a_registration_event(client, pro):
+    from techpourtoutes.models import Event
+
+    registration = approved_event(pro, access_type=Event.AccessType.REGISTRATION)
+    registration.save()
+
+    response = client.get(reverse("show_event", args=[registration.pk]))
+
+    assert "Participer" in response.content.decode()
+    assert reverse("show_participation_modal", args=[registration.pk]).encode() in response.content
+
+
+@pytest.mark.django_db
+def test_show_event_shows_a_candidacy_cta_for_a_candidacy_event(client, pro):
+    from techpourtoutes.models import Event
+
+    candidacy = approved_event(pro, access_type=Event.AccessType.CANDIDACY)
+    candidacy.save()
+
+    response = client.get(reverse("show_event", args=[candidacy.pk]))
+
+    assert "Candidater" in response.content.decode()
+    assert reverse("show_participation_modal", args=[candidacy.pk]).encode() in response.content
+
+
+@pytest.mark.django_db
+def test_show_event_shows_the_participation_cta_to_a_connected_pro(client, pro):
+    from techpourtoutes.models import Event
+
+    registration = approved_event(pro, access_type=Event.AccessType.REGISTRATION)
+    registration.save()
+    client.force_login(pro)
+
+    content = client.get(reverse("show_event", args=[registration.pk])).content
+
+    assert reverse("show_participation_modal", args=[registration.pk]).encode() in content
+
+
+@pytest.mark.django_db
+def test_show_event_hides_every_cta_once_the_event_has_ended(client, beneficiary, pro):
+    from datetime import time
+
+    from techpourtoutes.models import Event
+
+    client.force_login(beneficiary)
+    yesterday = timezone.localdate() - timedelta(days=1)
+    past = approved_event(
+        pro,
+        access_type=Event.AccessType.REGISTRATION,
+        start_date=yesterday,
+        end_date=yesterday,
+        end_time=time(18, 0),
+    )
+    past.save()
+
+    response = client.get(reverse("show_event", args=[past.pk]))
+
+    assert reverse("show_participation_modal", args=[past.pk]).encode() not in response.content
+    assert reverse("update_saved_event", args=[past.pk]).encode() not in response.content
+
+
+@pytest.mark.django_db
+def test_show_event_gives_a_connected_pro_no_bookmark_at_all(client, pro, salon):
+    client.force_login(pro)
+
+    content = client.get(reverse("show_event", args=[salon.pk])).content
+
+    assert reverse("create_saved_event_modal").encode() not in content
+    assert reverse("update_saved_event", args=[salon.pk]).encode() not in content
+
+
+@pytest.mark.django_db
+def test_show_event_anonymous_bookmark_opens_the_signup_modal(client, salon):
+    content = client.get(reverse("show_event", args=[salon.pk])).content
+
+    assert reverse("create_saved_event_modal").encode() in content
+
+
+@pytest.mark.django_db
+def test_show_event_marks_an_already_saved_event(client, beneficiary, salon):
+    from techpourtoutes.models import SavedEvent
+
+    SavedEvent.objects.toggle(event=salon, beneficiary=beneficiary)
+    client.force_login(beneficiary)
+
+    content = client.get(reverse("show_event", args=[salon.pk])).content
+
+    assert b'aria-pressed="true"' in content
+
+
+@pytest.mark.django_db
+def test_update_saved_event_with_label_shows_a_labeled_button(client, beneficiary, salon):
+    client.force_login(beneficiary)
+
+    response = client.post(reverse("update_saved_event", args=[salon.pk]), {"label": "true"})
+
+    assert "Retirer de mes événements" in response.content.decode()
+
+
+@pytest.mark.django_db
+def test_update_saved_event_with_label_shows_the_saved_confirmation(client, beneficiary, salon):
+    client.force_login(beneficiary)
+
+    response = client.post(reverse("update_saved_event", args=[salon.pk]), {"label": "true"})
+
+    assert "Événement enregistré" in response.content.decode()
+
+
+@pytest.mark.django_db
+def test_update_saved_event_without_label_hides_the_labeled_button(client, beneficiary, salon):
+    client.force_login(beneficiary)
+
+    response = client.post(reverse("update_saved_event", args=[salon.pk]))
+
+    assert "Retirer de mes événements" not in response.content.decode()
+
+
+@pytest.mark.django_db
+def test_update_saved_event_removing_a_labeled_bookmark_shows_the_removed_confirmation(
+    client, beneficiary, salon
+):
+    client.force_login(beneficiary)
+    url = reverse("update_saved_event", args=[salon.pk])
+    client.post(url, {"label": "true"})
+
+    response = client.post(url, {"label": "true"})
+
+    content = response.content.decode()
+    assert "Événement retiré" in content
+    assert "Événement enregistré" not in content
+    assert "Ajouter à mes événements" in content
+
+
+@pytest.mark.django_db
+def test_show_participation_modal_offers_the_external_link_for_registration(client, pro):
+    from techpourtoutes.models import Event
+
+    registration = approved_event(
+        pro,
+        access_type=Event.AccessType.REGISTRATION,
+        registration_url="https://example.com/inscription",
+    )
+    registration.save()
+
+    response = client.get(reverse("show_participation_modal", args=[registration.pk]))
+
+    assert response.status_code == 200
+    assert "pour t'inscrire" in response.content.decode()
+    assert b"https://example.com/inscription" in response.content
+
+
+@pytest.mark.django_db
+def test_show_participation_modal_offers_the_external_link_for_candidacy(client, pro):
+    from techpourtoutes.models import Event
+
+    candidacy = approved_event(
+        pro,
+        access_type=Event.AccessType.CANDIDACY,
+        registration_url="https://example.com/candidature",
+    )
+    candidacy.save()
+
+    response = client.get(reverse("show_participation_modal", args=[candidacy.pk]))
+
+    assert "pour candidater" in response.content.decode()
+    assert b"https://example.com/candidature" in response.content
+
+
+@pytest.mark.django_db
+def test_show_participation_modal_offers_saving_the_event_to_a_connected_beneficiary(
+    client, beneficiary, pro
+):
+    from techpourtoutes.models import Event
+
+    registration = approved_event(pro, access_type=Event.AccessType.REGISTRATION)
+    registration.save()
+    client.force_login(beneficiary)
+
+    response = client.get(reverse("show_participation_modal", args=[registration.pk]))
+
+    assert reverse("update_saved_event", args=[registration.pk]).encode() in response.content
+
+
+@pytest.mark.django_db
+def test_show_participation_modal_hides_saving_from_an_anonymous_visitor(client, pro):
+    from techpourtoutes.models import Event
+
+    registration = approved_event(pro, access_type=Event.AccessType.REGISTRATION)
+    registration.save()
+
+    response = client.get(reverse("show_participation_modal", args=[registration.pk]))
+
+    assert reverse("update_saved_event", args=[registration.pk]).encode() not in response.content
+
+
+@pytest.mark.django_db
+def test_show_participation_modal_hides_saving_from_a_connected_pro(client, pro):
+    from techpourtoutes.models import Event
+
+    registration = approved_event(pro, access_type=Event.AccessType.REGISTRATION)
+    registration.save()
+    client.force_login(pro)
+
+    response = client.get(reverse("show_participation_modal", args=[registration.pk]))
+
+    assert reverse("update_saved_event", args=[registration.pk]).encode() not in response.content
+
+
+@pytest.mark.django_db
+def test_show_participation_modal_ignores_an_event_awaiting_validation(client, event):
+    response = client.get(reverse("show_participation_modal", args=[event.pk]))
+
+    assert response.status_code == 404

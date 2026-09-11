@@ -1,3 +1,5 @@
+from datetime import datetime
+
 from django.core.validators import MinValueValidator
 from django.db import models
 from django.template.defaultfilters import floatformat
@@ -238,6 +240,11 @@ class Event(BaseModel):
             f"du {date_format(self.start_date, self._range_start_format)} "
             f"au {date_format(self.end_date, 'j F Y')}"
         )
+
+    @property
+    def has_ended(self):
+        end = timezone.make_aware(datetime.combine(self.end_date, self.end_time))
+        return end < timezone.now()
 
     @property
     def price_label(self):

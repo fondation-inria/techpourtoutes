@@ -1,0 +1,22 @@
+<c-components.modal title="Tu vas être redirigée vers le site pour {% if is_candidacy %}candidater{% else %}t'inscrire{% endif %}" closable=True>
+    <br>
+    <p class="text-center text-sm">
+        Cet événement est sur {% if is_candidacy %}candidature{% else %}inscription{% endif %}.
+        Celle-ci se fait sur un site externe à TechPourToutes. Tu peux ajouter l'événement dans
+        ton compte si tu souhaites le retrouver facilement.
+    </p>
+    <br>
+    <div class="flex flex-col items-center gap-4">
+        <c-components.button
+            label="Continuer sur le site externe"
+            href="{{ event.registration_url }}"
+            icon="external-link"
+            icon_position="start"
+            target="_blank"
+            rel="noopener noreferrer"
+        />
+        {% if bookmark_action == "toggle" %}
+            {% include "beneficiary/partials/update_saved_event.html" with label=True %}
+        {% endif %}
+    </div>
+</c-components.modal>
