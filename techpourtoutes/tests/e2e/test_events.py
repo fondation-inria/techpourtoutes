@@ -86,3 +86,23 @@ def _tab_until(page, selector, limit=60):
         if page.evaluate("(sel) => document.activeElement.matches(sel)", selector):
             return True
     return False
+
+
+def test_saving_from_the_participation_modal_syncs_the_bookmarks_behind_it(
+    page, live_server, beneficiary, event
+):
+    """The detail page carries one bookmark per breakpoint and the modal opens a third: a
+    toggle in any of them has to leave the others saying the same thing."""
+    event.status = Event.Status.APPROVED
+    event.access_type = Event.AccessType.REGISTRATION
+    event.registration_url = "https://example.com/inscription"
+    event.save()
+    page.goto(f"{live_server.url}/se-connecter/token/{beneficiary.issue_login_token()}/")
+    page.goto(f"{live_server.url}/evenements/{event.slug}/")
+    page.get_by_role("button", name="Participer").click()
+    bookmarks = page.locator(f'[data-bookmark="{event.pk}"]')
+    expect(bookmarks.locator('[aria-pressed="false"]')).to_have_count(3)
+
+    page.locator("dialog").get_by_label("Enregistrer cet événement").click()
+
+    expect(bookmarks.locator('[aria-pressed="true"]')).to_have_count(3)

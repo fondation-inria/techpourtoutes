@@ -1,10 +1,13 @@
 from datetime import datetime
+from itertools import count
 
+from django.core.exceptions import ValidationError
 from django.core.validators import MinValueValidator
-from django.db import models
+from django.db import IntegrityError, models, transaction
 from django.template.defaultfilters import floatformat
 from django.utils import timezone
 from django.utils.formats import date_format
+from django.utils.text import slugify
 from django.utils.translation import gettext_lazy as _
 from simple_history.models import HistoricalRecords
 
@@ -123,6 +126,7 @@ class Event(BaseModel):
         verbose_name=_("sauvegardé par"),
     )
     title = models.CharField(verbose_name=_("titre"))
+    slug = models.SlugField(max_length=255, unique=True, verbose_name=_("slug"))
     description = models.TextField(blank=True, verbose_name=_("description"))
     # A `Subcategory` value, or the free text typed when none of them fits.
     subcategory = models.CharField(max_length=100, verbose_name=_("sous-catégorie"))
@@ -195,6 +199,13 @@ class Event(BaseModel):
             ),
         ]
 
+    def save(self, *args, **kwargs):
+        """The slug is written once: an indexed URL outlives a corrected title."""
+        if self.slug:
+            super().save(*args, **kwargs)
+            return
+        self._save_under_a_free_slug(*args, **kwargs)
+
     def __str__(self):
         return self.title
 
@@ -250,6 +261,18 @@ class Event(BaseModel):
     def price_label(self):
         """A no-break space, not an entity: this is text, templates would escape `&nbsp;`."""
         return "gratuit" if not self.price else f"{floatformat(self.price, '-2')} €"
+
+    def _save_under_a_free_slug(self, *args, **kwargs):
+        base = slugify(self.title)[:240] or "evenement"
+        for rank in count(1):
+            self.slug = base if rank == 1 else f"{base}-{rank}"
+            try:
+                with transaction.atomic():
+                    super().save(*args, **kwargs)
+                return
+            except IntegrityError, ValidationError:
+                if not Event.objects.filter(slug=self.slug).exists():
+                    raise
 
     @property
     def _range_start_format(self):

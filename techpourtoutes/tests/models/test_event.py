@@ -396,3 +396,74 @@ def test_event_history_records_the_validation(event):
     assert event.history.count() == 2
     assert event.history.first().status == Event.Status.APPROVED
     assert event.history.last().status == Event.Status.PENDING
+
+
+@pytest.mark.django_db
+def test_event_slug_is_built_from_its_title(pro):
+    event = build_event(pro, title="Salon des métiers du numérique")
+    event.save()
+
+    assert event.slug == "salon-des-metiers-du-numerique"
+
+
+@pytest.mark.django_db
+def test_event_slug_suffixes_a_title_already_taken(pro):
+    build_event(pro, title="Portes ouvertes").save()
+
+    second = build_event(pro, title="Portes ouvertes")
+    second.save()
+
+    assert second.slug == "portes-ouvertes-2"
+
+
+@pytest.mark.django_db
+def test_event_slug_never_moves_once_written(pro):
+    """An indexed URL outlives a corrected title."""
+    event = build_event(pro, title="Portes ouvertes")
+    event.save()
+
+    event.title = "Portes ouvertes 2026"
+    event.save()
+
+    assert event.slug == "portes-ouvertes"
+
+
+@pytest.mark.django_db
+def test_event_slug_falls_back_when_the_title_slugifies_to_nothing(pro):
+    event = build_event(pro, title="★★★")
+    event.save()
+
+    assert event.slug == "evenement"
+
+
+@pytest.mark.django_db(transaction=True)
+def test_event_slug_steps_aside_when_a_concurrent_creation_wins_the_insert(pro):
+    """A twin lands after this event's validation, so nothing but the unique index can catch
+    it. It is committed by another connection, which is what a real race looks like."""
+    import threading
+
+    from django.db import connection
+    from django.db.models.signals import pre_save
+
+    from techpourtoutes.models import Event
+
+    def create_the_twin_elsewhere(sender, instance, **kwargs):
+        pre_save.disconnect(create_the_twin_elsewhere, sender=Event)
+        thread = threading.Thread(target=_commit_twin, args=(pro,))
+        thread.start()
+        thread.join()
+
+    def _commit_twin(pro):
+        build_event(pro, title="Portes ouvertes").save()
+        connection.close()
+
+    pre_save.connect(create_the_twin_elsewhere, sender=Event)
+    try:
+        event = build_event(pro, title="Portes ouvertes")
+        event.save()
+    finally:
+        pre_save.disconnect(create_the_twin_elsewhere, sender=Event)
+
+    assert event.slug == "portes-ouvertes-2"
+    assert Event.objects.filter(slug="portes-ouvertes").count() == 1
+    assert Event.objects.count() == 2

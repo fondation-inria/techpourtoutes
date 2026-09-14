@@ -39,7 +39,7 @@ urlpatterns = [
         name="show_participation_modal",
     ),
     path(
-        "evenements/<uuid:pk>/",
+        "evenements/<slug:slug>/",
         views.show_event,
         name="show_event",
     ),

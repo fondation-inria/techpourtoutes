@@ -199,7 +199,7 @@ def test_index_events_lists_from_the_nearest_to_the_furthest(client, pro):
 def test_index_events_cards_link_to_the_event_detail_page(client, salon):
     content = client.get(INDEX_EVENTS_URL).content
 
-    assert reverse("show_event", args=[salon.pk]).encode() in content
+    assert reverse("show_event", args=[salon.slug]).encode() in content
 
 
 @pytest.mark.django_db
@@ -399,7 +399,7 @@ def test_create_saved_event_modal_offers_signing_up_and_logging_in(client):
 
 @pytest.mark.django_db
 def test_show_event_renders_the_event(client, salon):
-    response = client.get(reverse("show_event", args=[salon.pk]))
+    response = client.get(reverse("show_event", args=[salon.slug]))
 
     assert response.status_code == 200
     assert salon.title.encode() in response.content
@@ -407,7 +407,7 @@ def test_show_event_renders_the_event(client, salon):
 
 @pytest.mark.django_db
 def test_show_event_hides_events_awaiting_validation(client, event):
-    response = client.get(reverse("show_event", args=[event.pk]))
+    response = client.get(reverse("show_event", args=[event.slug]))
 
     assert response.status_code == 404
 
@@ -427,7 +427,7 @@ def test_show_event_shows_the_city_tag_and_address_for_a_physical_event(client, 
     )
     physical.save()
 
-    content = client.get(reverse("show_event", args=[physical.pk])).content.decode()
+    content = client.get(reverse("show_event", args=[physical.slug])).content.decode()
 
     assert "Amiens" in content
     assert "Adresse" in content
@@ -446,7 +446,7 @@ def test_show_event_hides_the_city_tag_and_shows_online_for_an_online_event(clie
     )
     online.save()
 
-    content = client.get(reverse("show_event", args=[online.pk])).content.decode()
+    content = client.get(reverse("show_event", args=[online.slug])).content.decode()
 
     assert "En ligne" in content
     assert "Adresse" not in content
@@ -460,7 +460,7 @@ def test_show_event_shows_no_cta_for_an_open_event(client, pro):
     open_event = approved_event(pro, access_type=Event.AccessType.OPEN)
     open_event.save()
 
-    content = client.get(reverse("show_event", args=[open_event.pk])).content
+    content = client.get(reverse("show_event", args=[open_event.slug])).content
 
     assert reverse("show_participation_modal", args=[open_event.pk]).encode() not in content
 
@@ -472,7 +472,7 @@ def test_show_event_shows_a_participate_cta_for_a_registration_event(client, pro
     registration = approved_event(pro, access_type=Event.AccessType.REGISTRATION)
     registration.save()
 
-    response = client.get(reverse("show_event", args=[registration.pk]))
+    response = client.get(reverse("show_event", args=[registration.slug]))
 
     assert "Participer" in response.content.decode()
     assert reverse("show_participation_modal", args=[registration.pk]).encode() in response.content
@@ -485,7 +485,7 @@ def test_show_event_shows_a_candidacy_cta_for_a_candidacy_event(client, pro):
     candidacy = approved_event(pro, access_type=Event.AccessType.CANDIDACY)
     candidacy.save()
 
-    response = client.get(reverse("show_event", args=[candidacy.pk]))
+    response = client.get(reverse("show_event", args=[candidacy.slug]))
 
     assert "Candidater" in response.content.decode()
     assert reverse("show_participation_modal", args=[candidacy.pk]).encode() in response.content
@@ -499,7 +499,7 @@ def test_show_event_shows_the_participation_cta_to_a_connected_pro(client, pro):
     registration.save()
     client.force_login(pro)
 
-    content = client.get(reverse("show_event", args=[registration.pk])).content
+    content = client.get(reverse("show_event", args=[registration.slug])).content
 
     assert reverse("show_participation_modal", args=[registration.pk]).encode() in content
 
@@ -521,7 +521,7 @@ def test_show_event_hides_every_cta_once_the_event_has_ended(client, beneficiary
     )
     past.save()
 
-    response = client.get(reverse("show_event", args=[past.pk]))
+    response = client.get(reverse("show_event", args=[past.slug]))
 
     assert reverse("show_participation_modal", args=[past.pk]).encode() not in response.content
     assert reverse("update_saved_event", args=[past.pk]).encode() not in response.content
@@ -531,7 +531,7 @@ def test_show_event_hides_every_cta_once_the_event_has_ended(client, beneficiary
 def test_show_event_gives_a_connected_pro_no_bookmark_at_all(client, pro, salon):
     client.force_login(pro)
 
-    content = client.get(reverse("show_event", args=[salon.pk])).content
+    content = client.get(reverse("show_event", args=[salon.slug])).content
 
     assert reverse("create_saved_event_modal").encode() not in content
     assert reverse("update_saved_event", args=[salon.pk]).encode() not in content
@@ -539,7 +539,7 @@ def test_show_event_gives_a_connected_pro_no_bookmark_at_all(client, pro, salon)
 
 @pytest.mark.django_db
 def test_show_event_anonymous_bookmark_opens_the_signup_modal(client, salon):
-    content = client.get(reverse("show_event", args=[salon.pk])).content
+    content = client.get(reverse("show_event", args=[salon.slug])).content
 
     assert reverse("create_saved_event_modal").encode() in content
 
@@ -551,7 +551,7 @@ def test_show_event_marks_an_already_saved_event(client, beneficiary, salon):
     SavedEvent.objects.toggle(event=salon, beneficiary=beneficiary)
     client.force_login(beneficiary)
 
-    content = client.get(reverse("show_event", args=[salon.pk])).content
+    content = client.get(reverse("show_event", args=[salon.slug])).content
 
     assert b'aria-pressed="true"' in content
 
@@ -679,3 +679,41 @@ def test_show_participation_modal_ignores_an_event_awaiting_validation(client, e
     response = client.get(reverse("show_participation_modal", args=[event.pk]))
 
     assert response.status_code == 404
+
+
+@pytest.mark.django_db
+def test_show_event_back_link_keeps_the_listing_page_and_filters(client, salon):
+    response = client.get(
+        reverse("show_event", args=[salon.slug]),
+        HTTP_REFERER=f"http://testserver{INDEX_EVENTS_URL}?page=3&q=hackathon",
+    )
+
+    assert response.context["back_url"] == f"{INDEX_EVENTS_URL}?page=3&q=hackathon"
+
+
+@pytest.mark.django_db
+def test_show_event_back_link_falls_back_to_the_bare_listing(client, salon):
+    response = client.get(reverse("show_event", args=[salon.slug]))
+
+    assert response.context["back_url"] == INDEX_EVENTS_URL
+
+
+@pytest.mark.django_db
+def test_show_event_back_link_ignores_a_referer_from_anywhere_else(client, salon):
+    response = client.get(
+        reverse("show_event", args=[salon.slug]),
+        HTTP_REFERER="https://evil.example.com/evenements/?page=3",
+    )
+
+    assert response.context["back_url"] == INDEX_EVENTS_URL
+
+
+@pytest.mark.django_db
+def test_update_saved_event_swaps_every_bookmark_of_the_event(client, beneficiary, salon):
+    """The detail page shows the bookmark twice and the modal a third time: one toggle from
+    any of them has to leave the others in the same state."""
+    client.force_login(beneficiary)
+
+    content = client.post(reverse("update_saved_event", args=[salon.pk])).content.decode()
+
+    assert f"hx-swap-oob='outerHTML:[data-bookmark=\"{salon.pk}\"]'" in content

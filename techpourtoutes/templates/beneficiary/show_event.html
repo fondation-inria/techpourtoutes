@@ -4,14 +4,14 @@
 >
     <div class="relative w-full -mt-8">
         <div class="absolute inset-y-0 left-1/2 w-[100cqw] -ml-[50cqw] bg-yellow-500">
-            <c-components.button href="{% url "index_events" %}" variant="tertiary" class="w-fit m-2 p-4 hover:bg-white/20! active:bg-orange-500! text-neutral-900! font-normal">
+            <c-components.button href="{{ back_url }}" variant="tertiary" class="w-fit m-2 p-4 hover:bg-white/20! active:bg-orange-500! text-neutral-900! font-normal">
                 <span class="flex items-center gap-1">
                     <c-components.icon name="chevron-down" class="w-4 h-4 rotate-90" />
                     Retour
                 </span>
             </c-components.button>
         </div>
-        <div class="relative flex flex-col gap-4 mt-14 mb-2.5">
+        <div class="relative flex flex-col gap-4 mt-13.5 mb-2">
             <div class="md:hidden">
                 {% if bookmark_action and not event.has_ended %}
                     {% include "beneficiary/partials/update_saved_event.html" with label=True %}

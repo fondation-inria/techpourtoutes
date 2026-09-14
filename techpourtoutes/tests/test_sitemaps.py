@@ -106,3 +106,27 @@ def test_sitemap_contains_public_urls(client):
     assert reverse("coalition_home") in content
     assert reverse("new_mentor") in content
     assert reverse("notre_manifeste") in content
+
+
+@pytest.fixture
+def approved_salon(pro):
+    from techpourtoutes.models import Event
+    from techpourtoutes.tests.models.test_event import build_event
+
+    event = build_event(pro, title="Salon des métiers du numérique", status=Event.Status.APPROVED)
+    event.save()
+    return event
+
+
+@pytest.mark.django_db
+def test_sitemap_lists_approved_upcoming_events(client, approved_salon):
+    content = client.get("/sitemap.xml").content.decode()
+
+    assert reverse("show_event", args=[approved_salon.slug]) in content
+
+
+@pytest.mark.django_db
+def test_sitemap_omits_events_awaiting_validation(client, event):
+    content = client.get("/sitemap.xml").content.decode()
+
+    assert reverse("show_event", args=[event.slug]) not in content

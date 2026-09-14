@@ -1,6 +1,8 @@
 from django.contrib.sitemaps import Sitemap
 from django.urls import reverse
 
+from .models import Event
+
 COMMON_PAGE_NAMES = [
     "notre_manifeste",
     "qui_sommes_nous",
@@ -31,3 +33,17 @@ class StaticViewSitemap(Sitemap):
 
     def location(self, item):
         return reverse(item)
+
+
+class EventSitemap(Sitemap):
+    changefreq = "daily"
+    priority = 0.6
+
+    def items(self):
+        return Event.objects.approved()
+
+    def lastmod(self, event):
+        return event.updated_at
+
+    def location(self, event):
+        return reverse("show_event", args=[event.slug])

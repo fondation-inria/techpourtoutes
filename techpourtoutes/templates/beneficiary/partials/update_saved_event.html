@@ -1,5 +1,7 @@
 {# Sibling of the card's stretched link, lifted above it so the click never reaches the card. #}
-<div class="relative z-10 flex flex-col items-end gap-1">
+<div class="relative z-10 flex flex-col items-end gap-1"
+     data-bookmark="{{ event.pk }}"
+     {% if oob %}hx-swap-oob='outerHTML:[data-bookmark="{{ event.pk }}"]'{% endif %}>
     {% if label and bookmark_action == "toggle" %}
         <c-components.button
             variant="secondary"
@@ -11,8 +13,7 @@
             aria-label="{% if saved %}Retirer cet événement de mes favoris{% else %}Enregistrer cet événement{% endif %}"
             hx-post="{% url "update_saved_event" event.pk %}"
             hx-vals='{"label": "true"}'
-            hx-target="closest div"
-            hx-swap="outerHTML"
+            hx-swap="none"
             hx-disabled-elt="this"
             hx-headers='{"X-CSRFToken": "{{ csrf_token }}"}'
         />
@@ -35,8 +36,7 @@
                 aria-label="{% if saved %}Retirer cet événement de mes favoris{% else %}Enregistrer cet événement{% endif %}"
                 {% if bookmark_action == "toggle" %}
                     hx-post="{% url "update_saved_event" event.pk %}"
-                    hx-target="closest div"
-                    hx-swap="outerHTML"
+                    hx-swap="none"
                     hx-disabled-elt="this"
                     hx-headers='{"X-CSRFToken": "{{ csrf_token }}"}'
                 {% else %}

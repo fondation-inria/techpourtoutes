@@ -1,3 +1,5 @@
+from urllib.parse import urlparse
+
 from django.conf import settings
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
@@ -82,9 +84,9 @@ def index_events(request):
     )
 
 
-def show_event(request, pk):
+def show_event(request, slug):
     beneficiary = getattr(request.user, "beneficiary", None)
-    event = get_object_or_404(Event.objects.approved(), pk=pk)
+    event = get_object_or_404(Event.objects.approved(), slug=slug)
     return render(
         request,
         "beneficiary/show_event.html",
@@ -92,6 +94,7 @@ def show_event(request, pk):
             "event": event,
             "saved": _is_saved(beneficiary, event),
             "bookmark_action": _bookmark_action(request.user, beneficiary),
+            "back_url": _back_to_listing(request),
         },
     )
 
@@ -112,6 +115,7 @@ def update_saved_event(request, pk):
             "saved": saved,
             "bookmark_action": "toggle",
             "label": label,
+            "oob": True,
         },
     )
 
@@ -160,6 +164,14 @@ def _events_page(beneficiary, page):
             saved=Exists(SavedEvent.objects.filter(event=OuterRef("pk"), beneficiary=beneficiary))
         )
     return Paginator(upcoming, EVENTS_PER_PAGE).get_page(page)
+
+
+def _back_to_listing(request):
+    listing = reverse("index_events")
+    referer = urlparse(request.headers.get("referer", ""))
+    if referer.netloc in ("", request.get_host()) and referer.path == listing and referer.query:
+        return f"{listing}?{referer.query}"
+    return listing
 
 
 def _bookmark_action(user, beneficiary):
