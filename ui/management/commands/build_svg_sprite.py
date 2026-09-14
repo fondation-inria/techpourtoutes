@@ -7,6 +7,42 @@ from django.core.management.base import BaseCommand
 SVG_SOURCE_DIR = Path(settings.BASE_DIR) / "ui" / "svg_source"
 SPRITE_PATH = Path(settings.BASE_DIR) / "ui" / "static" / "svg" / "sprite.svg"
 
+INNER_STROKE_GROUP = re.compile(r'<g class="inner-stroke-shape"[^>]*>')
+STROKE_SHAPE = re.compile(r'<\w+\b[^>]*\bid="stroke-shape-[^"]*"[^>]*/>')
+STROKE_WIDTH = re.compile(r"stroke-width:\s*([\d.]+)")
+
+
+def _closing_g(content: str, start: int) -> int:
+    depth = 0
+    for tag in re.finditer(r"<g\b[^>]*>|</g>", content[start:]):
+        depth += -1 if tag.group() == "</g>" else 1
+        if depth == 0:
+            return start + tag.end()
+    raise ValueError("unbalanced <g>")
+
+
+def _centred_stroke(shape: str) -> str:
+    shape = re.sub(r'\s*\bid="stroke-shape-[^"]*"', "", shape)
+    return STROKE_WIDTH.sub(lambda width: f"stroke-width: {float(width[1]) / 2:g}", shape)
+
+
+def _flatten_inner_strokes(content: str) -> str:
+    """Penpot draws those at double width and halves them with a clip-path. Firefox and WebKit
+    do not resolve that clip-path through an external <use>, which is how the sprite is
+    consumed, so they paint the shape at full width — twice as bold as intended.
+    """
+    parts, cursor = [], 0
+    for group in INNER_STROKE_GROUP.finditer(content):
+        end = _closing_g(content, group.start())
+        shape = STROKE_SHAPE.search(content, group.end(), end)
+        parts.append(content[cursor : group.start()])
+        parts.append(group.group().replace("inner-stroke-shape", "stroke-shape"))
+        parts.append(_centred_stroke(shape.group()))
+        parts.append("</g>")
+        cursor = end
+    parts.append(content[cursor:])
+    return "".join(parts)
+
 
 def _namespace_ids(content: str, slug: str) -> str:
     content = re.sub(r"\bxlink:href=", "href=", content)
@@ -49,7 +85,7 @@ class Command(BaseCommand):
             fill_match = re.search(r'\bfill="([^"]+)"', root_attrs)
             fill_attr = f' fill="{fill_match.group(1)}"' if fill_match else ""
 
-            inner = _namespace_ids(inner, slug)
+            inner = _namespace_ids(_flatten_inner_strokes(inner), slug)
 
             symbols.append(
                 f'  <symbol id="{slug}" viewBox="{viewbox}"{fill_attr}>\n    {inner}\n  </symbol>'

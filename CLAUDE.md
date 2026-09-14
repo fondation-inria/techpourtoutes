@@ -197,7 +197,7 @@ Exceptions can be made in rare occasions, like for static pages (static_views, `
 
 **Component system:** `django-cotton` components live in `ui/templates/cotton/`. Layout components (base, email, partials) are in `ui/templates/cotton/layout/`; UI primitives (button, card, badge, icon, etc.) are in `ui/templates/cotton/components/`; larger compositional patterns are in `ui/templates/cotton/patterns/`. Use these components by composing `<c-layout.base>`, `<c-button>`, etc. in templates.
 
-**SVG icons:** Source SVGs go in `ui/svg_source/`. Running `build_svg_sprite` compiles them into a sprite at `ui/static/svg/`. Reference icons via the `<c-icon>` cotton component.
+**SVG icons:** Source SVGs go in `ui/svg_source/`. `build_svg_sprite` compiles them into `ui/static/svg/sprite.svg`, and `<c-icon>` points a `<use>` at that sprite **as an external file**. The script also redraws them as plain centred strokes at half the width so no icon depends on a clip-path (because the Penport exports are creating bold-rendering bugs on Firefox). The `codex-*` letters keep a `clipPath`, but it only repeats a crop their `viewBox` already applies.
 
 ## Code Conventions
 
@@ -226,6 +226,8 @@ Exceptions can be made in rare occasions, like for static pages (static_views, `
 `techpourtoutes/tests/` mirrors the app package, one directory per source directory:
 
 **One source file, one test file, matching name.** `services/brevo_api/upsert_contact.py` is tested by `tests/services/brevo_api/test_upsert_contact.py` — never a grab-bag `test_services.py`. When adding a test, put it in the file matching the source file under test.
+
+`ui/tests/` mirrors the `ui` app the same way — `ui/management/commands/build_svg_sprite.py` is tested by `ui/tests/management/commands/test_build_svg_sprite.py`. Both apps are listed in `testpaths`.
 
 A handful of tests have no single source file and stay at the root of `tests/`: `test_seo.py` (meta/og tags in the base template), `test_site_mode.py` (routing between `urls_coalition` / `urls_beneficiary` / `urls_common`), `test_error_pages.py` (403/404 handlers).
 

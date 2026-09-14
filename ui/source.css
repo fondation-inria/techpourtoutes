@@ -1,6 +1,10 @@
 @import "tailwindcss";
 @custom-variant dark (&:where(.dark, .dark *));
 
+/* Event category colours are composed in the templates — `bg-{{ event.category_color }}-500`
+   — so Tailwind never sees them in the source and would not emit them. */
+@source inline("bg-{orange,yellow,green,purple}-500{,!}");
+
 @font-face {
   font-family: "Poppins";
   font-style: normal;

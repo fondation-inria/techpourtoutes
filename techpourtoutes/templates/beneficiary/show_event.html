@@ -3,8 +3,8 @@
     description="{{ event.description }}"
 >
     <div class="relative w-full -mt-8">
-        <div class="absolute inset-y-0 left-1/2 w-[100cqw] -ml-[50cqw] bg-yellow-500">
-            <c-components.button href="{{ back_url }}" variant="tertiary" class="w-fit m-2 p-4 hover:bg-white/20! active:bg-orange-500! text-neutral-900! font-normal">
+        <div class="absolute inset-y-0 left-1/2 w-[100cqw] -ml-[50cqw] bg-{{ event.category_color }}-500">
+            <c-components.button href="{{ back_url }}" variant="tertiary" class="w-fit m-2 p-4 bg-{{ event.category_color }}-500! hover:bg-white/20! active:bg-black/20! text-neutral-900! font-normal">
                 <span class="flex items-center gap-1">
                     <c-components.icon name="chevron-down" class="w-4 h-4 rotate-90" />
                     Retour
