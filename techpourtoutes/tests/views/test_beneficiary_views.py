@@ -257,7 +257,7 @@ def test_index_events_bookmark_posts_to_update_saved_event(client, beneficiary, 
 def test_index_events_anonymous_bookmark_opens_the_signup_modal(client, salon):
     content = client.get(INDEX_EVENTS_URL).content
 
-    assert reverse("create_saved_event_modal").encode() in content
+    assert reverse("create_saved_event_modal", args=[salon.pk]).encode() in content
 
 
 @pytest.mark.django_db
@@ -266,7 +266,7 @@ def test_index_events_gives_a_connected_pro_no_bookmark_at_all(client, pro, salo
 
     content = client.get(INDEX_EVENTS_URL).content
 
-    assert reverse("create_saved_event_modal").encode() not in content
+    assert reverse("create_saved_event_modal", args=[salon.pk]).encode() not in content
     assert b"#bookmark" not in content
 
 
@@ -388,13 +388,26 @@ def test_update_saved_event_ignores_an_event_awaiting_validation(client, benefic
 
 
 @pytest.mark.django_db
-def test_create_saved_event_modal_offers_signing_up_and_logging_in(client):
-    response = client.get(reverse("create_saved_event_modal"))
+def test_create_saved_event_modal_offers_signing_up_and_logging_in(client, salon):
+    response = client.get(reverse("create_saved_event_modal", args=[salon.pk]))
 
     assert response.status_code == 200
     assert b"Rejoins le club TechPourToutes" in response.content
     assert reverse("inscription_funnel").encode() in response.content
     assert reverse("login_request").encode() in response.content
+
+
+@pytest.mark.django_db
+def test_create_saved_event_modal_carries_the_event_into_both_ways_in(client, salon):
+    content = client.get(reverse("create_saved_event_modal", args=[salon.pk])).content.decode()
+
+    assert f"{reverse('inscription_funnel')}?saved_event={salon.pk}" in content
+    assert f"{reverse('login_request')}?saved_event={salon.pk}" in content
+
+
+@pytest.mark.django_db
+def test_create_saved_event_modal_ignores_an_event_awaiting_validation(client, event):
+    assert client.get(reverse("create_saved_event_modal", args=[event.pk])).status_code == 404
 
 
 @pytest.mark.django_db
@@ -533,7 +546,7 @@ def test_show_event_gives_a_connected_pro_no_bookmark_at_all(client, pro, salon)
 
     content = client.get(reverse("show_event", args=[salon.slug])).content
 
-    assert reverse("create_saved_event_modal").encode() not in content
+    assert reverse("create_saved_event_modal", args=[salon.pk]).encode() not in content
     assert reverse("update_saved_event", args=[salon.pk]).encode() not in content
 
 
@@ -541,7 +554,7 @@ def test_show_event_gives_a_connected_pro_no_bookmark_at_all(client, pro, salon)
 def test_show_event_anonymous_bookmark_opens_the_signup_modal(client, salon):
     content = client.get(reverse("show_event", args=[salon.slug])).content
 
-    assert reverse("create_saved_event_modal").encode() in content
+    assert reverse("create_saved_event_modal", args=[salon.pk]).encode() in content
 
 
 @pytest.mark.django_db

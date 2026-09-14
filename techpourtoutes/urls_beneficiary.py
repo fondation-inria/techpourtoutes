@@ -24,7 +24,7 @@ urlpatterns = [
     ),
     path("evenements/", views.index_events, name="index_events"),
     path(
-        "evenements/rejoindre-le-club/",
+        "evenements/<uuid:pk>/rejoindre-le-club/",
         views.create_saved_event_modal,
         name="create_saved_event_modal",
     ),

@@ -517,3 +517,87 @@ def test_login_to_jobirl_redirects_to_jobirl_url_for_beneficiary(client, benefic
 
     assert response.status_code == 302
     assert response["Location"] == "https://jobirl.test/techpourtoutes/auth/new-token-xyz"
+
+
+# ------------------- the event a visitor bookmarked before logging in -------------------
+
+
+@pytest.fixture
+def approved_salon(pro):
+    from techpourtoutes.models import Event
+    from techpourtoutes.tests.models.test_event import build_event
+
+    event = build_event(pro, title="Salon des métiers du numérique", status=Event.Status.APPROVED)
+    event.save()
+    return event
+
+
+def _ask_for_a_code(client, user, saved_event=""):
+    """Go through the login request the modal sends her to, then read the code it mailed."""
+    client.post(reverse("login_request"), data={"email": user.email, "saved_event": saved_event})
+    return user.issue_login_code()
+
+
+@pytest.mark.django_db
+def test_login_request_hands_the_bookmarked_event_to_the_code_screen(
+    client, beneficiary, approved_salon
+):
+    _ask_for_a_code(client, beneficiary, saved_event=str(approved_salon.pk))
+
+    assert client.session["login_saved_event"] == str(approved_salon.pk)
+
+
+@pytest.mark.django_db
+def test_login_code_saves_the_event_bookmarked_before_the_login(
+    client, beneficiary, approved_salon
+):
+    code = _ask_for_a_code(client, beneficiary, saved_event=str(approved_salon.pk))
+
+    client.post(reverse("login_code"), data={"code": code})
+
+    assert list(beneficiary.saved_events.all()) == [approved_salon]
+    assert "login_saved_event" not in client.session
+
+
+@pytest.mark.django_db
+def test_login_code_announces_the_saved_event_on_the_account_page(
+    client, beneficiary, approved_salon
+):
+    code = _ask_for_a_code(client, beneficiary, saved_event=str(approved_salon.pk))
+
+    response = client.post(reverse("login_code"), data={"code": code}, follow=True)
+
+    assert "Événement enregistré" in response.content.decode()
+
+
+@pytest.mark.django_db
+def test_login_code_keeps_an_event_already_saved(client, beneficiary, approved_salon):
+    from techpourtoutes.models import SavedEvent
+
+    SavedEvent.objects.toggle(event=approved_salon, beneficiary=beneficiary)
+    code = _ask_for_a_code(client, beneficiary, saved_event=str(approved_salon.pk))
+
+    client.post(reverse("login_code"), data={"code": code})
+
+    assert SavedEvent.objects.count() == 1
+
+
+@pytest.mark.django_db
+def test_login_code_saves_no_event_for_a_pro(client, pro, approved_salon):
+    from techpourtoutes.models import SavedEvent
+
+    code = _ask_for_a_code(client, pro, saved_event=str(approved_salon.pk))
+
+    client.post(reverse("login_code"), data={"code": code})
+
+    assert SavedEvent.objects.count() == 0
+
+
+@pytest.mark.django_db
+def test_login_code_shrugs_off_a_bookmarked_event_that_is_not_an_event(client, beneficiary):
+    code = _ask_for_a_code(client, beneficiary, saved_event="banane")
+
+    response = client.post(reverse("login_code"), data={"code": code})
+
+    assert response.status_code == 302
+    assert list(beneficiary.saved_events.all()) == []

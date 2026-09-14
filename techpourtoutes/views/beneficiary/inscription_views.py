@@ -24,6 +24,7 @@ from ..beneficiary_views import (
     is_minor,
     relay_errors,
     require_legal_representative,
+    save_pending_event,
     training_experience_context,
 )
 
@@ -42,7 +43,10 @@ def inscription_funnel(request):
         return render(
             request,
             "beneficiary/funnels/inscription_funnel.html",
-            {"wants_mentor": request.GET.get("wants_mentor") == "1"},
+            {
+                "wants_mentor": request.GET.get("wants_mentor") == "1",
+                "saved_event": request.GET.get("saved_event", ""),
+            },
         )
 
     handlers = {
@@ -129,6 +133,7 @@ def _handle_code(request):
         # required because django-axes is configured
         user.backend = "django.contrib.auth.backends.ModelBackend"
         login(request, user)
+        save_pending_event(request, request.POST.get("saved_event", ""))
         return HttpResponse(headers={"HX-Redirect": reverse("show_account")})
     return _render_step_with_error(request, "code", _CODE_ERROR, email=email)
 
@@ -210,7 +215,12 @@ def _login_redirect_for_existing_email(request, email):
     messages.error(request, "Un compte existe déjà avec cet email.")
     back_url = reverse("coalition_home" if hasattr(user, "pro") else "home")
     next_url = reverse(_destination_view_for_existing_user(user, request.POST))
-    login_url = f"{reverse('login_request')}?{urlencode({'back': back_url, 'next': next_url})}"
+    params = {
+        "back": back_url,
+        "next": next_url,
+        "saved_event": request.POST.get("saved_event", ""),
+    }
+    login_url = f"{reverse('login_request')}?{urlencode(params)}"
     return HttpResponse(headers={"HX-Redirect": login_url, "HX-Trigger": "funnelReset"})
 
 

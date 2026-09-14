@@ -3,6 +3,7 @@ from urllib.parse import urlparse
 from django.conf import settings
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
+from django.core.exceptions import ValidationError
 from django.core.paginator import Paginator
 from django.db.models import Exists, OuterRef, Value
 from django.http import Http404
@@ -120,8 +121,9 @@ def update_saved_event(request, pk):
     )
 
 
-def create_saved_event_modal(request):
-    return render(request, "beneficiary/partials/create_saved_event_modal.html", {})
+def create_saved_event_modal(request, pk):
+    event = get_object_or_404(Event.objects.approved(), pk=pk)
+    return render(request, "beneficiary/partials/create_saved_event_modal.html", {"event": event})
 
 
 def show_participation_modal(request, pk):
@@ -144,6 +146,19 @@ def _render_upcoming_feature_notification_form(request, form):
 
 
 # ------------------- events -------------------
+
+
+def save_pending_event(request, event_pk):
+    """Save the bookmark that sent the user to the login or the signup screen once logged in."""
+    beneficiary = getattr(request.user, "beneficiary", None)
+    if beneficiary is None or not event_pk:
+        return
+    try:
+        event = Event.objects.approved().get(pk=event_pk)
+    except Event.DoesNotExist, ValidationError:
+        return
+    SavedEvent.objects.get_or_create(event=event, beneficiary=beneficiary)
+    messages.success(request, "Événement enregistré")
 
 
 def _events_context(request, page):
