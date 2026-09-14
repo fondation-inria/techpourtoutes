@@ -11,7 +11,7 @@
                 </span>
             </c-components.button>
         </div>
-        <div class="relative flex flex-col gap-4 mt-13.5 mb-2">
+        <div class="relative flex flex-col gap-5 mt-13.5 mb-2">
             <div class="md:hidden">
                 {% if bookmark_action and not event.has_ended %}
                     {% include "beneficiary/partials/update_saved_event.html" with label=True %}
@@ -21,7 +21,7 @@
         </div>
     </div>
 
-    <div class="w-full flex flex-wrap items-center justify-between gap-4">
+    <div class="w-full flex flex-wrap items-center justify-between gap-4 mt-1">
         <div class="flex flex-wrap w-full justify-between items-center gap-2">
             <div class="flex flex-wrap items-center gap-2 flex-1">
                 <c-components.badge label="{{ event.subcategory_label }}" background_color="bg-{{ event.category_color }}-500" />
@@ -30,7 +30,7 @@
                 {% endif %}
             </div>
             {% if not event.has_ended and event.access_type != "open" %}
-                <div class="flex flex-wrap items-center gap-3">
+                <div class="flex flex-wrap items-center gap-3 -mt-1.5">
                     <c-components.button
                         label="{% if event.access_type == "candidacy" %}Candidater{% else %}Participer{% endif %}"
                         icon="external-link"
