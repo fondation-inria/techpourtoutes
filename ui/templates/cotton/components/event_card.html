@@ -1,4 +1,4 @@
-<c-vars event="" bookmark_action="" category_color="bg-orange-500" clickable=True />
+<c-vars event="" bookmark_action="" category_color="bg-orange-500" />
 
 {# The whole card is a link: the title's ::after covers it, so the bookmark stays clickable at z-10. #}
 <div class="relative flex flex-col bg-neutral-0 border border-black shadow-box">
@@ -7,11 +7,9 @@
             {% if bookmark_action %}
                 {% include "beneficiary/partials/update_saved_event.html" with saved=event.saved %}
             {% endif %}
-            {% if clickable %}
-                <a href="{% url "show_event" event.slug %}"
-                   aria-label="Voir l'événement {{ event.title }}"
-                   class="after:absolute after:inset-0 focus-visible:outline-none focus-visible:after:outline-2 focus-visible:after:outline-blue-500 focus-visible:after:outline-offset-2"></a>
-            {% endif %}
+            <a href="{% url "show_event" event.slug %}"
+               aria-label="Voir l'événement {{ event.title }}"
+               class="after:absolute after:inset-0 focus-visible:outline-none focus-visible:after:outline-2 focus-visible:after:outline-blue-500 focus-visible:after:outline-offset-2"></a>
         </div>
         <div class="flex justify-center">
             <c-components.badge label="{{ event.subcategory_label }}" background_color="{{ category_color }}" />
@@ -31,8 +29,6 @@
         <p class="flex items-center gap-2">
             <c-components.icon name="euro-solid" class="w-5 h-5 shrink-0" />{{ event.price_label }}
         </p>
-        {% if clickable %}
-            <c-components.icon name="arrow-right-circle" class="w-6 h-6 self-end mt-auto" />
-        {% endif %}
+        <c-components.icon name="arrow-right-circle" class="w-6 h-6 self-end mt-auto" />
     </div>
 </div>

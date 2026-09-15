@@ -1,9 +1,5 @@
 <div class="grid w-full grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
     {% for event in events %}
-        <c-components.event-card
-            :event="event"
-            category_color="bg-{{ event.category_color }}-500"
-            :clickable="clickable"
-        />
+        <c-components.event-card :event="event" category_color="bg-{{ event.category_color }}-500" />
     {% endfor %}
 </div>

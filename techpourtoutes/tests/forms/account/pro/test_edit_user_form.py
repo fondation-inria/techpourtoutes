@@ -1,7 +1,7 @@
 import pytest
 
 
-def _edit_account_data(**overrides):
+def _edit_user_data(**overrides):
     return {
         "first_name": "Alice",
         "last_name": "Martin",
@@ -16,27 +16,27 @@ def _edit_account_data(**overrides):
 
 @pytest.mark.django_db
 def test_edit_account_form_structure_name_required_when_working():
-    from techpourtoutes.forms import ProEditAccountForm
+    from techpourtoutes.forms import ProEditUserForm
 
-    form = ProEditAccountForm(data=_edit_account_data(structure_name=""))
+    form = ProEditUserForm(data=_edit_user_data(structure_name=""))
     assert not form.is_valid()
     assert "structure_name" in form.errors
 
 
 @pytest.mark.django_db
 def test_edit_account_form_structure_name_not_required_when_jobless():
-    from techpourtoutes.forms import ProEditAccountForm
+    from techpourtoutes.forms import ProEditUserForm
 
-    form = ProEditAccountForm(
-        data=_edit_account_data(professional_situation="jobless", structure_name="")
+    form = ProEditUserForm(
+        data=_edit_user_data(professional_situation="jobless", structure_name="")
     )
     assert form.is_valid(), form.errors
 
 
 @pytest.mark.django_db
 def test_edit_account_form_rejects_invalid_postal_code():
-    from techpourtoutes.forms import ProEditAccountForm
+    from techpourtoutes.forms import ProEditUserForm
 
-    form = ProEditAccountForm(data=_edit_account_data(postal_code="123"))
+    form = ProEditUserForm(data=_edit_user_data(postal_code="123"))
     assert not form.is_valid()
     assert "postal_code" in form.errors

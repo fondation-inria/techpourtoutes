@@ -1,5 +1,6 @@
 from datetime import timedelta
 
+import pytest
 from django.utils import timezone
 
 from techpourtoutes.forms.event import EventDetailsForm
@@ -68,3 +69,27 @@ def test_an_event_started_yesterday_and_ending_tomorrow_is_accepted():
     )
 
     assert form.is_valid()
+
+
+@pytest.mark.django_db
+def test_the_form_prefilled_from_an_event_hands_back_dates_and_times_this_form_parses(event):
+    """They travel through a hidden input: anything but a string would come back localised."""
+    event.description = "Une journée pour rencontrer des professionnelles."
+    event.save()
+
+    answers = EventDetailsForm(event=event).initial
+
+    assert all(isinstance(value, str) for value in answers.values())
+    form = EventDetailsForm(data=answers)
+    assert form.is_valid(), form.errors
+    assert form.cleaned_data["start_date"] == event.start_date
+    assert form.cleaned_data["start_time"] == event.start_time
+    assert form.cleaned_data["title"] == event.title
+
+
+def test_event_fields_carries_every_answer_of_the_screen():
+    form = EventDetailsForm(data=VALID)
+
+    assert form.is_valid()
+    assert form.event_fields["title"] == VALID["title"]
+    assert set(form.event_fields) == set(EventDetailsForm.base_fields)

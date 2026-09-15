@@ -289,3 +289,60 @@ def test_a_price_typed_in_words_is_refused_then_accepted_with_a_comma(funnel):
 
     expect(funnel.get_by_text("en cours de validation")).to_be_visible()
     assert Event.objects.get().price == Decimal("12.50")
+
+
+def reach_the_location_step_from(page, subcategory):
+    choose_subcategory(page, subcategory)
+    page.get_by_role("button", name="Continuer").click()
+    fill_details(page)
+    page.get_by_label("Heure de fin*").fill("18:00")
+    page.get_by_role("button", name="Continuer").click()
+
+
+def test_stepping_back_keeps_what_the_current_screen_already_holds(funnel):
+    """Retour is a form of its own — a sibling, since HTML forbids nesting — so it has to pull
+    the step's own fields in: without that, the answers on screen never reach the server and
+    the step comes back blank."""
+    reach_the_location_step_from(funnel, "Salon")
+    funnel.get_by_text("En ligne", exact=True).click()
+    funnel.get_by_text("Sans inscription", exact=True).click()
+    funnel.get_by_text("Gratuit", exact=True).click()
+
+    funnel.get_by_role("button", name="Retour").click()
+    expect(funnel.get_by_label("Nom de l'événement*")).to_have_value(
+        "Salon des métiers du numérique"
+    )
+    funnel.get_by_role("button", name="Continuer").click()
+
+    # the connection link only shows while "En ligne" is the selected answer
+    expect(funnel.get_by_label("Quel est le lien de connexion à l'événement ?")).to_be_visible()
+
+
+@locmem
+def test_an_event_is_edited_through_the_same_funnel(page, live_server, pro, event):
+    event.status = Event.Status.APPROVED
+    event.description = "Une journée pour rencontrer des professionnelles."
+    event.save()
+    page.goto(f"{live_server.url}/se-connecter/token/{pro.issue_login_token()}/")
+    page.goto(f"{live_server.url}/coalition/evenements/{event.pk}/modifier/")
+
+    expect(page.get_by_text("Modifier un événement")).to_be_visible()
+    page.get_by_role("button", name="Continuer").click()
+    page.get_by_role("button", name="Continuer").click()
+    # the place is shown the way the search would have labelled it, commune included
+    expect(page.get_by_text("8 Boulevard du Port 80000 Amiens")).to_be_visible()
+    page.get_by_role("button", name="Retour").click()
+    page.get_by_label("Nom de l'événement*").fill("Salon renommé")
+    page.get_by_role("button", name="Continuer").click()
+    page.get_by_role("button", name="Retour").click()
+    page.get_by_role("button", name="Continuer").click()
+    page.get_by_role("button", name="Publier", exact=True).click()
+
+    expect(page.get_by_text("Voulez-vous modifier votre")).to_be_visible()
+    page.get_by_role("button", name="Publier les modifications").click()
+
+    page.wait_for_url(f"{live_server.url}/evenements/{event.slug}/")
+    event.refresh_from_db()
+    assert event.title == "Salon renommé"
+    assert event.address == "8 Boulevard du Port"
+    assert Event.objects.count() == 1

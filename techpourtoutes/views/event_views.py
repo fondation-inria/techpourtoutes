@@ -1,8 +1,15 @@
-from django.shortcuts import render
+from django.contrib import messages
+from django.core.exceptions import ValidationError
+from django.http import Http404, HttpResponse
+from django.shortcuts import get_object_or_404, render
+from django.urls import reverse
+from django.views.decorators.http import require_POST
 
 from ..decorators import pro_required
 from ..forms import EventDetailsForm, EventLocationForm, EventSubcategoryForm
+from ..models import Event
 from ..services.event.create_event import CreateEvent
+from ..services.event.update_event import UpdateEvent
 
 # The funnel steps in order — the single source of truth navigation is derived from.
 _STEPS = ("subcategory", "details", "location")
@@ -14,7 +21,7 @@ _STEP_FORMS = {
 }
 
 # Never carried forward: they steer the funnel, they are not answers.
-_CONTROL_FIELDS = {"action", "to", "csrfmiddlewaretoken", "q"}
+_CONTROL_FIELDS = {"action", "to", "csrfmiddlewaretoken", "q", "confirmed"}
 
 
 @pro_required
@@ -32,13 +39,35 @@ def index_pro_events(request):
 
 
 @pro_required
-def event_funnel(request):
-    """Nothing is persisted until the last screen: the answers travel as hidden inputs, so
-    closing the tab loses them — hence the confirmation modal on the way out.
-    """
-    if request.method != "POST":
-        return _render_step(request, _STEPS[0])
-    handlers = {"back": _handle_back, _STEPS[-1]: _create_event}
+def new_event(request):
+    """Renders `event_funnel.html` ;
+    nothing is persisted until the last screen: the answers travel as hidden inputs."""
+    return _render(request, "coalition/funnels/event_funnel.html", _STEPS[0], {})
+
+
+@pro_required
+def edit_event(request, pk):
+    """Renders `event_funnel.html`, opened on the answers the event already holds ;
+    nothing is persisted until the last screen: the answers travel as hidden inputs."""
+    event = get_object_or_404(request.user.pro.events, pk=pk)
+    return _render(request, "coalition/funnels/event_funnel.html", _STEPS[0], _answers_from(event))
+
+
+@require_POST
+@pro_required
+def create_event(request):
+    """Every screen of the creation funnel posts here: it moves one step on, one step back,
+    or writes the event."""
+    handlers = {"back": _handle_back, _STEPS[-1]: _create}
+    return handlers.get(request.POST.get("action"), _advance)(request)
+
+
+@require_POST
+@pro_required
+def update_event(request):
+    """Every screen of the edit funnel posts here: it moves one step on, one step back,
+    or writes the event."""
+    handlers = {"back": _handle_back, _STEPS[-1]: _update}
     return handlers.get(request.POST.get("action"), _advance)(request)
 
 
@@ -67,16 +96,50 @@ def _handle_back(request):
     return _render_step(request, _previous_step(request.POST.get("to")))
 
 
-def _create_event(request):
-    # The client can't be trusted, so the whole payload is re-validated here, reusing each
-    # step's form. On the first failure the user is sent back to that screen.
+def _create(request):
+    """The new funnel's last screen: the user is told its event now awaits validation."""
     try:
-        forms = tuple(_validate(request, step) for step in _STEPS)
+        forms = _validated_answers(request)
     except _StepInterrupt as interrupt:
         return interrupt.response
 
     CreateEvent(pro=request.user.pro, forms=forms)
     return render(request, "coalition/funnels/partials/event/submitted.html", {})
+
+
+def _update(request):
+    """The edit funnel's last screen: the user lands back on the event, updated."""
+    try:
+        forms = _validated_answers(request)
+    except _StepInterrupt as interrupt:
+        return interrupt.response
+
+    event = _event_being_edited(request)
+    if _needs_confirmation(event, request):
+        return _render_step(request, _STEPS[-1], form=forms[-1], confirming=True)
+
+    UpdateEvent(event=event, forms=forms)
+    messages.success(request, "Votre événement a bien été modifié.")
+    return HttpResponse(headers={"HX-Redirect": reverse("show_event", args=[event.slug])})
+
+
+def _validated_answers(request):
+    """The client can't be trusted, so the whole payload is replayed through every step's form.
+    On the first failure she is sent back to that screen."""
+    return tuple(_validate(request, step) for step in _STEPS)
+
+
+def _event_being_edited(request):
+    try:
+        return request.user.pro.events.get(pk=request.POST.get("event", ""))
+    except Event.DoesNotExist, ValidationError:
+        raise Http404
+
+
+def _needs_confirmation(event, request):
+    """A published event has an audience: she is warned her changes will be mailed out to it.
+    One still awaiting validation was never seen by anyone, so it is saved straight away."""
+    return event.status == Event.Status.APPROVED and not request.POST.get("confirmed")
 
 
 def _validate(request, step):
@@ -86,17 +149,31 @@ def _validate(request, step):
     return form
 
 
-def _render_step(request, step, *, form=None):
-    # The shell carries the first screen; every later step is swapped in on its own.
+def _answers_from(event):
+    answers = {"event": str(event.pk)}
+    for form_class in _STEP_FORMS.values():
+        answers |= form_class(event=event).initial
+    return answers
+
+
+def _render_step(request, step, *, form=None, confirming=False):
     partial = f"coalition/funnels/partials/event/{step}.html"
+    return _render(request, partial, step, request.POST, form=form, confirming=confirming)
+
+
+def _render(request, template, step, answers, *, form=None, confirming=False):
+    editing = bool(answers.get("event"))
     return render(
         request,
-        partial if request.method == "POST" else "coalition/funnels/event_funnel.html",
+        template,
         {
             "step": step,
-            "form": form or _STEP_FORMS[step](initial=request.POST.dict()),
-            "carried": _carried(request.POST, step),
+            "form": form or _STEP_FORMS[step](initial=dict(answers.items())),
+            "carried": _carried(answers, step),
             "previous_step": _previous_step(step),
+            "confirming": confirming,
+            "editing": editing,
+            "funnel_url": reverse("update_event" if editing else "create_event"),
         },
     )
 

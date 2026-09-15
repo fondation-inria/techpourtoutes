@@ -48,7 +48,9 @@ SITEMAP_EXCLUDED_URL_NAMES = {
     "show_manifeste_signature",
     "coalition_welcome",
     "inscription_funnel",
-    "event_funnel",
+    "new_event",
+    "create_event",
+    "update_event",
     # Legal / info (intentionally not indexed)
     "donnees_personnelles",
     "conditions_generales",

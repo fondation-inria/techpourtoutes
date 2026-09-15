@@ -1,7 +1,7 @@
 {% load static %}
 <c-layout.base
     variant="funnel"
-    title="Proposer un événement"
+    title="{% if editing %}Modifier un événement{% else %}Proposer un événement{% endif %}"
     description="Proposez un événement tech aux jeunes femmes de la communauté TechPourToutes."
     footer=False
     back="{% url 'show_account' %}">
@@ -21,12 +21,12 @@
         {% include "coalition/funnels/partials/event/subcategory.html" %}
 
         <template x-if="quitting">
-            <c-components.modal title="Voulez-vous vraiment quitter la création de votre événement ?">
+            <c-components.modal title="Voulez-vous vraiment quitter la {% if editing %}modification{% else %}création{% endif %} de votre événement ?">
                 <p class="text-sm text-neutral-950 text-center mt-4">
                     En quittant, votre formulaire ne sera pas enregistré.
                 </p>
                 <div class="flex flex-col w-full justify-center gap-4 mt-6">
-                    <div class="flex justify-center"><c-components.button href="{% url 'show_account' %}" label="Quitter la création" /></div>
+                    <div class="flex justify-center"><c-components.button href="{% url 'show_account' %}" label="Quitter la {% if editing %}modification{% else %}création{% endif %}" /></div>
                     <div class="flex justify-center"><c-components.button type="button" variant="secondary" @click="quitting = false" label="Annuler" /></div>
                 </div>
             </c-components.modal>

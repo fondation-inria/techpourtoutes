@@ -22,6 +22,16 @@ class EventQuerySet(BaseQuerySet):
     def pending(self):
         return self.filter(status=Event.Status.PENDING)
 
+    def visible_to(self, user):
+        """An event awaiting validation is still a draft: only the pro who submitted it and the
+        moderation team may open it."""
+        if user.is_staff:
+            return self
+        return self.filter(
+            models.Q(status=Event.Status.APPROVED)
+            | models.Q(status=Event.Status.PENDING, created_by=user.pk)
+        )
+
     def past(self):
         now = timezone.localtime()
         return self.filter(
@@ -219,6 +229,16 @@ class Event(BaseModel):
 
     def __str__(self):
         return self.title
+
+    def is_organized_by(self, user):
+        return self.created_by_id == user.pk
+
+    def fill_from(self, forms):
+        """The funnel screens, written onto the columns they collect between them: each says
+        for itself which ones those are."""
+        for form in forms:
+            for field, value in form.event_fields.items():
+                setattr(self, field, value)
 
     @property
     def location_label(self):

@@ -1,0 +1,8 @@
+{% autoescape off %}Bonjour {{ event.created_by.first_name }},
+
+L'événement {{ event.title }} a bien été modifié. Voici un récapitulatif des informations :
+
+{% include "emails/partials/event_recap.txt" %}
+
+Bonne journée,
+L'équipe TechPourToutes{% endautoescape %}

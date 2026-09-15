@@ -1,0 +1,5 @@
+- du {{ event.start_date|date:"d/m/Y" }} à {{ event.start_time|time:"H\hi" }} au {{ event.end_date|date:"d/m/Y" }} à {{ event.end_time|time:"H\hi" }}
+- lieu : {% if event.location_type == "online" %}en ligne{% if event.online_url %} ({{ event.online_url }}){% endif %}{% else %}{{ event.location_label }}{% endif %}
+- accès : {{ event.get_access_type_display }}{% if event.registration_url %} ({{ event.registration_url }}){% endif %}
+- description : {{ event.description }}
+- tarif : {{ event.price_label }}

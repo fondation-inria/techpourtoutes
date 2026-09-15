@@ -22,8 +22,10 @@
     <div x-data="{
             open: false,
             apiDown: '{{ api_down_field.value|default:""|escapejs }}' !== '',
-            selected: '{{ address_field.value|default:""|escapejs }}' !== '' && '{{ latitude_field.value|default:""|escapejs }}' !== '',
-            query: '{{ address_field.value|default:""|escapejs }}',
+            selected: ('{{ address_field.value|default:""|escapejs }}' || '{{ poi_name_field.value|default:""|escapejs }}') !== '' && '{{ latitude_field.value|default:""|escapejs }}' !== '',
+            query: ['{{ address_field.value|default:""|escapejs }}' || '{{ poi_name_field.value|default:""|escapejs }}',
+                    '{{ postal_code_field.value|default:""|escapejs }}',
+                    '{{ city_field.value|default:""|escapejs }}'].filter(Boolean).join(' '),
             address: '{{ address_field.value|default:""|escapejs }}',
             postalCode: '{{ postal_code_field.value|default:""|escapejs }}',
             city: '{{ city_field.value|default:""|escapejs }}',

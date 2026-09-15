@@ -8,11 +8,11 @@ from django.views.decorators.http import require_POST
 from techpourtoutes.services.account.soft_delete_user import SoftDeleteUser
 
 from ..forms import (
-    BeneficiaryEditAccountForm,
-    DeleteAccountForm,
-    EmailChangeForm,
-    ProEditAccountForm,
+    BeneficiaryEditUserForm,
+    DestroyUserForm,
+    ProEditUserForm,
     UserCommunicationForm,
+    UserEmailChangeForm,
     VerificationCodeForm,
 )
 from ..mailers import AuthMailer
@@ -104,14 +104,14 @@ def show_user_email(request):
 @login_required
 def edit_user_email(request):
     user = _current_user(request)
-    return _render_user_email_form(request, user, EmailChangeForm(user=user))
+    return _render_user_email_form(request, user, UserEmailChangeForm(user=user))
 
 
 @require_POST
 @login_required
 def create_user_email_change(request):
     user = _current_user(request)
-    form = EmailChangeForm(request.POST, user=user)
+    form = UserEmailChangeForm(request.POST, user=user)
     if not form.is_valid():
         return _render_user_email_form(request, user, form)
 
@@ -170,7 +170,7 @@ def create_user_email_code(request):
 
 @login_required
 def destroy_user_modal(request):
-    form = DeleteAccountForm()
+    form = DestroyUserForm()
     return render(
         request,
         "account/partials/destroy_user_modal.html",
@@ -182,7 +182,7 @@ def destroy_user_modal(request):
 @login_required
 def destroy_user(request):
     _is_pro, _is_beneficiary, user = _resolve_user(request)
-    form = DeleteAccountForm(request.POST)
+    form = DestroyUserForm(request.POST)
     if form.is_valid():
         result = SoftDeleteUser(user=user)
         if result.failure:
@@ -212,8 +212,8 @@ def _current_user(request):
 
 def _user_form_for(is_pro):
     if is_pro:
-        return ProEditAccountForm, "pro"
-    return BeneficiaryEditAccountForm, "beneficiary"
+        return ProEditUserForm, "pro"
+    return BeneficiaryEditUserForm, "beneficiary"
 
 
 def _render_user_edit_form(request, form):

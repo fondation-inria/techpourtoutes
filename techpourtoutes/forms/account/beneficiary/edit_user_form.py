@@ -5,7 +5,7 @@ from techpourtoutes.forms.fields import PhoneNumberField
 from techpourtoutes.validators import POSTAL_CODE_VALIDATOR
 
 
-class BeneficiaryEditAccountForm(forms.Form):
+class BeneficiaryEditUserForm(forms.Form):
     first_name = forms.CharField(label=_("Prénom*"))
     last_name = forms.CharField(label=_("Nom*"))
     email = forms.EmailField(label=_("Email*"))

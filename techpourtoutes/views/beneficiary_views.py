@@ -87,7 +87,7 @@ def index_events(request):
 
 def show_event(request, slug):
     beneficiary = getattr(request.user, "beneficiary", None)
-    event = get_object_or_404(Event.objects.approved(), slug=slug)
+    event = get_object_or_404(Event.objects.visible_to(request.user), slug=slug)
     return render(
         request,
         "beneficiary/show_event.html",
@@ -96,6 +96,7 @@ def show_event(request, slug):
             "saved": _is_saved(beneficiary, event),
             "bookmark_action": _bookmark_action(request.user, beneficiary),
             "back_url": _back_to_listing(request),
+            "is_organizer": event.is_organized_by(request.user),
         },
     )
 
