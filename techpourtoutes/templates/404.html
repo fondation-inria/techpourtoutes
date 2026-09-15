@@ -1,9 +1,9 @@
 {% load static %}
 <c-layout.base title="404 – TechPourToutes" description="La page que vous cherchez n'existe pas ou a été déplacée.">
     <div class="relative isolate flex flex-col items-center justify-start gap-4 w-full md:flex-1 pb-16">
-        <img src="{% static 'images/error-page-bg.webp' %}"
-             alt=""
-             class="hidden md:block absolute -top-8 left-1/2 -translate-x-1/2 h-[calc(100%+4rem)] w-full md:w-screen md:max-w-4xl -z-10 object-cover border border-neutral-950" />
+        <div aria-hidden="true"
+             style="background-image: url({% static 'images/error-page-bg.webp' %})"
+             class="hidden md:block absolute -top-8 left-1/2 -translate-x-1/2 h-[calc(100%+4rem)] w-full md:w-screen md:max-w-4xl -z-10 bg-cover bg-center border border-neutral-950"></div>
         <c-components.title title="Cette page n'existe pas" variant="h1" title_bg="yellow" class="w-full md:w-screen md:max-w-4xl text-center" />
         <div class="w-full md:w-screen md:max-w-4xl bg-neutral-0 border border-neutral-950 p-4">
             <p>
