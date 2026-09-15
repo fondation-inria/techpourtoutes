@@ -19,6 +19,9 @@ class EventQuerySet(BaseQuerySet):
     def approved(self):
         return self.filter(status=Event.Status.APPROVED)
 
+    def pending(self):
+        return self.filter(status=Event.Status.PENDING)
+
     def past(self):
         now = timezone.localtime()
         return self.filter(

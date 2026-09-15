@@ -18,6 +18,20 @@ _CONTROL_FIELDS = {"action", "to", "csrfmiddlewaretoken", "q"}
 
 
 @pro_required
+def index_pro_events(request):
+    events = request.user.pro.events
+    return render(
+        request,
+        "coalition/index_pro_events.html",
+        {
+            "upcoming_events": events.approved().upcoming(),
+            "pending_events": events.pending(),
+            "past_events": events.approved().past().order_by("-start_date", "-start_time"),
+        },
+    )
+
+
+@pro_required
 def event_funnel(request):
     """Nothing is persisted until the last screen: the answers travel as hidden inputs, so
     closing the tab loses them — hence the confirmation modal on the way out.

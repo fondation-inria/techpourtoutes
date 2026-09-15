@@ -8,7 +8,9 @@
     </c-components.card-link>
 {% endif %}
 
-<c-components.card-link color="blue" title="Événements" button="Proposer un événement" href="{% url "event_funnel" %}">
+<c-components.card-link color="blue" title="Événements"
+                        button="{% if user.events.exists %}Gérer mes événements{% else %}Proposer un événement{% endif %}"
+                        href="{% if user.events.exists %}{% url "index_pro_events" %}{% else %}{% url "event_funnel" %}{% endif %}">
     TechPourToutes vous permet de mettre en avant vos salons, portes ouvertes, hackathons, stages de renforcement de compétences, etc.
 </c-components.card-link>
 

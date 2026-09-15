@@ -493,3 +493,15 @@ def test_event_slug_steps_aside_when_a_concurrent_creation_wins_the_insert(pro):
     assert event.slug == "portes-ouvertes-2"
     assert Event.objects.filter(slug="portes-ouvertes").count() == 1
     assert Event.objects.count() == 2
+
+
+@pytest.mark.django_db
+def test_pending_returns_only_the_events_awaiting_validation(pro):
+    from techpourtoutes.models import Event
+
+    waiting = build_event(pro)
+    waiting.save()
+    build_event(pro, status=Event.Status.APPROVED).save()
+    build_event(pro, status=Event.Status.REJECTED).save()
+
+    assert list(Event.objects.pending()) == [waiting]

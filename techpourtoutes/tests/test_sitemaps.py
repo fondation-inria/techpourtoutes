@@ -35,6 +35,7 @@ SITEMAP_EXCLUDED_URL_NAMES = {
     "destroy_user_modal",
     "destroy_user",
     "mentoring_funnel",
+    "index_pro_events",
     # Form submission endpoints (their GET page is what gets indexed)
     "create_mentor",
     "create_work_ambassador",

@@ -52,7 +52,7 @@ from .coalition_views import (
     new_workshop_request,
     show_manifeste_signature,
 )
-from .event_views import event_funnel
+from .event_views import event_funnel, index_pro_events
 from .search_views import search_addresses, search_formations, search_schools
 from .static_views import (
     a_propos,
@@ -129,6 +129,7 @@ __all__ = [
     "qui_sommes_nous",
     "schema_pluriannuel",
     "event_funnel",
+    "index_pro_events",
     "search_addresses",
     "search_formations",
     "search_schools",

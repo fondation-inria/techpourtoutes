@@ -1,7 +1,10 @@
+from datetime import timedelta
+
 import pytest
 from django.core import mail
 from django.test import override_settings
 from django.urls import reverse, reverse_lazy
+from django.utils import timezone
 
 from techpourtoutes.models import Event
 
@@ -214,3 +217,104 @@ def test_publishing_an_online_event_stores_no_address(client, pro):
     assert event.online_url == "https://example.org/live"
     assert event.address == ""
     assert event.latitude is None
+
+
+# ------------------- the pro's own listing -------------------
+
+MY_EVENTS_URL = reverse_lazy("index_pro_events")
+
+
+def approved_event(pro, **overrides):
+    from ..models.test_event import build_event
+
+    return build_event(pro, **{"status": Event.Status.APPROVED, **overrides})
+
+
+@pytest.mark.django_db
+def test_index_pro_events_is_reserved_to_pros(client, beneficiary):
+    client.force_login(beneficiary)
+
+    response = client.get(MY_EVENTS_URL, follow=True)
+
+    assert response.redirect_chain[-1][0] == reverse("show_account")
+
+
+@pytest.mark.django_db
+def test_index_pro_events_lists_the_upcoming_events_from_the_nearest_to_the_furthest(client, pro):
+    today = timezone.localdate()
+    for title, days in [("Dans deux mois", 60), ("Dans cinq jours", 5)]:
+        day = today + timedelta(days=days)
+        approved_event(pro, title=title, start_date=day, end_date=day).save()
+    client.force_login(pro)
+
+    content = client.get(MY_EVENTS_URL).content.decode()
+
+    assert content.index("Dans cinq jours") < content.index("Dans deux mois")
+
+
+@pytest.mark.django_db
+def test_index_pro_events_cards_link_to_the_event_page(client, pro):
+    salon = approved_event(pro, title="Salon des métiers du numérique")
+    salon.save()
+    client.force_login(pro)
+
+    content = client.get(MY_EVENTS_URL).content.decode()
+
+    assert reverse("show_event", args=[salon.slug]) in content
+
+
+@pytest.mark.django_db
+def test_index_pro_events_ignores_the_events_of_another_pro(client, pro, valid_pro_model_data):
+    from techpourtoutes.models import Pro
+
+    other = Pro(**{**valid_pro_model_data, "username": "bea@example.com"})
+    other.save()
+    approved_event(other, title="Forum d'une autre").save()
+    client.force_login(pro)
+
+    assert "une autre" not in client.get(MY_EVENTS_URL).content.decode()
+
+
+@pytest.mark.django_db
+def test_index_pro_events_lists_the_events_awaiting_validation_without_a_link(client, pro, event):
+    """The `event` fixture is PENDING: its card says so, and leads nowhere."""
+    client.force_login(pro)
+
+    content = client.get(MY_EVENTS_URL).content.decode()
+
+    assert "Événements en attente de validation" in content
+    assert event.title in content
+    assert reverse("show_event", args=[event.slug]) not in content
+
+
+@pytest.mark.django_db
+def test_index_pro_events_hides_the_pending_section_when_nothing_waits(client, pro):
+    approved_event(pro).save()
+    client.force_login(pro)
+
+    assert "en attente de validation" not in client.get(MY_EVENTS_URL).content.decode()
+
+
+@pytest.mark.django_db
+def test_index_pro_events_lists_the_past_events_under_their_own_heading(client, pro):
+    today = timezone.localdate()
+    approved_event(
+        pro,
+        title="Hackathon de l'an dernier",
+        start_date=today - timedelta(days=3),
+        end_date=today - timedelta(days=1),
+    ).save()
+    client.force_login(pro)
+
+    content = client.get(MY_EVENTS_URL).content.decode()
+
+    assert "Événements passés" in content
+    assert "an dernier" in content
+
+
+@pytest.mark.django_db
+def test_index_pro_events_hides_the_past_section_when_there_is_none(client, pro):
+    approved_event(pro).save()
+    client.force_login(pro)
+
+    assert "Événements passés" not in client.get(MY_EVENTS_URL).content.decode()
