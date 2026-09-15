@@ -323,6 +323,16 @@ def test_index_pro_events_hides_the_past_section_when_there_is_none(client, pro)
     assert "Événements passés" not in client.get(MY_EVENTS_URL).content.decode()
 
 
+@pytest.mark.django_db
+def test_index_pro_events_illustrates_the_empty_state(client, pro):
+    client.force_login(pro)
+
+    content = client.get(MY_EVENTS_URL).content.decode()
+
+    assert "Vous n'avez aucun événement." in content
+    assert "empty-event-bg" in content
+
+
 # ------------------- editing an event -------------------
 
 

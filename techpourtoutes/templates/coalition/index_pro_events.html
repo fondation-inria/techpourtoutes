@@ -1,3 +1,5 @@
+{% load static %}
+
 <c-layout.base title="Mes événements – TechPourToutes">
     <div class="w-full flex flex-col sm:flex-row sm:items-center sm:justify-between">
         <c-components.title title="Mes événements" title_bg="blue" />
@@ -10,7 +12,7 @@
     {% if upcoming_events %}
         {% include "coalition/partials/event_cards.html" with events=upcoming_events %}
     {% else %}
-        <c-components.text>Vous n'avez aucun événement en cours ou à venir.</c-components.text>
+        <c-components.text>Vous n'avez aucun événement.</c-components.text>
     {% endif %}
 
     {% if pending_events %}
@@ -21,5 +23,10 @@
     {% if past_events %}
         <c-components.card title="Événements passés" title_bg="black" class="mt-(--grid-cell)" />
         {% include "coalition/partials/event_cards.html" with events=past_events %}
+    {% endif %}
+
+    {% if not upcoming_events and not pending_events and not past_events %}
+        <img src="{% static 'images/empty-event-bg.webp' %}" alt="" aria-hidden="true"
+             class="w-full" width="1344" height="868" loading="lazy" decoding="async" />
     {% endif %}
 </c-layout.base>
