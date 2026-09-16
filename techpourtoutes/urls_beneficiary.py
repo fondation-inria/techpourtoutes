@@ -22,4 +22,25 @@ urlpatterns = [
         views.create_upcoming_feature_notification,
         name="create_upcoming_feature_notification",
     ),
+    path("evenements/", views.index_events, name="index_events"),
+    path(
+        "evenements/<uuid:pk>/rejoindre-le-club/",
+        views.create_saved_event_modal,
+        name="create_saved_event_modal",
+    ),
+    path(
+        "evenements/<uuid:pk>/enregistrer/",
+        views.update_saved_event,
+        name="update_saved_event",
+    ),
+    path(
+        "evenements/<uuid:pk>/participer/",
+        views.show_participation_modal,
+        name="show_participation_modal",
+    ),
+    path(
+        "evenements/<slug:slug>/",
+        views.show_event,
+        name="show_event",
+    ),
 ]

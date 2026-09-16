@@ -96,7 +96,7 @@ def test_create_work_ambassador_valid_persists_engagement(client, valid_pro_data
     EMAIL_BACKEND="django.core.mail.backends.locmem.EmailBackend",
     COALITION_WORK_AMBASSADOR_RECIPIENTS=["ambassador@example.com"],
 )
-def test_create_work_ambassador_valid_sends_welcome_and_new_pro_emails(client, valid_pro_data):
+def test_create_work_ambassador_sends_welcome_and_pro_signed_up_emails(client, valid_pro_data):
     from django.core import mail
 
     client.post(reverse("create_work_ambassador"), data=valid_pro_data)
@@ -385,7 +385,7 @@ def test_create_sponsor_invalid_rerenders_with_errors(client, valid_pro_data):
     "url_name",
     ["new_mentor", "new_work_ambassador", "new_workshop_request", "new_sponsor"],
 )
-def test_engagement_landing_get_authenticated_pro_passes_pro_to_context(client, pro, url_name):
+def test_new_engagement_page_passes_authenticated_pro_to_context(client, pro, url_name):
     client.force_login(pro)
     response = client.get(reverse(url_name))
     assert response.status_code == 200
@@ -665,7 +665,7 @@ def test_create_workshop_request_new_pro_receives_welcome_email(
     ],
 )
 @pytest.mark.django_db
-def test_existing_pro_receives_new_engagement_email(client, pro, url_name):
+def test_existing_pro_receives_engagement_added_email(client, pro, url_name):
     from techpourtoutes.mailers import ProMailer
 
     client.force_login(pro)
@@ -686,7 +686,7 @@ def test_existing_pro_receives_new_engagement_email(client, pro, url_name):
 
 
 @pytest.mark.django_db
-def test_create_training_ambassador_existing_pro_receives_new_engagement_email(
+def test_create_training_ambassador_existing_pro_receives_engagement_added_email(
     client,
     pro,
     higher_ed_school,
@@ -727,7 +727,7 @@ def test_create_training_ambassador_existing_pro_receives_new_engagement_email(
 
 
 @pytest.mark.django_db
-def test_create_workshop_request_existing_pro_receives_new_engagement_email(
+def test_create_workshop_request_existing_pro_receives_engagement_added_email(
     client,
     pro,
 ):

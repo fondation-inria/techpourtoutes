@@ -1,0 +1,43 @@
+{% extends "admin/change_list.html" %}
+
+{% block content %}
+  {% if pending_events %}
+    <style>
+      .pending-events { margin-bottom: 24px; width: 100%; table-layout: auto; }
+      .pending-events th, .pending-events td {
+        padding: 8px 12px;
+        text-align: left;
+        border-bottom: 1px solid var(--hairline-color);
+      }
+      .pending-events tbody tr { cursor: pointer; }
+      .pending-events tbody tr:hover { background: var(--darkened-bg); }
+      .pending-events tbody tr td a { display: block; color: inherit; }
+    </style>
+    <h2>Événements à valider</h2>
+    <table class="pending-events">
+      <thead>
+        <tr>
+          <th>Titre</th>
+          <th>Catégorie</th>
+          <th>Date</th>
+          <th>Ville</th>
+          <th>Organisatrice</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for pending_event in pending_events %}
+          {% url 'admin:techpourtoutes_event_change' pending_event.pk as pending_event_url %}
+          <tr onclick="document.location='{{ pending_event_url }}'">
+            <td><a href="{{ pending_event_url }}">{{ pending_event.title }}</a></td>
+            <td><a href="{{ pending_event_url }}">{{ pending_event.category_label }}</a></td>
+            <td><a href="{{ pending_event_url }}">{{ pending_event.start_date|date:"d/m/Y" }}</a></td>
+            <td><a href="{{ pending_event_url }}">{{ pending_event.city|default:pending_event.poi_name }}</a></td>
+            <td><a href="{{ pending_event_url }}">{{ pending_event.created_by }}</a></td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  {% endif %}
+  <h2>Événements validés et refusés</h2>
+  {{ block.super }}
+{% endblock %}

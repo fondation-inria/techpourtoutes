@@ -20,10 +20,10 @@ from django.contrib import admin
 from django.contrib.sitemaps.views import sitemap
 from django.urls import include, path
 
-from techpourtoutes.sitemaps import StaticViewSitemap
+from techpourtoutes.sitemaps import EventSitemap, StaticViewSitemap
 from techpourtoutes.views.robots_views import robots_txt
 
-sitemaps = {"static": StaticViewSitemap}
+sitemaps = {"static": StaticViewSitemap, "events": EventSitemap}
 
 urlpatterns = [
     path(f"{settings.ADMIN_URL}/", admin.site.urls),

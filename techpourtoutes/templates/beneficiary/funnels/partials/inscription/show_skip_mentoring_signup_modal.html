@@ -20,7 +20,7 @@
                     label="Compléter le formulaire"
                     type="button"
                     variant="primary"
-                    hx-on:click="document.getElementById('modal-container').innerHTML = ''"
+                    hx-on:click="this.closest('dialog').close()"
                 />
                 <c-components.button
                     label="Passer"

@@ -15,6 +15,7 @@ from ..models import User
 from ..ratelimit import rate_limit
 from ..services.jobirl_api.refresh_access_token import RefreshAccessToken
 from ..utils.text import mask_email
+from .beneficiary_views import save_pending_event
 
 
 @rate_limit("RATELIMIT_LOGIN", keys=("email",))
@@ -33,6 +34,7 @@ def login_request(request):
                 AuthMailer.login_code(user=user, code=user.issue_login_code())
             request.session["login_email"] = email
             request.session["login_next"] = next_url
+            request.session["login_saved_event"] = request.POST.get("saved_event", "")
 
             url = reverse("login_code")
             if back_url:
@@ -52,7 +54,12 @@ def login_request(request):
     return render(
         request,
         "registration/login_request.html",
-        {"form": form, "next": next_url, "back": back_url},
+        {
+            "form": form,
+            "next": next_url,
+            "back": back_url,
+            "saved_event": request.GET.get("saved_event", ""),
+        },
     )
 
 
@@ -71,10 +78,12 @@ def login_code(request):
         if user is not None and user.consume_login_code(form.cleaned_data["code"]):
             request.session.pop("login_email", None)
             request.session.pop("login_next", None)
+            saved_event = request.session.pop("login_saved_event", "")
             # the following line required because django-axes is configured
             user.backend = "django.contrib.auth.backends.ModelBackend"
             login(request, user)
             messages.success(request, f"Bienvenue sur le compte {user.email} !")
+            save_pending_event(request, saved_event)
             return redirect(next_url or reverse("show_account"))
         form.add_error("code", "Code invalide ou expiré.")
 

@@ -1,0 +1,15 @@
+<button type="button" role="option"
+    @click="select({
+        label: '{{ address.label|escapejs }}',
+        poiName: '{{ address.poi_name|escapejs }}',
+        address: '{{ address.address|escapejs }}',
+        postalCode: '{{ address.postal_code|escapejs }}',
+        city: '{{ address.city|escapejs }}',
+        cogCode: '{{ address.cog_code|escapejs }}',
+        longitude: '{{ address.longitude|escapejs }}',
+        latitude: '{{ address.latitude|escapejs }}',
+        banId: '{{ address.ban_id|escapejs }}'
+    })"
+    class="w-full text-left px-3 py-2 text-sm hover:bg-primary/20 text-neutral-950">
+    {{ address.label }}
+</button>

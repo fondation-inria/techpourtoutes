@@ -39,7 +39,7 @@ def test_show_account_shows_forum_link_when_engaged_as_training_ambassador(clien
 
 
 @pytest.mark.django_db
-def test_show_account_info_requires_login(client):
+def test_show_user_info_requires_login(client):
     response = client.get(reverse("show_user_info"))
 
     assert response.status_code == 302
@@ -47,7 +47,7 @@ def test_show_account_info_requires_login(client):
 
 
 @pytest.mark.django_db
-def test_show_account_info_returns_info_card(client, pro):
+def test_show_user_info_returns_info_card(client, pro):
     client.force_login(pro)
 
     response = client.get(reverse("show_user_info"))
@@ -57,7 +57,7 @@ def test_show_account_info_returns_info_card(client, pro):
 
 
 @pytest.mark.django_db
-def test_edit_account_requires_login(client):
+def test_edit_user_requires_login(client):
     response = client.get(reverse("edit_user"))
 
     assert response.status_code == 302
@@ -65,7 +65,7 @@ def test_edit_account_requires_login(client):
 
 
 @pytest.mark.django_db
-def test_edit_account_get_renders_form(client, pro):
+def test_edit_user_get_renders_form(client, pro):
     client.force_login(pro)
 
     response = client.get(reverse("edit_user"))
@@ -75,7 +75,7 @@ def test_edit_account_get_renders_form(client, pro):
 
 
 @pytest.mark.django_db
-def test_update_account_valid_saves_and_returns_info_card(client, pro):
+def test_update_user_valid_saves_and_returns_info_card(client, pro):
     client.force_login(pro)
 
     response = client.post(
@@ -99,7 +99,7 @@ def test_update_account_valid_saves_and_returns_info_card(client, pro):
 
 
 @pytest.mark.django_db
-def test_update_account_invalid_returns_form_with_errors(client, pro):
+def test_update_user_invalid_returns_form_with_errors(client, pro):
     client.force_login(pro)
 
     response = client.post(
@@ -112,7 +112,7 @@ def test_update_account_invalid_returns_form_with_errors(client, pro):
 
 
 @pytest.mark.django_db
-def test_show_account_info_displays_beneficiary_birth_date(client, beneficiary):
+def test_show_user_info_displays_beneficiary_birth_date(client, beneficiary):
     client.force_login(beneficiary)
 
     response = client.get(reverse("show_user_info"))
@@ -122,7 +122,7 @@ def test_show_account_info_displays_beneficiary_birth_date(client, beneficiary):
 
 
 @pytest.mark.django_db
-def test_edit_account_get_renders_form_for_beneficiary(client, beneficiary):
+def test_edit_user_get_renders_form_for_beneficiary(client, beneficiary):
     client.force_login(beneficiary)
 
     response = client.get(reverse("edit_user"))
@@ -134,7 +134,7 @@ def test_edit_account_get_renders_form_for_beneficiary(client, beneficiary):
 
 
 @pytest.mark.django_db
-def test_update_account_valid_saves_beneficiary_and_returns_info_card(client, beneficiary):
+def test_update_user_valid_saves_beneficiary_and_returns_info_card(client, beneficiary):
     client.force_login(beneficiary)
 
     response = client.post(
@@ -148,7 +148,7 @@ def test_update_account_valid_saves_beneficiary_and_returns_info_card(client, be
 
 
 @pytest.mark.django_db
-def test_destroy_account_get_not_allowed(client, pro):
+def test_destroy_user_get_not_allowed(client, pro):
     client.force_login(pro)
 
     response = client.get(reverse("destroy_user"))
@@ -157,7 +157,7 @@ def test_destroy_account_get_not_allowed(client, pro):
 
 
 @pytest.mark.django_db
-def test_destroy_account_requires_login(client):
+def test_destroy_user_requires_login(client):
     response = client.post(reverse("destroy_user"))
 
     assert response.status_code == 302
@@ -165,7 +165,7 @@ def test_destroy_account_requires_login(client):
 
 
 @pytest.mark.django_db
-def test_destroy_account_with_invalid_form_rerenders_modal(client, pro):
+def test_destroy_user_with_invalid_form_rerenders_modal(client, pro):
     client.force_login(pro)
 
     response = client.post(reverse("destroy_user"), data={})
@@ -180,7 +180,7 @@ def test_destroy_account_with_invalid_form_rerenders_modal(client, pro):
 
 @patch("techpourtoutes.views.account_views.SoftDeleteUser")
 @pytest.mark.django_db
-def test_destroy_account_post_valid_logs_out_redirects_and_shows_success_message(
+def test_destroy_user_post_valid_logs_out_redirects_and_shows_success_message(
     mock_service,
     client,
     pro,
@@ -207,7 +207,7 @@ def test_destroy_account_post_valid_logs_out_redirects_and_shows_success_message
 
 @patch("techpourtoutes.views.account_views.SoftDeleteUser")
 @pytest.mark.django_db
-def test_destroy_account_post_valid_calls_service_with_beneficiary_instance(
+def test_destroy_user_post_valid_calls_service_with_beneficiary_instance(
     mock_service,
     client,
     beneficiary,
@@ -235,7 +235,7 @@ def _token_from_hx_redirect(response):
 
 
 @pytest.mark.django_db
-def test_edit_account_email_get_renders_inline_form(client, pro):
+def test_edit_user_email_get_renders_inline_form(client, pro):
     client.force_login(pro)
 
     response = client.get(reverse("edit_user_email"))
@@ -246,7 +246,7 @@ def test_edit_account_email_get_renders_inline_form(client, pro):
 
 
 @pytest.mark.django_db
-def test_show_account_email_get_renders_display_section(client, pro):
+def test_show_user_email_get_renders_display_section(client, pro):
     client.force_login(pro)
 
     response = client.get(reverse("show_user_email"))
@@ -257,7 +257,7 @@ def test_show_account_email_get_renders_display_section(client, pro):
 
 @patch("techpourtoutes.models.user.generate_numeric_code", return_value="123456")
 @pytest.mark.django_db
-def test_create_account_email_change_valid_mails_current_and_hx_redirects(_code, client, pro):
+def test_create_user_email_change_valid_mails_current_and_hx_redirects(_code, client, pro):
     client.force_login(pro)
 
     response = client.post(reverse("create_user_email_change"), data={"email": "new@example.com"})
@@ -269,7 +269,7 @@ def test_create_account_email_change_valid_mails_current_and_hx_redirects(_code,
 
 
 @pytest.mark.django_db
-def test_create_account_email_change_invalid_rerenders_with_errors(client, pro):
+def test_create_user_email_change_invalid_rerenders_with_errors(client, pro):
     client.force_login(pro)
 
     response = client.post(reverse("create_user_email_change"), data={"email": pro.email})
@@ -280,7 +280,7 @@ def test_create_account_email_change_invalid_rerenders_with_errors(client, pro):
 
 
 @pytest.mark.django_db
-def test_show_account_email_verification_shows_masked_recipient(client, pro):
+def test_show_user_email_verification_shows_masked_recipient(client, pro):
     client.force_login(pro)
     token = pro.issue_email_change_token("new@example.com", "current")
 
@@ -291,7 +291,7 @@ def test_show_account_email_verification_shows_masked_recipient(client, pro):
 
 
 @pytest.mark.django_db
-def test_show_account_email_verification_bad_token_redirects_to_account(client, pro):
+def test_show_user_email_verification_bad_token_redirects_to_account(client, pro):
     client.force_login(pro)
 
     response = client.get(reverse("show_user_email_verification"), data={"token": "garbage"})
@@ -302,7 +302,7 @@ def test_show_account_email_verification_bad_token_redirects_to_account(client, 
 
 @patch("techpourtoutes.models.user.generate_numeric_code", return_value="123456")
 @pytest.mark.django_db
-def test_update_account_email_wrong_code_rerenders(_code, client, pro):
+def test_update_user_email_wrong_code_rerenders(_code, client, pro):
     client.force_login(pro)
     pro.set_email_change_code()
     token = pro.issue_email_change_token("new@example.com", "current")
@@ -316,7 +316,7 @@ def test_update_account_email_wrong_code_rerenders(_code, client, pro):
 
 @patch("techpourtoutes.models.user.generate_numeric_code", return_value="123456")
 @pytest.mark.django_db
-def test_update_account_email_full_flow_updates_email(_code, client, pro):
+def test_update_user_email_full_flow_updates_email(_code, client, pro):
     client.force_login(pro)
 
     start = client.post(reverse("create_user_email_change"), data={"email": "new@example.com"})
@@ -344,7 +344,7 @@ def test_update_account_email_full_flow_updates_email(_code, client, pro):
 
 @patch("techpourtoutes.models.user.generate_numeric_code", return_value="123456")
 @pytest.mark.django_db
-def test_create_account_email_code_remails(_code, client, pro):
+def test_create_user_email_code_remails(_code, client, pro):
     client.force_login(pro)
     pro.set_email_change_code()
     token = pro.issue_email_change_token("new@example.com", "current")
@@ -368,7 +368,7 @@ def test_show_account_shows_communication_checkbox_checked_when_synced(client, p
 
 
 @pytest.mark.django_db
-def test_update_account_communication_opt_in_enables_brevo_sync(client, pro):
+def test_update_user_communication_opt_in_enables_brevo_sync(client, pro):
     pro.brevo_sync_enabled = False
     pro.save()
     client.force_login(pro)
@@ -381,7 +381,7 @@ def test_update_account_communication_opt_in_enables_brevo_sync(client, pro):
 
 
 @pytest.mark.django_db
-def test_update_account_communication_opt_out_disables_brevo_sync(client, pro):
+def test_update_user_communication_opt_out_disables_brevo_sync(client, pro):
     client.force_login(pro)
 
     response = client.post(reverse("update_user_communication"), data={})
@@ -392,7 +392,7 @@ def test_update_account_communication_opt_out_disables_brevo_sync(client, pro):
 
 
 @pytest.mark.django_db(transaction=True)
-def test_update_account_communication_opt_out_dispatches_delete(client, pro):
+def test_update_user_communication_opt_out_dispatches_delete(client, pro):
     client.force_login(pro)
 
     with patch("techpourtoutes.signals.delete_brevo_contact_task") as delete_task:
@@ -402,7 +402,7 @@ def test_update_account_communication_opt_out_dispatches_delete(client, pro):
 
 
 @pytest.mark.django_db
-def test_update_account_communication_works_for_beneficiary(client, beneficiary):
+def test_update_user_communication_works_for_beneficiary(client, beneficiary):
     client.force_login(beneficiary)
 
     response = client.post(reverse("update_user_communication"), data={"newsletter_consent": "on"})

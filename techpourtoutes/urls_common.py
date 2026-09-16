@@ -90,6 +90,7 @@ urlpatterns = [
     path("mon-compte/profil/supprimer/", views.destroy_user, name="destroy_user"),
     path("recherche-etablissements/", views.search_schools, name="search_schools"),
     path("recherche-formations/", views.search_formations, name="search_formations"),
+    path("recherche-adresses/", views.search_addresses, name="search_addresses"),
     # Static
     path("donnees-personnelles/", views.donnees_personnelles, name="donnees_personnelles"),
     path("conditions-generales/", views.conditions_generales, name="conditions_generales"),

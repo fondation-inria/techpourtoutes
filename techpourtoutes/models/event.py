@@ -1,6 +1,13 @@
+from datetime import datetime
+from itertools import count
+
+from django.core.exceptions import ValidationError
 from django.core.validators import MinValueValidator
-from django.db import models
+from django.db import IntegrityError, models, transaction
+from django.template.defaultfilters import floatformat
 from django.utils import timezone
+from django.utils.formats import date_format
+from django.utils.text import slugify
 from django.utils.translation import gettext_lazy as _
 from simple_history.models import HistoricalRecords
 
@@ -13,11 +20,19 @@ class EventQuerySet(BaseQuerySet):
         return self.filter(status=Event.Status.APPROVED)
 
     def past(self):
-        return self.filter(end_date__lt=timezone.localdate())
+        now = timezone.localtime()
+        return self.filter(
+            models.Q(end_date__lt=now.date())
+            | models.Q(end_date=now.date(), end_time__lt=now.time())
+        )
 
     def upcoming(self):
         """An event that has started but not ended yet is still to come."""
-        return self.filter(end_date__gte=timezone.localdate())
+        now = timezone.localtime()
+        return self.filter(
+            models.Q(end_date__gt=now.date())
+            | models.Q(end_date=now.date(), end_time__gte=now.time())
+        )
 
     def in_category(self, category):
         return self._within(Event.SUBCATEGORIES[category])
@@ -39,12 +54,11 @@ class Event(BaseModel):
         EMPLOYMENT = "employment", _("Emploi")
         GUIDANCE = "guidance", _("Orientation")
         SOCIAL = "social", _("Convivial")
-        CHALLENGE = "challenge", _("Challenge")
 
     class Subcategory(models.TextChoices):
         CONFERENCE = "conference", _("Conférence")
         WORKSHOP = "workshop", _("Atelier")
-        WEBINAR = "webinar", _("Webinaire d'informations")
+        WEBINAR = "webinar", _("Webinaire d'info")
         ROUND_TABLE = "round_table", _("Table ronde")
         JOB_FAIR = "job_fair", _("Forum de l'emploi")
         SPEED_DATING = "speed_dating", _("Speed dating")
@@ -56,8 +70,8 @@ class Event(BaseModel):
         JOB_SHADOWING = "job_shadowing", _("Vis-ma-vie")
         AFTERWORK = "afterwork", _("Afterwork")
         CEREMONY = "ceremony", _("Cérémonie")
-        OTHER = "other", _("Autre")
         HACKATHON = "hackathon", _("Hackathon")
+        OTHER = "other", _("Autre")
 
     SUBCATEGORIES = {
         Category.INFORMATION: (
@@ -82,8 +96,15 @@ class Event(BaseModel):
             Subcategory.AFTERWORK,
             Subcategory.CEREMONY,
             Subcategory.OTHER,
+            Subcategory.HACKATHON,
         ),
-        Category.CHALLENGE: (Subcategory.HACKATHON,),
+    }
+
+    CATEGORY_COLORS = {
+        Category.INFORMATION: "orange",
+        Category.EMPLOYMENT: "yellow",
+        Category.GUIDANCE: "green",
+        Category.SOCIAL: "purple",
     }
 
     class LocationType(models.TextChoices):
@@ -91,9 +112,9 @@ class Event(BaseModel):
         ONLINE = "online", _("En ligne")
 
     class AccessType(models.TextChoices):
-        CANDIDACY = "candidacy", _("Candidature")
-        REGISTRATION = "registration", _("Inscription")
-        OPEN = "open", _("Accès libre")
+        OPEN = "open", _("Sans inscription")
+        REGISTRATION = "registration", _("Inscription obligatoire")
+        CANDIDACY = "candidacy", _("Sur candidature")
 
     class Status(models.TextChoices):
         PENDING = "pending", _("En attente de validation")
@@ -113,9 +134,10 @@ class Event(BaseModel):
         verbose_name=_("sauvegardé par"),
     )
     title = models.CharField(verbose_name=_("titre"))
+    slug = models.SlugField(max_length=255, unique=True, verbose_name=_("slug"))
     description = models.TextField(blank=True, verbose_name=_("description"))
     # A `Subcategory` value, or the free text typed when none of them fits.
-    subcategory = models.CharField(max_length=100, verbose_name=_("sous-catégorie"))
+    subcategory = models.CharField(max_length=22, verbose_name=_("sous-catégorie"))
     start_date = models.DateField(verbose_name=_("date de début"))
     end_date = models.DateField(verbose_name=_("date de fin"))
     start_time = models.TimeField(verbose_name=_("heure de début"))
@@ -123,6 +145,9 @@ class Event(BaseModel):
     location_type = models.CharField(
         max_length=10, choices=LocationType.choices, verbose_name=_("format")
     )
+    # A named place from the Géoplateforme POI index. It holds no street address of its own —
+    # the two datasets have no join key — so it stands in for `address` rather than completing it.
+    poi_name = models.CharField(max_length=255, blank=True, verbose_name=_("nom du lieu"))
     address = models.CharField(max_length=255, blank=True, verbose_name=_("adresse"))
     postal_code = models.CharField(max_length=10, blank=True, verbose_name=_("code postal"))
     city = models.CharField(max_length=100, blank=True, verbose_name=_("commune"))
@@ -131,7 +156,7 @@ class Event(BaseModel):
     latitude = models.FloatField(null=True, blank=True, verbose_name=_("latitude"))
     ban_id = models.CharField(max_length=30, blank=True, verbose_name=_("identifiant BAN"))
     online_url = models.URLField(blank=True, verbose_name=_("lien de connexion"))
-    event_url = models.URLField(blank=True, verbose_name=_("lien vers l'événement"))
+    registration_url = models.URLField(blank=True, verbose_name=_("lien d'inscription"))
     access_type = models.CharField(
         max_length=20, choices=AccessType.choices, verbose_name=_("modalité d'inscription")
     )
@@ -163,10 +188,40 @@ class Event(BaseModel):
                 name="event_ends_after_it_starts",
                 violation_error_message=_("La fin de l'événement doit suivre son début."),
             ),
+            # Literal values: a nested class body cannot see the enclosing class namespace.
+            models.CheckConstraint(
+                condition=~models.Q(status="approved", location_type="physical")
+                | models.Q(latitude__isnull=False, longitude__isnull=False),
+                name="approved_physical_event_is_geocoded",
+                violation_error_message=_(
+                    "Un événement en présentiel doit être géocodé avant d'être validé."
+                ),
+            ),
+            models.CheckConstraint(
+                condition=~models.Q(status="approved", location_type="physical")
+                | ~models.Q(address="", poi_name=""),
+                name="approved_physical_event_names_a_place",
+                violation_error_message=_(
+                    "Un événement en présentiel doit porter une adresse ou un nom de lieu."
+                ),
+            ),
         ]
+
+    def save(self, *args, **kwargs):
+        """The slug is written once: an indexed URL outlives a corrected title."""
+        if self.slug:
+            super().save(*args, **kwargs)
+            return
+        self._save_under_a_free_slug(*args, **kwargs)
 
     def __str__(self):
         return self.title
+
+    @property
+    def location_label(self):
+        """The POI name stands in for the street: it is what people recognise, and a POI
+        never comes with one."""
+        return " ".join(filter(None, [self.poi_name or self.address, self.postal_code, self.city]))
 
     @property
     def subcategory_label(self):
@@ -190,3 +245,45 @@ class Event(BaseModel):
     @property
     def category_label(self):
         return self.Category(self.category).label
+
+    @property
+    def category_color(self):
+        return self.CATEGORY_COLORS[self.category]
+
+    @property
+    def date_range_label(self):
+        """ "du 12 au 14 juin 2026": what both dates share is only written once."""
+        if self.start_date == self.end_date:
+            return f"le {date_format(self.end_date, 'j F Y')}"
+        return (
+            f"du {date_format(self.start_date, self._range_start_format)} "
+            f"au {date_format(self.end_date, 'j F Y')}"
+        )
+
+    @property
+    def has_ended(self):
+        end = timezone.make_aware(datetime.combine(self.end_date, self.end_time))
+        return end < timezone.now()
+
+    @property
+    def price_label(self):
+        """A no-break space, not an entity: this is text, templates would escape `&nbsp;`."""
+        return "gratuit" if not self.price else f"{floatformat(self.price, '-2')} €"
+
+    def _save_under_a_free_slug(self, *args, **kwargs):
+        base = slugify(self.title)[:240] or "evenement"
+        for rank in count(1):
+            self.slug = base if rank == 1 else f"{base}-{rank}"
+            try:
+                with transaction.atomic():
+                    super().save(*args, **kwargs)
+                return
+            except IntegrityError, ValidationError:
+                if not Event.objects.filter(slug=self.slug).exists():
+                    raise
+
+    @property
+    def _range_start_format(self):
+        if self.start_date.year != self.end_date.year:
+            return "j F Y"
+        return "j" if self.start_date.month == self.end_date.month else "j F"

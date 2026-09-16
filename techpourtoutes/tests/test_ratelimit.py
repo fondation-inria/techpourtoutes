@@ -30,7 +30,7 @@ def test_login_request_throttled_per_email_across_ips(client):
 @override_settings(RATELIMIT_EMAIL_CHANGE_RESEND="2/3600")
 @patch("techpourtoutes.models.user.generate_numeric_code", return_value="123456")
 @pytest.mark.django_db
-def test_email_change_resend_throttled_per_ip(_code, client, pro):
+def test_create_user_email_code_throttled_per_ip(_code, client, pro):
     client.force_login(pro)
     pro.set_email_change_code()
     token = pro.issue_email_change_token("new@example.com", "current")

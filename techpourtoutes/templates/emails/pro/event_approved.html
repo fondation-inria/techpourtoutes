@@ -1,0 +1,13 @@
+<c-layout.email>
+  <p style="font-size:15px;color:#374151;">Bonjour {{ event.created_by.first_name }},</p>
+  <p style="font-size:15px;color:#374151;">
+    Votre événement <strong>{{ event.title }}</strong> est désormais en ligne. Vous pouvez le consulter sur le site TechPourToutes et le retrouver dans votre compte.
+  </p>
+  {% if comment %}
+  <p style="font-size:15px;color:#374151;">
+    Message de l'équipe&nbsp;: {{ comment }}
+  </p>
+  {% endif %}
+  <br>
+  <p style="font-size:15px;color:#374151;">Bonne journée,</p>
+</c-layout.email>

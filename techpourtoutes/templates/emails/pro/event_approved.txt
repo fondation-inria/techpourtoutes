@@ -1,0 +1,9 @@
+{% autoescape off %}Bonjour {{ event.created_by.first_name }},
+
+Bonne nouvelle : votre événement {{ event.title }} est désormais en ligne. Vous pouvez le consulter sur le site TechPourToutes et le retrouver dans votre compte.
+{% if comment %}
+Message de l'équipe : {{ comment }}
+{% endif %}
+
+Bonne journée,
+L'équipe TechPourToutes{% endautoescape %}

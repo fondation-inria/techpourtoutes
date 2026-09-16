@@ -1,0 +1,22 @@
+<c-layout.email>
+  <p style="font-size:15px;color:#374151;">Bonjour,</p>
+  <p style="font-size:15px;color:#374151;">
+    {{ event.created_by.full_name }} de {{ event.created_by.structure_name }} vient de publier un nouvel événement : <a href="{{ admin_url }}">{{ admin_url }}</a>
+  </p>
+  <ul style="font-size:15px;color:#374151;">
+    <li>Titre&nbsp;: <strong>{{ event.title }}</strong></li>
+    <li>Organisateur&nbsp;: {{ event.organizer }}</li>
+    <li>Type&nbsp;: {{ event.category_label }}</li>
+    <li>Dates&nbsp;: du {{ event.start_date|date:"d/m/Y" }} à {{ event.start_time|time:"H\hi" }} au {{ event.end_date|date:"d/m/Y" }} à {{ event.end_time|time:"H\hi" }}</li>
+    <li>Adresse mail de contact&nbsp;: {{ event.created_by.email }}</li>
+  </ul>
+  {% if event.location_type == "physical" and not event.latitude %}
+    <p style="font-size:15px;color:#b91c1c;">
+      L'API d'adresse a eu un souci au moment de la création de l'événement et l'adresse est donc non géocodée&nbsp;: l'événement ne pourra pas être validé tant que vous n'aurez pas compléter ces coordonnées.
+    </p>
+  {% endif %}
+
+  <p style="font-size:15px;color:#374151;">
+    Bonne journée,
+  </p>
+</c-layout.email>

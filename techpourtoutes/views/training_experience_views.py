@@ -5,6 +5,7 @@ from django.shortcuts import get_object_or_404, render
 from django.urls import reverse
 from django.views.decorators.http import require_POST
 
+from ..decorators import beneficiary_required
 from ..forms import BeneficiaryTrainingExperienceForm, ProTrainingExperienceForm
 from ..models import TrainingExperience
 from ..utils.missing_record import report_missing_record
@@ -46,18 +47,18 @@ def update_pro_training_experience(request, pk):
     )
 
 
-@login_required
+@beneficiary_required
 def new_beneficiary_training_experience(request):
     return _render_beneficiary_training_experience_form(
-        request, beneficiary=_get_beneficiary(request), experience=None
+        request, beneficiary=request.user.beneficiary, experience=None
     )
 
 
 @require_POST
-@login_required
+@beneficiary_required
 def create_beneficiary_training_experience(request):
     return _submit_beneficiary_training_experience(
-        request, beneficiary=_get_beneficiary(request), experience=None
+        request, beneficiary=request.user.beneficiary, experience=None
     )
 
 
@@ -119,12 +120,6 @@ def _training_experience_oob_swap(experience):
     if anchor is None:
         return "beforeend:#beneficiary-training-experiences"
     return f"beforebegin:#beneficiary-training-experience-{anchor}"
-
-
-def _get_beneficiary(request):
-    if not hasattr(request.user, "beneficiary"):
-        raise Http404
-    return request.user.beneficiary
 
 
 def _get_beneficiary_training_experience(request, pk):

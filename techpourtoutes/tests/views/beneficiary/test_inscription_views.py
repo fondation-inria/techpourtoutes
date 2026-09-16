@@ -589,6 +589,80 @@ def test_code_step_with_valid_code_logs_in_and_redirects(client):
     assert client.session.get("_auth_user_id") == str(beneficiary.pk)
 
 
+@pytest.fixture
+def approved_salon(pro):
+    from techpourtoutes.models import Event
+    from techpourtoutes.tests.models.test_event import build_event
+
+    salon = build_event(pro, status=Event.Status.APPROVED)
+    salon.save()
+    return salon
+
+
+@pytest.mark.django_db
+def test_inscription_funnel_carries_the_bookmarked_event_through_every_step(
+    client, approved_salon
+):
+    response = client.get(FUNNEL_URL, {"saved_event": str(approved_salon.pk)})
+
+    assert f'"saved_event": "{approved_salon.pk}"' in response.content.decode()
+
+
+@pytest.mark.django_db
+@override_settings(EMAIL_BACKEND="django.core.mail.backends.locmem.EmailBackend")
+def test_account_creation_step_carries_the_bookmarked_event_onto_the_code_screen(
+    client, higher_ed_school, higher_ed_formation, approved_salon
+):
+    # The "code" screen fires a funnelReset, wiping the client's sessionStorage answers before the
+    # code is even submitted, so the event bookmark must travel as a field of that screen itself.
+    response = client.post(
+        FUNNEL_URL,
+        _higher_education_post(
+            higher_ed_school,
+            higher_ed_formation,
+            wants_mentor="false",
+            saved_event=str(approved_salon.pk),
+        ),
+    )
+
+    assert f'name="saved_event" value="{approved_salon.pk}"'.encode() in response.content
+
+
+@pytest.mark.django_db
+def test_code_step_saves_the_event_bookmarked_before_the_signup(client, approved_salon):
+    beneficiary = Beneficiary.objects.create(
+        username="oceane@example.com",
+        email="oceane@example.com",
+        first_name="Océane",
+        last_name="Durand",
+    )
+    code = beneficiary.issue_login_code()
+
+    client.post(
+        FUNNEL_URL,
+        {
+            "action": "code",
+            "email": beneficiary.email,
+            "code": code,
+            "saved_event": str(approved_salon.pk),
+        },
+    )
+
+    assert list(beneficiary.saved_events.all()) == [approved_salon]
+
+
+@pytest.mark.django_db
+def test_email_step_hands_the_bookmarked_event_over_when_the_account_already_exists(
+    client, approved_salon, beneficiary
+):
+    response = client.post(
+        FUNNEL_URL,
+        {"action": "email", "email": beneficiary.email, "saved_event": str(approved_salon.pk)},
+    )
+
+    assert f"saved_event={approved_salon.pk}" in response["HX-Redirect"]
+
+
 @pytest.mark.django_db
 def test_code_step_with_invalid_code_shows_error(client):
     beneficiary = Beneficiary.objects.create(

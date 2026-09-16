@@ -241,6 +241,8 @@ NEW_MENTORING_SIGNUP_RECIPIENTS = env.list(
     "NEW_MENTORING_SIGNUP_RECIPIENTS", default=["bonjour@techpourtoutes.io"]
 )
 
+NEW_EVENT_RECIPIENTS = env.list("NEW_EVENT_RECIPIENTS", default=["agir@techpourtoutes.io"])
+
 # Celery
 CELERY_BROKER_URL = env("REDIS_URL", default="redis://localhost:6379/0")
 CELERY_TASK_ALWAYS_EAGER = env.bool("CELERY_TASK_ALWAYS_EAGER", default=False)

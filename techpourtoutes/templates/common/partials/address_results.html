@@ -1,0 +1,11 @@
+{% for address in addresses %}
+    <li role="none">{% include "common/partials/address_row.html" %}</li>
+{% empty %}
+    {% if api_down %}
+        <li class="px-3 py-2 text-sm text-neutral-500">
+            Recherche d'adresse indisponible, saisissez votre adresse ci-dessous
+        </li>
+    {% else %}
+        <li class="px-3 py-2 text-sm text-neutral-500">Aucune adresse trouvée</li>
+    {% endif %}
+{% endfor %}

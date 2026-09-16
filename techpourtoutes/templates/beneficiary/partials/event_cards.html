@@ -1,0 +1,13 @@
+{% for event in events %}
+    <c-components.event-card
+        :event="event"
+        bookmark_action="{{ bookmark_action }}"
+        category_color="bg-{{ event.category_color }}-500"
+    />
+{% empty %}
+    <c-components.card title="Reviens bientôt&nbsp;!">
+        <c-components.text>
+            Aucun événement n'est programmé pour le moment.
+        </c-components.text>
+    </c-components.card>
+{% endfor %}

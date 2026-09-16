@@ -1,4 +1,4 @@
-from datetime import time, timedelta
+from datetime import date, time, timedelta
 from decimal import Decimal
 
 import pytest
@@ -43,10 +43,10 @@ def test_event_subcategory_label_falls_back_to_the_free_text(pro):
     from techpourtoutes.models import Event
 
     listed = build_event(pro, subcategory=Event.Subcategory.HACKATHON)
-    free = build_event(pro, subcategory="Rencontre d'anciennes élèves")
+    free = build_event(pro, subcategory="Rencontre d'anciennes")
 
     assert listed.subcategory_label == "Hackathon"
-    assert free.subcategory_label == "Rencontre d'anciennes élèves"
+    assert free.subcategory_label == "Rencontre d'anciennes"
 
 
 def test_every_subcategory_belongs_to_exactly_one_category():
@@ -71,7 +71,7 @@ def test_event_category_is_derived_from_its_subcategory(pro):
 def test_a_free_text_subcategory_lands_in_the_category_holding_other(pro):
     from techpourtoutes.models import Event
 
-    event = build_event(pro, subcategory="Rencontre d'anciennes élèves")
+    event = build_event(pro, subcategory="Rencontre d'anciennes")
 
     assert event.category == Event.Category.SOCIAL
 
@@ -80,7 +80,7 @@ def test_a_free_text_subcategory_lands_in_the_category_holding_other(pro):
 def test_in_subcategory_brings_the_free_text_back_under_other(pro):
     from techpourtoutes.models import Event
 
-    free = build_event(pro, subcategory="Rencontre d'anciennes élèves")
+    free = build_event(pro, subcategory="Rencontre d'anciennes")
     free.save()
     other = build_event(pro, subcategory=Event.Subcategory.OTHER)
     other.save()
@@ -106,13 +106,75 @@ def test_in_category_returns_the_events_of_all_its_subcategories(pro):
 def test_in_category_includes_the_free_text_where_other_sits(pro):
     from techpourtoutes.models import Event
 
-    free = build_event(pro, subcategory="Rencontre d'anciennes élèves")
+    free = build_event(pro, subcategory="Rencontre d'anciennes")
     free.save()
     afterwork = build_event(pro, subcategory=Event.Subcategory.AFTERWORK)
     afterwork.save()
     build_event(pro, subcategory=Event.Subcategory.VISIT).save()
 
     assert set(Event.objects.in_category(Event.Category.SOCIAL)) == {free, afterwork}
+
+
+@pytest.mark.django_db
+def test_event_category_color_follows_its_category(pro):
+    from techpourtoutes.models import Event
+
+    colors = {
+        Event.Subcategory.CONFERENCE: "orange",
+        Event.Subcategory.JOB_DATING: "yellow",
+        Event.Subcategory.OPEN_HOUSE: "green",
+        Event.Subcategory.AFTERWORK: "purple",
+        Event.Subcategory.HACKATHON: "purple",
+    }
+
+    for subcategory, color in colors.items():
+        assert build_event(pro, subcategory=subcategory).category_color == color
+
+
+@pytest.mark.django_db
+def test_a_free_text_subcategory_takes_the_color_of_the_category_holding_other(pro):
+    event = build_event(pro, subcategory="Rencontre d'anciennes")
+
+    assert event.category_color == "purple"
+
+
+@pytest.mark.django_db
+def test_date_range_label_names_a_single_day_once(pro):
+    event = build_event(pro, start_date=date(2026, 6, 12), end_date=date(2026, 6, 12))
+
+    assert event.date_range_label == "le 12 juin 2026"
+
+
+@pytest.mark.django_db
+def test_date_range_label_writes_a_shared_month_once(pro):
+    event = build_event(pro, start_date=date(2026, 6, 12), end_date=date(2026, 6, 14))
+
+    assert event.date_range_label == "du 12 au 14 juin 2026"
+
+
+@pytest.mark.django_db
+def test_date_range_label_repeats_the_month_when_it_changes(pro):
+    event = build_event(pro, start_date=date(2026, 6, 30), end_date=date(2026, 7, 2))
+
+    assert event.date_range_label == "du 30 juin au 2 juillet 2026"
+
+
+@pytest.mark.django_db
+def test_date_range_label_repeats_the_year_when_it_changes(pro):
+    event = build_event(pro, start_date=date(2026, 12, 30), end_date=date(2027, 1, 2))
+
+    assert event.date_range_label == "du 30 décembre 2026 au 2 janvier 2027"
+
+
+@pytest.mark.django_db
+def test_price_label_says_free_rather_than_zero(pro):
+    assert build_event(pro, price=Decimal("0")).price_label == "gratuit"
+
+
+@pytest.mark.django_db
+def test_price_label_shows_the_amount_and_hides_empty_cents(pro):
+    assert build_event(pro, price=Decimal("20.50")).price_label == "20,50 €"
+    assert build_event(pro, price=Decimal("20.00")).price_label == "20 €"
 
 
 @pytest.mark.django_db
@@ -148,6 +210,48 @@ def test_event_keeps_an_address_the_geocoding_api_never_resolved(pro):
 
 
 @pytest.mark.django_db
+def test_event_keeps_a_venue_with_no_street_address(pro):
+    """A POI carries a name and a commune, never a street: the address columns stay empty."""
+    from techpourtoutes.models import Event
+
+    event = build_event(
+        pro,
+        location_type=Event.LocationType.PHYSICAL,
+        poi_name="Station F",
+        city="Paris 13e Arrondissement",
+        cog_code="75113",
+        longitude=2.371699,
+        latitude=48.833436,
+    )
+    event.save()
+
+    assert event.address == ""
+    assert event.postal_code == ""
+
+
+@pytest.mark.django_db
+def test_location_label_prefers_the_venue_over_the_address(pro):
+    from techpourtoutes.models import Event
+
+    venue = build_event(
+        pro,
+        location_type=Event.LocationType.PHYSICAL,
+        poi_name="Station F",
+        city="Paris 13e Arrondissement",
+    )
+    address = build_event(
+        pro,
+        location_type=Event.LocationType.PHYSICAL,
+        address="8 Boulevard du Port",
+        postal_code="80000",
+        city="Amiens",
+    )
+
+    assert venue.location_label == "Station F Paris 13e Arrondissement"
+    assert address.location_label == "8 Boulevard du Port 80000 Amiens"
+
+
+@pytest.mark.django_db
 def test_past_and_upcoming_split_events_on_their_end_date(pro):
     from techpourtoutes.models import Event
 
@@ -168,6 +272,32 @@ def test_past_and_upcoming_split_events_on_their_end_date(pro):
 
 
 @pytest.mark.django_db
+def test_past_and_upcoming_split_same_day_events_on_their_end_time(pro):
+    from techpourtoutes.models import Event
+
+    now = timezone.localtime()
+    just_ended = build_event(
+        pro,
+        start_date=now.date(),
+        end_date=now.date(),
+        start_time=time(0, 0),
+        end_time=(now - timedelta(minutes=1)).time(),
+    )
+    just_ended.save()
+    still_ongoing = build_event(
+        pro,
+        start_date=now.date(),
+        end_date=now.date(),
+        start_time=time(0, 0),
+        end_time=(now + timedelta(minutes=1)).time(),
+    )
+    still_ongoing.save()
+
+    assert list(Event.objects.past()) == [just_ended]
+    assert list(Event.objects.upcoming()) == [still_ongoing]
+
+
+@pytest.mark.django_db
 def test_approved_returns_only_the_validated_events(pro):
     from techpourtoutes.models import Event
 
@@ -180,6 +310,109 @@ def test_approved_returns_only_the_validated_events(pro):
 
 
 @pytest.mark.django_db
+def test_an_ungeocoded_physical_event_cannot_be_approved(pro):
+    """Nothing may go live on a map without coordinates: the admin has to geocode it first."""
+    from techpourtoutes.models import Event
+
+    event = build_event(
+        pro,
+        location_type=Event.LocationType.PHYSICAL,
+        address="Salle des fêtes, derrière la mairie",
+        status=Event.Status.APPROVED,
+    )
+
+    with pytest.raises(ValidationError):
+        event.save()
+
+
+@pytest.mark.django_db
+def test_a_physical_event_naming_neither_address_nor_venue_cannot_be_approved(pro):
+    """Coordinates alone put a pin on a map with nothing to read next to it."""
+    from techpourtoutes.models import Event
+
+    event = build_event(
+        pro,
+        location_type=Event.LocationType.PHYSICAL,
+        longitude=2.371699,
+        latitude=48.833436,
+        status=Event.Status.APPROVED,
+    )
+
+    with pytest.raises(ValidationError):
+        event.save()
+
+
+@pytest.mark.django_db
+def test_a_geocoded_venue_can_be_approved_without_a_street_address(pro):
+    from techpourtoutes.models import Event
+
+    event = build_event(
+        pro,
+        location_type=Event.LocationType.PHYSICAL,
+        poi_name="Station F",
+        city="Paris 13e Arrondissement",
+        cog_code="75113",
+        longitude=2.371699,
+        latitude=48.833436,
+        status=Event.Status.APPROVED,
+    )
+    event.save()
+
+    assert list(Event.objects.approved()) == [event]
+
+
+@pytest.mark.django_db
+def test_a_geocoded_physical_event_can_be_approved(event):
+    from techpourtoutes.models import Event
+
+    event.status = Event.Status.APPROVED
+    event.save()
+
+    assert list(Event.objects.approved()) == [event]
+
+
+@pytest.mark.django_db
+def test_an_online_event_can_be_approved_without_coordinates(pro):
+    from techpourtoutes.models import Event
+
+    event = build_event(pro, status=Event.Status.APPROVED)
+    event.save()
+
+    assert event.latitude is None
+    assert list(Event.objects.approved()) == [event]
+
+
+@pytest.mark.django_db
+def test_has_ended_is_false_before_the_end_date(pro):
+    tomorrow = timezone.localdate() + timedelta(days=1)
+
+    event = build_event(pro, start_date=tomorrow, end_date=tomorrow)
+
+    assert event.has_ended is False
+
+
+@pytest.mark.django_db
+def test_has_ended_is_true_after_the_end_date(pro):
+    yesterday = timezone.localdate() - timedelta(days=1)
+
+    event = build_event(pro, start_date=yesterday, end_date=yesterday)
+
+    assert event.has_ended is True
+
+
+@pytest.mark.django_db
+def test_has_ended_checks_the_time_when_the_event_ends_today(pro):
+    """A date-only comparison would miss this: the event ends today, earlier than now."""
+    today = timezone.localdate()
+
+    event = build_event(
+        pro, start_date=today, end_date=today, start_time=time(0, 0), end_time=time(0, 1)
+    )
+
+    assert event.has_ended is True
+
+
+@pytest.mark.django_db
 def test_event_history_records_the_validation(event):
     from techpourtoutes.models import Event
 
@@ -189,3 +422,74 @@ def test_event_history_records_the_validation(event):
     assert event.history.count() == 2
     assert event.history.first().status == Event.Status.APPROVED
     assert event.history.last().status == Event.Status.PENDING
+
+
+@pytest.mark.django_db
+def test_event_slug_is_built_from_its_title(pro):
+    event = build_event(pro, title="Salon des métiers du numérique")
+    event.save()
+
+    assert event.slug == "salon-des-metiers-du-numerique"
+
+
+@pytest.mark.django_db
+def test_event_slug_suffixes_a_title_already_taken(pro):
+    build_event(pro, title="Portes ouvertes").save()
+
+    second = build_event(pro, title="Portes ouvertes")
+    second.save()
+
+    assert second.slug == "portes-ouvertes-2"
+
+
+@pytest.mark.django_db
+def test_event_slug_never_moves_once_written(pro):
+    """An indexed URL outlives a corrected title."""
+    event = build_event(pro, title="Portes ouvertes")
+    event.save()
+
+    event.title = "Portes ouvertes 2026"
+    event.save()
+
+    assert event.slug == "portes-ouvertes"
+
+
+@pytest.mark.django_db
+def test_event_slug_falls_back_when_the_title_slugifies_to_nothing(pro):
+    event = build_event(pro, title="★★★")
+    event.save()
+
+    assert event.slug == "evenement"
+
+
+@pytest.mark.django_db(transaction=True)
+def test_event_slug_steps_aside_when_a_concurrent_creation_wins_the_insert(pro):
+    """A twin lands after this event's validation, so nothing but the unique index can catch
+    it. It is committed by another connection, which is what a real race looks like."""
+    import threading
+
+    from django.db import connection
+    from django.db.models.signals import pre_save
+
+    from techpourtoutes.models import Event
+
+    def create_the_twin_elsewhere(sender, instance, **kwargs):
+        pre_save.disconnect(create_the_twin_elsewhere, sender=Event)
+        thread = threading.Thread(target=_commit_twin, args=(pro,))
+        thread.start()
+        thread.join()
+
+    def _commit_twin(pro):
+        build_event(pro, title="Portes ouvertes").save()
+        connection.close()
+
+    pre_save.connect(create_the_twin_elsewhere, sender=Event)
+    try:
+        event = build_event(pro, title="Portes ouvertes")
+        event.save()
+    finally:
+        pre_save.disconnect(create_the_twin_elsewhere, sender=Event)
+
+    assert event.slug == "portes-ouvertes-2"
+    assert Event.objects.filter(slug="portes-ouvertes").count() == 1
+    assert Event.objects.count() == 2
