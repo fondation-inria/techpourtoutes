@@ -12,7 +12,7 @@
     {% if upcoming_events %}
         {% include "coalition/partials/event_cards.html" with events=upcoming_events %}
     {% else %}
-        <c-components.text>Vous n'avez aucun événement.</c-components.text>
+        <c-components.card>Vous n'avez aucun événement.</c-components.card>
     {% endif %}
 
     {% if pending_events %}
