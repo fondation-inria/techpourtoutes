@@ -183,11 +183,24 @@ def _events_page(beneficiary, page):
 
 
 def _back_to_listing(request):
-    listing = reverse("index_events")
-    referer = urlparse(request.headers.get("referer", ""))
-    if referer.netloc in ("", request.get_host()) and referer.path == listing and referer.query:
-        return f"{listing}?{referer.query}"
-    return listing
+    for candidate in (request.GET.get("back", ""), request.headers.get("referer", "")):
+        back_url = _authorized_index_events_back_url(request, candidate)
+        if back_url:
+            return back_url
+    return reverse("index_events")
+
+
+def _authorized_index_events_back_url(request, url):
+    """Only a same-origin link to one of the event listings is trusted as a back link —
+    anything else (an external host, an unrelated page) is ignored."""
+    parsed = urlparse(url)
+    if (
+        not url
+        or parsed.netloc not in ("", request.get_host())
+        or parsed.path not in (reverse(name) for name in ("index_events", "index_pro_events"))
+    ):
+        return None
+    return parsed.path + (f"?{parsed.query}" if parsed.query else "")
 
 
 def _bookmark_action(user, beneficiary):

@@ -32,7 +32,7 @@
             {% if is_organizer %}
                 {% if not event.has_ended %}
                     <div class="flex flex-wrap items-center gap-3 -mt-1.5">
-                        <c-components.button label="Modifier" href="{% url "edit_event" event.pk %}" />
+                        <c-components.button label="Modifier" href="{% url "edit_event" event.pk %}?back={{ back_url|urlencode }}" />
                     </div>
                 {% endif %}
             {% elif not event.has_ended and event.access_type != "open" %}

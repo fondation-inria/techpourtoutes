@@ -16,12 +16,12 @@
     {% endif %}
 
     {% if pending_events %}
-        <c-components.card title="Événements en attente de validation" title_bg="black" class="mt-(--grid-cell)" />
+        <c-components.card title="Événements en attente de validation" title_bg="black" />
         {% include "coalition/partials/event_cards.html" with events=pending_events %}
     {% endif %}
 
     {% if past_events %}
-        <c-components.card title="Événements passés" title_bg="black" class="mt-(--grid-cell)" />
+        <c-components.card title="Événements passés" title_bg="black" />
         {% include "coalition/partials/event_cards.html" with events=past_events %}
     {% endif %}
 

@@ -1,8 +1,11 @@
+from urllib.parse import urlencode
+
 from django.contrib import messages
 from django.core.exceptions import ValidationError
 from django.http import Http404, HttpResponse
 from django.shortcuts import get_object_or_404, render
 from django.urls import reverse
+from django.utils.http import url_has_allowed_host_and_scheme
 from django.views.decorators.http import require_POST
 
 from ..decorators import pro_required
@@ -50,7 +53,11 @@ def edit_event(request, pk):
     """Renders `event_funnel.html`, opened on the answers the event already holds ;
     nothing is persisted until the last screen: the answers travel as hidden inputs."""
     event = get_object_or_404(request.user.pro.events, pk=pk)
-    return _render(request, "coalition/funnels/event_funnel.html", _STEPS[0], _answers_from(event))
+    answers = _answers_from(event)
+    back = _safe_back(request, request.GET.get("back", ""))
+    if back:
+        answers["back"] = back
+    return _render(request, "coalition/funnels/event_funnel.html", _STEPS[0], answers)
 
 
 @require_POST
@@ -120,7 +127,23 @@ def _update(request):
 
     UpdateEvent(event=event, forms=forms)
     messages.success(request, "Votre événement a bien été modifié.")
-    return HttpResponse(headers={"HX-Redirect": reverse("show_event", args=[event.slug])})
+    return HttpResponse(headers={"HX-Redirect": _show_event_url(request, event)})
+
+
+def _show_event_url(request, event):
+    url = reverse("show_event", args=[event.slug])
+    back = _safe_back(request, request.POST.get("back", ""))
+    if back:
+        url = f"{url}?{urlencode({'back': back})}"
+    return url
+
+
+def _safe_back(request, candidate):
+    if candidate and url_has_allowed_host_and_scheme(
+        candidate, allowed_hosts={request.get_host()}, require_https=request.is_secure()
+    ):
+        return candidate
+    return ""
 
 
 def _validated_answers(request):

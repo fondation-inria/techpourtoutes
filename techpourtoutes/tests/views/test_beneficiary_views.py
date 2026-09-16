@@ -796,6 +796,37 @@ def test_show_event_back_link_falls_back_to_the_bare_listing(client, salon):
 
 
 @pytest.mark.django_db
+def test_show_event_back_link_keeps_the_pro_events_page(client, salon):
+    response = client.get(
+        reverse("show_event", args=[salon.slug]),
+        HTTP_REFERER=f"http://testserver{reverse('index_pro_events')}",
+    )
+
+    assert response.context["back_url"] == reverse("index_pro_events")
+
+
+@pytest.mark.django_db
+def test_show_event_back_link_trusts_a_back_param_from_the_pro_events_page(client, salon):
+    """The edit-event funnel redirects here with `?back=...` rather than a matching referer,
+    since the previous page in the browser's history is the funnel itself."""
+    response = client.get(
+        reverse("show_event", args=[salon.slug]), {"back": reverse("index_pro_events")}
+    )
+
+    assert response.context["back_url"] == reverse("index_pro_events")
+
+
+@pytest.mark.django_db
+def test_show_event_back_link_ignores_an_unsafe_back_param(client, salon):
+    response = client.get(
+        reverse("show_event", args=[salon.slug]),
+        {"back": "https://evil.example.com/mes-evenements/"},
+    )
+
+    assert response.context["back_url"] == INDEX_EVENTS_URL
+
+
+@pytest.mark.django_db
 def test_show_event_back_link_ignores_a_referer_from_anywhere_else(client, salon):
     response = client.get(
         reverse("show_event", args=[salon.slug]),

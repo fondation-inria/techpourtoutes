@@ -479,6 +479,45 @@ def test_the_event_being_edited_travels_from_one_step_to_the_next(client, pro, e
 
 
 @pytest.mark.django_db
+def test_edit_event_carries_the_back_url_into_the_funnel(client, pro, event):
+    client.force_login(pro)
+
+    content = client.get(f"{edit_url(event)}?back=/mes-evenements/").content.decode()
+
+    assert 'name="back" value="/mes-evenements/"' in content
+
+
+@pytest.mark.django_db
+def test_edit_event_ignores_an_unsafe_back_url(client, pro, event):
+    client.force_login(pro)
+
+    content = client.get(
+        f"{edit_url(event)}?back=https://evil.example.com/mes-evenements/"
+    ).content.decode()
+
+    assert 'name="back"' not in content
+
+
+@pytest.mark.django_db
+@locmem
+def test_updating_an_event_redirects_with_the_carried_back_url(client, pro, event):
+    client.force_login(pro)
+
+    response = client.post(
+        UPDATE_URL,
+        {
+            "action": "location",
+            "event": str(event.pk),
+            "back": "/mes-evenements/",
+            **answers(title="Nouveau nom"),
+        },
+    )
+
+    show_url = reverse("show_event", args=[event.slug])
+    assert response["HX-Redirect"] == f"{show_url}?back=%2Fmes-evenements%2F"
+
+
+@pytest.mark.django_db
 def test_edit_event_says_it_is_an_edit_rather_than_a_new_proposal(client, pro, event):
     client.force_login(pro)
 
