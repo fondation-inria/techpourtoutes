@@ -13,7 +13,7 @@
             <p class="description-text-xxs">Tous les champs sont obligatoires</p>
             <c-components.form_fields.select field=form.subcategory :watchable=True />
             <div x-show="subcategory == 'other'" x-cloak>
-                <c-components.form_fields.input field=form.subcategory_other autocomplete="off" />
+                <c-components.form_fields.input field=form.subcategory_other autocomplete="off" description="Le type est limité à 22 caractères" />
             </div>
             <div class="flex justify-center mt-4">
                 <c-components.button type="submit" label="Continuer" />
