@@ -8,6 +8,7 @@
             class="flex flex-col gap-4">
             <input type="hidden" name="action" value="code">
             <input type="hidden" name="email" value="{{ email }}">
+            <input type="hidden" name="saved_event" value="{{ saved_event }}">
             <c-components.title title="Saisis le code reçu par mail" variant="h1" />
             <p>
                 Un code à 6 chiffres t'a été envoyé par mail à
@@ -28,6 +29,7 @@
             class="mt-4 items-center">
             <input type="hidden" name="action" value="resend">
             <input type="hidden" name="email" value="{{ email }}">
+            <input type="hidden" name="saved_event" value="{{ saved_event }}">
             <c-components.button type="submit" variant="tertiary" label="Je n'ai pas reçu de code" />
         </c-patterns.form>
     </c-components.card>

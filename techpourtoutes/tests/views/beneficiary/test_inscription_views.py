@@ -609,6 +609,26 @@ def test_inscription_funnel_carries_the_bookmarked_event_through_every_step(
 
 
 @pytest.mark.django_db
+@override_settings(EMAIL_BACKEND="django.core.mail.backends.locmem.EmailBackend")
+def test_account_creation_step_carries_the_bookmarked_event_onto_the_code_screen(
+    client, higher_ed_school, higher_ed_formation, approved_salon
+):
+    # The "code" screen fires a funnelReset, wiping the client's sessionStorage answers before the
+    # code is even submitted, so the event bookmark must travel as a field of that screen itself.
+    response = client.post(
+        FUNNEL_URL,
+        _higher_education_post(
+            higher_ed_school,
+            higher_ed_formation,
+            wants_mentor="false",
+            saved_event=str(approved_salon.pk),
+        ),
+    )
+
+    assert f'name="saved_event" value="{approved_salon.pk}"'.encode() in response.content
+
+
+@pytest.mark.django_db
 def test_code_step_saves_the_event_bookmarked_before_the_signup(client, approved_salon):
     beneficiary = Beneficiary.objects.create(
         username="oceane@example.com",

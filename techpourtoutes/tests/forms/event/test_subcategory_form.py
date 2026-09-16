@@ -14,12 +14,24 @@ def test_the_other_subcategory_is_stored_as_the_free_text():
     form = EventSubcategoryForm(
         data={
             "subcategory": Event.Subcategory.OTHER,
-            "subcategory_other": "Rencontre d'anciennes élèves",
+            "subcategory_other": "Rencontre entre elles",
         }
     )
 
     assert form.is_valid()
-    assert form.resolved_subcategory == "Rencontre d'anciennes élèves"
+    assert form.resolved_subcategory == "Rencontre entre elles"
+
+
+def test_the_other_subcategory_free_text_is_capped_at_22_characters():
+    form = EventSubcategoryForm(
+        data={
+            "subcategory": Event.Subcategory.OTHER,
+            "subcategory_other": "Rencontre d'anciennes élèves",
+        }
+    )
+
+    assert not form.is_valid()
+    assert "subcategory_other" in form.errors
 
 
 def test_the_other_subcategory_demands_its_free_text():

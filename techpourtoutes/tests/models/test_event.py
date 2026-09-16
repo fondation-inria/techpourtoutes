@@ -43,10 +43,10 @@ def test_event_subcategory_label_falls_back_to_the_free_text(pro):
     from techpourtoutes.models import Event
 
     listed = build_event(pro, subcategory=Event.Subcategory.HACKATHON)
-    free = build_event(pro, subcategory="Rencontre d'anciennes élèves")
+    free = build_event(pro, subcategory="Rencontre d'anciennes")
 
     assert listed.subcategory_label == "Hackathon"
-    assert free.subcategory_label == "Rencontre d'anciennes élèves"
+    assert free.subcategory_label == "Rencontre d'anciennes"
 
 
 def test_every_subcategory_belongs_to_exactly_one_category():
@@ -71,7 +71,7 @@ def test_event_category_is_derived_from_its_subcategory(pro):
 def test_a_free_text_subcategory_lands_in_the_category_holding_other(pro):
     from techpourtoutes.models import Event
 
-    event = build_event(pro, subcategory="Rencontre d'anciennes élèves")
+    event = build_event(pro, subcategory="Rencontre d'anciennes")
 
     assert event.category == Event.Category.SOCIAL
 
@@ -80,7 +80,7 @@ def test_a_free_text_subcategory_lands_in_the_category_holding_other(pro):
 def test_in_subcategory_brings_the_free_text_back_under_other(pro):
     from techpourtoutes.models import Event
 
-    free = build_event(pro, subcategory="Rencontre d'anciennes élèves")
+    free = build_event(pro, subcategory="Rencontre d'anciennes")
     free.save()
     other = build_event(pro, subcategory=Event.Subcategory.OTHER)
     other.save()
@@ -106,7 +106,7 @@ def test_in_category_returns_the_events_of_all_its_subcategories(pro):
 def test_in_category_includes_the_free_text_where_other_sits(pro):
     from techpourtoutes.models import Event
 
-    free = build_event(pro, subcategory="Rencontre d'anciennes élèves")
+    free = build_event(pro, subcategory="Rencontre d'anciennes")
     free.save()
     afterwork = build_event(pro, subcategory=Event.Subcategory.AFTERWORK)
     afterwork.save()
@@ -133,7 +133,7 @@ def test_event_category_color_follows_its_category(pro):
 
 @pytest.mark.django_db
 def test_a_free_text_subcategory_takes_the_color_of_the_category_holding_other(pro):
-    event = build_event(pro, subcategory="Rencontre d'anciennes élèves")
+    event = build_event(pro, subcategory="Rencontre d'anciennes")
 
     assert event.category_color == "purple"
 
@@ -269,6 +269,32 @@ def test_past_and_upcoming_split_events_on_their_end_date(pro):
 
     assert list(Event.objects.past()) == [over]
     assert list(Event.objects.upcoming()) == [ongoing, later]
+
+
+@pytest.mark.django_db
+def test_past_and_upcoming_split_same_day_events_on_their_end_time(pro):
+    from techpourtoutes.models import Event
+
+    now = timezone.localtime()
+    just_ended = build_event(
+        pro,
+        start_date=now.date(),
+        end_date=now.date(),
+        start_time=time(0, 0),
+        end_time=(now - timedelta(minutes=1)).time(),
+    )
+    just_ended.save()
+    still_ongoing = build_event(
+        pro,
+        start_date=now.date(),
+        end_date=now.date(),
+        start_time=time(0, 0),
+        end_time=(now + timedelta(minutes=1)).time(),
+    )
+    still_ongoing.save()
+
+    assert list(Event.objects.past()) == [just_ended]
+    assert list(Event.objects.upcoming()) == [still_ongoing]
 
 
 @pytest.mark.django_db

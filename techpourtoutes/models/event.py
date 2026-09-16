@@ -20,11 +20,19 @@ class EventQuerySet(BaseQuerySet):
         return self.filter(status=Event.Status.APPROVED)
 
     def past(self):
-        return self.filter(end_date__lt=timezone.localdate())
+        now = timezone.localtime()
+        return self.filter(
+            models.Q(end_date__lt=now.date())
+            | models.Q(end_date=now.date(), end_time__lt=now.time())
+        )
 
     def upcoming(self):
         """An event that has started but not ended yet is still to come."""
-        return self.filter(end_date__gte=timezone.localdate())
+        now = timezone.localtime()
+        return self.filter(
+            models.Q(end_date__gt=now.date())
+            | models.Q(end_date=now.date(), end_time__gte=now.time())
+        )
 
     def in_category(self, category):
         return self._within(Event.SUBCATEGORIES[category])
@@ -129,7 +137,7 @@ class Event(BaseModel):
     slug = models.SlugField(max_length=255, unique=True, verbose_name=_("slug"))
     description = models.TextField(blank=True, verbose_name=_("description"))
     # A `Subcategory` value, or the free text typed when none of them fits.
-    subcategory = models.CharField(max_length=100, verbose_name=_("sous-catégorie"))
+    subcategory = models.CharField(max_length=22, verbose_name=_("sous-catégorie"))
     start_date = models.DateField(verbose_name=_("date de début"))
     end_date = models.DateField(verbose_name=_("date de fin"))
     start_time = models.TimeField(verbose_name=_("heure de début"))

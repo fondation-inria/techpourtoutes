@@ -114,7 +114,10 @@ def _create_beneficiary(request):
     if result.failure:
         relay_errors(request, result)
         return _render_step(request, "mentoring_signup")
-    response = _render_step(request, "code", email=result.beneficiary.email)
+    saved_event = request.POST.get("saved_event", "")
+    response = _render_step(
+        request, "code", email=result.beneficiary.email, saved_event=saved_event
+    )
     response["HX-Trigger"] = "funnelReset"
     return response
 
@@ -135,7 +138,9 @@ def _handle_code(request):
         login(request, user)
         save_pending_event(request, request.POST.get("saved_event", ""))
         return HttpResponse(headers={"HX-Redirect": reverse("show_account")})
-    return _render_step_with_error(request, "code", _CODE_ERROR, email=email)
+    return _render_step_with_error(
+        request, "code", _CODE_ERROR, email=email, saved_event=request.POST.get("saved_event", "")
+    )
 
 
 @rate_limit("RATELIMIT_LOGIN", keys=("email",))
@@ -145,7 +150,9 @@ def _handle_resend(request):
     if user is not None:
         AuthMailer.login_code(user=user, code=user.issue_login_code())
     messages.success(request, _RESEND_NOTICE)
-    return _render_step(request, "code", email=email)
+    return _render_step(
+        request, "code", email=email, saved_event=request.POST.get("saved_event", "")
+    )
 
 
 # ------------------- validation -------------------

@@ -73,11 +73,11 @@ def _decided(event, status):
 
 @pytest.mark.django_db
 def test_event_changelist_shows_the_free_text_subcategory(verified_admin_client, event):
-    event.subcategory = "Rencontre d'anciennes élèves"
+    event.subcategory = "Rencontre d'anciennes"
     event.save()
 
     content = verified_admin_client.get(reverse(CHANGELIST)).content.decode()
-    assert "Rencontre d&#x27;anciennes élèves" in content
+    assert "Rencontre d&#x27;anciennes" in content
     assert "Convivial" in content
 
 
@@ -354,14 +354,14 @@ def test_event_page_lists_the_beneficiaries_who_saved_it(
 def test_a_free_text_subcategory_selects_other_and_fills_the_text_input(
     verified_admin_client, event
 ):
-    event.subcategory = "Rencontre d'anciennes élèves"
+    event.subcategory = "Rencontre d'anciennes"
     event.save()
 
     url = reverse("admin:techpourtoutes_event_change", args=[event.pk])
     content = verified_admin_client.get(url).content.decode()
 
     assert '<option value="other" selected>Autre</option>' in content
-    assert 'value="Rencontre d&#x27;anciennes élèves"' in content
+    assert 'value="Rencontre d&#x27;anciennes"' in content
 
 
 @pytest.mark.django_db

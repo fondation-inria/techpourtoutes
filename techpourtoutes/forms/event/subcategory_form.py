@@ -12,7 +12,7 @@ class EventSubcategoryForm(forms.Form):
         label=_("Quel type d'événement voulez-vous proposer ?"),
     )
     subcategory_other = forms.CharField(
-        required=False, label=_("Veuillez préciser le type d'événement")
+        required=False, max_length=22, label=_("Veuillez préciser le type d'événement")
     )
 
     def clean(self):
