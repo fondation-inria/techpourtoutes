@@ -74,13 +74,13 @@ def test_the_form_prefilled_from_an_event_puts_an_unlisted_subcategory_back_unde
     """The mirror of `resolved_subcategory`: the free text returns to the field it came from."""
     from ...models.test_event import build_event
 
-    event = build_event(pro, subcategory="Rencontre d'anciennes élèves")
+    event = build_event(pro, subcategory="Rencontre entre elles")
     event.save()
 
     form = EventSubcategoryForm(data=EventSubcategoryForm(event=event).initial)
 
     assert form.is_valid()
-    assert form.resolved_subcategory == "Rencontre d'anciennes élèves"
+    assert form.resolved_subcategory == "Rencontre entre elles"
 
 
 def test_event_fields_carries_the_resolved_subcategory():
