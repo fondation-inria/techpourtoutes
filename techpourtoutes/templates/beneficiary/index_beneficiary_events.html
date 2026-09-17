@@ -1,0 +1,27 @@
+{% load static %}
+
+<c-layout.base title="Mes événements – TechPourToutes">
+    <div class="w-full flex flex-col lg:flex-row lg:items-center lg:justify-between">
+        <c-components.title title="Mes événements enregistrés" title_bg="blue" />
+        <div class="mt-8 lg:m-0">
+            <c-components.button label="Voir d'autres événements" href="{% url "index_events" %}" class="shrink-0" />
+        </div>
+    </div>
+
+    <c-components.card title="Événements en cours ou à venir" title_bg="black" class="mt-9 sm:mt-12" />
+    {% if upcoming_events %}
+        {% include "coalition/partials/event_cards.html" with events=upcoming_events %}
+    {% else %}
+        <c-components.card>Vous n'avez aucun événement.</c-components.card>
+    {% endif %}
+
+    {% if past_events %}
+        <c-components.card title="Événements passés" title_bg="black" />
+        {% include "coalition/partials/event_cards.html" with events=past_events %}
+    {% endif %}
+
+    {% if not upcoming_events and not pending_events and not past_events %}
+        <img src="{% static 'images/empty-event-bg.webp' %}" alt="" aria-hidden="true"
+             class="w-full" width="1344" height="868" loading="lazy" decoding="async" />
+    {% endif %}
+</c-layout.base>
