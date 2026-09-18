@@ -38,3 +38,17 @@ def test_beneficiary_welcome_attaches_its_brevo_tags(beneficiary):
     BeneficiaryMailer.welcome(beneficiary=beneficiary)
 
     assert mail.outbox[0].tags == ["utilisateur", "beneficiaire", "mail de bienvenue"]
+
+
+@pytest.mark.django_db
+@override_settings(
+    EMAIL_BACKEND="django.core.mail.backends.locmem.EmailBackend",
+    SITE_URL="https://example.test",
+)
+def test_event_updated_links_to_the_event(event, beneficiary):
+    BeneficiaryMailer.event_updated(event=event, beneficiary=beneficiary)
+
+    expected_url = f"https://example.test/evenements/{event.slug}/"
+    message = mail.outbox[0]
+    assert expected_url in message.body
+    assert expected_url in message.alternatives[0][0]
