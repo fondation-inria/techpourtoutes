@@ -1,0 +1,14 @@
+<c-layout.email>
+  <p style="font-size:15px;color:#374151;">Bonjour {{ event.created_by.first_name }},</p>
+  <p style="font-size:15px;color:#374151;">
+    Votre événement <strong>{{ event.title }}</strong> a besoin d'être modifié avant de pouvoir être publié pour la ou les raisons suivantes&nbsp;:
+  </p>
+  <div style="margin:16px 0;padding:12px 16px;border:1px solid #d1d5db;border-radius:4px;background:#f9fafb;">
+    <p style="font-size:15px;color:#374151;margin:0;">{{ message|linebreaksbr }}</p>
+  </div>
+  <p style="text-align:center;margin:24px 0;">
+    <a href="{{ login_url }}" style="display:inline-block;padding:12px 24px;background:#fad207;color:#0b1020;text-decoration:none;border-radius:4px;font-weight:600;">Modifier mon événement</a>
+  </p>
+  <br>
+  <p style="font-size:15px;color:#374151;">Bonne journée,</p>
+</c-layout.email>

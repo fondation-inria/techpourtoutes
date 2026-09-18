@@ -2,13 +2,26 @@
 <div id="funnel-step" class="w-full h-full flex flex-col justify-center gap-y-4"
      x-init="$dispatch('funnel-submitted')">
     <c-components.card nobg=True>
-        <c-components.title title="Votre événement est en cours de validation." variant="h1" />
-        <p class="text-sm text-neutral-950 mt-4">
-            Vous recevrez un mail quand votre événement sera validé. Il sera alors en ligne et
-            visible automatiquement.
-        </p>
-        <div class="mt-6">
-            <c-components.button href="{% url 'show_account' %}" label="Retourner sur mon compte" />
+        {% if event.is_approved %}
+            <c-components.title title="Votre événement est en ligne" variant="h1" />
+            <p class="text-sm text-neutral-950 mt-4">
+                Il est visible de toutes dès maintenant, sans passer par la validation.
+            </p>
+        {% else %}
+            <c-components.title title="Votre événement est en cours de validation" variant="h1" />
+            <p class="text-sm text-neutral-950 mt-4">
+                Vous recevrez un mail quand votre événement sera validé. Il sera alors en ligne et
+                visible automatiquement.
+            </p>
+        {% endif %}
+        <div class="mt-6 flex flex-col gap-y-4 items-center">
+            <div>
+                {% url 'index_pro_events' as pro_events_url %}
+                <c-components.button variant="secondary" href="{% url 'show_event' event.slug %}?back={{ pro_events_url|urlencode:'' }}" label="Voir mon événement" />
+            </div>
+            <div>
+                <c-components.button href="{% url 'show_account' %}"    label="Retourner sur mon compte" />
+            </div>
         </div>
     </c-components.card>
 </div>

@@ -99,6 +99,33 @@ def test_pro_phone_is_optional(valid_pro_model_data):
 
 
 @pytest.mark.django_db
+def test_event_moderators_returns_whoever_may_moderate_events(
+    pro, valid_pro_model_data, event_moderator_group
+):
+    """Held through a group, as the Chargée de mission holds it, or granted to one account."""
+    from django.contrib.auth.models import Permission
+
+    from techpourtoutes.models import Pro
+
+    grouped = Pro(
+        username="chargee@example.com", **{**valid_pro_model_data, "email": "chargee@example.com"}
+    )
+    grouped.save()
+    grouped.groups.add(event_moderator_group)
+    granted = Pro(
+        username="ponctuelle@example.com",
+        **{**valid_pro_model_data, "email": "ponctuelle@example.com"},
+    )
+    granted.save()
+    granted.user_permissions.add(
+        Permission.objects.get(codename="change_event", content_type__app_label="techpourtoutes")
+    )
+
+    assert set(Pro.event_moderators()) == {grouped, granted}
+    assert pro not in Pro.event_moderators()
+
+
+@pytest.mark.django_db
 def test_soft_delete_anonymizes_expected_fields(pro):
     original_pk = pro.pk
     pro.faveod_id = 4242

@@ -18,7 +18,7 @@
                          quitting = true;
                      })">
         <img src="{% static 'images/techpourtoutes-logo-new-coalition.png' %}" alt="logo TechPourToutes" class="w-48 shrink-0 mb-8" width="1344" height="372" decoding="async" />
-        {% include "coalition/funnels/partials/event/subcategory.html" %}
+        {% include "coalition/funnels/partials/event/subcategory.html" with messages_in_layout=True %}
 
         <template x-if="quitting">
             <c-components.modal title="Voulez-vous vraiment quitter la {% if editing %}modification{% else %}création{% endif %} de votre événement ?">

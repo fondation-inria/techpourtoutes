@@ -1,0 +1,14 @@
+{% autoescape off %}Bonjour {{ event.created_by.first_name }},
+
+Votre événement {{ event.title }} a besoin d'être modifié avant de pouvoir être publié pour la ou les raisons suivantes :
+
+-----------------------------------------------------------------------------
+{{ message }}
+-----------------------------------------------------------------------------
+
+Vous pouvez le modifier via ce lien :
+
+{{ login_url }}
+
+Bonne journée,
+L'équipe TechPourToutes{% endautoescape %}
