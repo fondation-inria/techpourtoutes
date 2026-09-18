@@ -8,7 +8,7 @@ from django.urls import reverse
 from django.utils.http import url_has_allowed_host_and_scheme
 from django.views.decorators.http import require_POST
 
-from ..decorators import pro_required
+from ..decorators import beneficiary_required, pro_required
 from ..forms import EventDetailsForm, EventLocationForm, EventSubcategoryForm
 from ..models import Event
 from ..services.event.create_event import CreateEvent
@@ -25,6 +25,19 @@ _STEP_FORMS = {
 
 # Never carried forward: they steer the funnel, they are not answers.
 _CONTROL_FIELDS = {"action", "to", "csrfmiddlewaretoken", "q", "confirmed"}
+
+
+@beneficiary_required
+def index_beneficiary_events(request):
+    events = request.user.beneficiary.saved_events
+    return render(
+        request,
+        "beneficiary/index_beneficiary_events.html",
+        {
+            "upcoming_events": events.approved().upcoming(),
+            "past_events": events.approved().past().order_by("-start_date", "-start_time"),
+        },
+    )
 
 
 @pro_required

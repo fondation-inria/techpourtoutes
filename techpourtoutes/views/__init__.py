@@ -55,6 +55,7 @@ from .coalition_views import (
 from .event_views import (
     create_event,
     edit_event,
+    index_beneficiary_events,
     index_pro_events,
     new_event,
     update_event,
@@ -138,6 +139,7 @@ __all__ = [
     "create_event",
     "update_event",
     "edit_event",
+    "index_beneficiary_events",
     "index_pro_events",
     "search_addresses",
     "search_formations",
