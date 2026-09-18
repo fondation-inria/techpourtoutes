@@ -12,7 +12,7 @@
     {% if upcoming_events %}
         {% include "coalition/partials/event_cards.html" with events=upcoming_events %}
     {% else %}
-        <c-components.card>Vous n'avez aucun événement.</c-components.card>
+        <c-components.card>Tu n'as aucun événement enregistré en cours ou à venir.</c-components.card>
         <img src="{% static 'images/empty-event-bg.webp' %}" alt="" aria-hidden="true"
              class="w-full" width="1344" height="868" loading="lazy" decoding="async" />
     {% endif %}
