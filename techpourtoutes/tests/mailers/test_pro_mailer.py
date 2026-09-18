@@ -92,3 +92,28 @@ def test_event_rejected_notifies_its_author(event):
     assert event.title in message.body
     assert "Adresse incomplète." in message.body
     assert message.tags == ["utilisateur", "coalition", "événement refusé"]
+
+
+@pytest.mark.django_db
+@override_settings(EMAIL_BACKEND="django.core.mail.backends.locmem.EmailBackend")
+def test_event_modification_requested_notifies_its_author(event):
+    ProMailer.event_modification_requested(event=event, message="Précisez l'adresse.")
+
+    assert len(mail.outbox) == 1
+    message = mail.outbox[0]
+    assert message.to == [event.created_by.email]
+    assert event.title in message.subject
+    assert "Précisez l'adresse." in message.body
+    assert message.tags == ["utilisateur", "coalition", "modification demandée"]
+
+
+@pytest.mark.django_db
+@override_settings(EMAIL_BACKEND="django.core.mail.backends.locmem.EmailBackend")
+def test_event_modification_requested_links_to_the_edit_funnel(event):
+    ProMailer.event_modification_requested(event=event, message="Précisez l'adresse.")
+
+    message = mail.outbox[0]
+    assert "/se-connecter/token/" in message.body
+    assert f"evenements%2F{event.pk}%2Fmodifier%2F" in message.body
+    event.created_by.refresh_from_db()
+    assert event.created_by.login_token_hash

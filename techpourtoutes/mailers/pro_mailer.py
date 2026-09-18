@@ -1,3 +1,5 @@
+from urllib.parse import urlencode
+
 from django.conf import settings
 from django.urls import reverse
 
@@ -60,6 +62,21 @@ class ProMailer(BaseMailer):
             recipient_list=[event.created_by.email],
             context={"event": event, "comment": comment},
             tags=["utilisateur", "coalition", "événement refusé"],
+        )
+
+    @classmethod
+    def event_modification_requested(cls, *, event, message):
+        token = event.created_by.issue_login_token()
+        edit_path = reverse("edit_event", args=[event.pk])
+        login_url = (
+            f"{settings.SITE_URL}{reverse('login_verify', args=[token])}"
+            f"?{urlencode({'next': edit_path})}"
+        )
+        cls.send_mail(
+            subject=f"Une modification est nécessaire pour l'événement {event.title}",
+            recipient_list=[event.created_by.email],
+            context={"event": event, "message": message, "login_url": login_url},
+            tags=["utilisateur", "coalition", "modification demandée"],
         )
 
     @classmethod

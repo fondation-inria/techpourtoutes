@@ -12,7 +12,7 @@ locmem = override_settings(
 )
 
 
-def valid_forms(**overrides):
+def valid_forms(location_overrides=None, **overrides):
     subcategory = EventSubcategoryForm(data={"subcategory": Event.Subcategory.SALON} | overrides)
     details = EventDetailsForm(
         data={
@@ -38,6 +38,7 @@ def valid_forms(**overrides):
             "access_type": Event.AccessType.OPEN,
             "pricing": "free",
         }
+        | (location_overrides or {})
     )
     assert subcategory.is_valid() and details.is_valid() and location.is_valid()
     return subcategory, details, location
@@ -79,3 +80,45 @@ def test_both_the_author_and_the_team_are_notified(pro):
     to_team = next(msg for msg in mail.outbox if msg.to == ["agir@techpourtoutes.io"])
     assert "en cours de validation" in to_author.subject
     assert "à valider" in to_team.subject
+
+
+@pytest.mark.django_db
+@locmem
+def test_a_moderators_event_is_published_straight_away(moderator_pro):
+    CreateEvent(pro=moderator_pro, forms=valid_forms())
+
+    assert Event.objects.get().status == Event.Status.APPROVED
+
+
+@pytest.mark.django_db
+@locmem
+def test_a_superusers_event_is_published_straight_away(pro):
+    pro.is_superuser = True
+    pro.save()
+
+    CreateEvent(pro=pro, forms=valid_forms())
+
+    assert Event.objects.get().status == Event.Status.APPROVED
+
+
+@pytest.mark.django_db
+@locmem
+def test_a_published_event_only_tells_its_author_it_is_online(moderator_pro):
+    CreateEvent(pro=moderator_pro, forms=valid_forms())
+
+    assert len(mail.outbox) == 1
+    assert mail.outbox[0].to == [moderator_pro.email]
+    assert "en ligne" in mail.outbox[0].subject
+
+
+@pytest.mark.django_db
+@locmem
+def test_a_moderators_ungeocoded_event_still_awaits_validation(moderator_pro):
+    """The address autocomplete was down: an approved event in presentiel has to be geocoded."""
+    forms = valid_forms(
+        location_overrides={"longitude": "", "latitude": "", "address_api_down": "1"}
+    )
+
+    CreateEvent(pro=moderator_pro, forms=forms)
+
+    assert Event.objects.get().status == Event.Status.PENDING

@@ -1,7 +1,7 @@
 {# One screen of the mentoring sign-up. Like the funnel, each step posts back to its own view #}
 {# and swaps itself in place; the hidden `action` says which one is coming back. #}
 <div id="mentoring-step" class="w-full flex flex-col">
-    <c-layout.partials.messages wrapper_class="w-full flex flex-col gap-y-2" />
+    <c-layout.partials.funnel_messages oob="true" />
     <c-components.card nobg=True>
         <c-patterns.form
             hx-post="{% url 'mentoring_funnel' %}"

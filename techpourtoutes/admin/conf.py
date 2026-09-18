@@ -1,7 +1,7 @@
 from django.conf import settings
 from django.contrib import admin
 from django.contrib.admin import AdminSite
-from django_otp.admin import OTPAdminSite
+from django_otp.admin import OTPAdminAuthenticationForm, OTPAdminSite
 
 from .stats import users_stats
 
@@ -9,19 +9,25 @@ HIDDEN_APP_LABELS = {"auth", "axes", "otp_totp"}
 HIDDEN_MODEL_NAMES = {"User"}
 
 
+class SuperuserOnlyOTPAuthenticationForm(OTPAdminAuthenticationForm):
+    def clean_otp(self, user):
+        if user is None or user.is_superuser:
+            super().clean_otp(user)
+
+
 class AdminSiteWith2FA(OTPAdminSite):
-    # Require a verified TOTP device (2FA) for admin access, except in local development (DEBUG)
-    # or when explicitly disabled (DISABLE_ADMIN_2FA, e.g. review apps)
+    # Require a verified TOTP device (2FA) for superuser admin access, except in local
+    # development (DEBUG) or when explicitly disabled (DISABLE_ADMIN_2FA, e.g. review apps)
     @property
     def login_form(self):
-        return None if self._2fa_disabled() else OTPAdminSite.login_form
+        return None if self._2fa_disabled() else SuperuserOnlyOTPAuthenticationForm
 
     @property
     def login_template(self):
         return None if self._2fa_disabled() else OTPAdminSite.login_template
 
     def has_permission(self, request):
-        if self._2fa_disabled():
+        if self._2fa_disabled() or not request.user.is_superuser:
             return AdminSite.has_permission(self, request)
         return super().has_permission(request)
 

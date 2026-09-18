@@ -1,3 +1,4 @@
+from django import forms
 from django.contrib import admin
 from django.utils.translation import gettext_lazy as _
 
@@ -47,6 +48,16 @@ class ProAdmin(AccountCreationFieldsMixin, admin.ModelAdmin):
                 )
             },
         ),
+        (
+            "Accès à l'administration",
+            {
+                "fields": ("groups",),
+                "description": (
+                    "Un rôle ouvre l'accès à l'administration, limité à ce qu'il porte. "
+                    "Sans aucun rôle, le compte n'y a pas accès."
+                ),
+            },
+        ),
     )
 
     list_display = ("first_name", "last_name", "email", "display_engagements", "created_at")
@@ -54,6 +65,19 @@ class ProAdmin(AccountCreationFieldsMixin, admin.ModelAdmin):
     search_fields = ("first_name", "last_name", "email")
     list_filter = (EngagementFilter, ("created_at", admin.DateFieldListFilter))
     inlines = [TrainingExperienceInline, WorkshopRequestInline]
+
+    def formfield_for_dbfield(self, db_field, request, **kwargs):
+        """A role is ticked, not picked from a list: checkboxes read as selected on their own,
+        and the wrapper's add/change/delete shortcuts are dropped."""
+        if db_field.name == "groups":
+            kwargs["widget"] = forms.CheckboxSelectMultiple
+        formfield = super().formfield_for_dbfield(db_field, request, **kwargs)
+        if db_field.name == "groups":
+            formfield.widget.can_add_related = False
+            formfield.widget.can_change_related = False
+            formfield.widget.can_delete_related = False
+            formfield.widget.can_view_related = False
+        return formfield
 
     @admin.display(description=_("engagements"))
     def display_engagements(self, obj):

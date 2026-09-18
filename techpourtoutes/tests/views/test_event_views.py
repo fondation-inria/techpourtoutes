@@ -1,4 +1,5 @@
 from datetime import timedelta
+from urllib.parse import urlencode
 
 import pytest
 from django.core import mail
@@ -183,6 +184,32 @@ def test_publishing_creates_a_pending_event_and_sends_both_mails(client, pro):
         (pro.email,),
         ("agir@techpourtoutes.io",),
     }
+
+
+@pytest.mark.django_db
+@locmem
+def test_create_event_links_to_the_published_event_with_a_way_back_to_the_pro_events(
+    client, moderator_pro
+):
+    client.force_login(moderator_pro)
+
+    content = client.post(CREATE_URL, {"action": "location", **answers()}).content.decode()
+
+    back = urlencode({"back": reverse("index_pro_events")})
+    show_url = f"{reverse('show_event', args=[Event.objects.get().slug])}?{back}"
+    assert f'href="{show_url}"' in content
+
+
+@pytest.mark.django_db
+@locmem
+def test_a_moderator_is_told_her_event_is_already_online(client, moderator_pro):
+    client.force_login(moderator_pro)
+
+    content = client.post(CREATE_URL, {"action": "location", **answers()}).content.decode()
+
+    assert Event.objects.get().status == Event.Status.APPROVED
+    assert "Votre événement est en ligne" in content
+    assert "en cours de validation" not in content
 
 
 @pytest.mark.django_db
@@ -570,3 +597,26 @@ def test_update_event_without_an_event_to_edit_is_a_404(client, pro):
     client.force_login(pro)
 
     assert client.post(UPDATE_URL, {"action": "location", **answers()}).status_code == 404
+
+
+@pytest.mark.django_db
+def test_the_funnel_page_renders_one_messages_block(client, pro):
+    """The layout holds the only visible one: a step carries its own copy for htmx to swap
+    in, and rendering both left two blocks — and two elements sharing an id."""
+    client.force_login(pro)
+
+    content = client.get(NEW_EVENT_URL).content.decode()
+
+    assert content.count('id="messages"') == 1
+
+
+@pytest.mark.django_db
+def test_a_step_answering_alone_carries_the_messages_out_of_band(client, pro):
+    """It replaces the block the layout holds instead of adding one of its own."""
+    client.force_login(pro)
+
+    response = client.post(CREATE_URL, SUBCATEGORY)
+
+    content = response.content.decode()
+    assert content.count('id="messages"') == 1
+    assert 'hx-swap-oob="true"' in content
