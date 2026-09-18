@@ -1,5 +1,6 @@
 from django import forms
 from django.db import models
+from django.utils.formats import localize_input
 from django.utils.translation import gettext_lazy as _
 
 from ...models import Event
@@ -57,6 +58,21 @@ class EventLocationForm(forms.Form):
         error_messages=PRICE_ERRORS,
     )
 
+    def __init__(self, *args, event=None, **kwargs):
+        if event is not None:
+            kwargs.setdefault("initial", self._initial_from_event(event))
+        super().__init__(*args, **kwargs)
+
+    @property
+    def event_fields(self):
+        """`address_api_down` says how the address was obtained and `pricing` which branch she
+        answered: the event stores neither."""
+        return {
+            field: value
+            for field, value in self.cleaned_data.items()
+            if field not in ("address_api_down", "pricing")
+        }
+
     def clean(self):
         cleaned_data = super().clean()
         self._clean_location(cleaned_data)
@@ -108,3 +124,24 @@ class EventLocationForm(forms.Form):
     @property
     def api_down(self):
         return self.cleaned_data.get("address_api_down", False)
+
+    def _initial_from_event(self, event):
+        """`pricing` is the branch she answered rather than a column, so it is read back off
+        the price. The coordinates are stringified for the same reason the dates are: a float
+        rendered into a hidden input would come back with a comma."""
+        return {
+            "location_type": event.location_type,
+            "address": event.address,
+            "postal_code": event.postal_code,
+            "city": event.city,
+            "poi_name": event.poi_name,
+            "cog_code": event.cog_code,
+            "longitude": "" if event.longitude is None else repr(event.longitude),
+            "latitude": "" if event.latitude is None else repr(event.latitude),
+            "ban_id": event.ban_id,
+            "online_url": event.online_url,
+            "access_type": event.access_type,
+            "registration_url": event.registration_url,
+            "pricing": Pricing.FREE if not event.price else Pricing.PAID,
+            "price": "" if not event.price else localize_input(event.price),
+        }

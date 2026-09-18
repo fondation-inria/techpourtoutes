@@ -130,6 +130,15 @@ def approved_event(pro, **overrides):
     return build_event(pro, **{"status": Event.Status.APPROVED, **overrides})
 
 
+def other_pro(valid_pro_model_data):
+    """A pro who is not the author of the fixture events."""
+    from techpourtoutes.models import Pro
+
+    pro = Pro(**{**valid_pro_model_data, "username": "bea@example.com"})
+    pro.save()
+    return pro
+
+
 @pytest.fixture
 def salon(pro):
     event = approved_event(pro, title="Salon des métiers du numérique")
@@ -419,6 +428,18 @@ def test_show_event_renders_the_event(client, salon):
 
 
 @pytest.mark.django_db
+def test_show_event_shows_the_minutes_of_the_opening_hours(client, pro):
+    from datetime import time
+
+    event = approved_event(pro, start_time=time(9, 30), end_time=time(17, 45))
+    event.save()
+
+    content = client.get(reverse("show_event", args=[event.slug])).content.decode()
+
+    assert "entre 9h30 et 17h45" in content
+
+
+@pytest.mark.django_db
 def test_show_event_hides_events_awaiting_validation(client, event):
     response = client.get(reverse("show_event", args=[event.slug]))
 
@@ -505,16 +526,91 @@ def test_show_event_shows_a_candidacy_cta_for_a_candidacy_event(client, pro):
 
 
 @pytest.mark.django_db
-def test_show_event_shows_the_participation_cta_to_a_connected_pro(client, pro):
+def test_show_event_shows_the_participation_cta_to_a_connected_pro(
+    client, pro, valid_pro_model_data
+):
+    from techpourtoutes.models import Event
+
+    registration = approved_event(pro, access_type=Event.AccessType.REGISTRATION)
+    registration.save()
+    client.force_login(other_pro(valid_pro_model_data))
+
+    content = client.get(reverse("show_event", args=[registration.slug])).content
+
+    assert reverse("show_participation_modal", args=[registration.pk]).encode() in content
+
+
+@pytest.mark.django_db
+def test_show_event_lets_the_author_open_her_event_awaiting_validation(client, pro, event):
+    client.force_login(pro)
+
+    response = client.get(reverse("show_event", args=[event.slug]))
+
+    assert response.status_code == 200
+    assert event.title in response.content.decode()
+
+
+@pytest.mark.django_db
+def test_show_event_hides_an_event_awaiting_validation_from_another_pro(
+    client, event, valid_pro_model_data
+):
+    client.force_login(other_pro(valid_pro_model_data))
+
+    assert client.get(reverse("show_event", args=[event.slug])).status_code == 404
+
+
+@pytest.mark.django_db
+def test_show_event_hides_an_event_awaiting_validation_from_a_beneficiary(
+    client, beneficiary, event
+):
+    client.force_login(beneficiary)
+
+    assert client.get(reverse("show_event", args=[event.slug])).status_code == 404
+
+
+@pytest.mark.django_db
+def test_show_event_lets_a_staff_member_open_an_event_awaiting_validation(client, event):
+    from techpourtoutes.models import User
+
+    staff = User.objects.create_user(
+        username="staff@example.com",
+        email="staff@example.com",
+        first_name="Ada",
+        last_name="Moderatrice",
+        is_staff=True,
+    )
+    client.force_login(staff)
+
+    assert client.get(reverse("show_event", args=[event.slug])).status_code == 200
+
+
+@pytest.mark.django_db
+def test_show_event_offers_the_author_a_link_to_edit_instead_of_participating(client, pro):
     from techpourtoutes.models import Event
 
     registration = approved_event(pro, access_type=Event.AccessType.REGISTRATION)
     registration.save()
     client.force_login(pro)
 
-    content = client.get(reverse("show_event", args=[registration.slug])).content
+    content = client.get(reverse("show_event", args=[registration.slug])).content.decode()
 
-    assert reverse("show_participation_modal", args=[registration.pk]).encode() in content
+    assert "Modifier" in content
+    assert reverse("edit_event", args=[registration.pk]) in content
+    assert reverse("show_participation_modal", args=[registration.pk]) not in content
+
+
+@pytest.mark.django_db
+def test_show_event_offers_the_author_a_link_to_edit_an_event_open_to_all(client, pro):
+    """The edit CTA does not hang off the registration link: an open event carries it too."""
+    from techpourtoutes.models import Event
+
+    open_event = approved_event(pro, access_type=Event.AccessType.OPEN)
+    open_event.save()
+    client.force_login(pro)
+
+    content = client.get(reverse("show_event", args=[open_event.slug])).content.decode()
+
+    assert reverse("edit_event", args=[open_event.pk]) in content
 
 
 @pytest.mark.django_db
@@ -707,6 +803,37 @@ def test_show_event_back_link_keeps_the_listing_page_and_filters(client, salon):
 @pytest.mark.django_db
 def test_show_event_back_link_falls_back_to_the_bare_listing(client, salon):
     response = client.get(reverse("show_event", args=[salon.slug]))
+
+    assert response.context["back_url"] == INDEX_EVENTS_URL
+
+
+@pytest.mark.django_db
+def test_show_event_back_link_keeps_the_pro_events_page(client, salon):
+    response = client.get(
+        reverse("show_event", args=[salon.slug]),
+        HTTP_REFERER=f"http://testserver{reverse('index_pro_events')}",
+    )
+
+    assert response.context["back_url"] == reverse("index_pro_events")
+
+
+@pytest.mark.django_db
+def test_show_event_back_link_trusts_a_back_param_from_the_pro_events_page(client, salon):
+    """The edit-event funnel redirects here with `?back=...` rather than a matching referer,
+    since the previous page in the browser's history is the funnel itself."""
+    response = client.get(
+        reverse("show_event", args=[salon.slug]), {"back": reverse("index_pro_events")}
+    )
+
+    assert response.context["back_url"] == reverse("index_pro_events")
+
+
+@pytest.mark.django_db
+def test_show_event_back_link_ignores_an_unsafe_back_param(client, salon):
+    response = client.get(
+        reverse("show_event", args=[salon.slug]),
+        {"back": "https://evil.example.com/mes-evenements/"},
+    )
 
     assert response.context["back_url"] == INDEX_EVENTS_URL
 

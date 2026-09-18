@@ -1,11 +1,11 @@
 from .account import (
-    BeneficiaryEditAccountForm,
+    BeneficiaryEditUserForm,
     BeneficiaryTrainingExperienceForm,
-    DeleteAccountForm,
-    EmailChangeForm,
-    ProEditAccountForm,
+    DestroyUserForm,
+    ProEditUserForm,
     ProTrainingExperienceForm,
     UserCommunicationForm,
+    UserEmailChangeForm,
 )
 from .auth import LoginRequestForm, VerificationCodeForm
 from .beneficiary_inscription import (
@@ -18,7 +18,7 @@ from .beneficiary_inscription import (
     BeneficiaryStudyStatusForm,
     StudyStatus,
 )
-from .engagement import EngagementForm, TrainingAmbassadorForm, WorkshopForm
+from .engagement import EngagementForm, TrainingAmbassadorForm, WorkshopRequestForm
 from .event import EventDetailsForm, EventLocationForm, EventSubcategoryForm
 from .manifeste_signature_form import ManifesteSignatureForm
 from .upcoming_feature_notification_form import UpcomingFeatureNotificationForm
@@ -31,12 +31,12 @@ __all__ = [
     "BeneficiaryLastDiplomaTrainingExperienceForm",
     "BeneficiaryMentoringSignUpForm",
     "BeneficiaryStudyStatusForm",
-    "BeneficiaryEditAccountForm",
+    "BeneficiaryEditUserForm",
     "BeneficiaryTrainingExperienceForm",
     "UserCommunicationForm",
     "StudyStatus",
-    "DeleteAccountForm",
-    "EmailChangeForm",
+    "DestroyUserForm",
+    "UserEmailChangeForm",
     "UpcomingFeatureNotificationForm",
     "EngagementForm",
     "EventSubcategoryForm",
@@ -44,9 +44,9 @@ __all__ = [
     "EventLocationForm",
     "LoginRequestForm",
     "ManifesteSignatureForm",
-    "ProEditAccountForm",
+    "ProEditUserForm",
     "ProTrainingExperienceForm",
     "TrainingAmbassadorForm",
     "VerificationCodeForm",
-    "WorkshopForm",
+    "WorkshopRequestForm",
 ]

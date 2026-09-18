@@ -1,7 +1,7 @@
 from django import forms
 
 
-class DeleteAccountForm(forms.Form):
+class DestroyUserForm(forms.Form):
     confirm_delete = forms.BooleanField(
         required=True,
         label="Je confirme vouloir supprimer mon compte TechPourToutes",

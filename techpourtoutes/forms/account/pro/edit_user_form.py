@@ -8,7 +8,7 @@ from ...fields import PhoneNumberField
 from ...validators import require_structure_when_working
 
 
-class ProEditAccountForm(forms.Form):
+class ProEditUserForm(forms.Form):
     first_name = forms.CharField(label=_("Prénom*"))
     last_name = forms.CharField(label=_("Nom*"))
     phone = PhoneNumberField(region="FR", label=_("Numéro de téléphone"), required=False)

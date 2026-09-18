@@ -1,5 +1,7 @@
 from decimal import Decimal
 
+import pytest
+
 from techpourtoutes.forms.event import EventLocationForm
 from techpourtoutes.models import Event
 
@@ -198,3 +200,54 @@ def test_a_negative_price_is_refused():
 
     assert not form.is_valid()
     assert "price" in form.errors
+
+
+@pytest.mark.django_db
+def test_the_form_prefilled_from_an_event_hands_back_a_geocoded_address_this_form_parses(event):
+    answers = EventLocationForm(event=event).initial
+
+    assert all(isinstance(value, str) for value in answers.values())
+    form = EventLocationForm(data=answers)
+    assert form.is_valid(), form.errors
+    assert form.cleaned_data["address"] == event.address
+    assert form.cleaned_data["latitude"] == event.latitude
+    assert form.cleaned_data["price"] == event.price
+
+
+@pytest.mark.django_db
+def test_the_form_prefilled_from_an_event_reads_the_pricing_branch_back_off_the_price(pro):
+    """`pricing` is the question she answered, not a column the event carries."""
+    from ...models.test_event import build_event
+
+    paid = build_event(pro, price=Decimal("12.50"))
+    paid.save()
+
+    answers = EventLocationForm(event=paid).initial
+
+    assert answers["pricing"] == "paid"
+    form = EventLocationForm(data=answers)
+    assert form.is_valid(), form.errors
+    assert form.cleaned_data["price"] == Decimal("12.50")
+
+
+@pytest.mark.django_db
+def test_the_form_prefilled_from_an_event_leaves_an_online_event_without_coordinates(pro):
+    from ...models.test_event import build_event
+
+    online = build_event(pro, location_type=Event.LocationType.ONLINE, city="")
+    online.save()
+
+    answers = EventLocationForm(event=online).initial
+
+    assert answers["longitude"] == ""
+    assert answers["latitude"] == ""
+    assert EventLocationForm(data=answers).is_valid()
+
+
+def test_event_fields_drops_the_answers_the_event_does_not_carry():
+    form = EventLocationForm(data=GEOCODED)
+
+    assert form.is_valid()
+    assert "pricing" not in form.event_fields
+    assert "address_api_down" not in form.event_fields
+    assert form.event_fields["address"] == "8 Boulevard du Port"

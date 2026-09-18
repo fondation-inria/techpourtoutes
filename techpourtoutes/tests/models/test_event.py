@@ -493,3 +493,112 @@ def test_event_slug_steps_aside_when_a_concurrent_creation_wins_the_insert(pro):
     assert event.slug == "portes-ouvertes-2"
     assert Event.objects.filter(slug="portes-ouvertes").count() == 1
     assert Event.objects.count() == 2
+
+
+@pytest.mark.django_db
+def test_pending_returns_only_the_events_awaiting_validation(pro):
+    from techpourtoutes.models import Event
+
+    waiting = build_event(pro)
+    waiting.save()
+    build_event(pro, status=Event.Status.APPROVED).save()
+    build_event(pro, status=Event.Status.REJECTED).save()
+
+    assert list(Event.objects.pending()) == [waiting]
+
+
+@pytest.mark.django_db
+def test_visible_to_hides_an_event_awaiting_validation_from_everyone_but_its_author(
+    pro, beneficiary
+):
+    from django.contrib.auth.models import AnonymousUser
+
+    from techpourtoutes.models import Event, User
+
+    waiting = build_event(pro)
+    waiting.save()
+    staff = User.objects.create_user(
+        username="staff@example.com",
+        email="staff@example.com",
+        first_name="Ada",
+        last_name="Moderatrice",
+        is_staff=True,
+    )
+
+    assert list(Event.objects.visible_to(pro)) == [waiting]
+    assert list(Event.objects.visible_to(staff)) == [waiting]
+    assert not Event.objects.visible_to(beneficiary).exists()
+    assert not Event.objects.visible_to(AnonymousUser()).exists()
+
+
+@pytest.mark.django_db
+def test_visible_to_shows_an_approved_event_to_anyone(pro):
+    from django.contrib.auth.models import AnonymousUser
+
+    from techpourtoutes.models import Event
+
+    approved = build_event(pro, status=Event.Status.APPROVED)
+    approved.save()
+
+    assert list(Event.objects.visible_to(AnonymousUser())) == [approved]
+
+
+@pytest.mark.django_db
+def test_visible_to_hides_a_rejected_event_from_its_author(pro):
+    """Only the moderation team sees what it turned down."""
+    from techpourtoutes.models import Event
+
+    build_event(pro, status=Event.Status.REJECTED).save()
+
+    assert not Event.objects.visible_to(pro).exists()
+
+
+@pytest.mark.django_db
+def test_visible_to_asks_the_database_once(pro, django_assert_num_queries):
+    """Nobody is fetched to find out whether the visitor is a pro: her own id is the key."""
+    from techpourtoutes.models import Event
+
+    build_event(pro, status=Event.Status.APPROVED).save()
+
+    with django_assert_num_queries(1):
+        list(Event.objects.visible_to(pro))
+
+
+@pytest.mark.django_db
+def test_is_organized_by_recognises_the_pro_who_submitted_the_event(pro, beneficiary):
+    from django.contrib.auth.models import AnonymousUser
+
+    event = build_event(pro)
+    event.save()
+
+    assert event.is_organized_by(pro)
+    assert not event.is_organized_by(beneficiary)
+    assert not event.is_organized_by(AnonymousUser())
+
+
+@pytest.mark.django_db
+def test_fill_from_writes_the_funnel_answers_onto_the_columns(pro):
+    from techpourtoutes.models import Event
+    from techpourtoutes.tests.services.event.test_create_event import valid_forms
+
+    event = Event(created_by=pro)
+    event.fill_from(valid_forms())
+
+    assert event.title == "Salon des métiers du numérique"
+    assert event.subcategory == Event.Subcategory.SALON
+    assert event.city == "Amiens"
+    assert event.price == 0
+
+
+@pytest.mark.django_db
+def test_fill_from_leaves_out_the_answers_that_are_not_columns(pro):
+    """`pricing` is the branch she answered and `address_api_down` how the address was
+    obtained: neither is a field on the event."""
+    from techpourtoutes.models import Event
+    from techpourtoutes.tests.services.event.test_create_event import valid_forms
+
+    event = Event(created_by=pro)
+    event.fill_from(valid_forms())
+
+    assert not hasattr(event, "pricing")
+    assert not hasattr(event, "address_api_down")

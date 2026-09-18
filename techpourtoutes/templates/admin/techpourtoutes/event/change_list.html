@@ -29,7 +29,7 @@
           {% url 'admin:techpourtoutes_event_change' pending_event.pk as pending_event_url %}
           <tr onclick="document.location='{{ pending_event_url }}'">
             <td><a href="{{ pending_event_url }}">{{ pending_event.title }}</a></td>
-            <td><a href="{{ pending_event_url }}">{{ pending_event.category_label }}</a></td>
+            <td><a href="{{ pending_event_url }}">{{ pending_event.subcategory_label }}</a></td>
             <td><a href="{{ pending_event_url }}">{{ pending_event.start_date|date:"d/m/Y" }}</a></td>
             <td><a href="{{ pending_event_url }}">{{ pending_event.city|default:pending_event.poi_name }}</a></td>
             <td><a href="{{ pending_event_url }}">{{ pending_event.created_by }}</a></td>

@@ -36,6 +36,15 @@ class ProMailer(BaseMailer):
         )
 
     @classmethod
+    def event_updated(cls, *, event):
+        cls.send_mail(
+            subject=f"L'événement {event.title} a été modifié",
+            recipient_list=[event.created_by.email],
+            context={"event": event},
+            tags=["utilisateur", "coalition", "événement modifié"],
+        )
+
+    @classmethod
     def event_approved(cls, *, event, comment=""):
         cls.send_mail(
             subject="Votre événement est maintenant en ligne",
