@@ -1,5 +1,6 @@
 from datetime import date, time, timedelta
 from decimal import Decimal
+from unittest.mock import patch
 
 import pytest
 from django.core.exceptions import ValidationError
@@ -253,9 +254,13 @@ def test_location_label_prefers_the_venue_over_the_address(pro):
 
 @pytest.mark.django_db
 def test_past_and_upcoming_split_events_on_their_end_date(pro):
+    """Read at midday, so the split falls on the date alone: an event ending today at 18:00
+    is still to come. Where the two fall on the same day, the end time decides — that is the
+    next test's business, and the clock the suite runs on must not decide it here."""
     from techpourtoutes.models import Event
 
     today = timezone.localdate()
+    midday = timezone.localtime().replace(hour=12, minute=0, second=0, microsecond=0)
     over = build_event(
         pro, start_date=today - timedelta(days=3), end_date=today - timedelta(days=1)
     )
@@ -267,8 +272,9 @@ def test_past_and_upcoming_split_events_on_their_end_date(pro):
     )
     later.save()
 
-    assert list(Event.objects.past()) == [over]
-    assert list(Event.objects.upcoming()) == [ongoing, later]
+    with patch("django.utils.timezone.localtime", return_value=midday):
+        assert list(Event.objects.past()) == [over]
+        assert list(Event.objects.upcoming()) == [ongoing, later]
 
 
 @pytest.mark.django_db
@@ -410,6 +416,15 @@ def test_has_ended_checks_the_time_when_the_event_ends_today(pro):
     )
 
     assert event.has_ended is True
+
+
+@pytest.mark.django_db
+def test_is_approved_is_true_only_once_the_event_is_validated(pro):
+    from techpourtoutes.models import Event
+
+    assert build_event(pro, status=Event.Status.APPROVED).is_approved is True
+    assert build_event(pro, status=Event.Status.PENDING).is_approved is False
+    assert build_event(pro, status=Event.Status.REJECTED).is_approved is False
 
 
 @pytest.mark.django_db

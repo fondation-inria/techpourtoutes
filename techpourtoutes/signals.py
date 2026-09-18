@@ -1,6 +1,6 @@
 from django.conf import settings
 from django.db import transaction
-from django.db.models.signals import post_save, pre_delete
+from django.db.models.signals import m2m_changed, post_save, pre_delete
 
 from techpourtoutes.services.brevo_api.mappings import brevo_list_id_for
 from techpourtoutes.tasks.delete_brevo_contact import delete_brevo_contact_task
@@ -52,6 +52,19 @@ def _on_user_deleted(sender, instance, **kwargs):
         return
     pk = str(instance.pk)
     transaction.on_commit(lambda: delete_brevo_contact_task.delay(ext_id=pk, list_id=list_id))
+
+
+def _on_user_groups_changed(instance, action, reverse, **kwargs):
+    """a user is `is_staff` only if he belongs to one or several groups."""
+    if reverse or action not in {"post_add", "post_remove", "post_clear"}:
+        return
+    instance.is_staff = instance.is_superuser or instance.groups.exists()
+    type(instance).all_objects.filter(pk=instance.pk).update(is_staff=instance.is_staff)
+
+
+def connect_staff_flag_sync(model_cls):
+    """Connect the m2m_changed handler keeping `is_staff` in step with the user's groups."""
+    m2m_changed.connect(_on_user_groups_changed, sender=model_cls.groups.through, weak=False)
 
 
 def connect_brevo_sync(model_cls):

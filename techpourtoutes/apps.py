@@ -5,8 +5,9 @@ class TechpourtoutesConfig(AppConfig):
     name = "techpourtoutes"
 
     def ready(self):
-        from .models import Beneficiary, Pro
-        from .signals import connect_brevo_sync
+        from .models import Beneficiary, Pro, User
+        from .signals import connect_brevo_sync, connect_staff_flag_sync
 
         connect_brevo_sync(Beneficiary)
         connect_brevo_sync(Pro)
+        connect_staff_flag_sync(User)

@@ -117,14 +117,17 @@ def _handle_back(request):
 
 
 def _create(request):
-    """The new funnel's last screen: the user is told its event now awaits validation."""
+    """The new funnel's last screen: the user is told its event now awaits validation — or,
+    if he has publishing rights, that it is already online."""
     try:
         forms = _validated_answers(request)
     except _StepInterrupt as interrupt:
         return interrupt.response
 
-    CreateEvent(pro=request.user.pro, forms=forms)
-    return render(request, "coalition/funnels/partials/event/submitted.html", {})
+    result = CreateEvent(pro=request.user.pro, forms=forms)
+    return render(
+        request, "coalition/funnels/partials/event/submitted.html", {"event": result.event}
+    )
 
 
 def _update(request):
