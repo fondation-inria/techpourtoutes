@@ -4,7 +4,7 @@
 
 - Titre : {{ event.title }}
 - Organisateur : {{ event.organizer }}
-- Type : {{ event.category_label }}
+- Type : {{ event.subcategory_label }}
 - Dates : du {{ event.start_date|date:"d/m/Y" }} à {{ event.start_time|time:"H\hi" }} au {{ event.end_date|date:"d/m/Y" }} à {{ event.end_time|time:"H\hi" }}
 - Adresse mail de contact : {{ event.created_by.email }}
 {% if event.location_type == "physical" and not event.latitude %}

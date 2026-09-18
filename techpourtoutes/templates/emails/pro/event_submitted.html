@@ -6,7 +6,7 @@
   <br>
   <p style="font-size:15px;color:#374151;">Pour rappel, voici ce que vous avez renseigné&nbsp;:</p>
   <ul style="font-size:15px;color:#374151;">
-    <li>Type&nbsp;: {{ event.category_label }}</li>
+    <li>Type&nbsp;: {{ event.subcategory_label }}</li>
     <li>Dates&nbsp;: du {{ event.start_date|date:"d/m/Y" }} à {{ event.start_time|time:"H\hi" }} au {{ event.end_date|date:"d/m/Y" }} à {{ event.end_time|time:"H\hi" }}</li>
     <li>Format&nbsp;: {{ event.get_location_type_display }}</li>
   </ul>
