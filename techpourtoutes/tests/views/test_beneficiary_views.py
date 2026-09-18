@@ -428,6 +428,18 @@ def test_show_event_renders_the_event(client, salon):
 
 
 @pytest.mark.django_db
+def test_show_event_shows_the_minutes_of_the_opening_hours(client, pro):
+    from datetime import time
+
+    event = approved_event(pro, start_time=time(9, 30), end_time=time(17, 45))
+    event.save()
+
+    content = client.get(reverse("show_event", args=[event.slug])).content.decode()
+
+    assert "entre 9h30 et 17h45" in content
+
+
+@pytest.mark.django_db
 def test_show_event_hides_events_awaiting_validation(client, event):
     response = client.get(reverse("show_event", args=[event.slug]))
 

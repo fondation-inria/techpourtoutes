@@ -1,4 +1,4 @@
-from datetime import timedelta
+from datetime import datetime, timedelta
 
 import pytest
 from django.utils import timezone
@@ -56,6 +56,27 @@ def test_an_event_already_over_is_refused():
 
     assert not form.is_valid()
     assert "end_date" in form.errors
+
+
+@pytest.fixture
+def at_three_pm_on_october_first(monkeypatch):
+    now = timezone.make_aware(datetime(2026, 10, 1, 15, 0))
+    monkeypatch.setattr(timezone, "now", lambda: now)
+
+
+@pytest.mark.usefixtures("at_three_pm_on_october_first")
+def test_an_event_that_ended_earlier_today_is_refused():
+    form = EventDetailsForm(data=VALID | {"end_date": "2026-10-01", "end_time": "14:59"})
+
+    assert not form.is_valid()
+    assert "end_time" in form.errors
+
+
+@pytest.mark.usefixtures("at_three_pm_on_october_first")
+def test_an_event_ending_later_today_is_accepted():
+    form = EventDetailsForm(data=VALID | {"end_date": "2026-10-01", "end_time": "15:00"})
+
+    assert form.is_valid()
 
 
 def test_an_event_started_yesterday_and_ending_tomorrow_is_accepted():

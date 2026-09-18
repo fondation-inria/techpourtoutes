@@ -36,8 +36,11 @@ class EventDetailsForm(forms.Form):
         start_time, end_time = cleaned_data.get("start_time"), cleaned_data.get("end_time")
         if not (start_date and end_date):
             return cleaned_data
-        if end_date < timezone.localdate():
+        now = timezone.localtime()
+        if end_date < now.date():
             self.add_error("end_date", _("L'événement ne peut pas être déjà terminé."))
+        elif end_date == now.date() and end_time and end_time < now.time():
+            self.add_error("end_time", _("L'événement ne peut pas être déjà terminé."))
         elif end_date < start_date:
             self.add_error("end_date", _("La date de fin doit suivre la date de début."))
         elif end_date == start_date and start_time and end_time and end_time < start_time:
