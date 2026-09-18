@@ -13,6 +13,8 @@
         {% include "coalition/partials/event_cards.html" with events=upcoming_events %}
     {% else %}
         <c-components.card>Vous n'avez aucun événement.</c-components.card>
+        <img src="{% static 'images/empty-event-bg.webp' %}" alt="" aria-hidden="true"
+             class="w-full" width="1344" height="868" loading="lazy" decoding="async" />
     {% endif %}
 
     {% if pending_events %}
@@ -23,10 +25,5 @@
     {% if past_events %}
         <c-components.card title="Événements passés" title_bg="black" />
         {% include "coalition/partials/event_cards.html" with events=past_events %}
-    {% endif %}
-
-    {% if not upcoming_events and not pending_events and not past_events %}
-        <img src="{% static 'images/empty-event-bg.webp' %}" alt="" aria-hidden="true"
-             class="w-full" width="1344" height="868" loading="lazy" decoding="async" />
     {% endif %}
 </c-layout.base>
