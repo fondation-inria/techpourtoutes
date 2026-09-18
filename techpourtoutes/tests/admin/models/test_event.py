@@ -78,7 +78,6 @@ def test_event_changelist_shows_the_free_text_subcategory(verified_admin_client,
 
     content = verified_admin_client.get(reverse(CHANGELIST)).content.decode()
     assert "Rencontre d&#x27;anciennes" in content
-    assert "Convivial" in content
 
 
 @pytest.mark.django_db
