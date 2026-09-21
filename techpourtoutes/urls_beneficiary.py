@@ -23,6 +23,7 @@ urlpatterns = [
         name="create_upcoming_feature_notification",
     ),
     path("evenements/", views.index_events, name="index_events"),
+    path("mes-evenements/", views.index_beneficiary_events, name="index_beneficiary_events"),
     path(
         "evenements/<uuid:pk>/rejoindre-le-club/",
         views.create_saved_event_modal,

@@ -197,7 +197,11 @@ def _authorized_index_events_back_url(request, url):
     if (
         not url
         or parsed.netloc not in ("", request.get_host())
-        or parsed.path not in (reverse(name) for name in ("index_events", "index_pro_events"))
+        or parsed.path
+        not in (
+            reverse(name)
+            for name in ("index_beneficiary_events", "index_events", "index_pro_events")
+        )
     ):
         return None
     return parsed.path + (f"?{parsed.query}" if parsed.query else "")
