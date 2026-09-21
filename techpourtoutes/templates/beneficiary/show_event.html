@@ -61,11 +61,11 @@
                 </div>
                 <div class="flex gap-3">
                     <c-components.icon name="{% if event.location_type == "online" %}desktop{% else %}location{% endif %}" class="w-6 h-6 shrink-0" />
-                    <div>
+                    <div class="min-w-0">
                         {% if event.location_type == "online" %}
                             <p class="font-bold text-lg">En ligne</p>
                             {% if event.online_url %}
-                                <c-components.inline-link href="{{ event.online_url }}" label="{{ event.online_url }}" target="_blank" rel="noopener noreferrer" />
+                                <c-components.inline-link href="{{ event.online_url }}" label="{{ event.online_url }}" class="break-all" target="_blank" rel="noopener noreferrer" />
                             {% endif %}
                         {% else %}
                             <p class="font-bold text-lg">Adresse</p>
