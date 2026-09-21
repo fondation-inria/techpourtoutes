@@ -51,6 +51,18 @@ class ConsortiumMailer(BaseMailer):
         )
 
     @classmethod
+    def event_updated(cls, *, event):
+        admin_url = settings.SITE_URL + reverse(
+            "admin:techpourtoutes_event_change", args=[event.pk]
+        )
+        cls.send_mail(
+            subject=f"L'événement {event.title} a été modifié",
+            recipient_list=settings.NEW_EVENT_RECIPIENTS,
+            context={"event": event, "admin_url": admin_url},
+            tags=["interne", "coalition", "événement modifié"],
+        )
+
+    @classmethod
     def mentoree_signed_up(cls, *, beneficiary, mentoring_signup_data):
         cls.send_mail(
             subject="Nouvelle attestation à envoyer",

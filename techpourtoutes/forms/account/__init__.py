@@ -1,17 +1,17 @@
-from .beneficiary.edit_account_form import BeneficiaryEditAccountForm
+from .beneficiary.edit_user_form import BeneficiaryEditUserForm
 from .beneficiary.training_experience_form import BeneficiaryTrainingExperienceForm
-from .delete_account_form import DeleteAccountForm
-from .email_change_form import EmailChangeForm
-from .pro.edit_account_form import ProEditAccountForm
+from .destroy_user_form import DestroyUserForm
+from .pro.edit_user_form import ProEditUserForm
 from .pro.training_experience_form import ProTrainingExperienceForm
 from .user_communication_form import UserCommunicationForm
+from .user_email_change_form import UserEmailChangeForm
 
 __all__ = [
-    "BeneficiaryEditAccountForm",
+    "BeneficiaryEditUserForm",
     "BeneficiaryTrainingExperienceForm",
     "UserCommunicationForm",
-    "DeleteAccountForm",
-    "EmailChangeForm",
-    "ProEditAccountForm",
+    "DestroyUserForm",
+    "UserEmailChangeForm",
+    "ProEditUserForm",
     "ProTrainingExperienceForm",
 ]

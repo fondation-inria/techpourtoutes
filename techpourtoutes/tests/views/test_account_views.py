@@ -39,6 +39,25 @@ def test_show_account_shows_forum_link_when_engaged_as_training_ambassador(clien
 
 
 @pytest.mark.django_db
+def test_show_account_offers_proposing_an_event_when_the_pro_has_none(client, pro):
+    client.force_login(pro)
+
+    response = client.get(reverse("show_account"))
+
+    assert "Proposer un événement" in response.content.decode()
+
+
+@pytest.mark.django_db
+def test_show_account_offers_managing_the_events_once_the_pro_submitted_one(client, pro, event):
+    client.force_login(pro)
+
+    content = client.get(reverse("show_account")).content.decode()
+
+    assert "Gérer mes événements" in content
+    assert reverse("index_pro_events") in content
+
+
+@pytest.mark.django_db
 def test_show_user_info_requires_login(client):
     response = client.get(reverse("show_user_info"))
 

@@ -1,0 +1,9 @@
+<c-layout.email>
+  <p style="font-size:15px;color:#374151;">Bonjour,</p>
+  <p style="font-size:15px;color:#374151;">
+    L'événement <strong>{{ event.title }}</strong> a été modifié par {{ event.created_by.full_name }} de {{ event.created_by.structure_name }}&nbsp;: <a href="{{ admin_url }}">{{ admin_url }}</a>
+  </p>
+  <p style="font-size:15px;color:#374151;">Voici un récapitulatif des informations&nbsp;:</p>
+  {% include "emails/partials/event_recap.html" %}
+  <p style="font-size:15px;color:#374151;">Bonne journée,</p>
+</c-layout.email>

@@ -1,0 +1,7 @@
+<ul style="font-size:15px;color:#374151;">
+  <li>du {{ event.start_date|date:"d/m/Y" }} à {{ event.start_time|time:"H\hi" }} au {{ event.end_date|date:"d/m/Y" }} à {{ event.end_time|time:"H\hi" }}</li>
+  <li>lieu&nbsp;: {% if event.location_type == "online" %}en ligne{% if event.online_url %} (<a href="{{ event.online_url }}">{{ event.online_url }}</a>){% endif %}{% else %}{{ event.location_label }}{% endif %}</li>
+  <li>accès&nbsp;: {{ event.get_access_type_display }}{% if event.registration_url %} (<a href="{{ event.registration_url }}">{{ event.registration_url }}</a>){% endif %}</li>
+  <li>description&nbsp;: {{ event.description }}</li>
+  <li>tarif&nbsp;: {{ event.price_label }}</li>
+</ul>

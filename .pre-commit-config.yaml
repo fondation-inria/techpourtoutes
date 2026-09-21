@@ -47,7 +47,7 @@ repos:
     hooks:
       - id: tailwind-build
         name: Build Tailwind CSS
-        entry: uv run python manage.py tailwind build
+        entry: uv run python manage.py tailwind build --force
         language: system
         files: \.(css|html)$
         pass_filenames: false

@@ -7,7 +7,7 @@ from ..forms import (
     EngagementForm,
     ManifesteSignatureForm,
     TrainingAmbassadorForm,
-    WorkshopForm,
+    WorkshopRequestForm,
 )
 from ..mailers import ConsortiumMailer, ProMailer
 from ..models import Pro, WorkshopRequest
@@ -104,13 +104,13 @@ def new_internship(request):
 
 
 def new_workshop_request(request):
-    return _render_engagement_form(request, WorkshopForm, WORKSHOP_TEMPLATE)
+    return _render_engagement_form(request, WorkshopRequestForm, WORKSHOP_TEMPLATE)
 
 
 @require_POST
 def create_workshop_request(request):
     pro = _current_pro(request)
-    form = WorkshopForm(data=request.POST, pro=pro)
+    form = WorkshopRequestForm(data=request.POST, pro=pro)
     if not form.is_valid():
         return _reject_engagement_form(request, form, pro, WORKSHOP_TEMPLATE)
 

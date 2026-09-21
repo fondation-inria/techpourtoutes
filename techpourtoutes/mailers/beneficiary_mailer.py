@@ -19,3 +19,12 @@ class BeneficiaryMailer(BaseMailer):
             },
             tags=["utilisateur", "beneficiaire", "mail de bienvenue"],
         )
+
+    @classmethod
+    def event_updated(cls, *, event, beneficiary):
+        cls.send_mail(
+            subject=f"L'événement {event.title} a été modifié",
+            recipient_list=[beneficiary.email],
+            context={"event": event, "beneficiary": beneficiary},
+            tags=["utilisateur", "beneficiaire", "événement modifié"],
+        )

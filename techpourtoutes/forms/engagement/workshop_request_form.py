@@ -19,7 +19,7 @@ FONCTION_CHOICES = [
 ]
 
 
-class WorkshopForm(MissingRecordMixin, BaseEngagementForm):
+class WorkshopRequestForm(MissingRecordMixin, BaseEngagementForm):
     pro_fields = ("job_title", "postal_code")
     pro_constants = {"professional_situation": Pro.ProfessionalSituation.WORKING}
 

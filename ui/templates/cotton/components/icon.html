@@ -6,5 +6,5 @@
         <use href="{% static 'svg/sprite.svg' %}#{{ name }}" />
     </svg>
 {% elif name %}
-    <img class="{{ class }}" src="{% static 'images/'|add:name|add:'.png' %}" alt="{{ name }}">
+    <img class="{{ class }}" src="{% static 'images/'|add:name|add:'.webp' %}" alt="{{ name }}" loading="lazy" decoding="async">
 {% endif %}

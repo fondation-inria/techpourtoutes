@@ -29,7 +29,13 @@
                     <c-components.badge label="{{ event.city }}" background_color="bg-neutral-0" />
                 {% endif %}
             </div>
-            {% if not event.has_ended and event.access_type != "open" %}
+            {% if is_organizer %}
+                {% if not event.has_ended %}
+                    <div class="flex flex-wrap items-center gap-3 -mt-1.5">
+                        <c-components.button label="Modifier" href="{% url "edit_event" event.pk %}?back={{ back_url|urlencode }}" />
+                    </div>
+                {% endif %}
+            {% elif not event.has_ended and event.access_type != "open" %}
                 <div class="flex flex-wrap items-center gap-3 -mt-1.5">
                     <c-components.button
                         label="{% if event.access_type == "candidacy" %}Candidater{% else %}Participer{% endif %}"
@@ -72,7 +78,7 @@
                     <div>
                         <p class="font-bold text-lg">Date et heure</p>
                         <p>{{ event.date_range_label }}</p>
-                        <p>entre {{ event.start_time|time:"G" }} et {{ event.end_time|time:"G" }} heures</p>
+                        <p>entre {{ event.start_time|time:"G\hi" }} et {{ event.end_time|time:"G\hi" }}</p>
                     </div>
                 </div>
                 <div class="flex gap-3">

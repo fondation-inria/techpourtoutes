@@ -1,5 +1,6 @@
-from datetime import timedelta
+from datetime import datetime, timedelta
 
+import pytest
 from django.utils import timezone
 
 from techpourtoutes.forms.event import EventDetailsForm
@@ -57,6 +58,27 @@ def test_an_event_already_over_is_refused():
     assert "end_date" in form.errors
 
 
+@pytest.fixture
+def at_three_pm_on_october_first(monkeypatch):
+    now = timezone.make_aware(datetime(2026, 10, 1, 15, 0))
+    monkeypatch.setattr(timezone, "now", lambda: now)
+
+
+@pytest.mark.usefixtures("at_three_pm_on_october_first")
+def test_an_event_that_ended_earlier_today_is_refused():
+    form = EventDetailsForm(data=VALID | {"end_date": "2026-10-01", "end_time": "14:59"})
+
+    assert not form.is_valid()
+    assert "end_time" in form.errors
+
+
+@pytest.mark.usefixtures("at_three_pm_on_october_first")
+def test_an_event_ending_later_today_is_accepted():
+    form = EventDetailsForm(data=VALID | {"end_date": "2026-10-01", "end_time": "15:00"})
+
+    assert form.is_valid()
+
+
 def test_an_event_started_yesterday_and_ending_tomorrow_is_accepted():
     today = timezone.localdate()
     form = EventDetailsForm(
@@ -68,3 +90,27 @@ def test_an_event_started_yesterday_and_ending_tomorrow_is_accepted():
     )
 
     assert form.is_valid()
+
+
+@pytest.mark.django_db
+def test_the_form_prefilled_from_an_event_hands_back_dates_and_times_this_form_parses(event):
+    """They travel through a hidden input: anything but a string would come back localised."""
+    event.description = "Une journée pour rencontrer des professionnelles."
+    event.save()
+
+    answers = EventDetailsForm(event=event).initial
+
+    assert all(isinstance(value, str) for value in answers.values())
+    form = EventDetailsForm(data=answers)
+    assert form.is_valid(), form.errors
+    assert form.cleaned_data["start_date"] == event.start_date
+    assert form.cleaned_data["start_time"] == event.start_time
+    assert form.cleaned_data["title"] == event.title
+
+
+def test_event_fields_carries_every_answer_of_the_screen():
+    form = EventDetailsForm(data=VALID)
+
+    assert form.is_valid()
+    assert form.event_fields["title"] == VALID["title"]
+    assert set(form.event_fields) == set(EventDetailsForm.base_fields)

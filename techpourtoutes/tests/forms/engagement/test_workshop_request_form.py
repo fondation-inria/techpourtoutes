@@ -21,18 +21,18 @@ def valid_data(**overrides):
 
 @pytest.mark.django_db
 def test_workshop_form_valid():
-    from techpourtoutes.forms import WorkshopForm
+    from techpourtoutes.forms import WorkshopRequestForm
 
-    form = WorkshopForm(data=valid_data())
+    form = WorkshopRequestForm(data=valid_data())
     assert form.is_valid(), form.errors
 
 
 @pytest.mark.django_db
 def test_workshop_form_save_creates_pro_without_phone():
-    from techpourtoutes.forms import WorkshopForm
+    from techpourtoutes.forms import WorkshopRequestForm
     from techpourtoutes.models import Pro
 
-    form = WorkshopForm(data=valid_data())
+    form = WorkshopRequestForm(data=valid_data())
     assert form.is_valid(), form.errors
     pro = form.save()
 
@@ -47,18 +47,18 @@ def test_workshop_form_save_creates_pro_without_phone():
 
 @pytest.mark.django_db
 def test_workshop_form_requires_establishment():
-    from techpourtoutes.forms import WorkshopForm
+    from techpourtoutes.forms import WorkshopRequestForm
 
-    form = WorkshopForm(data=valid_data(structure_uai="", school_label="", postal_code=""))
+    form = WorkshopRequestForm(data=valid_data(structure_uai="", school_label="", postal_code=""))
     assert not form.is_valid()
     assert "school_label" in form.errors
 
 
 @pytest.mark.django_db
 def test_workshop_form_rejects_a_typed_establishment_without_the_fallback():
-    from techpourtoutes.forms import WorkshopForm
+    from techpourtoutes.forms import WorkshopRequestForm
 
-    form = WorkshopForm(data=valid_data(structure_uai=""))
+    form = WorkshopRequestForm(data=valid_data(structure_uai=""))
 
     assert not form.is_valid()
     assert "school_label" in form.errors
@@ -66,10 +66,10 @@ def test_workshop_form_rejects_a_typed_establishment_without_the_fallback():
 
 @pytest.mark.django_db
 def test_a_missing_establishment_is_kept_as_free_text():
-    from techpourtoutes.forms import WorkshopForm
+    from techpourtoutes.forms import WorkshopRequestForm
     from techpourtoutes.models import Pro
 
-    form = WorkshopForm(
+    form = WorkshopRequestForm(
         data=valid_data(
             structure_uai="",
             school_label="Lycée du bout du monde",
@@ -88,49 +88,49 @@ def test_a_missing_establishment_is_kept_as_free_text():
 
 @pytest.mark.django_db
 def test_workshop_form_requires_ateliers():
-    from techpourtoutes.forms import WorkshopForm
+    from techpourtoutes.forms import WorkshopRequestForm
 
-    form = WorkshopForm(data=valid_data(ateliers=[]))
+    form = WorkshopRequestForm(data=valid_data(ateliers=[]))
     assert not form.is_valid()
     assert "ateliers" in form.errors
 
 
 @pytest.mark.django_db
 def test_workshop_form_requires_job_title():
-    from techpourtoutes.forms import WorkshopForm
+    from techpourtoutes.forms import WorkshopRequestForm
 
-    form = WorkshopForm(data=valid_data(job_title=""))
+    form = WorkshopRequestForm(data=valid_data(job_title=""))
     assert not form.is_valid()
     assert "job_title" in form.errors
 
 
 @pytest.mark.django_db
 def test_workshop_form_requires_terms_accepted():
-    from techpourtoutes.forms import WorkshopForm
+    from techpourtoutes.forms import WorkshopRequestForm
 
-    form = WorkshopForm(data=valid_data(terms_accepted=False))
+    form = WorkshopRequestForm(data=valid_data(terms_accepted=False))
     assert not form.is_valid()
     assert "terms_accepted" in form.errors
 
 
 @pytest.mark.django_db
 def test_workshop_form_duplicate_email():
-    from techpourtoutes.forms import WorkshopForm
+    from techpourtoutes.forms import WorkshopRequestForm
 
-    first = WorkshopForm(data=valid_data())
+    first = WorkshopRequestForm(data=valid_data())
     assert first.is_valid()
     first.save()
 
-    form = WorkshopForm(data=valid_data())
+    form = WorkshopRequestForm(data=valid_data())
     assert not form.is_valid()
     assert "email" in form.errors
 
 
 @pytest.mark.django_db
 def test_workshop_form_exposes_remark_and_ateliers():
-    from techpourtoutes.forms import WorkshopForm
+    from techpourtoutes.forms import WorkshopRequestForm
 
-    form = WorkshopForm(data=valid_data())
+    form = WorkshopRequestForm(data=valid_data())
     assert form.is_valid(), form.errors
     assert form.cleaned_data["remark"] == "Une remarque"
     assert form.cleaned_data["ateliers"] == ["future_of_tech", "future_of_ia"]
@@ -138,48 +138,48 @@ def test_workshop_form_exposes_remark_and_ateliers():
 
 @pytest.mark.django_db
 def test_workshop_form_with_pro_email_is_disabled(pro):
-    from techpourtoutes.forms import WorkshopForm
+    from techpourtoutes.forms import WorkshopRequestForm
 
-    form = WorkshopForm(pro=pro)
+    form = WorkshopRequestForm(pro=pro)
     assert form.fields["email"].disabled
 
 
 @pytest.mark.django_db
 def test_workshop_form_with_pro_sets_initial_values(pro):
-    from techpourtoutes.forms import WorkshopForm
+    from techpourtoutes.forms import WorkshopRequestForm
 
-    form = WorkshopForm(pro=pro)
+    form = WorkshopRequestForm(pro=pro)
     assert form.initial["email"] == pro.email
     assert form.initial["first_name"] == pro.first_name
 
 
 @pytest.mark.django_db
 def test_workshop_form_with_pro_terms_not_required(pro):
-    from techpourtoutes.forms import WorkshopForm
+    from techpourtoutes.forms import WorkshopRequestForm
 
     data = valid_data(
         email=pro.email,
         # terms_accepted NOT submitted
     )
     del data["terms_accepted"]
-    form = WorkshopForm(data=data, pro=pro)
+    form = WorkshopRequestForm(data=data, pro=pro)
     assert form.is_valid(), form.errors
 
 
 @pytest.mark.django_db
 def test_workshop_form_with_pro_allows_own_email(pro):
-    from techpourtoutes.forms import WorkshopForm
+    from techpourtoutes.forms import WorkshopRequestForm
 
     data = valid_data(email=pro.email)
-    form = WorkshopForm(data=data, pro=pro)
+    form = WorkshopRequestForm(data=data, pro=pro)
     assert form.is_valid(), form.errors
 
 
 @pytest.mark.django_db
 def test_workshop_form_newsletter_consent_enables_brevo_sync():
-    from techpourtoutes.forms import WorkshopForm
+    from techpourtoutes.forms import WorkshopRequestForm
 
-    form = WorkshopForm(data=valid_data(newsletter_consent=True))
+    form = WorkshopRequestForm(data=valid_data(newsletter_consent=True))
     assert form.is_valid(), form.errors
     saved = form.save()
 
@@ -188,9 +188,9 @@ def test_workshop_form_newsletter_consent_enables_brevo_sync():
 
 @pytest.mark.django_db
 def test_workshop_form_without_consent_leaves_brevo_sync_disabled():
-    from techpourtoutes.forms import WorkshopForm
+    from techpourtoutes.forms import WorkshopRequestForm
 
-    form = WorkshopForm(data=valid_data())
+    form = WorkshopRequestForm(data=valid_data())
     assert form.is_valid(), form.errors
     saved = form.save()
 
@@ -199,25 +199,25 @@ def test_workshop_form_without_consent_leaves_brevo_sync_disabled():
 
 @pytest.mark.django_db
 def test_workshop_form_hides_consent_for_already_consented_pro(pro):
-    from techpourtoutes.forms import WorkshopForm
+    from techpourtoutes.forms import WorkshopRequestForm
 
     pro.brevo_sync_enabled = True
     pro.save()
 
-    form = WorkshopForm(pro=pro)
+    form = WorkshopRequestForm(pro=pro)
     assert "newsletter_consent" not in form.fields
 
 
 @pytest.mark.django_db
 def test_workshop_form_consent_never_revokes_existing_sync(pro):
-    from techpourtoutes.forms import WorkshopForm
+    from techpourtoutes.forms import WorkshopRequestForm
 
     pro.brevo_sync_enabled = True
     pro.save()
 
     data = valid_data(email=pro.email)
     del data["terms_accepted"]
-    form = WorkshopForm(data=data, pro=pro)
+    form = WorkshopRequestForm(data=data, pro=pro)
     assert form.is_valid(), form.errors
     saved = form.save()
 
@@ -226,17 +226,17 @@ def test_workshop_form_consent_never_revokes_existing_sync(pro):
 
 @pytest.mark.django_db
 def test_workshop_form_unconsented_pro_can_opt_in(pro):
-    from techpourtoutes.forms import WorkshopForm
+    from techpourtoutes.forms import WorkshopRequestForm
 
     pro.brevo_sync_enabled = False
     pro.save()
 
-    form = WorkshopForm(pro=pro)
+    form = WorkshopRequestForm(pro=pro)
     assert "newsletter_consent" in form.fields
 
     data = valid_data(email=pro.email, newsletter_consent=True)
     del data["terms_accepted"]
-    form = WorkshopForm(data=data, pro=pro)
+    form = WorkshopRequestForm(data=data, pro=pro)
     assert form.is_valid(), form.errors
     saved = form.save()
 
@@ -245,7 +245,7 @@ def test_workshop_form_unconsented_pro_can_opt_in(pro):
 
 @pytest.mark.django_db
 def test_workshop_form_with_pro_save_updates_in_place(pro):
-    from techpourtoutes.forms import WorkshopForm
+    from techpourtoutes.forms import WorkshopRequestForm
     from techpourtoutes.models import Pro
 
     data = valid_data(
@@ -255,7 +255,7 @@ def test_workshop_form_with_pro_save_updates_in_place(pro):
         structure_uai="0750002B",
         postal_code="69001",
     )
-    form = WorkshopForm(data=data, pro=pro)
+    form = WorkshopRequestForm(data=data, pro=pro)
     assert form.is_valid(), form.errors
     saved = form.save()
 
