@@ -2,6 +2,7 @@
     name_field
     id_field
     not_found_field
+    allow_school_not_found=True
     scope="secondary"
     key="id"
     postal_field=""
@@ -16,6 +17,7 @@
     <div x-data="{
             open: false,
             notFound: '{{ not_found_field.value|default:""|escapejs }}' !== '',
+            allowSchoolNotFound: '{{ allow_school_not_found|escapejs }}' === 'True',
             selected: '{{ name_field.value|default:""|escapejs }}' !== '',
             query: '{{ name_field.value|default:""|escapejs }}{% if name_field.value and postal_field.value %} ({{ postal_field.value|escapejs }}){% endif %}',
             structureName: '{{ name_field.value|default:""|escapejs }}',
@@ -117,7 +119,7 @@
         </template>
         <div class="mt-1">
             <c-components.button type="button" variant="link"
-                    x-show="!notFound"
+                    x-show="!notFound && allowSchoolNotFound"
                     @click="declareNotFound()"
                     label="Je ne trouve pas mon établissement" />
             <c-components.button type="button" variant="link"
