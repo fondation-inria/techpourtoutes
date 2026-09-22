@@ -136,8 +136,9 @@ def _handle_code(request):
         # required because django-axes is configured
         user.backend = "django.contrib.auth.backends.ModelBackend"
         login(request, user)
-        save_pending_event(request, request.POST.get("saved_event", ""))
-        return HttpResponse(headers={"HX-Redirect": reverse("show_account")})
+        saved_event = save_pending_event(request, request.POST.get("saved_event", ""))
+        landing = "index_beneficiary_events" if saved_event else "show_account"
+        return HttpResponse(headers={"HX-Redirect": reverse(landing)})
     return _render_step_with_error(
         request, "code", _CODE_ERROR, email=email, saved_event=request.POST.get("saved_event", "")
     )

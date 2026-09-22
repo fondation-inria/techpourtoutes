@@ -83,7 +83,8 @@ def login_code(request):
             user.backend = "django.contrib.auth.backends.ModelBackend"
             login(request, user)
             messages.success(request, f"Bienvenue sur le compte {user.email} !")
-            save_pending_event(request, saved_event)
+            if save_pending_event(request, saved_event):
+                return redirect(reverse("index_beneficiary_events"))
             return redirect(next_url or reverse("show_account"))
         form.add_error("code", "Code invalide ou expiré.")
 

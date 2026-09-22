@@ -601,3 +601,31 @@ def test_login_code_shrugs_off_a_bookmarked_event_that_is_not_an_event(client, b
 
     assert response.status_code == 302
     assert list(beneficiary.saved_events.all()) == []
+
+
+@pytest.mark.django_db
+def test_login_code_prefers_her_saved_events_over_the_page_she_was_headed_to(
+    client, beneficiary, approved_salon
+):
+    client.post(
+        reverse("login_request"),
+        data={
+            "email": beneficiary.email,
+            "saved_event": str(approved_salon.pk),
+            "next": reverse("home"),
+        },
+    )
+    code = beneficiary.issue_login_code()
+
+    response = client.post(reverse("login_code"), data={"code": code})
+
+    assert response["Location"] == reverse("index_beneficiary_events")
+
+
+@pytest.mark.django_db
+def test_login_code_leaves_a_pro_on_her_account_page(client, pro, approved_salon):
+    code = _ask_for_a_code(client, pro, saved_event=str(approved_salon.pk))
+
+    response = client.post(reverse("login_code"), data={"code": code})
+
+    assert response["Location"] == reverse("show_account")
