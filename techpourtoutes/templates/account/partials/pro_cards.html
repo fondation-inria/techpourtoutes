@@ -55,3 +55,8 @@
         Au collège ou au lycée, prenez le temps d'aborder le numérique autrement à l'école grâce à nos différents formats d'ateliers.
     </c-components.card-link>
 {% endif %}
+{% if user.is_staff %}
+    <c-components.card-link color="white" title="Admin" button="Accéder à l'espace admin" href="{% url "admin:index" %}">
+        Retrouvez l'espace dédié à l'administration de TechPourToutes.
+    </c-components.card-link>
+{% endif %}

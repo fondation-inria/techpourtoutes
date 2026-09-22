@@ -25,6 +25,10 @@ class BeneficiaryMailer(BaseMailer):
         cls.send_mail(
             subject=f"L'événement {event.title} a été modifié",
             recipient_list=[beneficiary.email],
-            context={"event": event, "beneficiary": beneficiary},
+            context={
+                "event": event,
+                "beneficiary": beneficiary,
+                "event_url": f"{settings.SITE_URL}{reverse('show_event', args=[event.slug])}",
+            },
             tags=["utilisateur", "beneficiaire", "événement modifié"],
         )

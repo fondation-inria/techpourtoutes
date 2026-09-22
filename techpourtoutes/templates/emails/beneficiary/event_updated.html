@@ -4,5 +4,8 @@
     L'événement <strong>{{ event.title }}</strong> a été modifié par son organisatrice. Voici un récapitulatif des informations&nbsp;:
   </p>
   {% include "emails/partials/event_recap.html" %}
+  <p style="text-align:center;margin:24px 0;">
+    <a href="{{ event_url }}" style="display:inline-block;padding:12px 24px;background:#fad207;color:#0b1020;text-decoration:none;border-radius:4px;font-weight:600;">Voir l'événement</a>
+  </p>
   <p style="font-size:15px;color:#374151;">Bonne journée,</p>
 </c-layout.email>

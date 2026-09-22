@@ -10,7 +10,7 @@
         data-funnel-close
     />
     <div class="flex min-h-screen flex-col">
-        <c-layout.partials.messages wrapper_class="w-full max-w-xl mx-auto px-8 pt-4 flex flex-col gap-y-2" />
+        <c-layout.partials.funnel_messages />
             <main class="flex flex-1 px-4 {% if not right %}items-center justify-center{% endif %}">
                 <div class="w-full flex {% if right %}max-w-6xl mx-auto flex-col md:flex-row gap-8 items-stretch{% else %}max-w-xl justify-center{% endif %}">
                     {{ slot }}

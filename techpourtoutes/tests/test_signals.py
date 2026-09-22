@@ -155,3 +155,31 @@ def test_signal_does_not_dispatch_on_rolled_back_transaction(valid_pro_model_dat
             raise Boom
 
     upsert_task.delay.assert_not_called()
+
+
+@pytest.mark.django_db
+def test_joining_a_group_opens_the_admin_door(pro, event_moderator_group):
+    """A group carries permissions, and they only apply behind the door `is_staff` opens:
+    handing out a role is the whole gesture, nothing else to remember to tick."""
+    pro.groups.add(event_moderator_group)
+
+    pro.refresh_from_db()
+    assert pro.is_staff
+
+
+@pytest.mark.django_db
+def test_leaving_every_group_closes_the_admin_door(pro, event_moderator_group):
+    pro.groups.add(event_moderator_group)
+    pro.groups.remove(event_moderator_group)
+
+    pro.refresh_from_db()
+    assert not pro.is_staff
+
+
+@pytest.mark.django_db
+def test_clearing_the_groups_closes_the_admin_door(pro, event_moderator_group):
+    pro.groups.add(event_moderator_group)
+    pro.groups.clear()
+
+    pro.refresh_from_db()
+    assert not pro.is_staff
