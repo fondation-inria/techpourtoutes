@@ -168,6 +168,8 @@ LOGOUT_REDIRECT_URL = "/"
 SESSION_COOKIE_AGE = 60 * 60 * 24 * 90  # 90 days
 SESSION_SAVE_EVERY_REQUEST = True
 
+URLIZE_ASSUME_HTTPS = True
+
 # Security hardening (production only; local dev and tests run over plain HTTP)
 if not DEBUG:
     # The platform proxy terminates TLS and forwards plain HTTP with this header, letting

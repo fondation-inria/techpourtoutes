@@ -22,7 +22,7 @@ from ..models import Event, SavedEvent
 from ..tasks import create_upcoming_feature_notification_task
 from ..utils.dates import compute_age
 
-EVENTS_PER_PAGE = 15
+EVENTS_PER_PAGE = 18
 
 # ------------------- pages -------------------
 

@@ -1,3 +1,5 @@
+{% load links %}
+
 <c-layout.base
     title="{{ event.title }}"
     description="{{ event.description }}"
@@ -107,7 +109,7 @@
     {% if event.description %}
         <c-components.card class="w-full">
             <h3 class="font-bold text-lg">Description</h3>
-            <c-components.text>{{ event.description }}</c-components.text>
+            <c-components.text>{{ event.description|linkify }}</c-components.text>
         </c-components.card>
     {% endif %}
 
