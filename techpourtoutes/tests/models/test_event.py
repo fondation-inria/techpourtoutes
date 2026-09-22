@@ -265,7 +265,12 @@ def test_past_and_upcoming_split_events_on_their_end_date(pro):
         pro, start_date=today - timedelta(days=3), end_date=today - timedelta(days=1)
     )
     over.save()
-    ongoing = build_event(pro, start_date=today - timedelta(days=1), end_date=today)
+    ongoing = build_event(
+        pro,
+        start_date=today - timedelta(days=1),
+        end_date=today,
+        end_time=(timezone.localtime() + timedelta(minutes=1)).time(),
+    )
     ongoing.save()
     later = build_event(
         pro, start_date=today + timedelta(days=1), end_date=today + timedelta(days=1)
