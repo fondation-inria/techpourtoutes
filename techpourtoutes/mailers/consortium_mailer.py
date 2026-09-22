@@ -43,9 +43,11 @@ class ConsortiumMailer(BaseMailer):
         admin_url = settings.SITE_URL + reverse(
             "admin:techpourtoutes_event_change", args=[event.pk]
         )
+        moderator_emails = Pro.event_moderators().values_list("email", flat=True)
+        recipient_list = list(dict.fromkeys([*settings.NEW_EVENT_RECIPIENTS, *moderator_emails]))
         cls.send_mail(
             subject=f"Un nouvel événement à valider : {event.title}",
-            recipient_list=settings.NEW_EVENT_RECIPIENTS,
+            recipient_list=recipient_list,
             context={"event": event, "admin_url": admin_url},
             tags=["interne", "coalition", "nouvel événement"],
         )
