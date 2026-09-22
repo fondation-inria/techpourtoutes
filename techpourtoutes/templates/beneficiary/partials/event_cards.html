@@ -1,13 +1,19 @@
-{% for event in events %}
-    <c-components.event-card
-        :event="event"
-        bookmark_action="{{ bookmark_action }}"
-        category_color="bg-{{ event.category_color }}-500"
-    />
-{% empty %}
-    <c-components.card title="Reviens bientôt&nbsp;!">
-        <c-components.card>
-            Aucun événement n'est programmé pour le moment.
+{% load static %}
+
+<div id="events-grid" class="w-full -mt-4{% if events %} grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6{% endif %}">
+    {% for event in events %}
+            <c-components.event-card
+                :event="event"
+                bookmark_action="{{ bookmark_action }}"
+                category_color="bg-{{ event.category_color }}-500"
+            />
+    {% empty %}
+        <c-components.card title="Reviens bientôt&nbsp;!">
+            <c-components.text>
+                Aucun événement n'est programmé pour le moment.
+            </c-components.text>
         </c-components.card>
-    </c-components.card>
-{% endfor %}
+        <img src="{% static 'images/empty-event-bg.webp' %}" alt="" aria-hidden="true"
+            class="w-full" width="1344" height="868" loading="lazy" decoding="async" />
+    {% endfor %}
+</div>

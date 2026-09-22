@@ -135,6 +135,7 @@ def show_participation_modal(request, pk):
         "beneficiary/partials/show_participation_modal.html",
         {
             "event": event,
+            "beneficiary": beneficiary,
             "is_candidacy": event.access_type == Event.AccessType.CANDIDACY,
             "saved": _is_saved(beneficiary, event),
             "bookmark_action": _bookmark_action(request.user, beneficiary),
@@ -153,13 +154,14 @@ def save_pending_event(request, event_pk):
     """Save the bookmark that sent the user to the login or the signup screen once logged in."""
     beneficiary = getattr(request.user, "beneficiary", None)
     if beneficiary is None or not event_pk:
-        return
+        return False
     try:
         event = Event.objects.approved().get(pk=event_pk)
     except Event.DoesNotExist, ValidationError:
-        return
+        return False
     SavedEvent.objects.get_or_create(event=event, beneficiary=beneficiary)
     messages.success(request, "Événement enregistré")
+    return True
 
 
 def _events_context(request, page):
