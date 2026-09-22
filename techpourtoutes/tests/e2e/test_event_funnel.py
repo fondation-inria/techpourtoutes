@@ -1,3 +1,4 @@
+import re
 from decimal import Decimal
 
 import pytest
@@ -341,7 +342,7 @@ def test_an_event_is_edited_through_the_same_funnel(page, live_server, pro, even
     expect(page.get_by_text("Voulez-vous modifier votre")).to_be_visible()
     page.get_by_role("button", name="Publier les modifications").click()
 
-    page.wait_for_url(f"{live_server.url}/evenements/{event.slug}/")
+    expect(page).to_have_url(re.compile(rf"/evenements/{event.slug}/\?back="))
     event.refresh_from_db()
     assert event.title == "Salon renommé"
     assert event.address == "8 Boulevard du Port"

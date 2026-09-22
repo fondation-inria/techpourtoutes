@@ -4,5 +4,9 @@ L'événement {{ event.title }} a été modifié par son organisatrice. Voici un
 
 {% include "emails/partials/event_recap.txt" %}
 
+Vous pouvez le consulter via ce lien :
+
+{{ event_url }}
+
 Bonne journée,
 L'équipe TechPourToutes{% endautoescape %}

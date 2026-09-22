@@ -149,7 +149,7 @@ def test_moderation_buttons_submit_the_change_form_and_show_only_while_pending(
     content = verified_admin_client.get(_change_url(event)).content.decode()
     assert 'name="_publish"' in content
     assert 'name="_reject"' in content
-    assert content.count('form="event_form"') == 3  # the two buttons and the comment
+    assert content.count('form="event_form"') == 4  # the three buttons and the comment
 
     _decided(event, Event.Status.APPROVED)
     content = verified_admin_client.get(_change_url(event)).content.decode()
@@ -374,6 +374,114 @@ def test_the_subcategory_field_is_wired_into_a_full_save(verified_admin_client, 
     assert response.status_code == 302
     event.refresh_from_db()
     assert event.subcategory == "hackathon"
+
+
+@pytest.mark.django_db
+def test_a_moderator_cannot_add_or_delete_events(verified_moderator_client, event):
+    add_response = verified_moderator_client.get(reverse("admin:techpourtoutes_event_add"))
+    delete_response = verified_moderator_client.get(
+        reverse("admin:techpourtoutes_event_delete", args=[event.pk])
+    )
+
+    assert add_response.status_code == 403
+    assert delete_response.status_code == 403
+
+
+@pytest.mark.django_db
+def test_a_moderator_cannot_reach_other_admin_models(verified_moderator_client):
+    response = verified_moderator_client.get(reverse("admin:techpourtoutes_pro_changelist"))
+
+    assert response.status_code == 403
+
+
+@pytest.mark.django_db
+def test_a_moderator_sees_every_field_readonly_except_the_address_search(
+    verified_moderator_client, event
+):
+    """The search is what fills the geocoding fields, so it stays editable — along with the
+    fields it writes, which the approval constraints hinge on."""
+    form = verified_moderator_client.get(_change_url(event)).context["adminform"].form
+
+    for name in ("title", "organizer", "description", "access_type", "created_by"):
+        assert name not in form.fields, name
+    for name in ("address_search", "poi_name", "address", "postal_code", "longitude", "latitude"):
+        assert name in form.fields, name
+
+
+@pytest.mark.django_db
+def test_a_locked_subcategory_reads_as_its_label(verified_moderator_client, event):
+    """Locked, the column would show what it stores — a value, or the free text typed when
+    no subcategory fitted. The label is what the moderator moderates on."""
+    event.subcategory = Event.Subcategory.HACKATHON
+    event.save()
+
+    content = verified_moderator_client.get(_change_url(event)).content.decode()
+
+    assert "Hackathon" in content
+    assert "hackathon" not in content
+
+
+@pytest.mark.django_db
+def test_the_general_admin_keeps_the_whole_form(verified_admin_client, event):
+    """The counterpart of the two tests above: nothing is locked for whoever administers."""
+    form = verified_admin_client.get(_change_url(event)).context["adminform"].form
+
+    assert "title" in form.fields
+    assert "subcategory" in form.fields
+
+
+@pytest.mark.django_db
+@locmem
+def test_a_moderators_attempt_to_edit_a_locked_field_is_ignored(verified_moderator_client, event):
+    data = _change_form_data(event, title="Titre modifié", _publish="")
+
+    response = verified_moderator_client.post(_change_url(event), data)
+
+    assert response.status_code == 302
+    event.refresh_from_db()
+    assert event.status == Event.Status.APPROVED
+    assert event.title == "Salon des métiers du numérique"
+
+
+@pytest.mark.django_db
+def test_the_request_modification_button_shows_only_while_pending(verified_admin_client, event):
+    content = verified_admin_client.get(_change_url(event)).content.decode()
+    assert 'name="_request_modification"' in content
+
+    _decided(event, Event.Status.APPROVED)
+    content = verified_admin_client.get(_change_url(event)).content.decode()
+    assert 'name="_request_modification"' not in content
+
+
+@pytest.mark.django_db
+@locmem
+def test_requesting_a_modification_notifies_the_organizer_without_deciding(
+    verified_moderator_client, event
+):
+    data = _change_form_data(
+        event, _request_modification="", comment="Merci de préciser l'adresse."
+    )
+
+    response = verified_moderator_client.post(_change_url(event), data)
+
+    assert response.status_code == 302
+    event.refresh_from_db()
+    assert event.status == Event.Status.PENDING
+    assert mail.outbox[0].to == [event.created_by.email]
+    assert "Merci de préciser l'adresse." in mail.outbox[0].body
+
+
+@pytest.mark.django_db
+@locmem
+def test_requesting_a_modification_requires_a_message(verified_admin_client, event):
+    data = _change_form_data(event, _request_modification="", comment="")
+
+    response = verified_admin_client.post(_change_url(event), data)
+
+    assert response.status_code == 200
+    event.refresh_from_db()
+    assert event.status == Event.Status.PENDING
+    assert not mail.outbox
 
 
 @pytest.mark.django_db

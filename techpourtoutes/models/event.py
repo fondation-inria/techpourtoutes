@@ -284,6 +284,10 @@ class Event(BaseModel):
         )
 
     @property
+    def is_approved(self):
+        return self.status == Event.Status.APPROVED
+
+    @property
     def has_ended(self):
         end = timezone.make_aware(datetime.combine(self.end_date, self.end_time))
         return end < timezone.now()

@@ -20,6 +20,22 @@ def mock_geocoding(httpx_mock):
 
 
 @pytest.fixture
+def event_moderator_group(db):
+    """The group the migration creates: the permissions a Chargée de mission is granted."""
+    from django.contrib.auth.models import Group
+
+    return Group.objects.get(name="Chargée de mission")
+
+
+@pytest.fixture
+def moderator_pro(pro, event_moderator_group):
+    pro.is_staff = True
+    pro.save()
+    pro.groups.add(event_moderator_group)
+    return pro
+
+
+@pytest.fixture
 def pro(db):
     from techpourtoutes.models import Pro
 

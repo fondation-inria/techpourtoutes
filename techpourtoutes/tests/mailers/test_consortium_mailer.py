@@ -86,6 +86,26 @@ def test_event_submitted_notifies_the_moderation_team(event):
 @override_settings(
     EMAIL_BACKEND="django.core.mail.backends.locmem.EmailBackend",
     NEW_EVENT_RECIPIENTS=["agir@techpourtoutes.io"],
+)
+def test_event_submitted_also_notifies_the_event_moderators(
+    event, valid_pro_model_data, event_moderator_group
+):
+    moderator = Pro(
+        username="chargee@example.com",
+        **{**valid_pro_model_data, "email": "chargee@example.com"},
+    )
+    moderator.save()
+    moderator.groups.add(event_moderator_group)
+
+    ConsortiumMailer.event_submitted(event=event)
+
+    assert mail.outbox[0].to == ["agir@techpourtoutes.io", "chargee@example.com"]
+
+
+@pytest.mark.django_db
+@override_settings(
+    EMAIL_BACKEND="django.core.mail.backends.locmem.EmailBackend",
+    NEW_EVENT_RECIPIENTS=["agir@techpourtoutes.io"],
     SITE_URL="https://example.test",
 )
 def test_event_submitted_links_to_the_event_in_the_admin(event):

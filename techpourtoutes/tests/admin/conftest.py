@@ -13,17 +13,26 @@ def admin_pro(pro):
     return pro
 
 
-@pytest.fixture
-def verified_admin_client(client, admin_pro):
+def _verified_client(client, user):
     from django_otp import DEVICE_ID_SESSION_KEY
     from django_otp.plugins.otp_totp.models import TOTPDevice
 
-    device = TOTPDevice.objects.create(user=admin_pro, name="default", confirmed=True)
-    client.force_login(admin_pro)
+    device = TOTPDevice.objects.create(user=user, name="default", confirmed=True)
+    client.force_login(user)
     session = client.session
     session[DEVICE_ID_SESSION_KEY] = device.persistent_id
     session.save()
     return client
+
+
+@pytest.fixture
+def verified_admin_client(client, admin_pro):
+    return _verified_client(client, admin_pro)
+
+
+@pytest.fixture
+def verified_moderator_client(client, moderator_pro):
+    return _verified_client(client, moderator_pro)
 
 
 CHANGELIST = "admin:techpourtoutes_pro_changelist"
