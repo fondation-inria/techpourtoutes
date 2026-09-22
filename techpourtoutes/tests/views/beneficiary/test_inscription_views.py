@@ -652,6 +652,29 @@ def test_code_step_saves_the_event_bookmarked_before_the_signup(client, approved
 
 
 @pytest.mark.django_db
+def test_code_step_lands_on_her_saved_events_when_an_event_was_bookmarked(client, approved_salon):
+    beneficiary = Beneficiary.objects.create(
+        username="oceane@example.com",
+        email="oceane@example.com",
+        first_name="Océane",
+        last_name="Durand",
+    )
+    code = beneficiary.issue_login_code()
+
+    response = client.post(
+        FUNNEL_URL,
+        {
+            "action": "code",
+            "email": beneficiary.email,
+            "code": code,
+            "saved_event": str(approved_salon.pk),
+        },
+    )
+
+    assert response["HX-Redirect"] == reverse("index_beneficiary_events")
+
+
+@pytest.mark.django_db
 def test_email_step_hands_the_bookmarked_event_over_when_the_account_already_exists(
     client, approved_salon, beneficiary
 ):
