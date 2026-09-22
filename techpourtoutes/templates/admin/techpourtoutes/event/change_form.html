@@ -26,6 +26,7 @@
       }
       .event-moderation button[name="_publish"] { background: var(--success, #28a745); }
       .event-moderation button[name="_reject"] { background: var(--error, #ba2121); }
+      .event-moderation button[name="_request_modification"] { background: var(--primary, #447e9b); }
       .event-moderation textarea { width: 100%; margin-top: 12px; }
     </style>
     <div class="event-moderation">
@@ -38,9 +39,13 @@
                 onclick="return confirm('Confirmer le refus de cet événement ?');">
           Refuser
         </button>
+        <button type="submit" form="event_form" name="_request_modification" value="1"
+                onclick="return confirm('Envoyer une demande de modification à l\'organisatrice ?');">
+          Demander une modification
+        </button>
       </div>
       <textarea form="event_form" name="comment" rows="6"
-                placeholder="Message pour l'organisatrice (optionnel), joint au mail de décision"></textarea>
+                placeholder="Message pour l'organisatrice (obligatoire pour une demande de modification, optionnel sinon), joint au mail"></textarea>
     </div>
   {% endif %}
 {% endblock %}

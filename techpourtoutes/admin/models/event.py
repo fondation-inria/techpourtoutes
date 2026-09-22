@@ -6,6 +6,7 @@ from django.urls import path
 from django.utils.translation import gettext_lazy as _
 from simple_history.admin import SimpleHistoryAdmin
 
+from techpourtoutes.mailers import ProMailer
 from techpourtoutes.models import Event
 from techpourtoutes.services.event.moderate_event import ModerateEvent
 from techpourtoutes.services.geoplateforme_api.search_addresses import SearchAddresses
@@ -125,6 +126,14 @@ class EventAdminForm(forms.ModelForm):
             self.instance.status = self.decision
         super()._post_clean()
 
+    def clean(self):
+        cleaned_data = super().clean()
+        if "_request_modification" in self.data and not self.data.get("comment", "").strip():
+            raise forms.ValidationError(
+                _("Merci de préciser le message à l'attention de l'organisatrice.")
+            )
+        return cleaned_data
+
     def _get_validation_exclusions(self):
         """`status` is not a form field while the event is pending, and Django skips every
         constraint referencing an excluded field — here, both approval constraints."""
@@ -210,18 +219,32 @@ class EventAdmin(SimpleHistoryAdmin):
         return obj.subcategory_label
 
     def get_fieldsets(self, request, obj=None):
-        """While an event is pending, its status only ever moves through the Publier/Refuser
-        buttons — showing the raw field here would invite hand-editing around them."""
-        fieldsets = super().get_fieldsets(request, obj)
-        if obj is not None and obj.status == Event.Status.PENDING:
-            fieldsets = tuple(
-                (
-                    title,
-                    {**options, "fields": tuple(f for f in options["fields"] if f != "status")},
-                )
-                for title, options in fieldsets
+        """While an event is pending, its status only ever moves through Publier/Refuser"""
+        dropped = {"status"} if obj is not None and obj.status == Event.Status.PENDING else set()
+        renamed = {} if request.user.is_superuser else {"subcategory": "subcategory_label"}
+        return tuple(
+            (
+                title,
+                {
+                    **options,
+                    "fields": tuple(
+                        renamed.get(name, name)
+                        for name in options["fields"]
+                        if name not in dropped
+                    ),
+                },
             )
-        return fieldsets
+            for title, options in super().get_fieldsets(request, obj)
+        )
+
+    def get_readonly_fields(self, request, obj=None):
+        readonly_fields = super().get_readonly_fields(request, obj)
+        if not request.user.is_superuser:
+            locked_fields = (f for f in EventAdminForm.Meta.fields if f not in SEARCH_ONLY_FIELDS)
+            readonly_fields = tuple(
+                dict.fromkeys((*readonly_fields, *locked_fields, "subcategory_label"))
+            )
+        return readonly_fields
 
     def get_changelist(self, request, **kwargs):
         return _DecidedEventChangeList
@@ -242,18 +265,29 @@ class EventAdmin(SimpleHistoryAdmin):
         return super().render_change_form(request, context, add, change, form_url, obj)
 
     def save_model(self, request, obj, form, change):
-        """A decision saves the event like any other change, then tells its author."""
+        """A decision saves the event like any other change, then tells its author. Requesting
+        a modification saves whatever travelled with it (typically a geocoding fix) but leaves
+        the status untouched — only Publier/Refuser ever decide it."""
         if form.decision:
             ModerateEvent(event=obj, status=form.decision, comment=request.POST.get("comment", ""))
-        else:
-            super().save_model(request, obj, form, change)
+            return
+        super().save_model(request, obj, form, change)
+        if "_request_modification" in request.POST:
+            ProMailer.event_modification_requested(
+                event=obj, message=request.POST.get("comment", "")
+            )
 
     def response_change(self, request, obj):
-        """A decision is not just any change: say which one was taken."""
+        """A decision, or a modification request, is not just any change: say which it was."""
         decision = _decision_from(request.POST)
         if decision:
             self.message_user(
                 request, f"L'événement « {obj.title} » a été {_DECISION_LABELS[decision]}."
+            )
+            return self.response_post_save_change(request, obj)
+        if "_request_modification" in request.POST:
+            self.message_user(
+                request, f"Une demande de modification a été envoyée pour « {obj.title} »."
             )
             return self.response_post_save_change(request, obj)
         return super().response_change(request, obj)

@@ -70,7 +70,13 @@ def edit_event(request, pk):
     back = _safe_back(request, request.GET.get("back", ""))
     if back:
         answers["back"] = back
-    return _render(request, "coalition/funnels/event_funnel.html", _STEPS[0], answers)
+    return _render(
+        request,
+        "coalition/funnels/event_funnel.html",
+        _STEPS[0],
+        answers,
+        quit_url=_show_event_url(event, back),
+    )
 
 
 @require_POST
@@ -117,14 +123,17 @@ def _handle_back(request):
 
 
 def _create(request):
-    """The new funnel's last screen: the user is told its event now awaits validation."""
+    """The new funnel's last screen: the user is told its event now awaits validation — or,
+    if he has publishing rights, that it is already online."""
     try:
         forms = _validated_answers(request)
     except _StepInterrupt as interrupt:
         return interrupt.response
 
-    CreateEvent(pro=request.user.pro, forms=forms)
-    return render(request, "coalition/funnels/partials/event/submitted.html", {})
+    result = CreateEvent(pro=request.user.pro, forms=forms)
+    return render(
+        request, "coalition/funnels/partials/event/submitted.html", {"event": result.event}
+    )
 
 
 def _update(request):
@@ -140,15 +149,13 @@ def _update(request):
 
     UpdateEvent(event=event, forms=forms)
     messages.success(request, "Votre événement a bien été modifié.")
-    return HttpResponse(headers={"HX-Redirect": _show_event_url(request, event)})
-
-
-def _show_event_url(request, event):
-    url = reverse("show_event", args=[event.slug])
     back = _safe_back(request, request.POST.get("back", ""))
-    if back:
-        url = f"{url}?{urlencode({'back': back})}"
-    return url
+    return HttpResponse(headers={"HX-Redirect": _show_event_url(event, back)})
+
+
+def _show_event_url(event, back):
+    url = reverse("show_event", args=[event.slug])
+    return f"{url}?{urlencode({'back': back or reverse('index_pro_events')})}"
 
 
 def _safe_back(request, candidate):
@@ -197,7 +204,7 @@ def _render_step(request, step, *, form=None, confirming=False):
     return _render(request, partial, step, request.POST, form=form, confirming=confirming)
 
 
-def _render(request, template, step, answers, *, form=None, confirming=False):
+def _render(request, template, step, answers, *, form=None, confirming=False, quit_url=""):
     editing = bool(answers.get("event"))
     return render(
         request,
@@ -210,6 +217,7 @@ def _render(request, template, step, answers, *, form=None, confirming=False):
             "confirming": confirming,
             "editing": editing,
             "funnel_url": reverse("update_event" if editing else "create_event"),
+            "quit_url": quit_url or reverse("show_account"),
         },
     )
 

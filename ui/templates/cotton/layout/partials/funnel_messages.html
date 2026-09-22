@@ -1,0 +1,7 @@
+<c-vars oob="" />
+
+{% if not oob or not messages_in_layout %}
+    <c-layout.partials.messages
+        wrapper_class="w-full max-w-xl mx-auto px-8 pt-4 flex flex-col gap-y-2"
+        oob_swap="{{ oob }}" />
+{% endif %}
