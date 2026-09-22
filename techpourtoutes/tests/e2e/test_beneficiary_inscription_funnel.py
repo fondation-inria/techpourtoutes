@@ -26,8 +26,8 @@ from .helpers import (
 # sessionStorage behaviour (survive reload, wipe on explicit exit) wired through Alpine + HTMX.
 
 
-_DIPLOMA_SCHOOL_LABEL = "Dans quel établissement as-tu obtenu ce diplôme ?*"
-_DIPLOMA_FORMATION_LABEL = "De quelle formation es-tu diplômée ?*"
+_DIPLOMA_SCHOOL_LABEL = "Dans quel établissement étais-tu scolarisée ?*"
+_DIPLOMA_FORMATION_LABEL = "De quelle formation s'agit-il ?*"
 
 
 @pytest.fixture
@@ -67,7 +67,7 @@ def test_graduate_registers_with_her_last_diploma(page, funnel_url):
     select_option(page, "En quelle année", f"{diploma_year}-{diploma_year + 1}")
     # A diploma can come from either list, so no establishment is offered before the level.
     expect(search_field(page, _DIPLOMA_SCHOOL_LABEL)).to_have_count(0)
-    select_option(page, "Quel est le niveau de ton diplôme ?*", "Terminale")
+    select_option(page, "Quelle est la dernière année d'études que tu as validée ?*", "Terminale")
 
     pick(page, _DIPLOMA_SCHOOL_LABEL, "voltaire", "Lycée Voltaire (75011)")
     pick(page, _DIPLOMA_FORMATION_LABEL, "bac", "Bac général")
@@ -127,11 +127,11 @@ def test_changing_the_diploma_level_swaps_the_establishment_list(page, funnel_ur
     # Each perimeter owns its own dropdown container, the higher-ed one suffixed "-sup".
     higher_ed_dropdown = page.locator('[id^="school-results-"][id$="-sup"]')
 
-    select_option(page, "Quel est le niveau de ton diplôme ?*", "Terminale")
+    select_option(page, "Quelle est la dernière année d'études que tu as validée ?*", "Terminale")
     expect(page.get_by_text("Recherche par nom et/ou code postal")).to_be_visible()
     expect(higher_ed_dropdown).to_have_count(0)
 
-    select_option(page, "Quel est le niveau de ton diplôme ?*", "Bac +3")
+    select_option(page, "Quelle est la dernière année d'études que tu as validée ?*", "Bac +3")
 
     expect(page.get_by_text("Recherche par nom et/ou code postal")).to_have_count(0)
     expect(higher_ed_dropdown).to_have_count(1)

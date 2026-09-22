@@ -153,9 +153,7 @@ def test_a_graduate_gets_the_year_question_instead(page_without_parcours):
 
     _expect_step(page_without_parcours, "training_experience")
     expect(
-        page_without_parcours.get_by_role(
-            "button", name="En quelle année as-tu obtenu ton dernier diplôme ?*"
-        )
+        page_without_parcours.get_by_role("button", name="En quelle année était-ce ?*")
     ).to_be_visible()
 
 
