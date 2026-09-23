@@ -8,7 +8,7 @@ from django.utils.safestring import mark_safe
 
 register = template.Library()
 
-ICON_TEMPLATE = "common/partials/external_link_icon.html"
+LINK_TEMPLATE = "common/partials/linkified_url.html"
 
 # Django only linkifies the seven historical gTLDs, which is too narrow here — `techpourtoutes.io`
 # would stay plain text. Accepting any TLD instead is worse: the missing space in
@@ -17,21 +17,31 @@ TLDS = "com|edu|gov|int|mil|net|org|fr|io|eu|biz|info|ai|nl|\
         it|pl|es|uk|ac|de|be|ch|ca|co|re|pm|yt|tf|wf|nc|tech|dev|app|cc"
 
 
+def _render_link(href, url, external):
+    """Renders one `inline_link`, collapsed onto a single line.
+
+    The description goes through `linebreaksbr` downstream, which would turn every newline the
+    component is written with — inside the icon, inside the class attribute — into a <br>.
+    So the markup is squeezed: runs of whitespace down to one space, then none at all around
+    the angle brackets. The only text an anchor holds here is a URL, which carries no
+    whitespace of its own, so nothing the user typed is touched.
+
+    `href` and `url` arrive escaped by `Urlizer`, hence marked safe rather than escaped twice.
+    """
+    context = {"href": mark_safe(href), "url": mark_safe(url), "external": external}
+    html = render_to_string(LINK_TEMPLATE, context)
+    return re.sub(r"\s*([<>])\s*", r"\1", re.sub(r"\s+", " ", html)).strip()
+
+
 class _Anchor:
     """Stands in for `Urlizer.url_template`, whose `format()` is the last place a link is still
     seen with its scheme: an external URL opens a new tab, a mailto stays an ordinary link.
 
-    `href` and `url` arrive escaped by `Urlizer`, so both are interpolated as they are. `attrs`
-    only ever carries the `rel="nofollow"` that `nofollow=False` already declines.
+    `attrs` only ever carries the `rel="nofollow"` that `nofollow=False` already declines.
     """
 
     def format(self, *, href, attrs, url):
-        if href.startswith("mailto:"):
-            return f'<a href="{href}">{url}</a>'
-        return (
-            f'<a href="{href}" target="_blank" rel="nofollow noopener noreferrer">'
-            f"{url}{render_to_string(ICON_TEMPLATE).strip()}</a>"
-        )
+        return _render_link(href, url, external=not href.startswith("mailto:"))
 
 
 class _DescriptionUrlizer(Urlizer):

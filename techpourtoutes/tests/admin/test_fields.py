@@ -47,3 +47,11 @@ def test_compress_demands_the_free_text_for_other():
 
 def test_compress_of_nothing_is_blank():
     assert SubcategoryField().compress([]) == ""
+
+
+def test_the_admin_select_lists_the_subcategories_alphabetically_with_other_last():
+    select = SubcategoryField().widget.widgets[0]
+    labels = [str(label) for _, label in select.choices]
+
+    assert labels[0] == "Sélectionner une option"
+    assert labels[1:] == [str(label) for _, label in Event.Subcategory.sorted_choices()]

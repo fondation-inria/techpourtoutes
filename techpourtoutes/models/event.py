@@ -11,6 +11,7 @@ from django.utils.text import slugify
 from django.utils.translation import gettext_lazy as _
 from simple_history.models import HistoricalRecords
 
+from ..utils.text import strip_accents
 from .base import BaseModel, BaseQuerySet
 from .pro import Pro
 
@@ -85,6 +86,14 @@ class Event(BaseModel):
         CEREMONY = "ceremony", _("Cérémonie")
         HACKATHON = "hackathon", _("Hackathon")
         OTHER = "other", _("Autre")
+
+        @classmethod
+        def sorted_choices(cls):
+            """The order a select offers them in: alphabetical, accents ignored, with "Autre"
+            last — it is the prompt for what the list does not hold, not a type among them."""
+            listed = [choice for choice in cls.choices if choice[0] != cls.OTHER]
+            listed.sort(key=lambda choice: strip_accents(str(choice[1])).lower())
+            return [*listed, (cls.OTHER.value, cls.OTHER.label)]
 
     SUBCATEGORIES = {
         Category.INFORMATION: (

@@ -438,9 +438,13 @@ def test_show_event_makes_the_links_in_the_description_clickable(client, pro):
 
     content = client.get(reverse("show_event", args=[event.slug])).content.decode()
 
-    assert '<a href="https://techpourtoutes.io" target="_blank"' in content
-    assert 'rel="nofollow noopener noreferrer"' in content
-    assert "#external-link" in content
+    anchor = content[content.index('<a href="https://techpourtoutes.io"') :].split("</a>")[0]
+    assert 'target="_blank"' in anchor
+    assert 'rel="nofollow noopener noreferrer"' in anchor
+    assert "underline" in anchor
+    # The description goes through `linebreaksbr`: the icon has to come out of it in one piece.
+    assert "#external-link" in anchor
+    assert "<br>" not in anchor
     # What surrounds the link is still escaped, and the line break still becomes a <br>.
     assert "<b>pas du gras</b>" not in content
     assert "&lt;b&gt;pas du gras&lt;/b&gt;" in content

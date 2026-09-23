@@ -12,7 +12,7 @@ WRITTEN_AS = [
     ("https://www.techpourtoutes.io", "https://www.techpourtoutes.io"),
 ]
 
-# An oubli d'espace after a full stop is common, and "M.Dupont" is plain French: none of these
+# A letter stuck to a full stop is common, and "Mme.Dupont" is plain French: none of these
 # is a link. They are the reason the accepted TLDs are an explicit list.
 PROSE = [
     "Venez nombreuses.Nous vous attendons à 18h",
@@ -78,3 +78,16 @@ def test_linkify_leaves_french_prose_alone(text):
 def test_linkify_preserves_the_newlines_the_description_was_typed_with():
     """`linebreaksbr` turns them into <br> downstream, so they have to survive this filter."""
     assert linkify("Première ligne\nhttps://techpourtoutes.io").startswith("Première ligne\n<a ")
+
+
+def test_linkify_styles_the_link_with_the_inline_link_component():
+    html = linkify("Infos sur https://techpourtoutes.io")
+
+    assert "underline" in html
+
+
+def test_linkify_keeps_a_link_on_a_single_line():
+    """The description goes through `linebreaksbr` downstream: a newline left inside the anchor
+    would come back as a <br> in the middle of the icon, and break it."""
+    assert "\n" not in linkify("Infos sur https://techpourtoutes.io")
+    assert "\n" not in linkify("Écris à contact@techpourtoutes.io")
