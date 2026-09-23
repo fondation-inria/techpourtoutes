@@ -8,7 +8,7 @@ class EventSubcategoryForm(forms.Form):
     # The blank choice is the select's placeholder: the component renders it on the trigger and
     # leaves it out of the list. Being required, the field rejects it as a value.
     subcategory = forms.ChoiceField(
-        choices=[("", _("Sélectionner une option")), *Event.Subcategory.choices],
+        choices=[("", _("Sélectionner une option")), *Event.Subcategory.sorted_choices()],
         label=_("Quel type d'événement voulez-vous proposer ?"),
     )
     subcategory_other = forms.CharField(

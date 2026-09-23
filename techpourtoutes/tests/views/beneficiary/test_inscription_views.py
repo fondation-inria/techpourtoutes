@@ -301,9 +301,9 @@ def test_study_status_step_asks_a_graduate_about_her_last_diploma(client):
     )
     content = response.content.decode()
 
-    assert "En quelle année as-tu obtenu ton dernier diplôme ?" in content
+    assert "En quelle année était-ce ?" in content
     # The level decides which establishment list is offered, so it is asked before it.
-    assert "Quel est le niveau de ton diplôme ?" in content
+    assert "Quelle est la dernière année d&#x27;études que tu as validée ?" in content
     # A diploma can't be obtained in a school year that hasn't started yet.
     next_start_year = next_school_year_start_date().year
     assert current_school_year_label() in content

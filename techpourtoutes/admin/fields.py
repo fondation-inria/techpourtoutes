@@ -42,7 +42,9 @@ class SubcategoryWidget(forms.MultiWidget):
 
     def __init__(self, attrs=None):
         widgets = [
-            forms.Select(choices=[("", _("Sélectionner une option")), *Event.Subcategory.choices]),
+            forms.Select(
+                choices=[("", _("Sélectionner une option")), *Event.Subcategory.sorted_choices()]
+            ),
             forms.TextInput(attrs={"placeholder": _("Si « Autre », précisez…")}),
         ]
         super().__init__(widgets, attrs)

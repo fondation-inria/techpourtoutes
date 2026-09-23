@@ -90,3 +90,10 @@ def test_event_fields_carries_the_resolved_subcategory():
 
     assert form.is_valid()
     assert form.event_fields == {"subcategory": "Rencontre"}
+
+
+def test_the_select_lists_the_subcategories_alphabetically_with_other_last():
+    labels = [str(label) for _, label in EventSubcategoryForm().fields["subcategory"].choices]
+
+    assert labels[0] == "Sélectionner une option"
+    assert labels[1:] == [str(label) for _, label in Event.Subcategory.sorted_choices()]

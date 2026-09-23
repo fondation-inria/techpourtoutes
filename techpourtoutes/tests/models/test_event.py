@@ -256,7 +256,8 @@ def test_location_label_prefers_the_venue_over_the_address(pro):
 def test_past_and_upcoming_split_events_on_their_end_date(pro):
     """Read at midday, so the split falls on the date alone: an event ending today at 18:00
     is still to come. Where the two fall on the same day, the end time decides — that is the
-    next test's business, and the clock the suite runs on must not decide it here."""
+    next test's business, and the clock the suite runs on must not decide it here, hence the
+    fixed hours: an end time read off the real clock would fall before midday all morning."""
     from techpourtoutes.models import Event
 
     today = timezone.localdate()
@@ -265,12 +266,7 @@ def test_past_and_upcoming_split_events_on_their_end_date(pro):
         pro, start_date=today - timedelta(days=3), end_date=today - timedelta(days=1)
     )
     over.save()
-    ongoing = build_event(
-        pro,
-        start_date=today - timedelta(days=1),
-        end_date=today,
-        end_time=(timezone.localtime() + timedelta(minutes=1)).time(),
-    )
+    ongoing = build_event(pro, start_date=today - timedelta(days=1), end_date=today)
     ongoing.save()
     later = build_event(
         pro, start_date=today + timedelta(days=1), end_date=today + timedelta(days=1)
@@ -284,28 +280,24 @@ def test_past_and_upcoming_split_events_on_their_end_date(pro):
 
 @pytest.mark.django_db
 def test_past_and_upcoming_split_same_day_events_on_their_end_time(pro):
+    """Read at midday again, against fixed hours: times read off the real clock would wrap
+    around midnight, where "a minute ago" is yesterday."""
     from techpourtoutes.models import Event
 
-    now = timezone.localtime()
+    today = timezone.localdate()
+    midday = timezone.localtime().replace(hour=12, minute=0, second=0, microsecond=0)
     just_ended = build_event(
-        pro,
-        start_date=now.date(),
-        end_date=now.date(),
-        start_time=time(0, 0),
-        end_time=(now - timedelta(minutes=1)).time(),
+        pro, start_date=today, end_date=today, start_time=time(0, 0), end_time=time(11, 59)
     )
     just_ended.save()
     still_ongoing = build_event(
-        pro,
-        start_date=now.date(),
-        end_date=now.date(),
-        start_time=time(0, 0),
-        end_time=(now + timedelta(minutes=1)).time(),
+        pro, start_date=today, end_date=today, start_time=time(0, 0), end_time=time(12, 1)
     )
     still_ongoing.save()
 
-    assert list(Event.objects.past()) == [just_ended]
-    assert list(Event.objects.upcoming()) == [still_ongoing]
+    with patch("django.utils.timezone.localtime", return_value=midday):
+        assert list(Event.objects.past()) == [just_ended]
+        assert list(Event.objects.upcoming()) == [still_ongoing]
 
 
 @pytest.mark.django_db
@@ -413,14 +405,17 @@ def test_has_ended_is_true_after_the_end_date(pro):
 
 @pytest.mark.django_db
 def test_has_ended_checks_the_time_when_the_event_ends_today(pro):
-    """A date-only comparison would miss this: the event ends today, earlier than now."""
+    """A date-only comparison would miss this: the event ends today, earlier than now. The
+    clock is frozen at midday, so "earlier than now" holds whatever the hour of the run."""
     today = timezone.localdate()
+    midday = timezone.localtime().replace(hour=12, minute=0, second=0, microsecond=0)
 
     event = build_event(
         pro, start_date=today, end_date=today, start_time=time(0, 0), end_time=time(0, 1)
     )
 
-    assert event.has_ended is True
+    with patch("django.utils.timezone.now", return_value=midday):
+        assert event.has_ended is True
 
 
 @pytest.mark.django_db
@@ -622,3 +617,28 @@ def test_fill_from_leaves_out_the_answers_that_are_not_columns(pro):
 
     assert not hasattr(event, "pricing")
     assert not hasattr(event, "address_api_down")
+
+
+def test_subcategory_sorted_choices_are_alphabetical_with_other_last():
+    """Accents do not decide the order — "Cérémonie" comes before "Conférence" — and "Autre"
+    closes the list wherever the alphabet would have put it."""
+    from techpourtoutes.models import Event
+
+    assert [str(label) for _, label in Event.Subcategory.sorted_choices()] == [
+        "Afterwork",
+        "Atelier",
+        "Cérémonie",
+        "Conférence",
+        "Forum de l'emploi",
+        "Hackathon",
+        "Job dating",
+        "Learning expédition",
+        "Portes ouvertes",
+        "Salon",
+        "Speed dating",
+        "Table ronde",
+        "Vis-ma-vie",
+        "Visite",
+        "Webinaire d'info",
+        "Autre",
+    ]
