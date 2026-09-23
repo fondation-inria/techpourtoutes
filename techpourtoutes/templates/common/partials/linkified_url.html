@@ -1,0 +1,11 @@
+{% if external %}
+    <c-components.inline_link
+        label="{{ url }}"
+        href="{{ href }}"
+        icon="external-link"
+        target="_blank"
+        rel="nofollow noopener noreferrer"
+    />
+{% else %}
+    <c-components.inline_link label="{{ url }}" href="{{ href }}" />
+{% endif %}

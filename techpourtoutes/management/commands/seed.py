@@ -366,6 +366,49 @@ EVENT_SEEDS = [
     (
         0,
         {
+            "title": "Afterwork des femmes de la tech",
+            "organizer": "Duchess France",
+            "subcategory": Event.Subcategory.AFTERWORK,
+            "location_type": Event.LocationType.PHYSICAL,
+            "address": "5 place de la Bourse",
+            "postal_code": "33000",
+            "city": "Bordeaux",
+            "latitude": 44.8412,
+            "longitude": -0.5701,
+            "description": (
+                "Duchess France t'invite à un afterwork convivial pour échanger avec "
+                "d'autres femmes de la tech autour d'un verre.\n\n"
+                "Pas de conférence ni de programme figé : l'objectif est simplement de se "
+                "rencontrer, partager son parcours et élargir son réseau dans une ambiance "
+                "détendue.\n\n"
+                "Toutes les femmes travaillant ou souhaitant travailler dans la tech sont "
+                "les bienvenues, quel que soit leur niveau d'expérience."
+            ),
+            "price": Decimal("12.50"),
+        },
+    ),
+    (
+        0,
+        {
+            "title": "Atelier CV et profil LinkedIn",
+            "organizer": "Social Builder",
+            "subcategory": Event.Subcategory.WORKSHOP,
+            "location_type": Event.LocationType.ONLINE,
+            "online_url": "https://example.org/atelier-cv",
+            "description": (
+                "Social Builder propose un atelier pratique pour retravailler son CV et "
+                "son profil LinkedIn.\n\n"
+                "Au programme : les codes attendus dans la tech, comment mettre en valeur "
+                "un projet ou une reconversion, et les erreurs courantes à éviter.\n\n"
+                "Viens avec ton CV actuel : l'atelier se termine par une session de "
+                "retours personnalisés en petits groupes."
+            ),
+            "price": Decimal("0"),
+        },
+    ),
+    (
+        0,
+        {
             "title": "Learning expédition chez OVHcloud",
             "organizer": "OVHcloud",
             "subcategory": Event.Subcategory.LEARNING_EXPEDITION,
@@ -478,6 +521,25 @@ EVENT_SEEDS = [
                 "l'équipe recherche sur les enjeux éthiques de l'IA.\n\n"
                 "Une journée idéale pour découvrir un métier d'avenir, sans prérequis "
                 "en machine learning."
+            ),
+            "price": Decimal("0"),
+        },
+    ),
+    (
+        0,
+        {
+            "title": "Atelier CV et profil LinkedIn",
+            "organizer": "Social Builder",
+            "subcategory": Event.Subcategory.WORKSHOP,
+            "location_type": Event.LocationType.ONLINE,
+            "online_url": "https://example.org/atelier-cv",
+            "description": (
+                "Social Builder propose un atelier pratique pour retravailler son CV et "
+                "son profil LinkedIn.\n\n"
+                "Au programme : les codes attendus dans la tech, comment mettre en valeur "
+                "un projet ou une reconversion, et les erreurs courantes à éviter.\n\n"
+                "Viens avec ton CV actuel : l'atelier se termine par une session de "
+                "retours personnalisés en petits groupes."
             ),
             "price": Decimal("0"),
         },

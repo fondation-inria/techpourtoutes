@@ -1,3 +1,5 @@
+{% load links %}
+
 <c-layout.base
     title="{{ event.title }}"
     description="{{ event.description }}"
@@ -65,7 +67,7 @@
                         {% if event.location_type == "online" %}
                             <p class="font-bold text-lg">En ligne</p>
                             {% if event.online_url %}
-                                <c-components.inline-link href="{{ event.online_url }}" label="{{ event.online_url }}" class="break-all" target="_blank" rel="noopener noreferrer" />
+                                <c-components.inline-link href="{{ event.online_url }}" label="{{ event.online_url }}" class="break-all" target="_blank" icon="external-link" rel="noopener noreferrer" />
                             {% endif %}
                         {% else %}
                             <p class="font-bold text-lg">Adresse</p>
@@ -107,7 +109,7 @@
     {% if event.description %}
         <c-components.card class="w-full">
             <h3 class="font-bold text-lg">Description</h3>
-            <c-components.text>{{ event.description }}</c-components.text>
+            <c-components.text>{{ event.description|linkify }}</c-components.text>
         </c-components.card>
     {% endif %}
 
