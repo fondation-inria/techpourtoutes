@@ -1,3 +1,4 @@
+from .beneficiary.edit_legal_rep_form import BeneficiaryLegalRepEditForm
 from .beneficiary.edit_user_form import BeneficiaryEditUserForm
 from .beneficiary.training_experience_form import BeneficiaryTrainingExperienceForm
 from .destroy_user_form import DestroyUserForm
@@ -8,6 +9,7 @@ from .user_email_change_form import UserEmailChangeForm
 
 __all__ = [
     "BeneficiaryEditUserForm",
+    "BeneficiaryLegalRepEditForm",
     "BeneficiaryTrainingExperienceForm",
     "UserCommunicationForm",
     "DestroyUserForm",

@@ -13,6 +13,21 @@ urlpatterns = [
     path("mon-compte/profil/modifier/", views.edit_user, name="edit_user"),
     path("mon-compte/profil/update/", views.update_user, name="update_user"),
     path(
+        "mon-compte/profil/responsable-legal/infos/",
+        views.show_user_legal_rep_info,
+        name="show_user_legal_rep_info",
+    ),
+    path(
+        "mon-compte/profil/responsable-legal/modifier/",
+        views.edit_user_legal_rep,
+        name="edit_user_legal_rep",
+    ),
+    path(
+        "mon-compte/profil/responsable-legal/update/",
+        views.update_user_legal_rep,
+        name="update_user_legal_rep",
+    ),
+    path(
         "mon-compte/profil/communication/update/",
         views.update_user_communication,
         name="update_user_communication",

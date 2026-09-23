@@ -1,0 +1,18 @@
+{% load phone_filters %}
+<div id="account-info-legal-rep-card" class="w-full">
+    <c-components.card title="Personne responsable légale">
+        <c-components.text class="font-light">
+            Prénom Nom : <span class="font-medium">{{ user.legal_representative_name }}</span>
+
+            Adresse mail : <span class="font-medium">{{ user.legal_representative_email }}</span>
+        </c-components.text>
+        {% if not user.jobirl_user_id %}
+            <div class="flex mt-3 justify-end">
+                <c-components.button label="Modifier" variant="secondary"
+                    hx-get="{% url 'edit_user_legal_rep' %}"
+                    hx-target="#account-info-legal-rep-card"
+                    hx-swap="outerHTML" />
+            </div>
+        {% endif %}
+    </c-components.card>
+</div>

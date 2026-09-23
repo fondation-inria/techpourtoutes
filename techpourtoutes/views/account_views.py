@@ -5,10 +5,13 @@ from django.http import HttpResponse
 from django.shortcuts import redirect, render
 from django.views.decorators.http import require_POST
 
+from techpourtoutes.mailers.consortium_mailer import ConsortiumMailer
 from techpourtoutes.services.account.soft_delete_user import SoftDeleteUser
 
+from ..decorators import beneficiary_required
 from ..forms import (
     BeneficiaryEditUserForm,
+    BeneficiaryLegalRepEditForm,
     DestroyUserForm,
     ProEditUserForm,
     UserCommunicationForm,
@@ -200,6 +203,70 @@ def destroy_user(request):
         request,
         "account/partials/destroy_user_modal.html",
         {"form": form},
+    )
+
+
+@beneficiary_required
+@login_required
+def show_user_legal_rep_info(request):
+    is_pro, is_beneficiary, user = _resolve_user(request)
+    return render(
+        request,
+        "account/partials/show_user_legal_rep_info.html",
+        {"user": user},
+    )
+
+
+@beneficiary_required
+@login_required
+def edit_user_legal_rep(request):
+    is_pro, is_beneficiary, user = _resolve_user(request)
+    if user.jobirl_user_id:
+        return render(
+            request,
+            "account/partials/show_user_legal_rep_info.html",
+            {"user": user},
+        )
+    form = BeneficiaryLegalRepEditForm(beneficiary=user)
+    return render(
+        request,
+        "account/partials/edit_user_legal_rep.html",
+        {"form": form, "user": user},
+    )
+
+
+@require_POST
+@beneficiary_required
+@login_required
+def update_user_legal_rep(request):
+    is_pro, is_beneficiary, user = _resolve_user(request)
+    if user.jobirl_user_id:
+        return render(
+            request,
+            "account/partials/show_user_legal_rep_info.html",
+            {"user": user},
+        )
+    form = BeneficiaryLegalRepEditForm(data=request.POST, beneficiary=user)
+    if not form.is_valid():
+        return render(
+            request,
+            "account/partials/edit_user_legal_rep.html",
+            {"form": form, "user": user},
+        )
+
+    form.save(user)
+
+    ConsortiumMailer.mentoree_signed_up(
+        beneficiary=user,
+        mentoring_signup_data={
+            "legal_representative_name": user.legal_representative_name,
+            "legal_representative_email": user.legal_representative_email,
+        },
+    )
+    return render(
+        request,
+        "account/partials/show_user_legal_rep_info.html",
+        {"user": user},
     )
 
 

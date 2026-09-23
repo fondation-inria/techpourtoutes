@@ -167,6 +167,43 @@ def test_update_user_valid_saves_beneficiary_and_returns_info_card(client, benef
 
 
 @pytest.mark.django_db
+def test_edit_user_legal_rep_is_blocked_once_validated(client, beneficiary):
+    """Jobirl already holds what was submitted: the form has nothing left to correct."""
+    beneficiary.legal_representative_email = "parent@example.com"
+    beneficiary.jobirl_user_id = 42
+    beneficiary.save()
+    client.force_login(beneficiary)
+
+    response = client.get(reverse("edit_user_legal_rep"))
+
+    assert response.status_code == 200
+    assert "form" not in response.context
+    assert "parent@example.com" in response.content.decode()
+
+
+@pytest.mark.django_db
+def test_update_user_legal_rep_is_blocked_once_validated(client, beneficiary):
+    beneficiary.legal_representative_name = "Rep Original"
+    beneficiary.legal_representative_email = "parent@example.com"
+    beneficiary.jobirl_user_id = 42
+    beneficiary.save()
+    client.force_login(beneficiary)
+
+    response = client.post(
+        reverse("update_user_legal_rep"),
+        data={
+            "legal_representative_name": "Nouveau Nom",
+            "legal_representative_email": "autre@example.com",
+        },
+    )
+
+    assert response.status_code == 200
+    beneficiary.refresh_from_db()
+    assert beneficiary.legal_representative_name == "Rep Original"
+    assert beneficiary.legal_representative_email == "parent@example.com"
+
+
+@pytest.mark.django_db
 def test_destroy_user_get_not_allowed(client, pro):
     client.force_login(pro)
 
