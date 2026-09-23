@@ -67,7 +67,7 @@
                         {% if event.location_type == "online" %}
                             <p class="font-bold text-lg">En ligne</p>
                             {% if event.online_url %}
-                                <c-components.inline-link href="{{ event.online_url }}" label="{{ event.online_url }}" class="break-all" target="_blank" rel="noopener noreferrer" />
+                                <c-components.inline-link href="{{ event.online_url }}" label="{{ event.online_url }}" class="break-all" target="_blank" icon="external-link" rel="noopener noreferrer" />
                             {% endif %}
                         {% else %}
                             <p class="font-bold text-lg">Adresse</p>
