@@ -8,11 +8,21 @@
     </c-components.card-link>
 {% endif %}
 
-<c-components.card-link color="blue" title="Événements"
-                        button="{% if user.events.exists %}Gérer mes événements{% else %}Proposer un événement{% endif %}"
-                        href="{% url "index_pro_events" %}">
-    TechPourToutes vous permet de mettre en avant vos salons, portes ouvertes, hackathons, stages de renforcement de compétences, etc.
-</c-components.card-link>
+{% if user.events.upcoming.approved.exists %}
+    <c-components.card-link color="blue" title="Événements"
+                            button="Gérer mes événements"
+                            href="{% url "index_pro_events" %}">
+    {% with approved_upcoming_event_count=user.events.upcoming.approved.count %}
+        Vous avez {{ approved_upcoming_event_count }} événement{% if approved_upcoming_event_count > 1 %}s{% endif %} en cours.
+    {% endwith %}
+    </c-components.card-link>
+{% else %}
+    <c-components.card-link color="blue" title="Événements"
+                            button="Proposer un événement"
+                            href="{% url "index_pro_events" %}">
+        TechPourToutes vous permet de mettre en avant vos salons, portes ouvertes, hackathons, stages de renforcement de compétences, etc.
+    </c-components.card-link>
+{% endif %}
 
 {% if user.is_training_ambassador %}
     <c-components.card-link color="green" title="Ambassadorat étudiant" button="Rejoindre le forum" href="{% url "new_upcoming_feature_notification" %}">

@@ -1,3 +1,4 @@
+from datetime import timedelta
 from unittest.mock import patch
 from urllib.parse import parse_qs, urlparse
 
@@ -5,8 +6,9 @@ import pytest
 from django.contrib.messages import get_messages
 from django.core import mail
 from django.urls import reverse
+from django.utils import timezone
 
-from techpourtoutes.models import Beneficiary, Pro
+from techpourtoutes.models import Beneficiary, Event, Pro, SavedEvent
 
 
 @pytest.mark.django_db
@@ -48,13 +50,109 @@ def test_show_account_offers_proposing_an_event_when_the_pro_has_none(client, pr
 
 
 @pytest.mark.django_db
-def test_show_account_offers_managing_the_events_once_the_pro_submitted_one(client, pro, event):
+def test_show_account_offers_managing_the_events_once_the_pro_has_an_approved_one(
+    client, pro, event
+):
+    event.status = Event.Status.APPROVED
+    event.save()
     client.force_login(pro)
 
     content = client.get(reverse("show_account")).content.decode()
 
     assert "Gérer mes événements" in content
+    assert "Vous avez 1 événement en cours." in content
     assert reverse("index_pro_events") in content
+
+
+@pytest.mark.django_db
+def test_show_account_counts_every_approved_upcoming_event_of_the_pro(client, pro, event):
+    event.status = Event.Status.APPROVED
+    event.save()
+    Event.objects.create(
+        created_by=pro,
+        title="Portes ouvertes",
+        organizer="Numeum",
+        subcategory=Event.Subcategory.OPEN_HOUSE,
+        start_date=event.start_date,
+        end_date=event.end_date,
+        start_time=event.start_time,
+        end_time=event.end_time,
+        location_type=Event.LocationType.ONLINE,
+        access_type=Event.AccessType.OPEN,
+        price=0,
+        status=Event.Status.APPROVED,
+    )
+    client.force_login(pro)
+
+    content = client.get(reverse("show_account")).content.decode()
+
+    assert "Vous avez 2 événements en cours." in content
+
+
+@pytest.mark.django_db
+def test_show_account_offers_proposing_an_event_when_the_pro_event_awaits_moderation(
+    client, pro, event
+):
+    client.force_login(pro)
+
+    content = client.get(reverse("show_account")).content.decode()
+
+    assert "Proposer un événement" in content
+    assert "événement en cours." not in content
+
+
+@pytest.mark.django_db
+def test_show_account_offers_proposing_an_event_when_the_pro_event_is_past(client, pro, event):
+    event.status = Event.Status.APPROVED
+    event.start_date = timezone.localdate() - timedelta(days=10)
+    event.end_date = timezone.localdate() - timedelta(days=9)
+    event.save()
+    client.force_login(pro)
+
+    content = client.get(reverse("show_account")).content.decode()
+
+    assert "Proposer un événement" in content
+    assert "événement en cours." not in content
+
+
+@pytest.mark.django_db
+def test_show_account_counts_the_upcoming_events_the_beneficiary_saved(client, beneficiary, event):
+    event.status = Event.Status.APPROVED
+    event.save()
+    SavedEvent.objects.create(event=event, beneficiary=beneficiary)
+    client.force_login(beneficiary)
+
+    content = client.get(reverse("show_account")).content.decode()
+
+    assert "Tu as 1 événement en cours ou à venir." in content
+
+
+@pytest.mark.django_db
+def test_show_account_invites_the_beneficiary_to_browse_when_she_saved_none(
+    client, beneficiary, event
+):
+    event.status = Event.Status.APPROVED
+    event.save()
+    client.force_login(beneficiary)
+
+    content = client.get(reverse("show_account")).content.decode()
+
+    assert "Retrouve tes événements enregistrés" in content
+    assert "événement en cours ou à venir." not in content
+
+
+@pytest.mark.django_db
+def test_show_account_ignores_the_past_events_the_beneficiary_saved(client, beneficiary, event):
+    event.status = Event.Status.APPROVED
+    event.start_date = timezone.localdate() - timedelta(days=10)
+    event.end_date = timezone.localdate() - timedelta(days=9)
+    event.save()
+    SavedEvent.objects.create(event=event, beneficiary=beneficiary)
+    client.force_login(beneficiary)
+
+    content = client.get(reverse("show_account")).content.decode()
+
+    assert "Retrouve tes événements enregistrés" in content
 
 
 @pytest.mark.django_db

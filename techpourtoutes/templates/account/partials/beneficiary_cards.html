@@ -14,6 +14,11 @@
 <c-components.card-link color="blue" title="Événements"
                         button="Mes événements"
                         href="{% url "index_beneficiary_events" %}">
-    Retrouve tes événements enregistrés et découvre d'autres événements susceptibles de t'intéresser.
+    {% if user.saved_events.approved.upcoming.exists %}
+        {% with upcoming_event_count=user.saved_events.approved.upcoming.count %}
+            Tu as {{ upcoming_event_count }} événement{% if upcoming_event_count > 1 %}s{% endif %} enregistré{% if upcoming_event_count > 1 %}s{% endif %} en cours ou à venir.
+        {% endwith %}
+    {% else %}
+        Retrouve tes événements enregistrés et découvre d'autres événements susceptibles de t'intéresser.
+    {% endif %}
 </c-components.card-link>
-
