@@ -6,8 +6,6 @@ from ...utils.school_year import school_year_choices, school_year_dates
 from ..validators import FORMATION_LABEL_MAX_LENGTH, SCHOOL_LABEL_MAX_LENGTH
 from .base_training_experience_form import BaseTrainingExperienceForm, level_choices
 
-_ESTABLISHMENT_LABEL = _("Dans quel établissement as-tu obtenu ce diplôme ?*")
-
 
 class BeneficiaryLastDiplomaTrainingExperienceForm(BaseTrainingExperienceForm):
     """Training of those who finished or want to resume their studies: their last diploma.
@@ -17,25 +15,25 @@ class BeneficiaryLastDiplomaTrainingExperienceForm(BaseTrainingExperienceForm):
     """
 
     period_label = forms.ChoiceField(
-        label=_("En quelle année as-tu obtenu ton dernier diplôme ?*"),
+        label=_("En quelle année était-ce ?*"),
         choices=[("", _("Sélectionner une option")), *school_year_choices(years_forward=0)],
     )
     level = forms.ChoiceField(
-        label=_("Quel est le niveau de ton diplôme ?*"),
+        label=_("Quelle est la dernière année d'études que tu as validée ?*"),
         choices=level_choices(TrainingExperience.LEVELS),
     )
     school_label = forms.CharField(
         widget=forms.HiddenInput,
         required=False,
         max_length=SCHOOL_LABEL_MAX_LENGTH,
-        label=_ESTABLISHMENT_LABEL,
+        label=_("Dans quel établissement étais-tu scolarisée ?*"),
     )
     school_id = forms.CharField(widget=forms.HiddenInput, required=False)
     formation_label = forms.CharField(
         widget=forms.HiddenInput,
         required=False,
         max_length=FORMATION_LABEL_MAX_LENGTH,
-        label=_("De quelle formation es-tu diplômée ?*"),
+        label=_("De quelle formation s'agit-il ?*"),
     )
     formation_id = forms.CharField(widget=forms.HiddenInput, required=False)
 

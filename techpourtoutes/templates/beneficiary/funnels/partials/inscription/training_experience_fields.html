@@ -37,11 +37,11 @@
         group="{{ form.dom_id }}"
         unique_id="{{ form.dom_id }}" />
 {% else %}
-    <c-components.form_fields.select field=form.period_label />
     <div x-data="{ level: '{{ form.level.value|default:'' }}' }"
          @select-change="level = $event.detail.value"
          class="flex flex-col gap-y-4">
         <c-components.form_fields.select field=form.level :watchable=True />
+        <c-components.form_fields.select field=form.period_label />
         <template x-if="level != '' && !level.startsWith('bac_')">
             <div class="flex flex-col gap-y-4">
                 <c-components.form_fields.school_search
