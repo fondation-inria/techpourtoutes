@@ -60,7 +60,7 @@ def test_show_account_offers_managing_the_events_once_the_pro_has_an_approved_on
     content = client.get(reverse("show_account")).content.decode()
 
     assert "Gérer mes événements" in content
-    assert "Vous avez 1 événement en cours." in content
+    assert "Vous avez 1 événement en cours ou à venir." in content
     assert reverse("index_pro_events") in content
 
 
@@ -86,7 +86,7 @@ def test_show_account_counts_every_approved_upcoming_event_of_the_pro(client, pr
 
     content = client.get(reverse("show_account")).content.decode()
 
-    assert "Vous avez 2 événements en cours." in content
+    assert "Vous avez 2 événements en cours ou à venir." in content
 
 
 @pytest.mark.django_db
@@ -98,7 +98,7 @@ def test_show_account_offers_proposing_an_event_when_the_pro_event_awaits_modera
     content = client.get(reverse("show_account")).content.decode()
 
     assert "Proposer un événement" in content
-    assert "événement en cours." not in content
+    assert "événement en cours ou à venir." not in content
 
 
 @pytest.mark.django_db
@@ -112,7 +112,7 @@ def test_show_account_offers_proposing_an_event_when_the_pro_event_is_past(clien
     content = client.get(reverse("show_account")).content.decode()
 
     assert "Proposer un événement" in content
-    assert "événement en cours." not in content
+    assert "événement en cours ou à venir." not in content
 
 
 @pytest.mark.django_db

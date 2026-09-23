@@ -13,7 +13,7 @@
                             button="Gérer mes événements"
                             href="{% url "index_pro_events" %}">
     {% with approved_upcoming_event_count=user.events.upcoming.approved.count %}
-        Vous avez {{ approved_upcoming_event_count }} événement{% if approved_upcoming_event_count > 1 %}s{% endif %} en cours.
+        Vous avez {{ approved_upcoming_event_count }} événement{% if approved_upcoming_event_count > 1 %}s{% endif %} en cours ou à venir.
     {% endwith %}
     </c-components.card-link>
 {% else %}
