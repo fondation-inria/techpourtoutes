@@ -124,7 +124,7 @@ def test_show_account_counts_the_upcoming_events_the_beneficiary_saved(client, b
 
     content = client.get(reverse("show_account")).content.decode()
 
-    assert "Tu as 1 événement en cours ou à venir." in content
+    assert "Tu as 1 événement enregistré en cours ou à venir." in content
 
 
 @pytest.mark.django_db
@@ -138,7 +138,7 @@ def test_show_account_invites_the_beneficiary_to_browse_when_she_saved_none(
     content = client.get(reverse("show_account")).content.decode()
 
     assert "Retrouve tes événements enregistrés" in content
-    assert "événement en cours ou à venir." not in content
+    assert "Tu as " not in content
 
 
 @pytest.mark.django_db
