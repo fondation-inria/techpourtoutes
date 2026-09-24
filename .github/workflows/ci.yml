@@ -60,3 +60,61 @@ jobs:
       - if: steps.playwright-cache.outputs.cache-hit != 'true'
         run: uv run playwright install chromium
       - run: make test
+
+  # Scalingo's auto-deploy is off: it waited for every check on the commit, including workflows
+  # that have nothing to do with the code. Deploying from here makes lint and test the only gate.
+  deploy:
+    if: github.event_name == 'push'
+    needs: [lint, test]
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    concurrency:
+      group: deploy-${{ github.ref_name }}
+    permissions:
+      contents: read
+      pull-requests: read
+      issues: read
+    env:
+      SCALINGO_APP: ${{ github.ref_name == 'main' && 'techpourtoutes' || 'techpourtoutes-staging' }}
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+
+      - name: Build the announcement
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          BEFORE: ${{ github.event.before }}
+          AFTER: ${{ github.sha }}
+        run: bash .github/scripts/build-tchap-deploy-message.sh > announcement.json
+
+      # The deployed SHA doubles as the Matrix transaction id, so re-running the job
+      # never posts the same deploy twice.
+      - uses: ./.github/actions/post-to-tchap
+        with:
+          payload-file: announcement.json
+          transaction-id: deploy-${{ github.sha }}
+          homeserver: ${{ secrets.TCHAP_HOMESERVER }}
+          room-id: ${{ secrets.TCHAP_ROOM_ID }}
+          token: ${{ secrets.TCHAP_BOT_TOKEN }}
+
+      - name: Deploy and build the report
+        id: deployment
+        env:
+          SCALINGO_API_TOKEN: ${{ secrets.SCALINGO_API_TOKEN }}
+          SCALINGO_API_URL: https://api.osc-fr1.scalingo.com
+          SCALINGO_DEPLOYMENTS_URL: https://dashboard.scalingo.com/apps/osc-fr1/${{ env.SCALINGO_APP }}/deploy/list
+          SHA: ${{ github.sha }}
+        run: bash .github/scripts/deploy-to-scalingo.sh > report.json
+
+      - uses: ./.github/actions/post-to-tchap
+        with:
+          payload-file: report.json
+          transaction-id: deploy-result-${{ github.sha }}
+          homeserver: ${{ secrets.TCHAP_HOMESERVER }}
+          room-id: ${{ secrets.TCHAP_ROOM_ID }}
+          token: ${{ secrets.TCHAP_BOT_TOKEN }}
+
+      - name: Fail the job when the deploy did not succeed
+        if: steps.deployment.outputs.status != 'success'
+        run: exit 1
