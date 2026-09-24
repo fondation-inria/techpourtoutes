@@ -260,6 +260,19 @@ def update_beneficiary_legal_rep(request):
             {"form": form, "user": user},
         )
 
+    is_email_unchanged = (
+        form.cleaned_data["legal_representative_email"] == user.legal_representative_email
+    )
+    is_name_unchanged = (
+        form.cleaned_data["legal_representative_name"] == user.legal_representative_name
+    )
+    if is_email_unchanged and is_name_unchanged:
+        return render(
+            request,
+            "account/partials/show_beneficiary_legal_rep.html",
+            {"user": user},
+        )
+
     form.save(user)
 
     ConsortiumMailer.mentoree_signed_up(

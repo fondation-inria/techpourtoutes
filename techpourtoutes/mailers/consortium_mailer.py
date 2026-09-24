@@ -66,11 +66,13 @@ class ConsortiumMailer(BaseMailer):
 
     @classmethod
     def mentoree_signed_up(cls, *, beneficiary, mentoring_signup_data, is_update=False):
-        main_subject = "Nouvelle attestation à envoyer"
-        cls.send_mail(
-            subject="Mise à jour du responsable légal - " + main_subject
+        subject = (
+            "Mise à jour du responsable légal - Nouvelle attestation à envoyer"
             if is_update
-            else main_subject,
+            else "Nouvelle attestation à envoyer"
+        )
+        cls.send_mail(
+            subject=subject,
             recipient_list=settings.NEW_MENTORING_SIGNUP_RECIPIENTS,
             context={
                 "beneficiary": beneficiary,

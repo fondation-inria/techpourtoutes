@@ -232,6 +232,48 @@ def test_edit_beneficiary_legal_rep_is_blocked_once_validated(client, beneficiar
 
 
 @pytest.mark.django_db
+def test_update_beneficiary_legal_rep_saves_changes_and_notifies(client, beneficiary):
+    beneficiary.legal_representative_name = "Rep Original"
+    beneficiary.legal_representative_email = "parent@example.com"
+    beneficiary.save()
+    client.force_login(beneficiary)
+
+    response = client.post(
+        reverse("update_beneficiary_legal_rep"),
+        data={
+            "legal_representative_name": "Nouveau Nom",
+            "legal_representative_email": "autre@example.com",
+        },
+    )
+
+    assert response.status_code == 200
+    beneficiary.refresh_from_db()
+    assert beneficiary.legal_representative_name == "Nouveau Nom"
+    assert beneficiary.legal_representative_email == "autre@example.com"
+    assert len(mail.outbox) == 1
+    assert "Mise à jour" in mail.outbox[0].subject
+
+
+@pytest.mark.django_db
+def test_update_beneficiary_legal_rep_skips_notification_when_unchanged(client, beneficiary):
+    beneficiary.legal_representative_name = "Rep Original"
+    beneficiary.legal_representative_email = "parent@example.com"
+    beneficiary.save()
+    client.force_login(beneficiary)
+
+    response = client.post(
+        reverse("update_beneficiary_legal_rep"),
+        data={
+            "legal_representative_name": "Rep Original",
+            "legal_representative_email": "parent@example.com",
+        },
+    )
+
+    assert response.status_code == 200
+    assert len(mail.outbox) == 0
+
+
+@pytest.mark.django_db
 def test_update_beneficiary_legal_rep_is_blocked_once_validated(client, beneficiary):
     beneficiary.legal_representative_name = "Rep Original"
     beneficiary.legal_representative_email = "parent@example.com"
