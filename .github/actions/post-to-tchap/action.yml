@@ -1,0 +1,36 @@
+name: "Post a message to Tchap"
+
+inputs:
+  payload-file:
+    description: "File holding the m.room.message content to send"
+    required: true
+  transaction-id:
+    description: "Matrix transaction id, so re-running a job never posts the same message twice"
+    required: true
+  homeserver:
+    description: "Base URL of the bot's Tchap homeserver"
+    required: true
+  room-id:
+    description: "Internal id of the room to post in"
+    required: true
+  token:
+    description: "Access token of the bot account"
+    required: true
+
+runs:
+  using: "composite"
+  steps:
+    - shell: bash
+      env:
+        PAYLOAD_FILE: ${{ inputs.payload-file }}
+        TRANSACTION_ID: ${{ inputs.transaction-id }}
+        TCHAP_HOMESERVER: ${{ inputs.homeserver }}
+        TCHAP_ROOM_ID: ${{ inputs.room-id }}
+        TCHAP_BOT_TOKEN: ${{ inputs.token }}
+      run: |
+        room=$(printf '%s' "$TCHAP_ROOM_ID" | jq -sRr @uri)
+        curl --fail-with-body -sS -X PUT \
+          -H "Authorization: Bearer ${TCHAP_BOT_TOKEN}" \
+          -H "Content-Type: application/json" \
+          --data-binary "@${PAYLOAD_FILE}" \
+          "${TCHAP_HOMESERVER}/_matrix/client/v3/rooms/${room}/send/m.room.message/${TRANSACTION_ID}"
