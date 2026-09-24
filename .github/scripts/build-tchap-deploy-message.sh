@@ -66,8 +66,8 @@ jq -n --argjson items "$items" --arg title "🚀 Mise en production — ${repo}"
     msgtype: "m.notice",
     body: ([$title] + ($items | map("• " + entry + issues_text)) | join("\n")),
     format: "org.matrix.custom.html",
-    formatted_body: "<b>\($title | escape)</b><ul>"
+    formatted_body: ("<b>\($title | escape)</b><ul>"
       + ($items | map("<li>" + entry_html + issues_html + "</li>") | join(""))
-      + "</ul>"
+      + "</ul>")
   }
 '

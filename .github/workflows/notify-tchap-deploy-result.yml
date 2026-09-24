@@ -11,6 +11,8 @@ jobs:
   report:
     runs-on: ubuntu-latest
     timeout-minutes: 25
+    env:
+      SCALINGO_APP: ${{ github.ref_name == 'main' && 'techpourtoutes' || 'techpourtoutes-staging' }}
     steps:
       - uses: actions/checkout@v7
 
@@ -19,8 +21,7 @@ jobs:
         env:
           SCALINGO_API_TOKEN: ${{ secrets.SCALINGO_API_TOKEN }}
           SCALINGO_API_URL: https://api.osc-fr1.scalingo.com
-          SCALINGO_APP: techpourtoutes
-          SCALINGO_DEPLOYMENTS_URL: https://dashboard.scalingo.com/apps/osc-fr1/techpourtoutes/deploy/list
+          SCALINGO_DEPLOYMENTS_URL: https://dashboard.scalingo.com/apps/osc-fr1/${{ env.SCALINGO_APP }}/deploy/list
           SHA: ${{ github.sha }}
         run: bash .github/scripts/report-scalingo-deployment.sh > payload.json
 
