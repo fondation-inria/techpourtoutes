@@ -1,12 +1,12 @@
-name: "Deploy review app"
+name: "Review app"
 
+# One workflow for both commands: GitHub cannot filter issue_comment on its body, so every
+# comment starts a run of each workflow listening to it — one run per comment beats two.
 on:
+  pull_request:
+    types: [closed]
   issue_comment:
     types: [created]
-
-permissions:
-  contents: read
-  issues: read
 
 jobs:
   deploy:
@@ -14,6 +14,9 @@ jobs:
       github.event.issue.pull_request != null &&
       startsWith(github.event.comment.body, '/deploy-review-app') &&
       contains(fromJSON('["OWNER", "MEMBER", "COLLABORATOR"]'), github.event.comment.author_association)
+    permissions:
+      contents: read
+      issues: read
     runs-on: ubuntu-latest
     environment: review-app
     concurrency:
@@ -195,3 +198,49 @@ jobs:
               issue_number: context.issue.number,
               body: `Échec du déploiement de la review app${status ? ` (statut : \`${status}\`)` : ""}.\n\n${advice}\n\n[Logs du workflow](${runUrl})`,
             });
+
+  destroy:
+    if: >
+      github.event_name == 'pull_request' ||
+      (
+        github.event.issue.pull_request != null &&
+        startsWith(github.event.comment.body, '/destroy-review-app') &&
+        contains(fromJSON('["OWNER", "MEMBER", "COLLABORATOR"]'), github.event.comment.author_association)
+      )
+    permissions:
+      contents: read
+      issues: write
+    runs-on: ubuntu-latest
+    environment: review-app
+    concurrency:
+      group: review-app-destroy-${{ github.event.pull_request.number || github.event.issue.number }}
+      cancel-in-progress: true
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: ./.github/actions/install-scalingo-cli
+
+      - run: scalingo login --api-token ${{ secrets.SCALINGO_API_TOKEN }}
+
+      - name: Destroy review app
+        id: destroy
+        continue-on-error: true
+        env:
+          PR_NUMBER: ${{ github.event.pull_request.number || github.event.issue.number }}
+        run: scalingo --app "techpourtoutes-staging-pr${PR_NUMBER}" destroy --force
+
+      - name: Generate app token for PR comment
+        id: app-token
+        if: github.event_name == 'issue_comment'
+        uses: actions/create-github-app-token@v3
+        with:
+          app-id: ${{ secrets.APP_ID }}
+          private-key: ${{ secrets.APP_PRIVATE_KEY }}
+
+      - name: Comment PR with destroy result
+        if: github.event_name == 'issue_comment'
+        uses: peter-evans/create-or-update-comment@v5
+        with:
+          token: ${{ steps.app-token.outputs.token }}
+          issue-number: ${{ github.event.issue.number }}
+          body: ${{ steps.destroy.outcome == 'success' && 'Review app supprimée.' || 'Échec de la suppression de la review app (voir les logs du workflow).' }}

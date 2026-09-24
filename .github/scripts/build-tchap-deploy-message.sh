@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
-# Builds the Matrix message announcing what a push on main just sent to production.
-# Reads BEFORE / AFTER / GITHUB_REPOSITORY from the environment, writes the payload on stdout.
+# Builds the Matrix message announcing what a push on main or staging is about to deploy.
+# Reads BEFORE / AFTER / GITHUB_REPOSITORY / GITHUB_REF_NAME from the environment, writes the
+# payload on stdout.
 set -euo pipefail
 
 owner="${GITHUB_REPOSITORY%/*}"
@@ -43,7 +44,13 @@ if [[ "$(jq 'length' <<<"$items")" -eq 0 ]]; then
     jq -s '.')
 fi
 
-jq -n --argjson items "$items" --arg title "🚀 Mise en production — ${repo}" '
+if [[ "$GITHUB_REF_NAME" == "main" ]]; then
+  title="🚀 Mise en production — ${repo}"
+else
+  title="🚜 Déploiement sur staging — ${repo}"
+fi
+
+jq -n --argjson items "$items" --arg title "$title" '
   def escape: gsub("&"; "&amp;") | gsub("<"; "&lt;") | gsub(">"; "&gt;");
 
   def entry: if .number then "\(.title) (#\(.number))" else .title end;
