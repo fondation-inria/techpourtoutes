@@ -65,9 +65,12 @@ class ConsortiumMailer(BaseMailer):
         )
 
     @classmethod
-    def mentoree_signed_up(cls, *, beneficiary, mentoring_signup_data):
+    def mentoree_signed_up(cls, *, beneficiary, mentoring_signup_data, is_update=False):
+        main_subject = "Nouvelle attestation à envoyer"
         cls.send_mail(
-            subject="Nouvelle attestation à envoyer",
+            subject="Mise à jour du responsable légal - " + main_subject
+            if is_update
+            else main_subject,
             recipient_list=settings.NEW_MENTORING_SIGNUP_RECIPIENTS,
             context={
                 "beneficiary": beneficiary,
@@ -77,6 +80,7 @@ class ConsortiumMailer(BaseMailer):
                 "legal_representative_email": mentoring_signup_data.get(
                     "legal_representative_email"
                 ),
+                "is_update": is_update,
             },
             tags=["interne", "bénéficiaire", "nouvelle demande de mentorat"],
         )

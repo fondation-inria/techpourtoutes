@@ -9,7 +9,7 @@
         {% if not user.jobirl_user_id %}
             <div class="flex mt-3 justify-end">
                 <c-components.button label="Modifier" variant="secondary"
-                    hx-get="{% url 'edit_user_legal_rep' %}"
+                    hx-get="{% url 'edit_beneficiary_legal_rep' %}"
                     hx-target="#account-info-legal-rep-card"
                     hx-swap="outerHTML" />
             </div>

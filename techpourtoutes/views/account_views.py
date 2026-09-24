@@ -208,29 +208,33 @@ def destroy_user(request):
 
 @beneficiary_required
 @login_required
-def show_user_legal_rep_info(request):
+def show_beneficiary_legal_rep(request):
     is_pro, is_beneficiary, user = _resolve_user(request)
+    if not user.is_registered_for_mentoring:
+        return _reject_unregistered_legal_rep(request)
     return render(
         request,
-        "account/partials/show_user_legal_rep_info.html",
+        "account/partials/show_beneficiary_legal_rep.html",
         {"user": user},
     )
 
 
 @beneficiary_required
 @login_required
-def edit_user_legal_rep(request):
+def edit_beneficiary_legal_rep(request):
     is_pro, is_beneficiary, user = _resolve_user(request)
+    if not user.is_registered_for_mentoring:
+        return _reject_unregistered_legal_rep(request)
     if user.jobirl_user_id:
         return render(
             request,
-            "account/partials/show_user_legal_rep_info.html",
+            "account/partials/show_beneficiary_legal_rep.html",
             {"user": user},
         )
     form = BeneficiaryLegalRepEditForm(beneficiary=user)
     return render(
         request,
-        "account/partials/edit_user_legal_rep.html",
+        "account/partials/edit_beneficiary_legal_rep.html",
         {"form": form, "user": user},
     )
 
@@ -238,19 +242,21 @@ def edit_user_legal_rep(request):
 @require_POST
 @beneficiary_required
 @login_required
-def update_user_legal_rep(request):
+def update_beneficiary_legal_rep(request):
     is_pro, is_beneficiary, user = _resolve_user(request)
+    if not user.is_registered_for_mentoring:
+        return _reject_unregistered_legal_rep(request)
     if user.jobirl_user_id:
         return render(
             request,
-            "account/partials/show_user_legal_rep_info.html",
+            "account/partials/show_beneficiary_legal_rep.html",
             {"user": user},
         )
     form = BeneficiaryLegalRepEditForm(data=request.POST, beneficiary=user)
     if not form.is_valid():
         return render(
             request,
-            "account/partials/edit_user_legal_rep.html",
+            "account/partials/edit_beneficiary_legal_rep.html",
             {"form": form, "user": user},
         )
 
@@ -262,10 +268,11 @@ def update_user_legal_rep(request):
             "legal_representative_name": user.legal_representative_name,
             "legal_representative_email": user.legal_representative_email,
         },
+        is_update=True,
     )
     return render(
         request,
-        "account/partials/show_user_legal_rep_info.html",
+        "account/partials/show_beneficiary_legal_rep.html",
         {"user": user},
     )
 
@@ -305,6 +312,11 @@ def _reject_expired_email_change(request):
         request,
         "La demande de changement d'adresse a expiré. Veuillez recommencer.",
     )
+    return redirect("show_account")
+
+
+def _reject_unregistered_legal_rep(request):
+    messages.info(request, "Tu n'es pas encore inscrite au programme de mentorat.")
     return redirect("show_account")
 
 
