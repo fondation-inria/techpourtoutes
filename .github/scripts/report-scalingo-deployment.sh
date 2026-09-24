@@ -8,15 +8,25 @@ poll_interval=10
 max_polls=120
 timeout_minutes=$((poll_interval * max_polls / 60))
 
-bearer=$(curl -sf -u ":$SCALINGO_API_TOKEN" -X POST https://auth.scalingo.com/v1/tokens/exchange |
-  jq -r .token)
+bearer=$(curl -sS -u ":$SCALINGO_API_TOKEN" -X POST https://auth.scalingo.com/v1/tokens/exchange |
+  jq -r '.token // empty')
+if [[ -z "$bearer" ]]; then
+  echo "Échange du token Scalingo refusé : SCALINGO_API_TOKEN est-il défini dans les secrets du repo ?" >&2
+  exit 1
+fi
 
 # Deployments come back newest first, so the first match is the run this push triggered.
 # Comparing seven characters covers both the short and the full form of git_ref.
 deployment() {
-  curl -sf -H "Authorization: Bearer $bearer" \
-    "$SCALINGO_API_URL/v1/apps/$SCALINGO_APP/deployments" |
-    jq -c --arg sha "$SHA" '[.deployments[] | select(.git_ref[0:7] == $sha[0:7])][0] // empty'
+  local response
+  response=$(curl -sS -H "Authorization: Bearer $bearer" \
+    "$SCALINGO_API_URL/v1/apps/$SCALINGO_APP/deployments")
+  if ! jq -e 'has("deployments")' <<<"$response" >/dev/null; then
+    echo "Scalingo n'a renvoyé aucun déploiement pour l'app « $SCALINGO_APP » : $response" >&2
+    exit 1
+  fi
+  jq -c --arg sha "$SHA" '[.deployments[] | select(.git_ref[0:7] == $sha[0:7])][0] // empty' \
+    <<<"$response"
 }
 
 status=""
