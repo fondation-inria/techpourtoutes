@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
-# Waits for the Scalingo deployment of $SHA to reach a terminal status, then writes the Matrix
-# message reporting it on stdout and the status on $GITHUB_OUTPUT. A failed deploy is a normal
-# outcome here, not an error: reporting it is the whole point of the script.
+# Deploys the archive of $SHA to $SCALINGO_APP and waits for that deployment to reach a terminal
+# status, then writes the Matrix message reporting it on stdout and the status on $GITHUB_OUTPUT.
+# A failed deploy is a normal outcome here, not an error: reporting it is the whole point.
 set -euo pipefail
 
 poll_interval=10
@@ -15,28 +15,29 @@ if [[ -z "$bearer" ]]; then
   exit 1
 fi
 
-# Deployments come back newest first, so the first match is the run this push triggered.
-# Comparing seven characters covers both the short and the full form of git_ref.
-deployment() {
-  local response
-  response=$(curl -sS -H "Authorization: Bearer $bearer" \
-    "$SCALINGO_API_URL/v1/apps/$SCALINGO_APP/deployments")
-  if ! jq -e 'has("deployments")' <<<"$response" >/dev/null; then
-    echo "Scalingo n'a renvoyé aucun déploiement pour l'app « $SCALINGO_APP » : $response" >&2
-    exit 1
-  fi
-  jq -c --arg sha "$SHA" '[.deployments[] | select(.git_ref[0:7] == $sha[0:7])][0] // empty' \
-    <<<"$response"
+deployments_api() {
+  local path="$1"
+  shift
+  curl -sS -H "Authorization: Bearer $bearer" -H "Content-Type: application/json" \
+    "$SCALINGO_API_URL/v1/apps/$SCALINGO_APP/deployments$path" "$@"
 }
+
+# The archive of this exact SHA rather than the branch: what ships is what was tested,
+# even when another push lands in the meantime.
+response=$(deployments_api "" -X POST -d "$(jq -n --arg sha "$SHA" --arg repo "$GITHUB_REPOSITORY" \
+  '{deployment: {git_ref: $sha, source_url: "https://github.com/\($repo)/archive/\($sha).tar.gz"}}')")
+deployment_id=$(jq -r '.deployment.id // empty' <<<"$response")
+if [[ -z "$deployment_id" ]]; then
+  echo "Scalingo a refusé le déploiement sur l'app « $SCALINGO_APP » : $response" >&2
+  exit 1
+fi
 
 status=""
 duration=""
 for _ in $(seq 1 "$max_polls"); do
-  found=$(deployment)
-  if [[ -n "$found" ]]; then
-    status=$(jq -r '.status' <<<"$found")
-    duration=$(jq -r '.duration // empty' <<<"$found")
-  fi
+  deployment=$(deployments_api "/$deployment_id")
+  status=$(jq -r '.deployment.status // empty' <<<"$deployment")
+  duration=$(jq -r '.deployment.duration // empty' <<<"$deployment")
   case "$status" in
     success | *-error | aborted) break ;;
   esac
