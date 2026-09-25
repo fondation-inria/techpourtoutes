@@ -1,5 +1,6 @@
 from .account import (
     BeneficiaryEditUserForm,
+    BeneficiaryLegalRepEditForm,
     BeneficiaryTrainingExperienceForm,
     DestroyUserForm,
     ProEditUserForm,
@@ -31,6 +32,7 @@ __all__ = [
     "BeneficiaryLastDiplomaTrainingExperienceForm",
     "BeneficiaryMentoringSignUpForm",
     "BeneficiaryStudyStatusForm",
+    "BeneficiaryLegalRepEditForm",
     "BeneficiaryEditUserForm",
     "BeneficiaryTrainingExperienceForm",
     "UserCommunicationForm",

@@ -5,10 +5,13 @@ from django.http import HttpResponse
 from django.shortcuts import redirect, render
 from django.views.decorators.http import require_POST
 
+from techpourtoutes.mailers.consortium_mailer import ConsortiumMailer
 from techpourtoutes.services.account.soft_delete_user import SoftDeleteUser
 
+from ..decorators import beneficiary_required
 from ..forms import (
     BeneficiaryEditUserForm,
+    BeneficiaryLegalRepEditForm,
     DestroyUserForm,
     ProEditUserForm,
     UserCommunicationForm,
@@ -203,6 +206,90 @@ def destroy_user(request):
     )
 
 
+@beneficiary_required
+@login_required
+def show_beneficiary_legal_rep(request):
+    is_pro, is_beneficiary, user = _resolve_user(request)
+    if not user.is_registered_for_mentoring:
+        return _reject_unregistered_legal_rep(request)
+    return render(
+        request,
+        "account/partials/show_beneficiary_legal_rep.html",
+        {"user": user},
+    )
+
+
+@beneficiary_required
+@login_required
+def edit_beneficiary_legal_rep(request):
+    is_pro, is_beneficiary, user = _resolve_user(request)
+    if not user.is_registered_for_mentoring:
+        return _reject_unregistered_legal_rep(request)
+    if user.jobirl_user_id:
+        return render(
+            request,
+            "account/partials/show_beneficiary_legal_rep.html",
+            {"user": user},
+        )
+    form = BeneficiaryLegalRepEditForm(beneficiary=user)
+    return render(
+        request,
+        "account/partials/edit_beneficiary_legal_rep.html",
+        {"form": form, "user": user},
+    )
+
+
+@require_POST
+@beneficiary_required
+@login_required
+def update_beneficiary_legal_rep(request):
+    is_pro, is_beneficiary, user = _resolve_user(request)
+    if not user.is_registered_for_mentoring:
+        return _reject_unregistered_legal_rep(request)
+    if user.jobirl_user_id:
+        return render(
+            request,
+            "account/partials/show_beneficiary_legal_rep.html",
+            {"user": user},
+        )
+    form = BeneficiaryLegalRepEditForm(data=request.POST, beneficiary=user)
+    if not form.is_valid():
+        return render(
+            request,
+            "account/partials/edit_beneficiary_legal_rep.html",
+            {"form": form, "user": user},
+        )
+
+    is_email_unchanged = (
+        form.cleaned_data["legal_representative_email"] == user.legal_representative_email
+    )
+    is_name_unchanged = (
+        form.cleaned_data["legal_representative_name"] == user.legal_representative_name
+    )
+    if is_email_unchanged and is_name_unchanged:
+        return render(
+            request,
+            "account/partials/show_beneficiary_legal_rep.html",
+            {"user": user},
+        )
+
+    form.save(user)
+
+    ConsortiumMailer.mentoree_signed_up(
+        beneficiary=user,
+        mentoring_signup_data={
+            "legal_representative_name": user.legal_representative_name,
+            "legal_representative_email": user.legal_representative_email,
+        },
+        is_update=True,
+    )
+    return render(
+        request,
+        "account/partials/show_beneficiary_legal_rep.html",
+        {"user": user},
+    )
+
+
 # --------------------- private ----------------
 
 
@@ -238,6 +325,11 @@ def _reject_expired_email_change(request):
         request,
         "La demande de changement d'adresse a expiré. Veuillez recommencer.",
     )
+    return redirect("show_account")
+
+
+def _reject_unregistered_legal_rep(request):
+    messages.info(request, "Tu n'es pas encore inscrite au programme de mentorat.")
     return redirect("show_account")
 
 
