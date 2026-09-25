@@ -14,6 +14,8 @@ from pathlib import Path
 
 import environ
 
+from techpourtoutes.utils.environment import email_subject_prefix
+
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 env = environ.Env(DEBUG=(bool, False))
@@ -188,6 +190,9 @@ DEFAULT_FROM_EMAIL = env(
     "DEFAULT_FROM_EMAIL", default="TechPourToutes <noreply@techpourtoutes.io>"
 )
 BREVO_API_KEY = env("BREVO_API_KEY", default="")
+# Scalingo names each app after the environment it serves, and every mail we send announces it:
+# `[staging] `, `[pr-320] `. Production — and local dev, where `$APP` is unset — gets no prefix.
+EMAIL_SUBJECT_PREFIX = email_subject_prefix(env("APP", default=""))
 if DEBUG:
     EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
     EMAIL_HOST = "localhost"
