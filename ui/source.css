@@ -248,7 +248,7 @@
   }
   /* Boxed form controls: input, select */
   .field-base {
-    @apply w-full px-3 py-2 text-sm rounded focus:outline-none text-neutral-950 bg-purple-500/10 border border-neutral-950;
+    @apply w-full px-3 py-2 text-base sm:text-sm rounded focus:outline-none text-neutral-950 bg-purple-500/10 border border-neutral-950;
   }
   .field-default {
     @apply focus:border-primary;

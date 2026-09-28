@@ -1,0 +1,135 @@
+name: "Move ticket to In review"
+
+on:
+  pull_request:
+    types: [review_requested, edited]
+
+permissions:
+  contents: read
+
+env:
+  # Project "TechPourToutes" (org fondation-inria, number 1) and its Status field.
+  # Re-read these ids (needs a token with read:project) with:
+  #   gh api graphql -f query='{organization(login:"fondation-inria"){projectV2(number:1){
+  #     id fields(first:30){nodes{...on ProjectV2SingleSelectField{id name options{id name}}}}}}}'
+  PROJECT_ID: PVT_kwDOD_e3Us4BUDRg
+  STATUS_FIELD_ID: PVTSSF_lADOD_e3Us4BUDRgzhBOCTs
+  IN_REVIEW_OPTION_ID: df73e18b
+  # Backlog, Ready, In progress. A ticket only ever moves forward from one of these:
+  # "In review" is already there, and "Done" is left to whoever put it there.
+  ADVANCE_FROM_OPTION_IDS: "f75ad846 61e4505c 47fc9ee4"
+
+jobs:
+  move:
+    # A fork PR gets no secrets, so the app token step would fail: skip it rather than
+    # turn every such PR red. Never switch this workflow to pull_request_target, which
+    # would hand the app token to code the fork controls.
+    if: github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: ubuntu-latest
+    concurrency:
+      group: move-ticket-${{ github.event.pull_request.number }}
+    steps:
+      - name: Generate app token
+        id: app-token
+        uses: actions/create-github-app-token@v3
+        with:
+          app-id: ${{ secrets.APP_ID }}
+          private-key: ${{ secrets.APP_PRIVATE_KEY }}
+
+      - name: Move the linked tickets to In review
+        env:
+          GH_TOKEN: ${{ steps.app-token.outputs.token }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+        run: |
+          set -euo pipefail
+
+          gh api graphql \
+            -f owner="${GITHUB_REPOSITORY%/*}" \
+            -f repo="${GITHUB_REPOSITORY#*/}" \
+            -F pr="$PR_NUMBER" \
+            -f query='
+              query($owner: String!, $repo: String!, $pr: Int!) {
+                repository(owner: $owner, name: $repo) {
+                  pullRequest(number: $pr) {
+                    reviewRequests(first: 1) { totalCount }
+                    reviews(first: 1) { totalCount }
+                    closingIssuesReferences(first: 10) {
+                      nodes {
+                        number
+                        projectItems(first: 20) {
+                          nodes {
+                            id
+                            project { id }
+                            fieldValues(first: 20) {
+                              nodes {
+                                ... on ProjectV2ItemFieldSingleSelectValue {
+                                  optionId
+                                  field {
+                                    ... on ProjectV2SingleSelectField { id }
+                                  }
+                                }
+                              }
+                            }
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }' > pr.json
+
+          # The edited trigger fires on any title or body change, so a PR nobody has been
+          # asked to review yet must not advance its ticket. A request that was already
+          # answered no longer shows in reviewRequests, hence the reviews count too.
+          requested=$(jq '[.data.repository.pullRequest.reviewRequests.totalCount,
+                           .data.repository.pullRequest.reviews.totalCount] | add' pr.json)
+          if [ "$requested" -eq 0 ]; then
+            echo "No review ever requested on PR #$PR_NUMBER — nothing to move."
+            exit 0
+          fi
+
+          jq -r --arg project "$PROJECT_ID" --arg field "$STATUS_FIELD_ID" '
+            .data.repository.pullRequest.closingIssuesReferences.nodes[]
+            | .number as $issue
+            | .projectItems.nodes[]
+            | select(.project.id == $project)
+            | [$issue, .id,
+               (.fieldValues.nodes | map(select(.field.id? == $field)) | first | .optionId // "")]
+            | map(tostring) | join("\u001f")
+          ' pr.json > targets.txt
+
+          if [ ! -s targets.txt ]; then
+            echo "No ticket linked to PR #$PR_NUMBER sits on the board — nothing to move."
+            exit 0
+          fi
+
+          # Tab is IFS whitespace, so a ticket with no status set would collapse the
+          # columns: the unit separator keeps empty fields empty.
+          while IFS=$'\x1f' read -r issue item_id current; do
+            if [ "$current" = "$IN_REVIEW_OPTION_ID" ]; then
+              echo "Issue #$issue is already In review — left alone."
+              continue
+            fi
+
+            if [ -n "$current" ] && [[ " $ADVANCE_FROM_OPTION_IDS " != *" $current "* ]]; then
+              echo "Issue #$issue sits past In review — left alone."
+              continue
+            fi
+
+            gh api graphql \
+              -f project="$PROJECT_ID" \
+              -f item="$item_id" \
+              -f field="$STATUS_FIELD_ID" \
+              -f option="$IN_REVIEW_OPTION_ID" \
+              -f query='
+                mutation($project: ID!, $item: ID!, $field: ID!, $option: String!) {
+                  updateProjectV2ItemFieldValue(input: {
+                    projectId: $project
+                    itemId: $item
+                    fieldId: $field
+                    value: { singleSelectOptionId: $option }
+                  }) { projectV2Item { id } }
+                }' > /dev/null
+
+            echo "Issue #$issue moved to In review."
+          done < targets.txt

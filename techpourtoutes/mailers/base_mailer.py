@@ -18,7 +18,8 @@ class BaseMailer:
     - the folder is derived from the class name (`Mailer` suffix dropped, CamelCase split).
 
     `tags` are attached to the message and consumed by Anymail's Brevo backend in production;
-    other backends ignore them.
+    other backends ignore them. Every subject is prefixed with `EMAIL_SUBJECT_PREFIX`, which
+    names the environment outside production (`[staging] `, `[pr-320] `) and is empty there.
 
     Example: `ProMailer.welcome` renders `emails/coalition/user/welcome.{txt,html}`.
     """
@@ -30,7 +31,7 @@ class BaseMailer:
         template = sys._getframe(1).f_code.co_name  # retrieves the calling method name
         full_context = cls._base_context() | (context or {})
         message = EmailMultiAlternatives(
-            subject=subject,
+            subject=f"{settings.EMAIL_SUBJECT_PREFIX}{subject}",
             body=render_to_string(cls._template_path(template, "txt"), full_context),
             from_email=from_email or cls.from_email,
             to=recipient_list,
