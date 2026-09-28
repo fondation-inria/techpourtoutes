@@ -1,0 +1,20 @@
+<div id="account-info-legal-rep-card" class="w-full">
+    <c-components.card title="Personne responsable légale">
+        <div class="mt-3"></div>
+        <c-patterns.form
+            hx-post="{% url 'update_beneficiary_legal_rep' %}"
+            hx-target="#account-info-legal-rep-card"
+            hx-swap="outerHTML">
+            <p class="description-text-xxs">Les champs suivis d'un astérisque (*) sont obligatoires.</p>
+            <c-components.form_fields.input field=form.legal_representative_name />
+            <c-components.form_fields.input field=form.legal_representative_email />
+            <div class="flex justify-end gap-2">
+                <c-components.button label="Annuler" variant="secondary" type="button"
+                    hx-get="{% url 'show_beneficiary_legal_rep' %}"
+                    hx-target="#account-info-legal-rep-card"
+                    hx-swap="outerHTML" />
+                <c-components.button type="submit" label="Sauvegarder" />
+            </div>
+        </c-patterns.form>
+    </c-components.card>
+</div>

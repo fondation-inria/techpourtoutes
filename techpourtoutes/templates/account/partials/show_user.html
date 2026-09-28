@@ -2,6 +2,10 @@
     <c-components.title title="Mon compte" title_bg="yellow" />
     {% include "account/partials/show_user_info.html" %}
 
+    {% if user.legal_representative_name %}
+        {% include "account/partials/show_beneficiary_legal_rep.html" %}
+    {% endif %}
+
     {% if is_pro %}
         {# a pro can only have one training experience for now #}
         {% with experience=user.training_experiences.first %}
