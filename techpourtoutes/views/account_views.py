@@ -207,87 +207,52 @@ def destroy_user(request):
 
 
 @beneficiary_required
-@login_required
 def show_beneficiary_legal_rep(request):
-    is_pro, is_beneficiary, user = _resolve_user(request)
+    user = request.user.beneficiary
     if not user.is_registered_for_mentoring:
         return _reject_unregistered_legal_rep(request)
-    return render(
-        request,
-        "account/partials/show_beneficiary_legal_rep.html",
-        {"user": user},
-    )
+
+    return _render_beneficiary_legal_rep(request, user)
 
 
 @beneficiary_required
-@login_required
 def edit_beneficiary_legal_rep(request):
-    is_pro, is_beneficiary, user = _resolve_user(request)
+    user = request.user.beneficiary
     if not user.is_registered_for_mentoring:
         return _reject_unregistered_legal_rep(request)
+
     if user.jobirl_user_id:
-        return render(
-            request,
-            "account/partials/show_beneficiary_legal_rep.html",
-            {"user": user},
-        )
+        return _render_beneficiary_legal_rep(request, user)
+
     form = BeneficiaryLegalRepEditForm(beneficiary=user)
-    return render(
-        request,
-        "account/partials/edit_beneficiary_legal_rep.html",
-        {"form": form, "user": user},
-    )
+    return _render_beneficiary_legal_rep_form(request, user, form)
 
 
 @require_POST
 @beneficiary_required
-@login_required
 def update_beneficiary_legal_rep(request):
-    is_pro, is_beneficiary, user = _resolve_user(request)
+    user = request.user.beneficiary
     if not user.is_registered_for_mentoring:
         return _reject_unregistered_legal_rep(request)
+
     if user.jobirl_user_id:
-        return render(
-            request,
-            "account/partials/show_beneficiary_legal_rep.html",
-            {"user": user},
-        )
+        return _render_beneficiary_legal_rep(request, user)
+
     form = BeneficiaryLegalRepEditForm(data=request.POST, beneficiary=user)
     if not form.is_valid():
-        return render(
-            request,
-            "account/partials/edit_beneficiary_legal_rep.html",
-            {"form": form, "user": user},
+        return _render_beneficiary_legal_rep_form(request, user, form)
+
+    if form.has_changed():
+        form.save(user)
+        ConsortiumMailer.mentoree_signed_up(
+            beneficiary=user,
+            mentoring_signup_data={
+                "legal_representative_name": user.legal_representative_name,
+                "legal_representative_email": user.legal_representative_email,
+            },
+            is_update=True,
         )
-
-    is_email_unchanged = (
-        form.cleaned_data["legal_representative_email"] == user.legal_representative_email
-    )
-    is_name_unchanged = (
-        form.cleaned_data["legal_representative_name"] == user.legal_representative_name
-    )
-    if is_email_unchanged and is_name_unchanged:
-        return render(
-            request,
-            "account/partials/show_beneficiary_legal_rep.html",
-            {"user": user},
-        )
-
-    form.save(user)
-
-    ConsortiumMailer.mentoree_signed_up(
-        beneficiary=user,
-        mentoring_signup_data={
-            "legal_representative_name": user.legal_representative_name,
-            "legal_representative_email": user.legal_representative_email,
-        },
-        is_update=True,
-    )
-    return render(
-        request,
-        "account/partials/show_beneficiary_legal_rep.html",
-        {"user": user},
-    )
+    return _render_beneficiary_legal_rep(request, user)
 
 
 # --------------------- private ----------------
@@ -331,6 +296,22 @@ def _reject_expired_email_change(request):
 def _reject_unregistered_legal_rep(request):
     messages.info(request, "Tu n'es pas encore inscrite au programme de mentorat.")
     return redirect("show_account")
+
+
+def _render_beneficiary_legal_rep(request, user):
+    return render(
+        request,
+        "account/partials/show_beneficiary_legal_rep.html",
+        {"user": user},
+    )
+
+
+def _render_beneficiary_legal_rep_form(request, user, form):
+    return render(
+        request,
+        "account/partials/edit_beneficiary_legal_rep.html",
+        {"form": form, "user": user},
+    )
 
 
 def _render_user_email_verification(request, user, token, payload, form):
