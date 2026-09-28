@@ -124,7 +124,7 @@ def test_show_account_counts_the_upcoming_events_the_beneficiary_saved(client, b
 
     content = client.get(reverse("show_account")).content.decode()
 
-    assert "Tu as 1 événement enregistré en cours ou à venir." in content
+    assert "Tu as 1 événement enregistré." in content
 
 
 @pytest.mark.django_db
