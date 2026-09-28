@@ -1,9 +1,14 @@
 from django.urls import path
+from django.views.generic import RedirectView
 
 from . import views
 
 urlpatterns = [
     path("", views.beneficiary_home, name="home"),
+    path(
+        "page-d-accueil-techpourtoutes-992956/",
+        RedirectView.as_view(pattern_name="home", permanent=True),
+    ),
     path("inscription/", views.inscription_funnel, name="inscription_funnel"),
     path("trouver-une-mentore/", views.new_mentoree, name="new_mentoree"),
     path("devenir-mentoree/", views.mentoring_funnel, name="mentoring_funnel"),
