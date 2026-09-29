@@ -121,4 +121,10 @@ urlpatterns = [
         name="pourquoi_nous_ecrivons_au_feminin",
     ),
     path("contact/", views.contact, name="contact"),
+    # Object storage stand-in, when none is configured
+    path(
+        "uploads-locaux/<str:storage_alias>/",
+        views.create_local_upload,
+        name="create_local_upload",
+    ),
 ]

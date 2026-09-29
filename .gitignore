@@ -12,6 +12,7 @@ wheels/
 
 # Static folders
 /staticfiles/
+/media/
 
 # Coverage reports
 .coverage

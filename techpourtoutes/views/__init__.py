@@ -63,6 +63,7 @@ from .event_views import (
     new_event,
     update_event,
 )
+from .local_upload_views import create_local_upload
 from .search_views import search_addresses, search_formations, search_schools
 from .static_views import (
     a_propos,
@@ -97,6 +98,7 @@ __all__ = [
     "coalition_welcome",
     "conditions_generales",
     "contact",
+    "create_local_upload",
     "create_user_email_change",
     "create_user_email_code",
     "create_beneficiary_training_experience",
