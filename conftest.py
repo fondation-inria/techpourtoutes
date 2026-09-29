@@ -22,6 +22,7 @@ def clear_cache(settings):
 def use_simple_static_storage(settings):
     settings.STORAGES = {
         "default": {"BACKEND": "django.core.files.storage.FileSystemStorage"},
+        "public": {"BACKEND": "django.core.files.storage.FileSystemStorage"},
         "staticfiles": {"BACKEND": "django.contrib.staticfiles.storage.StaticFilesStorage"},
     }
 
