@@ -15,7 +15,6 @@ XML_SITEMAP_EXCLUDED_URL_NAMES = {
     "mentions_legales",
     "accessibilite",
     "schema_pluriannuel",
-    "html_sitemap",
     # A placeholder, declined in one variant per ?feature=
     "new_upcoming_feature_notification",
 }
@@ -57,6 +56,7 @@ def test_sitemap_contains_public_urls(client):
     assert reverse("coalition_home") in content
     assert reverse("new_mentor") in content
     assert reverse("notre_manifeste") in content
+    assert reverse("html_sitemap") in content
 
 
 @pytest.fixture
