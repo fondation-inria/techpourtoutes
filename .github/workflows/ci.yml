@@ -88,12 +88,13 @@ jobs:
           AFTER: ${{ github.sha }}
         run: bash .github/scripts/build-tchap-deploy-message.sh > announcement.json
 
-      # The deployed SHA doubles as the Matrix transaction id, so re-running the job
-      # never posts the same deploy twice.
+      # The branch and the deployed SHA make the Matrix transaction id, so re-running the job
+      # never posts the same deploy twice, while main — fast-forwarded to a SHA staging already
+      # announced — still gets its own messages.
       - uses: ./.github/actions/post-to-tchap
         with:
           payload-file: announcement.json
-          transaction-id: deploy-${{ github.sha }}
+          transaction-id: deploy-${{ github.ref_name }}-${{ github.sha }}
           homeserver: ${{ secrets.TCHAP_HOMESERVER }}
           room-id: ${{ secrets.TCHAP_ROOM_ID }}
           token: ${{ secrets.TCHAP_BOT_TOKEN }}
@@ -110,7 +111,7 @@ jobs:
       - uses: ./.github/actions/post-to-tchap
         with:
           payload-file: report.json
-          transaction-id: deploy-result-${{ github.sha }}
+          transaction-id: deploy-result-${{ github.ref_name }}-${{ github.sha }}
           homeserver: ${{ secrets.TCHAP_HOMESERVER }}
           room-id: ${{ secrets.TCHAP_ROOM_ID }}
           token: ${{ secrets.TCHAP_BOT_TOKEN }}
