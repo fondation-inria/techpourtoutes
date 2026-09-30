@@ -98,6 +98,7 @@ def test_create_presigned_upload_posts_to_the_app_without_an_object_storage(stor
     assert read_local_upload_policy(result.fields["policy"]) == {
         "storage_alias": storage_alias,
         "key": result.key,
+        "content_type": "image/png",
         "max_size": 1_000,
     }
 

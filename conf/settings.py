@@ -323,17 +323,22 @@ USE_TZ = True
 STATIC_URL = "static/"
 STATIC_ROOT = BASE_DIR / "staticfiles"
 STATICFILES_DIRS = [BASE_DIR / "ui/static"]
+
+# Files stored on the disk when no object storage is configured; only served under DEBUG
 MEDIA_URL = "media/"
 MEDIA_ROOT = BASE_DIR / "media"
 
 TAILWIND_CLI_USE_DAISY_UI = True
 TAILWIND_CLI_SRC_CSS = BASE_DIR / "ui/source.css"
 
+S3_UPLOAD_URL_TTL = 10 * 60
+S3_PRIVATE_URL_TTL = 5 * 60
 STORAGES = {
     **object_storages(
         private_bucket=env("S3_PRIVATE_BUCKET", default=""),
         public_bucket=env("S3_PUBLIC_BUCKET", default=""),
         public_object_acl=env("S3_PUBLIC_OBJECT_ACL", default=""),
+        private_url_ttl=S3_PRIVATE_URL_TTL,
         endpoint_url=env("S3_ENDPOINT_URL", default=""),
         region_name=env("S3_REGION", default=""),
         access_key=env("S3_ACCESS_KEY_ID", default=""),
@@ -344,4 +349,3 @@ STORAGES = {
         "BACKEND": "whitenoise.storage.CompressedManifestStaticFilesStorage",
     },
 }
-S3_UPLOAD_URL_TTL = 10 * 60
