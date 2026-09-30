@@ -4,7 +4,7 @@
     title="Rejoins le club TechPourToutes !"
     head_js="js/alpine.persist.min.js js/beneficiary_funnel.js">
     <div x-data="beneficiaryFunnel" class="w-full md:max-w-xl flex flex-col py-8">
-        <div class="w-fit mb-8"><c-components.brand-mark /></div>
+        <c-components.brand-mark class="w-fit shrink-0 mb-8" />
         {# Stateless shell: on load, the client asks the server for the right step through a #}
         {# "resume" POST; the Alpine component piggy-backs the answers stored in sessionStorage. #}
         <div id="funnel-step"

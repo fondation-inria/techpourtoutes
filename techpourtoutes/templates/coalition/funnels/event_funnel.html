@@ -10,14 +10,14 @@
     <div class="w-full md:max-w-xl flex flex-col py-8"
          x-data="{ quitting: false, submitted: false, destination: '' }"
          @funnel-submitted="submitted = true"
-         x-init="document.querySelectorAll('[data-funnel-close], [data-funnel-exit] a, footer a')
+         x-init="document.querySelectorAll('[data-funnel-close], [data-funnel-exit], footer a')
                      .forEach(link => link.addEventListener('click', event => {
                          if (submitted) return;
                          event.preventDefault();
                          destination = link.href;
                          quitting = true;
                      }))">
-        <div class="w-fit mb-8" data-funnel-exit><c-components.brand-mark /></div>
+        <c-components.brand-mark class="w-fit shrink-0 mb-8" data-funnel-exit />
         {% include "coalition/funnels/partials/event/subcategory.html" with messages_in_layout=True %}
 
         <template x-if="quitting">

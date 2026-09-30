@@ -2,7 +2,7 @@
 {% is_coalition_page back as is_coalition_page %}
 <c-layout.base variant="funnel" back="{{ back }}">
     <div class="w-full md:max-w-xl flex flex-col py-8">
-        <div class="w-fit mb-8"><c-components.brand-mark /></div>
+        <c-components.brand-mark class="w-fit shrink-0 mb-8" />
         <div class="w-full flex flex-col gap-y-4 my-auto divide-y divide-neutral-200">
             <div>
                 <c-patterns.form url="{% url 'login_code' %}" class="mt-4">
