@@ -112,6 +112,7 @@ urlpatterns = [
     path("mentions-legales/", views.mentions_legales, name="mentions_legales"),
     path("accessibilite/", views.accessibilite, name="accessibilite"),
     path("schema-pluriannuel-accessibilite/", views.schema_pluriannuel, name="schema_pluriannuel"),
+    path("plan-du-site/", views.html_sitemap, name="html_sitemap"),
     path("a-propos/", views.a_propos, name="a_propos"),
     path("notre-manifeste/", views.notre_manifeste, name="notre_manifeste"),
     path("qui-sommes-nous/", views.qui_sommes_nous, name="qui_sommes_nous"),

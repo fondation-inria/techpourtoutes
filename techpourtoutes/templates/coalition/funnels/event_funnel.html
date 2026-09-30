@@ -1,23 +1,23 @@
-{% load static %}
 <c-layout.base
     variant="funnel"
     title="{% if editing %}Modifier un événement{% else %}Proposer un événement{% endif %}"
     description="Proposez un événement tech aux jeunes femmes de la communauté TechPourToutes."
-    footer=False
     back="{{ quit_url }}">
-    {# Nothing is saved before the last screen, so leaving throws the answers away: the close #}
-    {# button is intercepted to say so, until the last screen announces there is nothing left #}
-    {# to lose. `back` keeps it working if Alpine never boots. #}
+    {# Nothing is saved before the last screen, so leaving throws the answers away: every way #}
+    {# out (close button, logo, footer) is intercepted to say so, until the last screen #}
+    {# announces there is nothing left to lose. Quitting then goes where the clicked link #}
+    {# pointed. `back` keeps the close button working if Alpine never boots. #}
     <div class="w-full md:max-w-xl flex flex-col py-8"
-         x-data="{ quitting: false, submitted: false }"
+         x-data="{ quitting: false, submitted: false, destination: '' }"
          @funnel-submitted="submitted = true"
-         x-init="document.querySelector('[data-funnel-close]')
-                     ?.addEventListener('click', event => {
+         x-init="document.querySelectorAll('[data-funnel-close], [data-funnel-exit] a, footer a')
+                     .forEach(link => link.addEventListener('click', event => {
                          if (submitted) return;
                          event.preventDefault();
+                         destination = link.href;
                          quitting = true;
-                     })">
-        <img src="{% static 'images/techpourtoutes-logo-new-coalition.png' %}" alt="logo TechPourToutes" class="w-48 shrink-0 mb-8" width="1344" height="372" decoding="async" />
+                     }))">
+        <div class="w-fit mb-8" data-funnel-exit><c-components.brand-mark /></div>
         {% include "coalition/funnels/partials/event/subcategory.html" with messages_in_layout=True %}
 
         <template x-if="quitting">
@@ -26,7 +26,7 @@
                     En quittant, votre formulaire ne sera pas enregistré.
                 </p>
                 <div class="flex flex-col w-full justify-center gap-4 mt-6">
-                    <div class="flex justify-center"><c-components.button href="{{ quit_url }}" label="Quitter la {% if editing %}modification{% else %}création{% endif %}" /></div>
+                    <div class="flex justify-center"><c-components.button href="{{ quit_url }}" x-bind:href="destination" label="Quitter la {% if editing %}modification{% else %}création{% endif %}" /></div>
                     <div class="flex justify-center"><c-components.button type="button" variant="secondary" @click="quitting = false" label="Annuler" /></div>
                 </div>
             </c-components.modal>
