@@ -57,7 +57,8 @@ ligne.
    ```
 7. Vérifier : `scalingo --app <app> run python manage.py check_object_storage`. Pour chaque
    bucket, la commande écrit, relit, vérifie la lecture anonyme (refusée en privé, acceptée en
-   public), vérifie qu'un upload pré-signé trop lourd est refusé, puis nettoie.
+   public), vérifie qu'un upload pré-signé trop lourd est refusé et qu'un upload conforme est
+   accepté, puis nettoie.
 
 ## Changer de fournisseur
 

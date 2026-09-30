@@ -10,11 +10,16 @@ CONNECTION = {
     "secret_key": "secret",
     "location": "",
 }
+PRIVATE_URL_TTL = 120
 
 
 def test_object_storages_falls_back_to_the_file_system_without_a_bucket():
     storages = object_storages(
-        private_bucket="", public_bucket="", public_object_acl="", **CONNECTION
+        private_bucket="",
+        public_bucket="",
+        public_object_acl="",
+        private_url_ttl=PRIVATE_URL_TTL,
+        **CONNECTION,
     )
 
     assert storages == {
@@ -28,6 +33,7 @@ def test_object_storages_signs_every_private_url_and_leaves_objects_private():
         private_bucket="tpt-private",
         public_bucket="tpt-public",
         public_object_acl="public-read",
+        private_url_ttl=PRIVATE_URL_TTL,
         **CONNECTION,
     )
 
@@ -37,7 +43,7 @@ def test_object_storages_signs_every_private_url_and_leaves_objects_private():
         | {
             "bucket_name": "tpt-private",
             "querystring_auth": True,
-            "querystring_expire": 300,
+            "querystring_expire": PRIVATE_URL_TTL,
             "default_acl": None,
         }
         == storages["default"]["OPTIONS"]
@@ -49,6 +55,7 @@ def test_object_storages_serves_public_urls_unsigned_with_the_public_acl():
         private_bucket="tpt-private",
         public_bucket="tpt-public",
         public_object_acl="public-read",
+        private_url_ttl=PRIVATE_URL_TTL,
         **CONNECTION,
     )
 
@@ -69,6 +76,7 @@ def test_object_storages_share_one_connection():
         private_bucket="tpt-private",
         public_bucket="tpt-public",
         public_object_acl="public-read",
+        private_url_ttl=PRIVATE_URL_TTL,
         **CONNECTION,
     )
 
@@ -86,6 +94,7 @@ def test_object_storages_lets_boto_pick_the_endpoint_when_none_is_given():
         private_bucket="tpt-private",
         public_bucket="tpt-public",
         public_object_acl="",
+        private_url_ttl=PRIVATE_URL_TTL,
         **CONNECTION | {"endpoint_url": ""},
     )
 
@@ -98,6 +107,7 @@ def test_object_storages_file_a_review_app_under_its_own_prefix():
         private_bucket="tpt-private",
         public_bucket="tpt-public",
         public_object_acl="public-read",
+        private_url_ttl=PRIVATE_URL_TTL,
         **CONNECTION | {"location": "techpourtoutes-staging-pr320"},
     )
 

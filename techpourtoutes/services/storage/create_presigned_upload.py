@@ -28,7 +28,7 @@ class CreatePresignedUpload(BaseService):
     def perform(self, *, storage_alias, prefix, content_type, allowed_content_types, max_size):
         if content_type not in allowed_content_types:
             self.fail("Ce type de fichier n'est pas accepté.")
-        self.key = f"{prefix}/{uuid4().hex}{mimetypes.guess_extension(content_type)}"
+        self.key = _new_key(prefix, content_type)
         storage = storages[storage_alias]
         if isinstance(storage, S3Storage):
             self._sign_for_the_bucket(storage, content_type, max_size)
@@ -36,16 +36,12 @@ class CreatePresignedUpload(BaseService):
             self._sign_for_the_app(storage_alias, content_type, max_size)
 
     def _sign_for_the_bucket(self, storage, content_type, max_size):
-        acl = {"acl": storage.default_acl} if storage.default_acl else {}
-        fields = {"Content-Type": content_type} | acl
+        fields = _fields_sent_with_the_file(storage, content_type)
         presigned = storage.connection.meta.client.generate_presigned_post(
             storage.bucket_name,
             posixpath.join(storage.location, self.key),
             Fields=fields,
-            Conditions=[
-                ["content-length-range", 1, max_size],
-                *({name: value} for name, value in fields.items()),
-            ],
+            Conditions=[_size_between(1, max_size), *_exactly(fields)],
             ExpiresIn=settings.S3_UPLOAD_URL_TTL,
         )
         self.url = presigned["url"]
@@ -57,6 +53,29 @@ class CreatePresignedUpload(BaseService):
             "key": self.key,
             "Content-Type": content_type,
             "policy": sign_local_upload_policy(
-                storage_alias=storage_alias, key=self.key, max_size=max_size
+                storage_alias=storage_alias,
+                key=self.key,
+                content_type=content_type,
+                max_size=max_size,
             ),
         }
+
+
+def _new_key(prefix, content_type):
+    return f"{prefix}/{uuid4().hex}{mimetypes.guess_extension(content_type)}"
+
+
+def _fields_sent_with_the_file(storage, content_type):
+    """The content type, and the ACL a public file needs to be readable by anyone."""
+    acl = {"acl": storage.default_acl} if storage.default_acl else {}
+    return {"Content-Type": content_type} | acl
+
+
+def _size_between(min_size, max_size):
+    return ["content-length-range", min_size, max_size]
+
+
+def _exactly(fields):
+    """A field is only enforced by the bucket if a condition pins it: otherwise the browser
+    could send any value in its place."""
+    return [{name: value} for name, value in fields.items()]

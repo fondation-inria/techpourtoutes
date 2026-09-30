@@ -8,13 +8,16 @@ from techpourtoutes.utils.local_upload import read_local_upload_policy, sign_loc
 
 
 def _sign():
-    return sign_local_upload_policy(storage_alias="public", key="events/abc.png", max_size=1_000)
+    return sign_local_upload_policy(
+        storage_alias="public", key="events/abc.png", content_type="image/png", max_size=1_000
+    )
 
 
 def test_read_local_upload_policy_returns_what_was_signed():
     assert read_local_upload_policy(_sign()) == {
         "storage_alias": "public",
         "key": "events/abc.png",
+        "content_type": "image/png",
         "max_size": 1_000,
     }
 

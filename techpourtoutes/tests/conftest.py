@@ -40,6 +40,7 @@ def s3_storages(settings, s3_location):
             private_bucket="tpt-test-private",
             public_bucket="tpt-test-public",
             public_object_acl="public-read",
+            private_url_ttl=settings.S3_PRIVATE_URL_TTL,
             endpoint_url="",
             region_name="us-east-1",
             access_key="test",

@@ -14,13 +14,22 @@ def media_root(settings, tmp_path):
     settings.MEDIA_ROOT = tmp_path
 
 
-def _post(client, *, content=b"png", storage_alias="public", policy_alias="public"):
-    policy = sign_local_upload_policy(storage_alias=policy_alias, key=KEY, max_size=5)
+def _post(
+    client,
+    *,
+    content=b"png",
+    content_type="image/png",
+    storage_alias="public",
+    policy_alias="public",
+):
+    policy = sign_local_upload_policy(
+        storage_alias=policy_alias, key=KEY, content_type="image/png", max_size=5
+    )
     return client.post(
         reverse("create_local_upload", args=[storage_alias]),
         {
             "key": KEY,
-            "Content-Type": "image/png",
+            "Content-Type": content_type,
             "policy": policy,
             "file": SimpleUploadedFile("photo.png", content),
         },
@@ -60,6 +69,13 @@ def test_create_local_upload_refuses_a_tampered_policy(client):
 
 def test_create_local_upload_refuses_a_policy_signed_for_another_storage(client):
     assert _post(client, storage_alias="public", policy_alias="default").status_code == 403
+
+
+def test_create_local_upload_refuses_a_content_type_other_than_the_signed_one(client):
+    response = _post(client, content_type="text/html")
+
+    assert response.status_code == 403
+    assert not storages["public"].exists(KEY)
 
 
 def test_create_local_upload_does_not_exist_once_an_object_storage_is_configured(
