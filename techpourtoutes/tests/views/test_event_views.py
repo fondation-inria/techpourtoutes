@@ -356,7 +356,7 @@ def test_index_pro_events_illustrates_the_empty_state(client, pro):
 
     content = client.get(MY_EVENTS_URL).content.decode()
 
-    assert "Vous n'avez aucun événement." in content
+    assert "Vous n'avez aucun événement validé en cours ou à venir." in content
     assert "empty-event-bg" in content
 
 
