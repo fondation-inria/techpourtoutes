@@ -1,0 +1,69 @@
+<c-layout.base title="Plan du site – TechPourToutes">
+    <c-components.title title="Plan du site" variant="h1" title_bg="yellow" />
+
+    <c-components.card title="Le programme">
+        <ul class="list-disc pl-6 flex flex-col gap-2 mt-4">
+            <li><c-components.inline-link label="Accueil" href="{% url "home" %}" /></li>
+        </ul>
+        <c-components.title variant="intertitre" class="mt-5" title="S'entourer" />
+        <ul class="list-disc pl-6 flex flex-col gap-2 mt-2">
+            <li><c-components.inline-link label="Trouver une mentore" href="{% url "new_mentoree" %}" /></li>
+        </ul>
+        <c-components.title variant="intertitre" class="mt-5" title="S'orienter" />
+        <ul class="list-disc pl-6 flex flex-col gap-2 mt-2">
+            <li><c-components.inline-link label="Trouver la bonne formation" href="{% url "new_upcoming_feature_notification" %}?feature=formation" /></li>
+            <li><c-components.inline-link label="Parler à une ambassadrice" href="{% url "new_upcoming_feature_notification" %}?feature=ambassadrice" /></li>
+        </ul>
+        <c-components.title variant="intertitre" class="mt-5" title="Passer à l'action" />
+        <ul class="list-disc pl-6 flex flex-col gap-2 mt-2">
+            <li><c-components.inline-link label="Trouver un stage ou une alternance" href="{% url "new_upcoming_feature_notification" %}?feature=stage" /></li>
+            <li><c-components.inline-link label="Participer à des événements" href="{% url "index_events" %}" /></li>
+        </ul>
+    </c-components.card>
+
+    <c-components.card title="La coalition">
+        <ul class="list-disc pl-6 flex flex-col gap-2 mt-4">
+            <li><c-components.inline-link label="Accueil de la coalition" href="{% url "coalition_home" %}" /></li>
+        </ul>
+        <c-components.title variant="intertitre" class="mt-5" title="Accompagner individuellement" />
+        <ul class="list-disc pl-6 flex flex-col gap-2 mt-2">
+            <li><c-components.inline-link label="Mentorer" href="{% url "new_mentor" %}" /></li>
+            <li><c-components.inline-link label="Accueillir une stagiaire" href="{% url "new_internship" %}" /></li>
+            <li><c-components.inline-link label="Pitcher mon métier" href="{% url "new_work_ambassador" %}" /></li>
+        </ul>
+        <c-components.title variant="intertitre" class="mt-5" title="Soutenir la coalition" />
+        <ul class="list-disc pl-6 flex flex-col gap-2 mt-2">
+            <li><c-components.inline-link label="Devenir ambassadrice étudiante" href="{% url "new_training_ambassador" %}" /></li>
+            <li><c-components.inline-link label="Devenir mécène" href="{% url "new_sponsor" %}" /></li>
+        </ul>
+        <c-components.title variant="intertitre" class="mt-5" title="Motiver mes élèves" />
+        <ul class="list-disc pl-6 flex flex-col gap-2 mt-2">
+            <li><c-components.inline-link label="Organiser un atelier" href="{% url "new_workshop_request" %}" /></li>
+        </ul>
+    </c-components.card>
+
+    <c-components.card title="À propos">
+        <ul class="list-disc pl-6 flex flex-col gap-2 mt-4">
+            <li><c-components.inline-link label="Notre manifeste" href="{% url "notre_manifeste" %}" /></li>
+            <li><c-components.inline-link label="Qui sommes-nous" href="{% url "qui_sommes_nous" %}" /></li>
+            <li><c-components.inline-link label="Pourquoi nous écrivons au féminin" href="{% url "pourquoi_nous_ecrivons_au_feminin" %}" /></li>
+            <li><c-components.inline-link label="Contact" href="{% url "contact" %}" /></li>
+        </ul>
+    </c-components.card>
+
+    <c-components.card title="Mon compte">
+        <ul class="list-disc pl-6 flex flex-col gap-2 mt-4">
+            <li><c-components.inline-link label="Mon compte" href="{% url "show_account" %}" /></li>
+        </ul>
+    </c-components.card>
+
+    <c-components.card title="Informations légales">
+        <ul class="list-disc pl-6 flex flex-col gap-2 mt-4">
+            <li><c-components.inline-link label="Données personnelles et cookies" href="{% url "donnees_personnelles" %}" /></li>
+            <li><c-components.inline-link label="Mentions légales" href="{% url "mentions_legales" %}" /></li>
+            <li><c-components.inline-link label="Conditions générales d'utilisation" href="{% url "conditions_generales" %}" /></li>
+            <li><c-components.inline-link label="Accessibilité" href="{% url "accessibilite" %}" /></li>
+            <li><c-components.inline-link label="Schéma pluriannuel de mise en accessibilité" href="{% url "schema_pluriannuel" %}" /></li>
+        </ul>
+    </c-components.card>
+</c-layout.base>
