@@ -1,0 +1,11 @@
+{
+  "CORSRules": [
+    {
+      "AllowedOrigins": ["https://techpourtoutes.io", "https://www.techpourtoutes.io"],
+      "AllowedMethods": ["GET", "HEAD", "POST"],
+      "AllowedHeaders": ["*"],
+      "ExposeHeaders": ["ETag", "Location"],
+      "MaxAgeSeconds": 3000
+    }
+  ]
+}

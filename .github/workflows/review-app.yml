@@ -222,6 +222,14 @@ jobs:
 
       - run: scalingo login --api-token ${{ secrets.SCALINGO_API_TOKEN }}
 
+      # The review app shares staging's buckets under its own key prefix: only it knows which.
+      # Skipped over when the app is already gone or predates the command.
+      - name: Delete the review app's files from the object storage
+        continue-on-error: true
+        env:
+          PR_NUMBER: ${{ github.event.pull_request.number || github.event.issue.number }}
+        run: scalingo --app "techpourtoutes-staging-pr${PR_NUMBER}" run python manage.py purge_review_app_files
+
       - name: Destroy review app
         id: destroy
         continue-on-error: true
