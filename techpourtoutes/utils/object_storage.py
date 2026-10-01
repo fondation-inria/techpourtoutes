@@ -1,7 +1,14 @@
 from botocore.config import Config
+from django.core.files.storage import storages
 
 S3 = "storages.backends.s3.S3Storage"
 FILE_SYSTEM = "django.core.files.storage.FileSystemStorage"
+
+
+def public_storage():
+    """For `storage=` on a model field: a callable, so that the migrations name it rather
+    than serialise the storage itself."""
+    return storages["public"]
 
 
 def settings_dictionary(
