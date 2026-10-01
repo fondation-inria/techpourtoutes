@@ -18,6 +18,34 @@ def clear_cache(settings):
     cache.clear()
 
 
+@pytest.fixture(autouse=True, scope="session")
+def public_file_fields_follow_storages():
+    """A file field calls its `storage=` callable once, at import, so it would keep the buckets
+    of the `.env` — staging's, on a laptop. Point it at whatever storage each test sets up."""
+    from django.apps import apps
+    from django.core.files.storage import storages
+    from django.core.signals import setting_changed
+    from django.db.models import FileField
+
+    from techpourtoutes.utils.object_storage import public_storage
+
+    fields = [
+        field
+        for model in apps.get_models()
+        for field in model._meta.get_fields()
+        if isinstance(field, FileField) and field._storage_callable is public_storage
+    ]
+
+    def repoint(*, setting, **kwargs):
+        if setting == "STORAGES":
+            for field in fields:
+                field.storage = storages["public"]
+
+    setting_changed.connect(repoint)
+    yield
+    setting_changed.disconnect(repoint)
+
+
 @pytest.fixture(autouse=True)
 def use_simple_static_storage(settings):
     settings.STORAGES = {

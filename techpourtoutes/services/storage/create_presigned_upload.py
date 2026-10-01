@@ -66,9 +66,12 @@ def _new_key(prefix, content_type):
 
 
 def _fields_sent_with_the_file(storage, content_type):
-    """The content type, and the ACL a public file needs to be readable by anyone."""
+    """The content type, plus what the storage sets on every file it writes: the ACL a public
+    file needs to be readable by anyone, and how long a browser may keep it."""
     acl = {"acl": storage.default_acl} if storage.default_acl else {}
-    return {"Content-Type": content_type} | acl
+    cache_control = storage.object_parameters.get("CacheControl")
+    cache = {"Cache-Control": cache_control} if cache_control else {}
+    return {"Content-Type": content_type} | acl | cache
 
 
 def _size_between(min_size, max_size):

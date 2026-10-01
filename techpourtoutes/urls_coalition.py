@@ -34,6 +34,11 @@ urlpatterns = [
     path("proposer-un-evenement/", views.new_event, name="new_event"),
     path("evenements/<uuid:pk>/modifier/", views.edit_event, name="edit_event"),
     path("evenements/creer/", views.create_event, name="create_event"),
+    path(
+        "evenements/importer-un-visuel/",
+        views.create_event_image_upload,
+        name="create_event_image_upload",
+    ),
     path("evenements/enregistrer/", views.update_event, name="update_event"),
     path("mes-evenements/", views.index_pro_events, name="index_pro_events"),
     path("bienvenue-dans-la-coalition/", views.coalition_welcome, name="coalition_welcome"),

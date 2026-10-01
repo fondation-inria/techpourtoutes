@@ -3,6 +3,8 @@ from urllib.parse import urlencode
 
 import pytest
 from django.core import mail
+from django.core.files.base import ContentFile
+from django.core.files.storage import storages
 from django.test import override_settings
 from django.urls import reverse, reverse_lazy
 from django.utils import timezone
@@ -11,6 +13,7 @@ from techpourtoutes.models import Event
 
 NEW_EVENT_URL = reverse_lazy("new_event")
 CREATE_URL = reverse_lazy("create_event")
+IMAGE_UPLOAD_URL = reverse_lazy("create_event_image_upload")
 UPDATE_URL = reverse_lazy("update_event")
 
 locmem = override_settings(
@@ -186,6 +189,47 @@ def test_publishing_creates_a_pending_event_and_sends_both_mails(client, pro):
         (pro.email,),
         ("agir@techpourtoutes.io",),
     }
+
+
+@pytest.mark.django_db
+@locmem
+def test_publishing_stores_the_uploaded_image_and_its_alternative_text(
+    client, pro, settings, tmp_path
+):
+    settings.MEDIA_ROOT = tmp_path
+    key = storages["public"].save("events/0123456789abcdef0123456789abcdef.png", ContentFile(b"p"))
+    client.force_login(pro)
+
+    client.post(
+        CREATE_URL,
+        {
+            "action": "location",
+            **answers(image=key, image_alt="Une porte ouverte", image_credit="Jane Doe"),
+        },
+    )
+
+    event = Event.objects.get()
+    assert event.image.name == key
+    assert event.image_alt == "Une porte ouverte"
+    assert event.image_credit == "Jane Doe"
+
+
+@pytest.mark.django_db
+@pytest.mark.parametrize(
+    "subcategory, color",
+    [
+        (SUBCATEGORY, "green"),
+        ({"subcategory": "other", "subcategory_other": "Rencontre d'anciennes"}, "purple"),
+    ],
+)
+def test_the_image_preview_takes_the_color_of_the_category_chosen_earlier(
+    client, pro, subcategory, color
+):
+    client.force_login(pro)
+
+    content = client.post(CREATE_URL, {"action": "subcategory", **subcategory}).content.decode()
+
+    assert f'data-image-preview class="bg-{color}-500' in content
 
 
 @pytest.mark.django_db
@@ -666,3 +710,54 @@ def test_a_step_answering_alone_carries_the_messages_out_of_band(client, pro):
     content = response.content.decode()
     assert content.count('id="messages"') == 1
     assert 'hx-swap-oob="true"' in content
+
+
+@pytest.mark.django_db
+def test_create_event_image_upload_signs_an_upload_to_the_public_storage(client, pro):
+    client.force_login(pro)
+
+    response = client.post(IMAGE_UPLOAD_URL, {"content_type": "image/png"})
+
+    assert response.status_code == 200
+    body = response.json()
+    assert body["url"] == reverse("create_local_upload", args=["public"])
+    assert body["key"].startswith("events/")
+    assert body["fields"]["Content-Type"] == "image/png"
+
+
+@pytest.mark.django_db
+def test_create_event_image_upload_lets_through_a_compressed_image_only(client, pro):
+    """The browser shrinks the image before its upload: what reaches the bucket is light."""
+    from techpourtoutes.utils.local_upload import read_local_upload_policy
+
+    client.force_login(pro)
+
+    fields = client.post(IMAGE_UPLOAD_URL, {"content_type": "image/webp"}).json()["fields"]
+
+    assert read_local_upload_policy(fields["policy"])["max_size"] == 2 * 1024 * 1024
+
+
+@pytest.mark.django_db
+def test_create_event_image_upload_refuses_a_file_that_is_not_an_image(client, pro):
+    client.force_login(pro)
+
+    response = client.post(IMAGE_UPLOAD_URL, {"content_type": "application/pdf"})
+
+    assert response.status_code == 400
+    assert "format" in response.json()["error"]
+
+
+@pytest.mark.django_db
+def test_create_event_image_upload_is_reserved_to_pros(client, beneficiary):
+    client.force_login(beneficiary)
+
+    response = client.post(IMAGE_UPLOAD_URL, {"content_type": "image/png"})
+
+    assert response.status_code != 200
+
+
+@pytest.mark.django_db
+def test_create_event_image_upload_rejects_a_get(client, pro):
+    client.force_login(pro)
+
+    assert client.get(IMAGE_UPLOAD_URL).status_code == 405
