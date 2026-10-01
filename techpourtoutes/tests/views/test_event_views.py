@@ -20,13 +20,15 @@ locmem = override_settings(
 
 SUBCATEGORY = {"subcategory": Event.Subcategory.SALON}
 
+START = timezone.localdate() + timedelta(days=30)
+
 DETAILS = {
     "organizer": "Numeum",
     "title": "Salon des métiers du numérique",
     "description": "Une journée pour rencontrer des professionnelles.",
-    "start_date": "2026-10-01",
+    "start_date": START.isoformat(),
     "start_time": "09:00",
-    "end_date": "2026-10-02",
+    "end_date": (START + timedelta(days=1)).isoformat(),
     "end_time": "18:00",
 }
 
