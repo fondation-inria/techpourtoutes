@@ -4,7 +4,7 @@ S3 = "storages.backends.s3.S3Storage"
 FILE_SYSTEM = "django.core.files.storage.FileSystemStorage"
 
 
-def object_storages(
+def settings_dictionary(
     *,
     private_bucket: str,
     public_bucket: str,

@@ -5,7 +5,7 @@ import httpx
 import pytest
 from moto import mock_aws
 
-from techpourtoutes.utils.object_storage import object_storages
+from techpourtoutes.utils import object_storage
 
 
 @pytest.fixture
@@ -36,7 +36,7 @@ def s3_storages(settings, s3_location):
     Mind that moto stores whatever is posted to it: it does not enforce a POST policy.
     """
     with mock_aws():
-        settings.STORAGES = settings.STORAGES | object_storages(
+        settings.STORAGES = settings.STORAGES | object_storage.settings_dictionary(
             private_bucket="tpt-test-private",
             public_bucket="tpt-test-public",
             public_object_acl="public-read",

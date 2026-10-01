@@ -14,8 +14,8 @@ from pathlib import Path
 
 import environ
 
+from techpourtoutes.utils import object_storage
 from techpourtoutes.utils.environment import email_subject_prefix, review_app_name
-from techpourtoutes.utils.object_storage import object_storages
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -334,7 +334,7 @@ TAILWIND_CLI_SRC_CSS = BASE_DIR / "ui/source.css"
 S3_UPLOAD_URL_TTL = 10 * 60
 S3_PRIVATE_URL_TTL = 5 * 60
 STORAGES = {
-    **object_storages(
+    **object_storage.settings_dictionary(
         private_bucket=env("S3_PRIVATE_BUCKET", default=""),
         public_bucket=env("S3_PUBLIC_BUCKET", default=""),
         public_object_acl=env("S3_PUBLIC_OBJECT_ACL", default=""),
