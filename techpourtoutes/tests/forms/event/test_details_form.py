@@ -18,6 +18,12 @@ VALID = {
 }
 
 
+@pytest.fixture(autouse=True)
+def at_three_pm_on_october_first(monkeypatch):
+    now = timezone.make_aware(datetime(2026, 10, 1, 15, 0))
+    monkeypatch.setattr(timezone, "now", lambda: now)
+
+
 def test_a_complete_form_is_valid():
     assert EventDetailsForm(data=VALID).is_valid()
 
