@@ -3,7 +3,9 @@
     {
       "AllowedOrigins": [
         "https://techpourtoutes-staging.osc-fr1.scalingo.io",
-        "https://techpourtoutes-staging-pr*.osc-fr1.scalingo.io"
+        "https://techpourtoutes-staging-pr*.osc-fr1.scalingo.io",
+        "http://localhost:8000",
+        "http://127.0.0.1:8000"
       ],
       "AllowedMethods": ["GET", "HEAD", "POST"],
       "AllowedHeaders": ["*"],

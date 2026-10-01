@@ -428,6 +428,69 @@ def test_show_event_renders_the_event(client, salon):
 
 
 @pytest.mark.django_db
+def test_show_event_shows_the_uploaded_image_with_its_alternative_text(client, pro):
+    event = approved_event(pro, image="events/abc.png", image_alt="Une porte ouverte")
+    event.save()
+
+    content = client.get(reverse("show_event", args=[event.slug])).content.decode()
+
+    assert 'src="/media/events/abc.png"' in content
+    assert 'alt="Une porte ouverte"' in content
+
+
+@pytest.mark.django_db
+def test_show_event_falls_back_to_the_default_image_of_its_category(client, salon):
+    content = client.get(reverse("show_event", args=[salon.slug])).content.decode()
+
+    assert 'src="/static/images/events/guidance/open_house.webp"' in content
+    assert 'alt=""' in content
+    assert "Crédit" not in content
+
+
+def _image_box_classes(content, placement):
+    import re
+
+    return re.search(rf'data-event-image="{placement}" class="([^"]*)"', content)[1]
+
+
+@pytest.mark.django_db
+def test_show_event_letterboxes_an_uploaded_image_in_the_category_color(client, pro):
+    event = approved_event(pro, image="events/abc.png")
+    event.save()
+
+    content = client.get(reverse("show_event", args=[event.slug])).content.decode()
+
+    assert "bg-green-500" in _image_box_classes(content, "top")
+    assert "bg-green-500" in _image_box_classes(content, "side")
+
+
+@pytest.mark.django_db
+def test_show_event_leaves_the_default_image_unframed_beside_the_card(client, salon):
+    """On top, the frame is the colour of the header band anyway."""
+    content = client.get(reverse("show_event", args=[salon.slug])).content.decode()
+
+    assert "bg-green-500" in _image_box_classes(content, "top")
+    assert "bg-" not in _image_box_classes(content, "side")
+
+
+@pytest.mark.django_db
+def test_show_event_centers_the_default_image_vertically_beside_the_card(client, salon):
+    content = client.get(reverse("show_event", args=[salon.slug])).content.decode()
+
+    assert 'class="w-full h-full object-contain object-right"' in content
+
+
+@pytest.mark.django_db
+def test_show_event_credits_the_uploaded_image(client, pro):
+    event = approved_event(pro, image="events/abc.png", image_credit="Jane Doe")
+    event.save()
+
+    content = client.get(reverse("show_event", args=[event.slug])).content.decode()
+
+    assert "Crédit : Jane Doe" in content
+
+
+@pytest.mark.django_db
 def test_show_event_makes_the_links_in_the_description_clickable(client, pro):
     event = approved_event(
         pro,

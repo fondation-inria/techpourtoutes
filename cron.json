@@ -3,6 +3,9 @@
     {
       "command": "0 3 1 * * python manage.py import_schools_and_formations --async",
       "size": "L"
+    },
+    {
+      "command": "0 4 * * * python manage.py purge_orphan_event_images"
     }
   ]
 }
