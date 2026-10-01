@@ -1,17 +1,19 @@
-from datetime import datetime, timedelta
+from datetime import datetime, time, timedelta
 
 import pytest
 from django.utils import timezone
 
 from techpourtoutes.forms.event import EventDetailsForm
 
+START = timezone.localdate() + timedelta(days=30)
+
 VALID = {
     "organizer": "Numeum",
     "title": "Salon des métiers du numérique",
     "description": "Une journée pour rencontrer des professionnelles de la tech.",
-    "start_date": "2026-10-02",
+    "start_date": START.isoformat(),
     "start_time": "09:00",
-    "end_date": "2026-10-03",
+    "end_date": (START + timedelta(days=1)).isoformat(),
     "end_time": "18:00",
 }
 
@@ -34,7 +36,7 @@ def test_every_field_is_required():
 
 
 def test_an_end_date_before_the_start_date_is_refused():
-    form = EventDetailsForm(data=VALID | {"end_date": "2026-10-01"})
+    form = EventDetailsForm(data=VALID | {"end_date": (START - timedelta(days=1)).isoformat()})
 
     assert not form.is_valid()
     assert "end_date" in form.errors
@@ -42,7 +44,7 @@ def test_an_end_date_before_the_start_date_is_refused():
 
 def test_an_end_time_before_the_start_time_on_a_single_day_is_refused():
     form = EventDetailsForm(
-        data=VALID | {"end_date": "2026-10-02", "start_time": "18:00", "end_time": "09:00"}
+        data=VALID | {"end_date": VALID["start_date"], "start_time": "18:00", "end_time": "09:00"}
     )
 
     assert not form.is_valid()
@@ -51,7 +53,7 @@ def test_an_end_time_before_the_start_time_on_a_single_day_is_refused():
 
 def test_a_single_day_event_may_start_and_end_at_the_same_time():
     form = EventDetailsForm(
-        data=VALID | {"end_date": "2026-10-02", "start_time": "09:00", "end_time": "09:00"}
+        data=VALID | {"end_date": VALID["start_date"], "start_time": "09:00", "end_time": "09:00"}
     )
 
     assert form.is_valid()
@@ -64,19 +66,28 @@ def test_an_event_already_over_is_refused():
     assert "end_date" in form.errors
 
 
+@pytest.fixture
+def at_three_pm_today(monkeypatch):
+    now = timezone.make_aware(datetime.combine(timezone.localdate(), time(15, 0)))
+    monkeypatch.setattr(timezone, "now", lambda: now)
+
+
+def today_ending_at(end_time):
+    today = timezone.localdate().isoformat()
+    return VALID | {"start_date": today, "end_date": today, "end_time": end_time}
+
+
+@pytest.mark.usefixtures("at_three_pm_today")
 def test_an_event_that_ended_earlier_today_is_refused():
-    form = EventDetailsForm(
-        data=VALID | {"start_date": "2026-10-01", "end_date": "2026-10-01", "end_time": "14:59"}
-    )
+    form = EventDetailsForm(data=today_ending_at("14:59"))
 
     assert not form.is_valid()
     assert "end_time" in form.errors
 
 
+@pytest.mark.usefixtures("at_three_pm_today")
 def test_an_event_ending_later_today_is_accepted():
-    form = EventDetailsForm(
-        data=VALID | {"start_date": "2026-10-01", "end_date": "2026-10-01", "end_time": "15:00"}
-    )
+    form = EventDetailsForm(data=today_ending_at("15:00"))
 
     assert form.is_valid()
 
