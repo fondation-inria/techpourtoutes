@@ -119,6 +119,28 @@ def test_new_mentoree_cta_for_connected_non_beneficiary_points_to_mentoring_funn
     assert response.context["cta_disabled"] is False
 
 
+NEW_TRAINING_AMBASSADOR_BENEFICIARY_URL = "/echanger-avec-une-etudiante/"
+
+
+@pytest.mark.django_db
+def test_new_training_ambassador_beneficiary_cta_for_anonymous_user(client):
+    response = client.get(NEW_TRAINING_AMBASSADOR_BENEFICIARY_URL)
+
+    assert response.status_code == 200
+    assert response.context["cta_href"] == "/inscription/?wants_ambassador=1"
+    assert response.context["cta_label"] == "Rejoindre le club"
+
+
+@pytest.mark.django_db
+def test_new_training_ambassador_beneficiary_no_cta_for_connected_user(client, beneficiary):
+    client.force_login(beneficiary)
+
+    response = client.get(NEW_TRAINING_AMBASSADOR_BENEFICIARY_URL)
+
+    assert response.status_code == 200
+    assert response.context["cta_href"] is None
+
+
 INDEX_EVENTS_URL = "/evenements/"
 
 

@@ -21,7 +21,12 @@ COALITION_PAGE_NAMES = [
     "new_manifeste_signature",
 ]
 
-BENEFICIARY_PAGE_NAMES = ["home", "new_mentoree", "index_events"]
+BENEFICIARY_PAGE_NAMES = [
+    "home",
+    "new_mentoree",
+    "new_training_ambassador_beneficiary",
+    "index_events",
+]
 
 
 class StaticViewSitemap(Sitemap):

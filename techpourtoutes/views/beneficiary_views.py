@@ -77,6 +77,18 @@ def new_mentoree(request):
     )
 
 
+def new_training_ambassador_beneficiary(request):
+    cta_href = None
+    cta_label = "Rejoindre le club"
+    if not request.user.is_authenticated:
+        cta_href = f"{reverse('inscription_funnel')}?wants_ambassador=1"
+    return render(
+        request,
+        "beneficiary/new_training_ambassador_beneficiary.html",
+        {"cta_href": cta_href, "cta_label": cta_label},
+    )
+
+
 def index_events(request):
     return render(
         request,

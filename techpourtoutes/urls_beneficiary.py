@@ -13,6 +13,11 @@ urlpatterns = [
     path("trouver-une-mentore/", views.new_mentoree, name="new_mentoree"),
     path("devenir-mentoree/", views.mentoring_funnel, name="mentoring_funnel"),
     path(
+        "echanger-avec-une-etudiante/",
+        views.new_training_ambassador_beneficiary,
+        name="new_training_ambassador_beneficiary",
+    ),
+    path(
         "inscription/passer-mentorat/",
         views.show_skip_mentoring_signup_modal,
         name="show_skip_mentoring_signup_modal",
