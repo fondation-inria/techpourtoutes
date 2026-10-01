@@ -1,6 +1,9 @@
+from datetime import timedelta
+
 import pytest
 from django.core import mail
 from django.test import override_settings
+from django.utils import timezone
 
 from techpourtoutes.forms.event import EventDetailsForm, EventLocationForm, EventSubcategoryForm
 from techpourtoutes.models import Event
@@ -13,15 +16,16 @@ locmem = override_settings(
 
 
 def valid_forms(location_overrides=None, **overrides):
+    start = timezone.localdate() + timedelta(days=30)
     subcategory = EventSubcategoryForm(data={"subcategory": Event.Subcategory.SALON} | overrides)
     details = EventDetailsForm(
         data={
             "organizer": "Numeum",
             "title": "Salon des métiers du numérique",
             "description": "Une journée pour rencontrer des professionnelles.",
-            "start_date": "2026-10-01",
+            "start_date": start.isoformat(),
             "start_time": "09:00",
-            "end_date": "2026-10-02",
+            "end_date": (start + timedelta(days=1)).isoformat(),
             "end_time": "18:00",
         }
     )
