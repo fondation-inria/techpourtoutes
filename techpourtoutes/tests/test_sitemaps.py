@@ -13,6 +13,7 @@ SITEMAP_EXCLUDED_URL_NAMES = {
     "search_formations",
     "search_addresses",
     "show_skip_mentoring_signup_modal",
+    "show_skip_training_ambassador_request_modal",
     # Auth / account (private)
     "login_request",
     "login_code",
@@ -38,6 +39,8 @@ SITEMAP_EXCLUDED_URL_NAMES = {
     "destroy_user_modal",
     "destroy_user",
     "mentoring_funnel",
+    "new_training_ambassador_request",
+    "create_training_ambassador_request",
     "index_pro_events",
     "index_beneficiary_events",
     # Form submission endpoints (their GET page is what gets indexed)

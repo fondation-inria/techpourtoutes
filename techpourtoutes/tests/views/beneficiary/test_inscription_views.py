@@ -124,6 +124,16 @@ def test_get_with_the_mentor_parameter_starts_a_funnel_with_the_mentoring_screen
 
 
 @pytest.mark.django_db
+@pytest.mark.parametrize(
+    ("query", "flag"), [("", b"false"), ("?wants_training_ambassador=1", b"true")]
+)
+def test_get_always_hands_the_training_ambassador_flag_over(client, query, flag):
+    # Always sent, false included: it must overwrite a stale one left in sessionStorage.
+    response = client.get(f"{FUNNEL_URL}{query}")
+    assert b'"wants_training_ambassador": ' + flag in response.content
+
+
+@pytest.mark.django_db
 def test_resume_without_answers_renders_email_step(client):
     response = client.post(FUNNEL_URL, {"action": "resume"})
     assert response.status_code == 200
@@ -223,6 +233,34 @@ def test_existing_unregistered_beneficiary_email_with_wants_mentor_logs_in_to_me
     assert "se-connecter" in response["HX-Redirect"]
     assert f"back={quote('/', safe='')}" in response["HX-Redirect"]
     assert f"next={quote('/devenir-mentoree/', safe='')}" in response["HX-Redirect"]
+
+
+@pytest.mark.django_db
+def test_existing_beneficiary_email_with_wants_training_ambassador_logs_in_to_the_request(
+    client, beneficiary
+):
+    response = client.post(
+        FUNNEL_URL,
+        {"action": "email", "email": beneficiary.email, "wants_training_ambassador": "true"},
+    )
+
+    next_url = reverse("new_training_ambassador_request")
+    assert f"next={quote(next_url, safe='')}" in response["HX-Redirect"]
+
+
+@pytest.mark.django_db
+def test_existing_beneficiary_email_who_already_requested_a_training_ambassador_logs_in_to_account(
+    client, beneficiary
+):
+    beneficiary.has_requested_training_ambassador = True
+    beneficiary.save()
+
+    response = client.post(
+        FUNNEL_URL,
+        {"action": "email", "email": beneficiary.email, "wants_training_ambassador": "true"},
+    )
+
+    assert f"next={quote(reverse('show_account'), safe='')}" in response["HX-Redirect"]
 
 
 @pytest.mark.django_db
@@ -448,6 +486,107 @@ def test_show_skip_mentoring_signup_modal_submits_the_step_preceding_the_mentori
     # Skipping makes the step before the mentoring screen the last one, and it is already filled.
     assert b'name="action" value="training_experience"' in response.content
     assert b'name="wants_mentor" value="false"' in response.content
+
+
+@pytest.mark.django_db
+def test_training_experience_step_leads_to_the_training_ambassador_request_when_one_is_wanted(
+    client, higher_ed_school, higher_ed_formation
+):
+    response = client.post(
+        FUNNEL_URL,
+        _higher_education_post(
+            higher_ed_school, higher_ed_formation, wants_training_ambassador="true"
+        ),
+    )
+
+    assert b'name="action" value="training_ambassador_request"' in response.content
+    assert not Beneficiary.objects.exists()
+
+
+@pytest.mark.django_db
+@override_settings(EMAIL_BACKEND="django.core.mail.backends.locmem.EmailBackend")
+def test_training_ambassador_request_step_creates_beneficiary_and_mails_the_topic(
+    client, higher_ed_school, higher_ed_formation
+):
+    response = client.post(
+        FUNNEL_URL,
+        _higher_education_post(
+            higher_ed_school,
+            higher_ed_formation,
+            action="training_ambassador_request",
+            wants_training_ambassador="true",
+            topic="Parcoursup et la vie sur le campus",
+        ),
+    )
+
+    assert b"Saisis le code" in response.content
+    assert Beneficiary.objects.get(email="oceane@example.com").has_requested_training_ambassador
+    [request_mail] = [
+        message
+        for message in mail.outbox
+        if message.subject == "Nouvelle demande pour parler à une ambassadrice"
+    ]
+    assert "Parcoursup et la vie sur le campus" in request_mail.body
+
+
+@pytest.mark.django_db
+def test_training_ambassador_request_step_without_a_topic_creates_nothing(
+    client, higher_ed_school, higher_ed_formation
+):
+    response = client.post(
+        FUNNEL_URL,
+        _higher_education_post(
+            higher_ed_school,
+            higher_ed_formation,
+            action="training_ambassador_request",
+            wants_training_ambassador="true",
+            topic="",
+        ),
+    )
+
+    assert b'name="action" value="training_ambassador_request"' in response.content
+    assert not Beneficiary.objects.exists()
+
+
+@pytest.mark.django_db
+def test_show_skip_training_ambassador_request_modal_submits_the_step_preceding_it(client):
+    response = client.get(reverse("show_skip_training_ambassador_request_modal"))
+
+    assert b'name="action" value="training_experience"' in response.content
+    assert b'name="wants_training_ambassador" value="false"' in response.content
+
+
+@pytest.mark.django_db
+def test_back_from_the_training_ambassador_request_skips_the_mentoring_screen(client):
+    response = client.post(
+        FUNNEL_URL,
+        {
+            **_identity_post_for_age(20),
+            "action": "back",
+            "to": "training_ambassador_request",
+            "study_status": "higher_education",
+            "wants_training_ambassador": "true",
+        },
+    )
+
+    assert b'name="action" value="training_experience"' in response.content
+
+
+@pytest.mark.django_db
+def test_resume_returns_to_the_training_ambassador_request_once_the_training_is_filled(
+    client, higher_ed_school, higher_ed_formation
+):
+    response = client.post(
+        FUNNEL_URL,
+        _higher_education_post(
+            higher_ed_school,
+            higher_ed_formation,
+            action="resume",
+            wants_training_ambassador="true",
+        ),
+    )
+
+    assert b'name="action" value="training_ambassador_request"' in response.content
 
 
 @pytest.mark.django_db

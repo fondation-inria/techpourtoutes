@@ -1,0 +1,36 @@
+<c-layout.base title="Échanger avec une étudiante - TechPourToutes" description="Échanger avec une étudiante ambassadrice TechPourToutes pour découvrir les parcours possibles après des études dans les filières du numérique" >
+    <c-components.title title="Échanger avec une étudiante" title_bg="yellow" class="md:whitespace-nowrap" />
+    <c-components.card>
+        <p>Tu es lycéenne ou étudiante en réorientation&nbsp;? Tu t'interroges sur tes choix d'études supérieures et de carrière&nbsp;?</p>
+        <p class="mt-3">Tu peux échanger avec une étudiante ambassadrice TechPourToutes, qui te permettra de découvrir la formation dans laquelle elle étudie, ou encore les parcours possibles après des études dans les filières du numérique.</p>
+    </c-components.card>
+    <c-components.card header="Comment ça se passe&nbsp;?" header_color="bg-green-500">
+        <ul class="steps steps-vertical">
+            <li class="step step-success text-left">Rejoins le club et dis-nous en plus sur ce dont tu aimerais discuter</li>
+            <li class="step step-success text-left">L'équipe TechPourToutes te mets en relation avec une ambassadrice</li>
+            <li class="step step-success text-left">Vous échangez&nbsp;!</li>
+        </ul>
+    </c-components.card>
+    <c-components.card header="Quels thèmes aborder&nbsp;?" header_color="bg-blue-500">
+        <c-components.icon_list_item icon="orientation">
+            <strong>Orientation</strong>&nbsp;: Parcoursup, les bonnes options à choisir, les écoles, les spécialités etc.
+        </c-components.icon_list_item>
+        <br>
+        <c-components.icon_list_item icon="lettre-de-motivation">
+            <strong>Lettre de motivation</strong>&nbsp;: les bonnes pratiques, les adapter aux écoles ou entreprises, etc.
+        </c-components.icon_list_item>
+        <br>
+        <c-components.icon_list_item icon="organisation">
+            <strong>Organisation</strong>&nbsp;: méthodologie de travail
+        </c-components.icon_list_item>
+        <br>
+        <c-components.icon_list_item icon="vie-etudiante">
+            <strong>Vie étudiante</strong>&nbsp;: la vie sur le campus, les associations étudiantes, etc.
+        </c-components.icon_list_item>
+    </c-components.card>
+    {% if cta_href %}
+        <div class="flex justify-center w-full">
+            <c-components.button href="{{ cta_href }}" label="{{ cta_label }}"/>
+        </div>
+    {% endif %}
+</c-layout.base>

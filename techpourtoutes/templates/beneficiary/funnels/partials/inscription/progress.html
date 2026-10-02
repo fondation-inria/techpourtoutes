@@ -23,6 +23,16 @@
                 hx-target="#modal-container"
                 hx-swap="innerHTML"
             />
+        {% elif step == "training_ambassador_request" %}
+            <c-components.button
+                label="Passer"
+                type="button"
+                variant="tertiary"
+                class="w-fit px-1 text-neutral-900! bg-white! hover:bg-secondary/20! active:bg-orange-500! font-normal"
+                hx-get="{% url 'show_skip_training_ambassador_request_modal' %}"
+                hx-target="#modal-container"
+                hx-swap="innerHTML"
+            />
         {% endif %}
     </div>
     <div class="bg-yellow-500 mx-4 h-2 overflow-hidden">

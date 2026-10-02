@@ -77,6 +77,25 @@ def new_mentoree(request):
     )
 
 
+def new_training_ambassador_beneficiary(request):
+    beneficiary = getattr(request.user, "beneficiary", None)
+    cta_href = None
+    cta_label = "Rejoindre le club"
+    if not request.user.is_authenticated:
+        cta_href = f"{reverse('inscription_funnel')}?wants_training_ambassador=1"
+    if beneficiary is not None:
+        cta_href = reverse("new_training_ambassador_request")
+        cta_label = "Échanger avec une étudiante"
+        if beneficiary.has_requested_training_ambassador:
+            cta_href = reverse("show_account")
+            cta_label = "Voir mon compte"
+    return render(
+        request,
+        "beneficiary/new_training_ambassador_beneficiary.html",
+        {"cta_href": cta_href, "cta_label": cta_label},
+    )
+
+
 def index_events(request):
     return render(
         request,

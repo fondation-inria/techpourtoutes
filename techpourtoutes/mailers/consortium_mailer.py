@@ -39,6 +39,18 @@ class ConsortiumMailer(BaseMailer):
         )
 
     @classmethod
+    def training_ambassador_requested(cls, *, beneficiary, topic):
+        cls.send_mail(
+            subject="Nouvelle demande pour parler à une ambassadrice",
+            recipient_list=settings.COALITION_TRAINING_AMBASSADOR_RECIPIENTS,
+            context={
+                "beneficiary": beneficiary,
+                "topic": topic,
+            },
+            tags=["interne", "coalition", "nouvelle demande de contact avec une ambassadrice"],
+        )
+
+    @classmethod
     def event_submitted(cls, *, event):
         admin_url = settings.SITE_URL + reverse(
             "admin:techpourtoutes_event_change", args=[event.pk]
