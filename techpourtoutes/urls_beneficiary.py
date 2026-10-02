@@ -18,9 +18,24 @@ urlpatterns = [
         name="new_training_ambassador_beneficiary",
     ),
     path(
+        "echanger-avec-une-etudiante/demande/",
+        views.new_training_ambassador_request,
+        name="new_training_ambassador_request",
+    ),
+    path(
+        "echanger-avec-une-etudiante/demande/envoyer/",
+        views.create_training_ambassador_request,
+        name="create_training_ambassador_request",
+    ),
+    path(
         "inscription/passer-mentorat/",
         views.show_skip_mentoring_signup_modal,
         name="show_skip_mentoring_signup_modal",
+    ),
+    path(
+        "inscription/passer-demande-ambassadrice/",
+        views.show_skip_training_ambassador_request_modal,
+        name="show_skip_training_ambassador_request_modal",
     ),
     path(
         "bientot-disponible/",

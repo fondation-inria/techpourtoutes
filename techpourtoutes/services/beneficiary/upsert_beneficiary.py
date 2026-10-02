@@ -1,6 +1,6 @@
 from django.db import transaction
 
-from ...mailers import AuthMailer
+from ...mailers import AuthMailer, ConsortiumMailer
 from ...models import Beneficiary
 from ...tasks import send_beneficiary_welcome_email_task
 from ...utils.dates import compute_age
@@ -20,23 +20,29 @@ class UpsertBeneficiary(BaseService):
         beneficiary_data=None,
         training_experience_form=None,
         mentoring_signup_data=None,
+        training_ambassador_request_data=None,
     ):
         is_new = beneficiary is None
         self.beneficiary = beneficiary or Beneficiary(
             username=beneficiary_data["email"], email=beneficiary_data["email"]
         )
         self._apply_birth_date(beneficiary_data, mentoring_signup_data)
-        is_minor = compute_age(self.beneficiary.birth_date) < 18
+        is_minor = (
+            compute_age(self.beneficiary.birth_date) < 18 if self.beneficiary.birth_date else False
+        )
         with transaction.atomic():
             self._save_beneficiary(
                 beneficiary_data=beneficiary_data,
                 is_minor=is_minor,
                 mentoring_signup_data=mentoring_signup_data,
+                training_ambassador_request_data=training_ambassador_request_data,
             )
             if training_experience_form:
                 self._create_training_experience(training_experience_form)
             if mentoring_signup_data:
                 self._sign_up_for_mentoring(is_minor, mentoring_signup_data)
+            if training_ambassador_request_data:
+                self._send_training_ambassador_request_email(training_ambassador_request_data)
         if training_experience_form:
             report_missing_record(
                 training_experience_form, self.beneficiary, "Funnel d'inscription"
@@ -51,11 +57,20 @@ class UpsertBeneficiary(BaseService):
         if data.get("birth_date"):
             self.beneficiary.birth_date = data["birth_date"]
 
-    def _save_beneficiary(self, *, beneficiary_data, is_minor, mentoring_signup_data):
+    def _save_beneficiary(
+        self,
+        *,
+        beneficiary_data,
+        is_minor,
+        mentoring_signup_data,
+        training_ambassador_request_data,
+    ):
         if beneficiary_data:
             self._apply_identity(beneficiary_data)
         if mentoring_signup_data:
             self._apply_mentoring_contact(mentoring_signup_data, is_minor)
+        if training_ambassador_request_data:
+            self._apply_training_ambassador_request()
         self.beneficiary.save()
 
     def _apply_identity(self, beneficiary_data):
@@ -73,6 +88,9 @@ class UpsertBeneficiary(BaseService):
             mentoring_signup_data["legal_representative_email"] if is_minor else ""
         )
 
+    def _apply_training_ambassador_request(self):
+        self.beneficiary.has_requested_training_ambassador = True
+
     def _create_training_experience(self, training_experience_form):
         training_experience_form.save(self.beneficiary)
 
@@ -84,6 +102,11 @@ class UpsertBeneficiary(BaseService):
         )
         if result.failure:
             self.fail_with_errors(result)
+
+    def _send_training_ambassador_request_email(self, training_ambassador_request_data):
+        ConsortiumMailer.training_ambassador_requested(
+            beneficiary=self.beneficiary, topic=training_ambassador_request_data["topic"]
+        )
 
     def _trigger_onboarding(self):
         AuthMailer.login_code(user=self.beneficiary, code=self.beneficiary.issue_login_code())

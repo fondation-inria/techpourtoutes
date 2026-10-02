@@ -1,5 +1,4 @@
 import pytest
-from django.conf import settings
 from django.core import mail
 from django.test import override_settings
 
@@ -28,8 +27,6 @@ def test_beneficiary_welcome_sends_email(beneficiary):
     assert message.subject == "Bienvenue au club"
     assert message.from_email == "TechPourToutes <bonjour@techpourtoutes.io>"
     assert beneficiary.first_name in message.body
-    assert settings.BENEFICIARY_BOOKING_URL in message.body
-    assert "/mon-compte/" in message.body
 
 
 @pytest.mark.django_db

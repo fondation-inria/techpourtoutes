@@ -9,6 +9,7 @@ from .last_diploma_training_experience_form import (
 )
 from .mentoring_signup_form import BeneficiaryMentoringSignUpForm
 from .study_status_form import BeneficiaryStudyStatusForm, StudyStatus
+from .training_ambassador_request_form import BeneficiaryTrainingAmbassadorRequestForm
 
 __all__ = [
     "BeneficiaryEmailForm",
@@ -18,5 +19,6 @@ __all__ = [
     "BeneficiaryLastDiplomaTrainingExperienceForm",
     "BeneficiaryMentoringSignUpForm",
     "BeneficiaryStudyStatusForm",
+    "BeneficiaryTrainingAmbassadorRequestForm",
     "StudyStatus",
 ]
