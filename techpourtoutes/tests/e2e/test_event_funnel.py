@@ -1,9 +1,11 @@
 import re
+from datetime import timedelta
 from decimal import Decimal
 
 import pytest
 from django.core import mail
 from django.test import override_settings
+from django.utils import timezone
 from playwright.sync_api import expect
 
 from techpourtoutes.models import Event, Pro
@@ -16,6 +18,8 @@ locmem = override_settings(
     EMAIL_BACKEND="django.core.mail.backends.locmem.EmailBackend",
     NEW_EVENT_RECIPIENTS=["agir@techpourtoutes.io"],
 )
+
+START = timezone.localdate() + timedelta(days=30)
 
 
 @pytest.fixture
@@ -43,7 +47,7 @@ def fill_details(page):
     page.get_by_label("Nom de l'organisateur*").fill("Numeum")
     page.get_by_label("Nom de l'événement*").fill("Salon des métiers du numérique")
     page.get_by_label("Description de l'événement*").fill("Une journée de rencontres.")
-    page.get_by_label("Date de début*").fill("2026-10-01")
+    page.get_by_label("Date de début*").fill(START.isoformat())
     page.get_by_label("Heure de début*").fill("09:00")
 
 
@@ -52,7 +56,7 @@ def test_the_end_date_follows_the_start_date_until_she_changes_it(funnel):
     funnel.get_by_role("button", name="Continuer").click()
     fill_details(funnel)
 
-    expect(funnel.get_by_label("Date de fin*")).to_have_value("2026-10-01")
+    expect(funnel.get_by_label("Date de fin*")).to_have_value(START.isoformat())
 
     funnel.get_by_label("Date de fin*").fill("2026-10-03")
     funnel.get_by_label("Date de début*").fill("2026-10-02")
