@@ -436,3 +436,51 @@ def test_an_image_the_browser_cannot_read_is_refused(details_screen):
 
     expect(details_screen.get_by_text("Ce visuel n'a pas pu être lu")).to_be_visible()
     assert details_screen.locator("input[name=image]").input_value() == ""
+
+
+@pytest.fixture
+def sentry_captures(details_screen):
+    """Stands in for the Sentry SDK, which only loads where a DSN is configured."""
+    details_screen.evaluate(
+        """() => {
+            window.captured = [];
+            window.Sentry = {
+                captureException: (error, context) =>
+                    window.captured.push({ error: String(error), step: context.tags.upload_step }),
+            };
+        }"""
+    )
+    return lambda: details_screen.evaluate("() => window.captured")
+
+
+def test_an_upload_the_bucket_refuses_is_reported_to_sentry(details_screen, sentry_captures):
+    details_screen.route("**/uploads-locaux/**", lambda route: route.fulfill(status=403))
+
+    import_image(details_screen, "photo.png", "image/png", png(600, 400))
+
+    expect(details_screen.get_by_text("L'import du visuel a échoué")).to_be_visible()
+    assert sentry_captures() == [{"error": "Error: HTTP 403", "step": "bucket"}]
+
+
+def test_an_upload_cut_off_by_the_network_is_reported_to_sentry(details_screen, sentry_captures):
+    """A refusal without a CORS header looks the same to the page: the fetch itself throws."""
+    details_screen.route("**/uploads-locaux/**", lambda route: route.abort())
+
+    import_image(details_screen, "photo.png", "image/png", png(600, 400))
+
+    expect(details_screen.get_by_text("L'import du visuel a échoué")).to_be_visible()
+    [capture] = sentry_captures()
+    assert capture["step"] == "bucket"
+    assert capture["error"].startswith("TypeError")
+
+
+def test_a_format_the_app_refuses_is_not_reported_to_sentry(details_screen, sentry_captures):
+    details_screen.route(
+        "**/evenements/importer-un-visuel/",
+        lambda route: route.fulfill(status=400, json={"error": "Ce format n'est pas accepté."}),
+    )
+
+    import_image(details_screen, "photo.png", "image/png", png(600, 400))
+
+    expect(details_screen.get_by_text("Ce format n'est pas accepté.")).to_be_visible()
+    assert sentry_captures() == []

@@ -1,4 +1,4 @@
-{% load tailwind_cli static matomo coalition_page %}
+{% load tailwind_cli static matomo sentry coalition_page %}
 <c-vars title="TechPourToutes" description="" og_image="" head_js="" />
 
 <head>
@@ -12,6 +12,7 @@
     <meta property="og:image" content="{% if og_image %}{{ og_image }}{% else %}{{ SITE_URL }}{% static 'images/coalition-tpt-white.png' %}{% endif %}">
     <link rel="canonical" href="{{ request.build_absolute_uri }}">
     {% matomo_tracking %}
+    {% sentry_browser %}
     <title>{{ title }}</title>
     {% if FAVICON_DYNAMIC_ENABLED %}
         {% is_coalition_page as is_coalition_page %}

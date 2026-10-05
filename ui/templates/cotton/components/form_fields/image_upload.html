@@ -61,23 +61,27 @@
             });
         },
         async send(file) {
+            let step = 'signature';
             try {
                 const signed = await fetch('{{ upload_url }}', {
                     method: 'POST',
                     headers: { 'X-CSRFToken': '{{ csrf_token }}' },
                     body: new URLSearchParams({ content_type: file.type, content_length: file.size }),
                 });
-                const upload = await signed.json();
-                if (!signed.ok) {
-                    this.error = upload.error;
+                if (signed.status === 400) {
+                    this.error = (await signed.json()).error;
                     return;
                 }
+                if (!signed.ok) throw new Error(`HTTP ${signed.status}`);
+                const upload = await signed.json();
+                step = 'bucket';
                 const stored = await fetch(upload.url, { method: 'PUT', headers: upload.headers, body: file });
-                if (!stored.ok) throw new Error(stored.status);
+                if (!stored.ok) throw new Error(`HTTP ${stored.status}`);
                 this.key = upload.key;
                 this.preview = URL.createObjectURL(file);
-            } catch {
+            } catch (error) {
                 this.error = 'L\'import du visuel a échoué, veuillez réessayer.';
+                window.Sentry?.captureException(error, { tags: { upload_step: step } });
             }
         },
         remove() {
