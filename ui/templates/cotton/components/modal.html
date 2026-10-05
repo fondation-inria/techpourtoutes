@@ -2,7 +2,7 @@
 
 <dialog
     tabindex="-1"
-    class="focus:outline-none open:flex fixed inset-0 z-50 w-full h-full max-w-none max-h-none items-center justify-center bg-black/40"
+    class="focus:outline-none open:flex fixed inset-0 z-50 w-full h-full max-w-none max-h-none items-center justify-center bg-black/40 text-neutral-900"
     {% if title %}aria-labelledby="modal-title"{% endif %}
     hx-on::load="if (!this.open) { this.showModal(); this.focus() }"
     x-init="if (!$el.open) { $el.showModal(); $el.focus() }"

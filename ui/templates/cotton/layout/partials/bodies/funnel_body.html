@@ -1,5 +1,6 @@
-<c-vars back="" right="" footer=True />
+<c-vars back="" right="" />
 <body class="min-h-screen font-sans bg-neutral-0 text-neutral-900">
+    <c-layout.partials.skip_link />
     <c-components.button
         variant="icon"
         href="{% if back %}{{ back }}{% else %}{% url 'home' %}{% endif %}"
@@ -11,14 +12,12 @@
     />
     <div class="flex min-h-screen flex-col">
         <c-layout.partials.funnel_messages />
-            <main class="flex flex-1 px-4 {% if not right %}items-center justify-center{% endif %}">
+            <main id="contenu" tabindex="-1" class="focus:outline-none flex flex-1 px-4 {% if not right %}items-center justify-center{% endif %}">
                 <div class="w-full flex {% if right %}max-w-6xl mx-auto flex-col md:flex-row gap-8 items-stretch{% else %}max-w-xl justify-center{% endif %}">
                     {{ slot }}
                     {{ right }}
                 </div>
             </main>
-        {% if footer %}
-            <c-layout.partials.footer />
-        {% endif %}
+        <c-layout.partials.footer />
     </div>
 </body>
