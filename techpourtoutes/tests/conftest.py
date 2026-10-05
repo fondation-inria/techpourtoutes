@@ -33,7 +33,7 @@ def s3_location():
 def s3_storages(settings, s3_location):
     """Both object storages on an in-memory S3, their buckets created.
 
-    Mind that moto stores whatever is posted to it: it does not enforce a POST policy.
+    Mind that moto stores whatever is put to it: it does not enforce the signed headers.
     """
     with mock_aws():
         settings.STORAGES = settings.STORAGES | object_storage.settings_dictionary(

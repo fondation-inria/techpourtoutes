@@ -54,16 +54,17 @@ class Command(BaseCommand):
             storage_alias=alias,
             prefix=PREFIX,
             content_type="text/plain",
+            content_length=len(PROBE),
             allowed_content_types=["text/plain"],
             max_size=len(PROBE),
         )
         try:
-            if self._post(upload, PROBE * 2).is_success:
+            if self._put(upload, PROBE * 2).is_success:
                 raise CommandError(f"  {alias} : un fichier trop lourd a été accepté.")
-            if not self._post(upload, PROBE).is_success:
+            if not self._put(upload, PROBE).is_success:
                 raise CommandError(f"  {alias} : l'upload pré-signé a été refusé.")
         finally:
             storage.delete(upload.key)
 
-    def _post(self, upload, content):
-        return httpx.post(upload.url, data=upload.fields, files={"file": ("probe.txt", content)})
+    def _put(self, upload, content):
+        return httpx.put(upload.url, content=content, headers=upload.headers)

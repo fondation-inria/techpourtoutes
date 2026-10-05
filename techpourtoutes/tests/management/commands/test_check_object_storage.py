@@ -12,9 +12,9 @@ def bucket_over_http(httpx_mock):
 
     def register(*, enforces_size=True, private_readable=False):
         def respond(request):
-            if request.method == "POST":
-                oversized = PROBE * 2 in request.content
-                return httpx.Response(400 if oversized and enforces_size else 204)
+            if request.method == "PUT":
+                oversized = request.content != PROBE
+                return httpx.Response(403 if oversized and enforces_size else 200)
             signed = "X-Amz-Signature" in request.url.params
             public = request.url.host.startswith("tpt-test-public")
             return httpx.Response(200 if signed or public or private_readable else 403)

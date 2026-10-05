@@ -2,7 +2,7 @@
   "CORSRules": [
     {
       "AllowedOrigins": ["https://techpourtoutes.io", "https://www.techpourtoutes.io"],
-      "AllowedMethods": ["GET", "HEAD", "POST"],
+      "AllowedMethods": ["GET", "HEAD", "PUT"],
       "AllowedHeaders": ["*"],
       "ExposeHeaders": ["ETag", "Location"],
       "MaxAgeSeconds": 3000

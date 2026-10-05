@@ -65,5 +65,6 @@ ligne.
 - Recopier les objets (`rclone sync`), réappliquer le CORS, recréer les accès.
 - Si le fournisseur ouvre le bucket public par une bucket policy plutôt que par ACL (AWS avec
   « Object Ownership: bucket owner enforced »), laisser `S3_PUBLIC_OBJECT_ACL` vide.
-- Cloudflare R2 ne supporte pas l'upload par POST pré-signé : il faudrait adapter
-  `CreatePresignedUpload`.
+- L'upload direct est un PUT pré-signé, pas un formulaire POST : chez OVH, un POST pré-signé est
+  refusé (`SignatureDoesNotMatch`, avec des clés valides) après une période sans requête signée
+  classique. Le CORS doit donc autoriser `PUT`.
