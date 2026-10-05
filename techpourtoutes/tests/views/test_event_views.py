@@ -716,32 +716,41 @@ def test_a_step_answering_alone_carries_the_messages_out_of_band(client, pro):
 def test_create_event_image_upload_signs_an_upload_to_the_public_storage(client, pro):
     client.force_login(pro)
 
-    response = client.post(IMAGE_UPLOAD_URL, {"content_type": "image/png"})
+    response = client.post(
+        IMAGE_UPLOAD_URL, {"content_type": "image/png", "content_length": 1_000}
+    )
 
     assert response.status_code == 200
     body = response.json()
-    assert body["url"] == reverse("create_local_upload", args=["public"])
+    assert body["url"].startswith(reverse("create_local_upload", args=["public"]))
     assert body["key"].startswith("events/")
-    assert body["fields"]["Content-Type"] == "image/png"
+    assert body["headers"]["Content-Type"] == "image/png"
 
 
 @pytest.mark.django_db
 def test_create_event_image_upload_lets_through_a_compressed_image_only(client, pro):
     """The browser shrinks the image before its upload: what reaches the bucket is light."""
-    from techpourtoutes.utils.local_upload import read_local_upload_policy
-
     client.force_login(pro)
 
-    fields = client.post(IMAGE_UPLOAD_URL, {"content_type": "image/webp"}).json()["fields"]
+    light = client.post(
+        IMAGE_UPLOAD_URL, {"content_type": "image/webp", "content_length": 2 * 1024 * 1024}
+    )
+    heavy = client.post(
+        IMAGE_UPLOAD_URL, {"content_type": "image/webp", "content_length": 2 * 1024 * 1024 + 1}
+    )
 
-    assert read_local_upload_policy(fields["policy"])["max_size"] == 2 * 1024 * 1024
+    assert light.status_code == 200
+    assert heavy.status_code == 400
+    assert "trop lourd" in heavy.json()["error"]
 
 
 @pytest.mark.django_db
 def test_create_event_image_upload_refuses_a_file_that_is_not_an_image(client, pro):
     client.force_login(pro)
 
-    response = client.post(IMAGE_UPLOAD_URL, {"content_type": "application/pdf"})
+    response = client.post(
+        IMAGE_UPLOAD_URL, {"content_type": "application/pdf", "content_length": 1_000}
+    )
 
     assert response.status_code == 400
     assert "format" in response.json()["error"]

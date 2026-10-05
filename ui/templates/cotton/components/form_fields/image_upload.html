@@ -11,7 +11,7 @@
 />
 
 {# The file never goes through the app: the browser shrinks it to `max_side`, asks `upload_url` #}
-{# to sign an upload, posts it straight to the bucket, and only its key travels on in the hidden #}
+{# to sign an upload, puts it straight into the bucket, and only its key travels on in the hidden #}
 {# input. `max_size` bounds the file she picks, before it is shrunk. #}
 <div x-data="{
         key: '{{ field.value|default:""|escapejs }}',
@@ -65,17 +65,14 @@
                 const signed = await fetch('{{ upload_url }}', {
                     method: 'POST',
                     headers: { 'X-CSRFToken': '{{ csrf_token }}' },
-                    body: new URLSearchParams({ content_type: file.type }),
+                    body: new URLSearchParams({ content_type: file.type, content_length: file.size }),
                 });
                 const upload = await signed.json();
                 if (!signed.ok) {
                     this.error = upload.error;
                     return;
                 }
-                const form = new FormData();
-                Object.entries(upload.fields).forEach(([name, value]) => form.append(name, value));
-                form.append('file', file);
-                const stored = await fetch(upload.url, { method: 'POST', body: form });
+                const stored = await fetch(upload.url, { method: 'PUT', headers: upload.headers, body: file });
                 if (!stored.ok) throw new Error(stored.status);
                 this.key = upload.key;
                 this.preview = URL.createObjectURL(file);

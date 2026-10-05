@@ -14,7 +14,7 @@ from ..forms.event.details_form import IMAGE_CONTENT_TYPES, IMAGE_MAX_SIZE, IMAG
 from ..models import Event
 from ..services.event.create_event import CreateEvent
 from ..services.event.update_event import UpdateEvent
-from ..services.storage.create_presigned_upload import CreatePresignedUpload
+from ..services.storage.create_presigned_upload import TOO_LARGE, CreatePresignedUpload
 
 # The funnel steps in order — the single source of truth navigation is derived from.
 _STEPS = ("subcategory", "details", "location")
@@ -102,25 +102,34 @@ def update_event(request):
 @require_POST
 @pro_required
 def create_event_image_upload(request):
-    """Signs the form the details screen posts its visual with, straight to the bucket: the
+    """Signs the PUT the details screen sends its visual with, straight to the bucket: the
     funnel then only carries `key` back — the name the storage knows the file by, which the
-    bucket's own `fields["key"]` may prefix with its location."""
+    signed URL may prefix with the bucket's location."""
     result = CreatePresignedUpload(
         storage_alias="public",
         prefix=IMAGE_PREFIX,
         content_type=request.POST.get("content_type", ""),
+        content_length=_content_length(request),
         allowed_content_types=IMAGE_CONTENT_TYPES,
         max_size=IMAGE_MAX_SIZE,
     )
     if result.failure:
-        return JsonResponse(
-            {"error": "Ce format n'est pas accepté : importez une image JPG, PNG ou WebP."},
-            status=400,
-        )
-    return JsonResponse({"url": result.url, "fields": result.fields, "key": result.key})
+        return JsonResponse({"error": _image_upload_error(result)}, status=400)
+    return JsonResponse({"url": result.url, "headers": result.headers, "key": result.key})
 
 
 # ------------------- private -------------------
+
+
+def _content_length(request):
+    content_length = request.POST.get("content_length", "")
+    return int(content_length) if content_length.isdigit() else 0
+
+
+def _image_upload_error(result):
+    if result.errors == [TOO_LARGE]:
+        return "Ce visuel est trop lourd : essayez avec une autre image."
+    return "Ce format n'est pas accepté : importez une image JPG, PNG ou WebP."
 
 
 class _StepInterrupt(Exception):
