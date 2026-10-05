@@ -156,6 +156,30 @@ def test_show_account_ignores_the_past_events_the_beneficiary_saved(client, bene
 
 
 @pytest.mark.django_db
+def test_show_account_offers_a_training_ambassador_exchange_to_the_beneficiary(
+    client, beneficiary
+):
+    client.force_login(beneficiary)
+
+    content = client.get(reverse("show_account")).content.decode()
+
+    assert "TechPourToutes peut te mettre en relation avec une étudiante" in content
+    assert "Tu as demandé à être mise en relation" not in content
+
+
+@pytest.mark.django_db
+def test_show_account_acknowledges_the_training_ambassador_request_once_sent(client, beneficiary):
+    beneficiary.has_requested_training_ambassador = True
+    beneficiary.save()
+    client.force_login(beneficiary)
+
+    content = client.get(reverse("show_account")).content.decode()
+
+    assert "Tu as demandé à être mise en relation" in content
+    assert "TechPourToutes peut te mettre en relation avec une étudiante" not in content
+
+
+@pytest.mark.django_db
 def test_show_user_info_requires_login(client):
     response = client.get(reverse("show_user_info"))
 
