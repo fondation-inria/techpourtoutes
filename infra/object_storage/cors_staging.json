@@ -1,0 +1,14 @@
+{
+  "CORSRules": [
+    {
+      "AllowedOrigins": [
+        "https://techpourtoutes-staging.osc-fr1.scalingo.io",
+        "https://techpourtoutes-staging-pr*.osc-fr1.scalingo.io"
+      ],
+      "AllowedMethods": ["GET", "HEAD", "PUT"],
+      "AllowedHeaders": ["*"],
+      "ExposeHeaders": ["ETag", "Location"],
+      "MaxAgeSeconds": 3000
+    }
+  ]
+}
