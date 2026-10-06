@@ -5,7 +5,7 @@
         <a href="{% url 'home' %}">
             <div class="flex h-full items-center justify-center gap-x-3 px-3 border-b">
                 <p class="max-[420px]:text-xs text-sm pr-2">Tu es intéressée par le numérique et tu as entre 15 et 25 ans, découvre&nbsp;:</p>
-                <img src="{% static 'images/techpourtoutes-logo-new-beneficiary.png' %}" alt="logo TechPourToutes" class=" h-8 lg:h-12 w-auto {{ class }}" width="1344" height="372" decoding="async" />
+                <img src="{% static 'images/techpourtoutes-logo-new-beneficiary.png' %}" alt="Accueil TechPourToutes Programme" class=" h-8 lg:h-12 w-auto {{ class }}" width="1344" height="372" decoding="async" />
             </div>
         </a>
     </c-slot>
@@ -38,27 +38,27 @@
     <c-components.card title="Comment contribuer&nbsp;?" title_bg="" style="serif" />
 
     <div class="grid grid-cols-1 md:grid-cols-2 gap-6 w-full">
-        <c-components.card-link color="yellow" title="Mentorat" button="En savoir plus" href="{% url "new_mentor" %}">
+        <c-components.card-link color="yellow" title="Mentorat" button="Découvrir le mentorat" href="{% url "new_mentor" %}">
             TechPourToutes recherche des mentors pour accompagner les jeunes femmes pendant 6&nbsp;mois à distance, pour avoir un impact sur leur avenir.
         </c-components.card-link>
 
-        <c-components.card-link color="blue" title="Ateliers en classe" button="En savoir plus" href="{% url "new_workshop_request" %}">
+        <c-components.card-link color="blue" title="Ateliers en classe" button="Découvrir les ateliers" href="{% url "new_workshop_request" %}">
             Au collège ou au lycée, prenez le temps d'aborder le numérique autrement à l'école grâce à nos deux formats d'atelier.
         </c-components.card-link>
 
-        <c-components.card-link color="purple" title="Stages" button="En savoir plus" href="{% url "new_internship" %}">
+        <c-components.card-link color="purple" title="Stages" button="Découvrir les stages" href="{% url "new_internship" %}">
             Recrutez des filles pleines de motivation et de talents. Faites-leur découvrir votre métier lors d'un stage de 1 à 2&nbsp;semaines ou sur plusieurs mois.
         </c-components.card-link>
 
-        <c-components.card-link color="green" title="Ambassadorat étudiant" button="En savoir plus" href="{% url "new_training_ambassador" %}">
+        <c-components.card-link color="green" title="Ambassadorat étudiant" button="Découvrir l'ambassadorat étudiant" href="{% url "new_training_ambassador" %}">
             Étudiante dans une formation numérique, viens représenter ton école et transmettre ta passion à des lycéennes ou d'autres étudiantes.
         </c-components.card-link>
 
-        <c-components.card-link color="orange" title="Ambassadorat métier" button="En savoir plus" href="{% url "new_work_ambassador" %}">
+        <c-components.card-link color="orange" title="Ambassadorat métier" button="Découvrir l'ambassadorat métier" href="{% url "new_work_ambassador" %}">
             Venez présenter votre métier à des lycéennes ou des étudiantes qui ont besoin de vous pour ouvrir leurs imaginaires.
         </c-components.card-link>
 
-        <c-components.card-link color="yellow" title="Mécénat" button="En savoir plus" href="{% url "new_sponsor" %}">
+        <c-components.card-link color="yellow" title="Mécénat" button="Découvrir le mécénat" href="{% url "new_sponsor" %}">
             Agissez à nos côtés au service de la féminisation des métiers du numérique, via des bourses, des dons de matériel ou du mécénat de compétence.
         </c-components.card-link>
     </div>

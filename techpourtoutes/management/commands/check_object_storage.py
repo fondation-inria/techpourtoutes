@@ -16,8 +16,8 @@ ANONYMOUS_READ_STATUS = {"default": 403, "public": 200}
 
 class Command(BaseCommand):
     help = (
-        "Vérifier l'object storage : écriture, lecture, droits d'accès anonymes et upload "
-        "pré-signé, sur le stockage privé puis public."
+        "Check the object storage : write, read, anonymous access rights and upload"
+        "pre-signed, on private then public storage."
     )
 
     def handle(self, *args, **options):
