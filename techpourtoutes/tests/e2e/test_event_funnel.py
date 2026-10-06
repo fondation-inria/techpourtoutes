@@ -93,6 +93,25 @@ def test_leaving_the_funnel_asks_for_confirmation(funnel):
     expect(funnel.get_by_text("ne sera pas enregistré")).to_be_hidden()
 
 
+@pytest.mark.parametrize(
+    ("link_name", "destination"),
+    [
+        ("Accueil TechPourToutes Coalition", "/coalition/"),
+        ("Mentions légales", "/mentions-legales/"),
+    ],
+)
+def test_leaving_through_the_logo_or_the_footer_asks_for_confirmation_too(
+    funnel, link_name, destination
+):
+    """Every way out of the page loses the answers, not only the close button: quitting then
+    goes where the link pointed."""
+    funnel.get_by_role("link", name=link_name).click()
+
+    expect(funnel.get_by_text("ne sera pas enregistré")).to_be_visible()
+    funnel.get_by_role("link", name="Quitter la création").click()
+    expect(funnel).to_have_url(re.compile(f"{destination}$"))
+
+
 @locmem
 def test_leaving_a_submitted_event_closes_straight_away(funnel):
     """The confirmation is there to say the answers are about to be lost: once they are saved

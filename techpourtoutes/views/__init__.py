@@ -71,6 +71,7 @@ from .event_views import (
     new_event,
     update_event,
 )
+from .local_upload_views import create_local_upload
 from .search_views import search_addresses, search_formations, search_schools
 from .static_views import (
     a_propos,
@@ -78,6 +79,7 @@ from .static_views import (
     conditions_generales,
     contact,
     donnees_personnelles,
+    html_sitemap,
     mentions_legales,
     notre_manifeste,
     pourquoi_nous_ecrivons_au_feminin,
@@ -105,6 +107,7 @@ __all__ = [
     "coalition_welcome",
     "conditions_generales",
     "contact",
+    "create_local_upload",
     "create_user_email_change",
     "create_user_email_code",
     "create_beneficiary_training_experience",
@@ -151,6 +154,7 @@ __all__ = [
     "pourquoi_nous_ecrivons_au_feminin",
     "qui_sommes_nous",
     "schema_pluriannuel",
+    "html_sitemap",
     "new_event",
     "create_event",
     "update_event",

@@ -8,6 +8,7 @@ COMMON_PAGE_NAMES = [
     "qui_sommes_nous",
     "pourquoi_nous_ecrivons_au_feminin",
     "contact",
+    "html_sitemap",
 ]
 
 COALITION_PAGE_NAMES = [

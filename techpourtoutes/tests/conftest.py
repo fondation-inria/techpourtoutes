@@ -1,7 +1,11 @@
 from unittest.mock import MagicMock, patch
 
+import boto3
 import httpx
 import pytest
+from moto import mock_aws
+
+from techpourtoutes.utils import object_storage
 
 
 @pytest.fixture
@@ -17,6 +21,36 @@ def mock_geocoding(httpx_mock):
         httpx_mock.add_callback(respond, is_reusable=True)
 
     return register
+
+
+@pytest.fixture
+def s3_location():
+    """The key prefix of `s3_storages`: override it to stand in for a review app."""
+    return ""
+
+
+@pytest.fixture
+def s3_storages(settings, s3_location):
+    """Both object storages on an in-memory S3, their buckets created.
+
+    Mind that moto stores whatever is put to it: it does not enforce the signed headers.
+    """
+    with mock_aws():
+        settings.STORAGES = settings.STORAGES | object_storage.settings_dictionary(
+            private_bucket="tpt-test-private",
+            public_bucket="tpt-test-public",
+            public_object_acl="public-read",
+            private_url_ttl=settings.S3_PRIVATE_URL_TTL,
+            endpoint_url="",
+            region_name="us-east-1",
+            access_key="test",
+            secret_key="test",
+            location=s3_location,
+        )
+        client = boto3.client("s3", region_name="us-east-1")
+        for bucket in ("tpt-test-private", "tpt-test-public"):
+            client.create_bucket(Bucket=bucket)
+        yield client
 
 
 @pytest.fixture

@@ -21,6 +21,10 @@ def schema_pluriannuel(request):
     return render(request, "static/schema_pluriannuel.html", {})
 
 
+def html_sitemap(request):
+    return render(request, "static/html_sitemap.html", {})
+
+
 def a_propos(request):
     return redirect("notre_manifeste")
 
