@@ -44,7 +44,6 @@ XML_SITEMAP_EXCLUDED_URL_NAMES = {
     "inscription_funnel",
     "new_event",
     "create_event",
-    "create_event_image_upload",
     "update_event",
     # Legal / info (intentionally not indexed)
     "donnees_personnelles",
