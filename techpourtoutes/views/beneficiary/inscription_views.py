@@ -74,7 +74,7 @@ def show_skip_mentoring_signup_modal(request):
     return render(
         request,
         "beneficiary/funnels/partials/inscription/show_skip_mentoring_signup_modal.html",
-        {"action": _previous_step("mentoring_signup", {"wants_mentor": "true"})},
+        {"action": _last_step({})},
     )
 
 
@@ -82,11 +82,7 @@ def show_skip_training_ambassador_request_modal(request):
     return render(
         request,
         "beneficiary/funnels/partials/inscription/show_skip_training_ambassador_request_modal.html",
-        {
-            "action": _previous_step(
-                "training_ambassador_request", {"wants_training_ambassador": "true"}
-            )
-        },
+        {"action": _last_step({})},
     )
 
 
@@ -123,20 +119,18 @@ def _create_beneficiary(request):
         identity = _validate_identity(request, error=_IDENTITY_ERROR)
         _validate_study(request, error=_STUDY_ERROR)
         training_experience_form = _validate_training_experience(request)
-        if wants_mentor:
-            mentoring_signup_data = _validate_mentoring_signup(request)
-        if wants_training_ambassador:
-            training_ambassador_request_data = _validate_training_ambassador_request(request)
+        mentoring_signup_data = _validate_mentoring_signup(request) if wants_mentor else None
+        training_ambassador_request_data = (
+            _validate_training_ambassador_request(request) if wants_training_ambassador else None
+        )
     except _StepInterrupt as interrupt:
         return interrupt.response
 
     result = UpsertBeneficiary(
         beneficiary_data=email | identity,
         training_experience_form=training_experience_form,
-        mentoring_signup_data=mentoring_signup_data if wants_mentor else None,
-        training_ambassador_request_data=training_ambassador_request_data
-        if wants_training_ambassador
-        else None,
+        mentoring_signup_data=mentoring_signup_data,
+        training_ambassador_request_data=training_ambassador_request_data,
     )
     if result.failure:
         relay_errors(request, result)
@@ -354,12 +348,9 @@ def _resume_last_step(data):
     study_status = data.get("study_status")
     if study_status not in TRAINING_EXPERIENCE_FORMS:
         return "study_status"
-    has_filled_training_experience = _has_answer_for(TRAINING_EXPERIENCE_FORMS[study_status], data)
-    if _wants_mentor(data) and has_filled_training_experience:
-        return "mentoring_signup"
-    if _wants_training_ambassador(data) and has_filled_training_experience:
-        return "training_ambassador_request"
-    return "training_experience"
+    if not _has_answer_for(TRAINING_EXPERIENCE_FORMS[study_status], data):
+        return "training_experience"
+    return _last_step(data)
 
 
 def _has_answer_for(form_class, data):
