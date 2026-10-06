@@ -2,7 +2,7 @@ from datetime import date
 
 from django.contrib import messages
 from django.contrib.auth import login
-from django.http import HttpResponse
+from django.http import Http404, HttpResponse
 from django.shortcuts import redirect, render
 from django.urls import reverse
 from django.utils.http import urlencode
@@ -39,6 +39,16 @@ _STEPS = (
     "training_ambassador_request",
 )
 
+# The optional steps, each with the answer that declines it and who it would have put her in
+# touch with.
+_SKIPPABLE_STEPS = {
+    "mentoring_signup": {"declined_field": "wants_mentor", "contact": "mentor"},
+    "training_ambassador_request": {
+        "declined_field": "wants_training_ambassador",
+        "contact": "ambassadrice",
+    },
+}
+
 
 def inscription_funnel(request):
     if request.user.is_authenticated:
@@ -70,19 +80,13 @@ def inscription_funnel(request):
     return handler(request)
 
 
-def show_skip_mentoring_signup_modal(request):
+def show_skip_inscription_step_modal(request, step):
+    if step not in _SKIPPABLE_STEPS:
+        raise Http404
     return render(
         request,
-        "beneficiary/funnels/partials/inscription/show_skip_mentoring_signup_modal.html",
-        {"action": _last_step({})},
-    )
-
-
-def show_skip_training_ambassador_request_modal(request):
-    return render(
-        request,
-        "beneficiary/funnels/partials/inscription/show_skip_training_ambassador_request_modal.html",
-        {"action": _last_step({})},
+        "beneficiary/funnels/partials/inscription/show_skip_inscription_step_modal.html",
+        {"action": _last_step({}), **_SKIPPABLE_STEPS[step]},
     )
 
 

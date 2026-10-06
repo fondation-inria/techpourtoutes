@@ -28,14 +28,9 @@ urlpatterns = [
         name="create_training_ambassador_request",
     ),
     path(
-        "inscription/passer-mentorat/",
-        views.show_skip_mentoring_signup_modal,
-        name="show_skip_mentoring_signup_modal",
-    ),
-    path(
-        "inscription/passer-demande-ambassadrice/",
-        views.show_skip_training_ambassador_request_modal,
-        name="show_skip_training_ambassador_request_modal",
+        "inscription/passer/<str:step>/",
+        views.show_skip_inscription_step_modal,
+        name="show_skip_inscription_step_modal",
     ),
     path(
         "bientot-disponible/",

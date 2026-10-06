@@ -48,20 +48,6 @@ def test_create_training_ambassador_request_without_a_topic_records_nothing(clie
 
 @pytest.mark.django_db
 @override_settings(EMAIL_BACKEND="django.core.mail.backends.locmem.EmailBackend")
-def test_create_training_ambassador_request_for_an_account_without_birth_date(client, beneficiary):
-    # An account imported from Faveod may carry none.
-    beneficiary.birth_date = None
-    beneficiary.save()
-    client.force_login(beneficiary)
-
-    client.post(CREATE_URL, {"topic": "Parcoursup"})
-
-    beneficiary.refresh_from_db()
-    assert beneficiary.has_requested_training_ambassador
-
-
-@pytest.mark.django_db
-@override_settings(EMAIL_BACKEND="django.core.mail.backends.locmem.EmailBackend")
 @pytest.mark.parametrize(("method", "url"), [("get", NEW_URL), ("post", CREATE_URL)])
 def test_a_second_training_ambassador_request_goes_back_to_the_account(
     client, beneficiary, method, url

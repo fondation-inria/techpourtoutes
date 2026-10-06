@@ -17,7 +17,6 @@ from techpourtoutes.utils.school_year import (
 )
 
 FUNNEL_URL = "/inscription/"
-SKIP_MODAL_URL = "/inscription/passer-mentorat/"
 
 
 def _valid_identity_post():
@@ -480,8 +479,8 @@ def test_skipping_the_mentoring_screen_creates_beneficiary_without_mentoring_sig
 
 
 @pytest.mark.django_db
-def test_show_skip_mentoring_signup_modal_submits_the_step_preceding_the_mentoring_screen(client):
-    response = client.get(SKIP_MODAL_URL)
+def test_show_skip_inscription_step_modal_submits_the_step_preceding_the_mentoring_screen(client):
+    response = client.get(reverse("show_skip_inscription_step_modal", args=["mentoring_signup"]))
 
     # Skipping makes the step before the mentoring screen the last one, and it is already filled.
     assert b'name="action" value="training_experience"' in response.content
@@ -549,11 +548,23 @@ def test_training_ambassador_request_step_without_a_topic_creates_nothing(
 
 
 @pytest.mark.django_db
-def test_show_skip_training_ambassador_request_modal_submits_the_step_preceding_it(client):
-    response = client.get(reverse("show_skip_training_ambassador_request_modal"))
+def test_show_skip_inscription_step_modal_submits_the_step_preceding_the_ambassador_screen(
+    client,
+):
+    response = client.get(
+        reverse("show_skip_inscription_step_modal", args=["training_ambassador_request"])
+    )
 
     assert b'name="action" value="training_experience"' in response.content
     assert b'name="wants_training_ambassador" value="false"' in response.content
+    assert b"une ambassadrice" in response.content
+
+
+@pytest.mark.django_db
+def test_show_skip_inscription_step_modal_rejects_a_step_that_cannot_be_skipped(client):
+    response = client.get(reverse("show_skip_inscription_step_modal", args=["identity"]))
+
+    assert response.status_code == 404
 
 
 @pytest.mark.django_db

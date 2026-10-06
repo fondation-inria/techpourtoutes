@@ -13,23 +13,13 @@
                 </span>
             </c-components.button>
         </c-patterns.form>
-        {% if step == "mentoring_signup" %}
+        {% if step == "mentoring_signup" or step == "training_ambassador_request" %}
             <c-components.button
                 label="Passer"
                 type="button"
                 variant="tertiary"
                 class="w-fit px-1 text-neutral-900! bg-white! hover:bg-secondary/20! active:bg-orange-500! font-normal"
-                hx-get="{% url 'show_skip_mentoring_signup_modal' %}"
-                hx-target="#modal-container"
-                hx-swap="innerHTML"
-            />
-        {% elif step == "training_ambassador_request" %}
-            <c-components.button
-                label="Passer"
-                type="button"
-                variant="tertiary"
-                class="w-fit px-1 text-neutral-900! bg-white! hover:bg-secondary/20! active:bg-orange-500! font-normal"
-                hx-get="{% url 'show_skip_training_ambassador_request_modal' %}"
+                hx-get="{% url 'show_skip_inscription_step_modal' step %}"
                 hx-target="#modal-container"
                 hx-swap="innerHTML"
             />

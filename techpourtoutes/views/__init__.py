@@ -26,11 +26,10 @@ from .auth_views import (
 )
 from .beneficiary.inscription_views import (
     inscription_funnel,
-    show_skip_mentoring_signup_modal,
-    show_skip_training_ambassador_request_modal,
+    show_skip_inscription_step_modal,
 )
 from .beneficiary.mentoring_views import mentoring_funnel
-from .beneficiary.training_ambassador_views import (
+from .beneficiary.training_ambassador_request_views import (
     create_training_ambassador_request,
     new_training_ambassador_request,
 )
@@ -170,8 +169,7 @@ __all__ = [
     "show_beneficiary_training_experience",
     "show_participation_modal",
     "show_pro_training_experience",
-    "show_skip_mentoring_signup_modal",
-    "show_skip_training_ambassador_request_modal",
+    "show_skip_inscription_step_modal",
     "show_manifeste_signature",
     "show_beneficiary_legal_rep",
     "update_saved_event",

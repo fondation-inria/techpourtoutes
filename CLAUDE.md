@@ -175,7 +175,7 @@ The URL name matches the view name, so `reverse()` and the function are one word
 
 **One route, one view.** Two `path()` entries never share a function, and no view branches on `request.method`: a form is two routes, `edit_user` (GET) rendering it and `update_user` (POST) saving it, `new_mentor` (GET) and `create_mentor` (POST) likewise. What the pair has in common goes into a private helper — `new_beneficiary_training_experience` and `create_beneficiary_training_experience` both call `_render_beneficiary_training_experience_form`.
 
-Endpoints serving a partial name the partial as their resource: `destroy_user_modal`, `show_skip_mentoring_signup_modal`.
+Endpoints serving a partial name the partial as their resource: `destroy_user_modal`, `show_skip_inscription_step_modal`.
 
 Exceptions can be made in rare occasions, like for static pages (static_views, `home`, `coalition_welcome`...), search_views, robot_views, `login_*` methods in auth_views or `inscription_funnel`. Think thoroughly before diverging the convention and always mention it.
 

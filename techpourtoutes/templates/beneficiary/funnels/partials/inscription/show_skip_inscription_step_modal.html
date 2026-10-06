@@ -1,10 +1,9 @@
 <c-components.modal title="Es-tu sûre de vouloir passer cette étape ?">
     <br>
     <p class="text-center text-sm">
-        Pour te mettre en relation avec une ambassadrice, nous avons besoin que tu nous transmettes ces informations.
-    </p>
-    <p class="text-center text-sm">
-        Si tu passes cette étape, tu pourras toujours compléter le formulaire plus tard.
+        Pour te mettre en relation avec une {{ contact }}, nous avons besoin que tu nous transmettes ces informations.
+        <br><br>
+        Si tu passes cette étape, tu pourras toujours compléter le formulaire plus tard dans ton espace personnel.
     </p>
     <br>
     <div class="flex justify-center">
@@ -15,7 +14,7 @@
             class="max-w-lg"
         >
             <input type="hidden" name="action" value="{{ action }}">
-            <input type="hidden" name="wants_training_ambassador" value="false">
+            <input type="hidden" name="{{ declined_field }}" value="false">
             <div class="flex flex-col items-center gap-4">
                 <c-components.button
                     label="Compléter le formulaire"
