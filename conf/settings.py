@@ -193,7 +193,9 @@ DEFAULT_FROM_EMAIL = env(
 BREVO_API_KEY = env("BREVO_API_KEY", default="")
 # Scalingo names each app after the environment it serves, and every mail we send announces it:
 # `[staging] `, `[pr-320] `. Production — and local dev, where `$APP` is unset — gets no prefix.
-EMAIL_SUBJECT_PREFIX = email_subject_prefix(env("APP", default=""))
+# Scalingo's name for the running app; empty in local dev.
+APP_NAME = env("APP", default="")
+EMAIL_SUBJECT_PREFIX = email_subject_prefix(APP_NAME)
 if DEBUG:
     EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
     EMAIL_HOST = "localhost"
@@ -343,7 +345,7 @@ STORAGES = {
         region_name=env("S3_REGION", default=""),
         access_key=env("S3_ACCESS_KEY_ID", default=""),
         secret_key=env("S3_SECRET_ACCESS_KEY", default=""),
-        location=review_app_name(env("APP", default="")),
+        location=review_app_name(APP_NAME),
     ),
     "staticfiles": {  # Configure static files storage to use WhiteNoise's optimized storage
         "BACKEND": "whitenoise.storage.CompressedManifestStaticFilesStorage",

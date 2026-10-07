@@ -1,6 +1,6 @@
 {% autoescape off %}Bonjour,
 
-{{ event.created_by.full_name }} de {{ event.created_by.structure_name }} vient de publier un nouvel événement : {{ admin_url }}
+{{ event.created_by.full_name }} de {{ event.created_by.structure_name }} vient de publier un nouvel événement :
 
 - Titre : {{ event.title }}
 - Organisateur : {{ event.organizer }}
@@ -10,5 +10,7 @@
 {% if event.location_type == "physical" and not event.latitude %}
 L'API d'adresse a eu un souci au moment de la création de l'événement et l'adresse est donc non géocodée : l'événement ne pourra pas être validé tant que vous n'aurez pas compléter ces coordonnées.
 {% endif %}
+Voir l'événement : {{ admin_url }}
+
 Bonne journée,
 {% endautoescape %}

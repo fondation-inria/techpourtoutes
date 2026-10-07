@@ -6,7 +6,7 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('techpourtoutes', '0056_create_event_moderator_group'),
+        ('techpourtoutes', '0057_event_image'),
     ]
 
     operations = [

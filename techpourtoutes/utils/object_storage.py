@@ -1,7 +1,15 @@
 from botocore.config import Config
+from django.core.files.storage import storages
 
 S3 = "storages.backends.s3.S3Storage"
 FILE_SYSTEM = "django.core.files.storage.FileSystemStorage"
+PUBLIC_CACHE_CONTROL = "public, max-age=31536000, immutable"
+
+
+def public_storage():
+    """For `storage=` on a model field: a callable, so that the migrations name it rather
+    than serialise the storage itself."""
+    return storages["public"]
 
 
 def settings_dictionary(
@@ -55,6 +63,7 @@ def settings_dictionary(
                 "bucket_name": public_bucket,
                 "querystring_auth": False,
                 "default_acl": public_object_acl or None,
+                "object_parameters": {"CacheControl": PUBLIC_CACHE_CONTROL},
             },
         },
     }

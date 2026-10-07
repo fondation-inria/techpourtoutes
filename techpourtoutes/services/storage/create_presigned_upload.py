@@ -20,7 +20,7 @@ class CreatePresignedUpload(BaseService):
     """Signs a PUT the browser sends straight to the bucket, so the file never goes through
     the app.
 
-    The signature covers the headers the browser must send — content type, ACL — and
+    The signature covers the headers the browser must send — content type, ACL, cache — and
     the exact size, checked against `max_size` here: the bucket refuses an upload that breaks
     any of them before storing a single byte. The key is chosen here, from a UUID and the
     content type: nothing the client names ends up in it. `result.key` is the name the storage
@@ -86,12 +86,19 @@ def _new_key(prefix, content_type):
 
 
 def _headers_sent_with_the_file(storage, content_type):
-    """The content type, and the ACL a public file needs to be readable by anyone."""
+    """The content type, plus what the storage sets on every file it writes: the ACL a public
+    file needs to be readable by anyone, and how long a browser may keep it."""
     acl = {"x-amz-acl": storage.default_acl} if storage.default_acl else {}
-    return {"Content-Type": content_type} | acl
+    cache_control = storage.object_parameters.get("CacheControl")
+    cache = {"Cache-Control": cache_control} if cache_control else {}
+    return {"Content-Type": content_type} | acl | cache
 
 
-_PUT_OBJECT_PARAMS = {"Content-Type": "ContentType", "x-amz-acl": "ACL"}
+_PUT_OBJECT_PARAMS = {
+    "Content-Type": "ContentType",
+    "x-amz-acl": "ACL",
+    "Cache-Control": "CacheControl",
+}
 
 
 def _as_put_object_params(headers):

@@ -108,10 +108,32 @@ def test_event_submitted_also_notifies_the_event_moderators(
     NEW_EVENT_RECIPIENTS=["agir@techpourtoutes.io"],
     SITE_URL="https://example.test",
 )
-def test_event_submitted_links_to_the_event_in_the_admin(event):
+def test_event_submitted_links_to_the_event_in_the_admin_through_the_user_login(event):
+    """Moderators sign in through the user login, not the admin's: the link goes through it."""
     ConsortiumMailer.event_submitted(event=event)
 
-    expected_url = f"https://example.test/admin/techpourtoutes/event/{event.pk}/change/"
+    expected_url = (
+        "https://example.test/se-connecter/"
+        f"?next=%2Fadmin%2Ftechpourtoutes%2Fevent%2F{event.pk}%2Fchange%2F"
+    )
+    message = mail.outbox[0]
+    assert expected_url in message.body
+    assert expected_url in message.alternatives[0][0]
+
+
+@pytest.mark.django_db
+@override_settings(
+    EMAIL_BACKEND="django.core.mail.backends.locmem.EmailBackend",
+    NEW_EVENT_RECIPIENTS=["agir@techpourtoutes.io"],
+    SITE_URL="https://example.test",
+)
+def test_event_updated_links_to_the_event_in_the_admin_through_the_user_login(event):
+    ConsortiumMailer.event_updated(event=event)
+
+    expected_url = (
+        "https://example.test/se-connecter/"
+        f"?next=%2Fadmin%2Ftechpourtoutes%2Fevent%2F{event.pk}%2Fchange%2F"
+    )
     message = mail.outbox[0]
     assert expected_url in message.body
     assert expected_url in message.alternatives[0][0]

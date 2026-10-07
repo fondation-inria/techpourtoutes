@@ -1,6 +1,8 @@
 from datetime import datetime, time, timedelta
 
 import pytest
+from django.core.files.base import ContentFile
+from django.core.files.storage import storages
 from django.utils import timezone
 
 from techpourtoutes.forms.event import EventDetailsForm
@@ -127,3 +129,66 @@ def test_event_fields_carries_every_answer_of_the_screen():
     assert form.is_valid()
     assert form.event_fields["title"] == VALID["title"]
     assert set(form.event_fields) == set(EventDetailsForm.base_fields)
+
+
+@pytest.fixture
+def uploaded_image(settings, tmp_path):
+    """What the browser left in the public storage after a direct upload."""
+    settings.MEDIA_ROOT = tmp_path
+    return storages["public"].save(
+        "events/0123456789abcdef0123456789abcdef.png", ContentFile(b"png")
+    )
+
+
+def test_an_uploaded_image_and_its_alternative_text_are_accepted(uploaded_image):
+    form = EventDetailsForm(
+        data=VALID
+        | {"image": uploaded_image, "image_alt": "Une porte ouverte", "image_credit": "Jane Doe"}
+    )
+
+    assert form.is_valid(), form.errors
+    assert form.event_fields["image"] == uploaded_image
+    assert form.event_fields["image_alt"] == "Une porte ouverte"
+    assert form.event_fields["image_credit"] == "Jane Doe"
+
+
+def test_an_image_that_was_never_uploaded_is_refused(settings, tmp_path):
+    settings.MEDIA_ROOT = tmp_path
+    form = EventDetailsForm(data=VALID | {"image": "events/0123456789abcdef0123456789abcdef.png"})
+
+    assert not form.is_valid()
+    assert "image" in form.errors
+
+
+def test_a_file_stored_outside_the_event_images_is_refused(settings, tmp_path):
+    settings.MEDIA_ROOT = tmp_path
+    key = storages["public"].save(
+        "avatars/0123456789abcdef0123456789abcdef.png", ContentFile(b"p")
+    )
+    form = EventDetailsForm(data=VALID | {"image": key})
+
+    assert not form.is_valid()
+    assert "image" in form.errors
+
+
+def test_the_alternative_text_and_the_credit_are_dropped_without_an_image():
+    form = EventDetailsForm(
+        data=VALID | {"image_alt": "Une porte ouverte", "image_credit": "Jane Doe"}
+    )
+
+    assert form.is_valid()
+    assert form.event_fields["image_alt"] == ""
+    assert form.event_fields["image_credit"] == ""
+
+
+@pytest.mark.django_db
+def test_the_form_prefilled_from_an_event_hands_back_its_image(event, uploaded_image):
+    event.image = uploaded_image
+    event.image_alt = "Une porte ouverte"
+    event.image_credit = "Jane Doe"
+
+    answers = EventDetailsForm(event=event).initial
+
+    assert answers["image"] == uploaded_image
+    assert answers["image_alt"] == "Une porte ouverte"
+    assert answers["image_credit"] == "Jane Doe"

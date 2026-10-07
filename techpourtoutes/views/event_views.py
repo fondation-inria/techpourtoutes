@@ -2,7 +2,7 @@ from urllib.parse import urlencode
 
 from django.contrib import messages
 from django.core.exceptions import ValidationError
-from django.http import Http404, HttpResponse
+from django.http import Http404, HttpResponse, JsonResponse
 from django.shortcuts import get_object_or_404, render
 from django.urls import reverse
 from django.utils.http import url_has_allowed_host_and_scheme
@@ -10,9 +10,11 @@ from django.views.decorators.http import require_POST
 
 from ..decorators import beneficiary_required, pro_required
 from ..forms import EventDetailsForm, EventLocationForm, EventSubcategoryForm
+from ..forms.event.details_form import IMAGE_CONTENT_TYPES, IMAGE_MAX_SIZE, IMAGE_PREFIX
 from ..models import Event
 from ..services.event.create_event import CreateEvent
 from ..services.event.update_event import UpdateEvent
+from ..services.storage.create_presigned_upload import TOO_LARGE, CreatePresignedUpload
 
 # The funnel steps in order — the single source of truth navigation is derived from.
 _STEPS = ("subcategory", "details", "location")
@@ -97,7 +99,37 @@ def update_event(request):
     return handlers.get(request.POST.get("action"), _advance)(request)
 
 
+@require_POST
+@pro_required
+def create_event_image_upload(request):
+    """Signs the PUT the details screen sends its visual with, straight to the bucket: the
+    funnel then only carries `key` back — the name the storage knows the file by, which the
+    signed URL may prefix with the bucket's location."""
+    result = CreatePresignedUpload(
+        storage_alias="public",
+        prefix=IMAGE_PREFIX,
+        content_type=request.POST.get("content_type", ""),
+        content_length=_content_length(request),
+        allowed_content_types=IMAGE_CONTENT_TYPES,
+        max_size=IMAGE_MAX_SIZE,
+    )
+    if result.failure:
+        return JsonResponse({"error": _image_upload_error(result)}, status=400)
+    return JsonResponse({"url": result.url, "headers": result.headers, "key": result.key})
+
+
 # ------------------- private -------------------
+
+
+def _content_length(request):
+    content_length = request.POST.get("content_length", "")
+    return int(content_length) if content_length.isdigit() else 0
+
+
+def _image_upload_error(result):
+    if result.errors == [TOO_LARGE]:
+        return "Ce visuel est trop lourd : essayez avec une autre image."
+    return "Ce format n'est pas accepté : importez une image JPG, PNG ou WebP."
 
 
 class _StepInterrupt(Exception):
@@ -216,6 +248,7 @@ def _render(request, template, step, answers, *, form=None, confirming=False, qu
             "previous_step": _previous_step(step),
             "confirming": confirming,
             "editing": editing,
+            "category_color": Event(subcategory=answers.get("subcategory", "")).category_color,
             "funnel_url": reverse("update_event" if editing else "create_event"),
             "quit_url": quit_url or reverse("show_account"),
         },
