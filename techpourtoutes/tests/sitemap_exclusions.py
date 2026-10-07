@@ -45,6 +45,7 @@ NEVER_LISTED_URL_NAMES = {
     "create_manifeste_signature",
     "create_upcoming_feature_notification",
     "create_event",
+    "create_event_image_upload",
     "update_event",
     # Funnel steps (not entry points)
     "inscription_funnel",

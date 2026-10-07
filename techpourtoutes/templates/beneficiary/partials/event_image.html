@@ -1,0 +1,27 @@
+{# On top (mobile/tablet), the image keeps its own ratio, capped in height, its credit laid over its corner. #}
+{# On large screens, it is a square beside the infos card: a letterboxed image fills what its ratio leaves in the colour #}
+{# of its category; with no image, only the default image is displayed, with no fill-in #}
+<figure class="relative {{ class }}">
+    {% if placement == "top" %}
+        <div data-event-image="top" class="bg-{{ event.category_color }}-500 flex justify-center">
+            <div class="relative max-w-full">
+                <img src="{{ event.image_url }}" alt="{{ event.image_alt }}" class="h-auto max-h-70 w-auto max-w-full {% if letterbox %} border border-black{% endif %}">
+                {% if event.image_credit %}
+                    <figcaption class="absolute bottom-0 right-0 px-1 bg-neutral-0/60 text-xxs leading-[1.4] text-neutral-900">Crédit : {{ event.image_credit }}</figcaption>
+                {% endif %}
+            </div>
+        </div>
+    {% else %}
+        <div data-event-image="side" class="aspect-square {% if letterbox %}bg-{{ event.category_color }}-500{% endif %} {{ image_class }}">
+            <img src="{{ event.image_url }}" alt="{{ event.image_alt }}" class="w-full h-full object-contain {% if not letterbox %}object-right drop-shadow-box{% else %}border border-black{% endif %}">
+        </div>
+        {% if event.image_credit %}
+            <figcaption class="absolute top-full right-0 mt-1 px-1 bg-neutral-0 text-xxs leading-[1.4] text-neutral-900">Crédit : {{ event.image_credit }}</figcaption>
+        {% endif %}
+    {% endif %}
+    {% if bookmark_action and not event.has_ended %}
+        <div class="absolute top-3 right-3">
+            {% include "beneficiary/partials/update_saved_event.html" with label=True %}
+        </div>
+    {% endif %}
+</figure>

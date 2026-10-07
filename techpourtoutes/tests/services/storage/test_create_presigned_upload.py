@@ -86,6 +86,19 @@ def test_create_presigned_upload_leaves_a_private_file_private(s3_storages):
     assert "x-amz-acl" not in _signed_headers(result)
 
 
+def test_create_presigned_upload_pins_the_cache_control_of_a_public_file(s3_storages):
+    result = _upload()
+
+    assert result.headers["Cache-Control"] == "public, max-age=31536000, immutable"
+    assert "cache-control" in _signed_headers(result)
+
+
+def test_create_presigned_upload_sets_no_cache_control_on_a_private_file(s3_storages):
+    result = _upload(storage_alias="default")
+
+    assert "Cache-Control" not in result.headers
+
+
 def test_create_presigned_upload_refuses_a_content_type_not_allowed(s3_storages):
     result = _upload(content_type="text/html")
 

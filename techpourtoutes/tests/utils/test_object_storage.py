@@ -71,6 +71,21 @@ def test_settings_dictionary_serves_public_urls_unsigned_with_the_public_acl():
     )
 
 
+def test_settings_dictionary_lets_browsers_keep_public_files_for_good():
+    storages = object_storage.settings_dictionary(
+        private_bucket="tpt-private",
+        public_bucket="tpt-public",
+        public_object_acl="public-read",
+        private_url_ttl=PRIVATE_URL_TTL,
+        **CONNECTION,
+    )
+
+    assert storages["public"]["OPTIONS"]["object_parameters"] == {
+        "CacheControl": "public, max-age=31536000, immutable"
+    }
+    assert "object_parameters" not in storages["default"]["OPTIONS"]
+
+
 def test_settings_dictionary_shares_one_connection():
     storages = object_storage.settings_dictionary(
         private_bucket="tpt-private",

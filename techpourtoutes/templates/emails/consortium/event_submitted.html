@@ -1,7 +1,7 @@
 <c-layout.email>
   <p style="font-size:15px;color:#374151;">Bonjour,</p>
   <p style="font-size:15px;color:#374151;">
-    {{ event.created_by.full_name }} de {{ event.created_by.structure_name }} vient de publier un nouvel événement : <a href="{{ admin_url }}">{{ admin_url }}</a>
+    {{ event.created_by.full_name }} de {{ event.created_by.structure_name }} vient de publier un nouvel événement&nbsp;:
   </p>
   <ul style="font-size:15px;color:#374151;">
     <li>Titre&nbsp;: <strong>{{ event.title }}</strong></li>
@@ -15,6 +15,9 @@
       L'API d'adresse a eu un souci au moment de la création de l'événement et l'adresse est donc non géocodée&nbsp;: l'événement ne pourra pas être validé tant que vous n'aurez pas compléter ces coordonnées.
     </p>
   {% endif %}
+  <p style="text-align:center;margin:24px 0;">
+    <a href="{{ admin_url }}" style="display:inline-block;padding:12px 24px;background:#fad207;color:#0b1020;text-decoration:none;border-radius:4px;font-weight:600;">Voir l'événement</a>
+  </p>
 
   <p style="font-size:15px;color:#374151;">
     Bonne journée,

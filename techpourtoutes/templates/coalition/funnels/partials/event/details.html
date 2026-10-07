@@ -26,6 +26,15 @@
                 <c-components.form_fields.input field=form.end_date type="date" />
                 <c-components.form_fields.input field=form.end_time type="time" />
             </div>
+            <c-components.form_fields.image_upload
+                :field=form.image
+                upload_url="{% url "create_event_image_upload" %}"
+                preview_url="{{ form.image_url }}"
+                accept="{{ form.image_accept }}"
+                max_size="{{ form.image_source_max_size }}"
+                color="{{ category_color }}" />
+            <c-components.form_fields.input field=form.image_credit autocomplete="off" />
+            <c-components.form_fields.textarea field=form.image_alt rows="2" description="{{ form.image_alt.help_text }}" />
             <div class="flex justify-center mt-4">
                 <c-components.button type="submit" name="action" value="details" label="Continuer" />
             </div>

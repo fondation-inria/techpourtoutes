@@ -91,6 +91,26 @@ def test_login_request_get_while_authenticated_redirects_to_account(client, pro)
 
 
 @pytest.mark.django_db
+def test_login_request_while_authenticated_follows_a_safe_next(client, pro):
+    """A link from a moderation email lands on the page it points to, already signed in or not."""
+    client.force_login(pro)
+
+    response = client.get(reverse("login_request") + "?next=/admin/")
+
+    assert response.status_code == 302
+    assert response["Location"] == "/admin/"
+
+
+@pytest.mark.django_db
+def test_login_request_while_authenticated_ignores_an_external_next(client, pro):
+    client.force_login(pro)
+
+    response = client.get(reverse("login_request") + "?next=https://evil.com/x")
+
+    assert response["Location"] == reverse("show_account")
+
+
+@pytest.mark.django_db
 @override_settings(EMAIL_BACKEND="django.core.mail.backends.locmem.EmailBackend")
 def test_login_request_post_with_known_email_sends_code(client, pro):
     response = client.post(reverse("login_request"), data={"email": pro.email})

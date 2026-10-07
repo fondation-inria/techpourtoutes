@@ -57,6 +57,7 @@ from .coalition_views import (
 )
 from .event_views import (
     create_event,
+    create_event_image_upload,
     edit_event,
     index_beneficiary_events,
     index_pro_events,
@@ -146,6 +147,7 @@ __all__ = [
     "html_sitemap",
     "new_event",
     "create_event",
+    "create_event_image_upload",
     "update_event",
     "edit_event",
     "index_beneficiary_events",

@@ -140,6 +140,37 @@ def test_a_free_text_subcategory_takes_the_color_of_the_category_holding_other(p
 
 
 @pytest.mark.django_db
+def test_image_url_falls_back_to_the_default_image_of_the_subcategory(pro):
+    event = build_event(pro)
+
+    assert event.image_url == "/static/images/events/guidance/open_house.webp"
+
+
+@pytest.mark.django_db
+def test_image_url_of_a_free_text_subcategory_falls_back_to_the_one_of_other(pro):
+    event = build_event(pro, subcategory="Rencontre d'anciennes")
+
+    assert event.image_url == "/static/images/events/social/other.webp"
+
+
+def test_every_subcategory_has_a_default_image():
+    from django.contrib.staticfiles import finders
+
+    from techpourtoutes.models import Event
+
+    for category, subcategories in Event.SUBCATEGORIES.items():
+        for subcategory in subcategories:
+            assert finders.find(f"images/events/{category}/{subcategory}.webp"), subcategory
+
+
+@pytest.mark.django_db
+def test_image_url_serves_the_uploaded_image_from_the_public_bucket(pro, s3_storages):
+    event = build_event(pro, image="events/abc.png")
+
+    assert event.image_url == "https://tpt-test-public.s3.amazonaws.com/events/abc.png"
+
+
+@pytest.mark.django_db
 def test_date_range_label_names_a_single_day_once(pro):
     event = build_event(pro, start_date=date(2026, 6, 12), end_date=date(2026, 6, 12))
 
