@@ -12,8 +12,8 @@
             </div>
         </div>
     {% else %}
-        <div data-event-image="side" class="aspect-square shadow-box {% if letterbox %}bg-{{ event.category_color }}-500{% endif %} {{ image_class }}">
-            <img src="{{ event.image_url }}" alt="{{ event.image_alt }}" class="w-full h-full object-contain {% if not letterbox %}object-right{% else %}border border-black{% endif %}">
+        <div data-event-image="side" class="aspect-square {% if letterbox %}bg-{{ event.category_color }}-500{% endif %} {{ image_class }}">
+            <img src="{{ event.image_url }}" alt="{{ event.image_alt }}" class="w-full h-full object-contain {% if not letterbox %}object-right drop-shadow-box{% else %}border border-black{% endif %}">
         </div>
         {% if event.image_credit %}
             <figcaption class="absolute top-full right-0 mt-1 px-1 bg-neutral-0 text-xxs leading-[1.4] text-neutral-900">Crédit : {{ event.image_credit }}</figcaption>

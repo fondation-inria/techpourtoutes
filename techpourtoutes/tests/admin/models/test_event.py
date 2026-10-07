@@ -105,6 +105,13 @@ def test_event_page_offers_its_history(verified_admin_client, event):
 
 
 @pytest.mark.django_db
+def test_event_page_shows_its_image(verified_admin_client, event):
+    content = verified_admin_client.get(_change_url(event)).content.decode()
+
+    assert f'src="{event.image_url}"' in content
+
+
+@pytest.mark.django_db
 def test_pending_events_are_listed_above_the_decided_ones(verified_admin_client, event):
     """The bottom list is the real, searchable/filterable changelist — pending events never
     belong there, they still await a decision."""
@@ -418,7 +425,7 @@ def test_a_locked_subcategory_reads_as_its_label(verified_moderator_client, even
     content = verified_moderator_client.get(_change_url(event)).content.decode()
 
     assert "Hackathon" in content
-    assert "hackathon" not in content
+    assert ">hackathon<" not in content
 
 
 @pytest.mark.django_db

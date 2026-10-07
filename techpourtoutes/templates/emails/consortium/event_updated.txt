@@ -1,10 +1,12 @@
 {% autoescape off %}Bonjour,
 
-L'événement {{ event.title }} a été modifié par {{ event.created_by.full_name }} de {{ event.created_by.structure_name }} : {{ admin_url }}
+L'événement {{ event.title }} a été modifié par {{ event.created_by.full_name }} de {{ event.created_by.structure_name }}.
 
 Voici un récapitulatif des informations :
 
 {% include "emails/partials/event_recap.txt" %}
+
+Voir l'événement : {{ admin_url }}
 
 Bonne journée,
 L'équipe TechPourToutes{% endautoescape %}

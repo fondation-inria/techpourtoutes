@@ -1,3 +1,5 @@
+from urllib.parse import urlencode
+
 from django.conf import settings
 from django.urls import reverse
 
@@ -40,9 +42,7 @@ class ConsortiumMailer(BaseMailer):
 
     @classmethod
     def event_submitted(cls, *, event):
-        admin_url = settings.SITE_URL + reverse(
-            "admin:techpourtoutes_event_change", args=[event.pk]
-        )
+        admin_url = cls._event_admin_url(event)
         moderator_emails = Pro.event_moderators().values_list("email", flat=True)
         recipient_list = list(dict.fromkeys([*settings.NEW_EVENT_RECIPIENTS, *moderator_emails]))
         cls.send_mail(
@@ -54,9 +54,7 @@ class ConsortiumMailer(BaseMailer):
 
     @classmethod
     def event_updated(cls, *, event):
-        admin_url = settings.SITE_URL + reverse(
-            "admin:techpourtoutes_event_change", args=[event.pk]
-        )
+        admin_url = cls._event_admin_url(event)
         cls.send_mail(
             subject=f"L'événement {event.title} a été modifié",
             recipient_list=settings.NEW_EVENT_RECIPIENTS,
@@ -86,3 +84,10 @@ class ConsortiumMailer(BaseMailer):
             },
             tags=["interne", "bénéficiaire", "nouvelle demande de mentorat"],
         )
+
+    @staticmethod
+    def _event_admin_url(event):
+        """Moderators sign in through the user login, never the admin's: the link goes through
+        it, and on to the event once signed in."""
+        next_url = reverse("admin:techpourtoutes_event_change", args=[event.pk])
+        return f"{settings.SITE_URL}{reverse('login_request')}?{urlencode({'next': next_url})}"

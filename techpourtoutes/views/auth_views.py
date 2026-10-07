@@ -21,7 +21,8 @@ from .beneficiary_views import save_pending_event
 @rate_limit("RATELIMIT_LOGIN", keys=("email",))
 def login_request(request):
     if request.user.is_authenticated:
-        return redirect(reverse("show_account"))
+        next_url = _safe_next(request, request.GET.get(REDIRECT_FIELD_NAME, ""))
+        return redirect(next_url or reverse("show_account"))
 
     if request.method == "POST":
         form = LoginRequestForm(data=request.POST)
