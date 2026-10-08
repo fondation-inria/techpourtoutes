@@ -825,6 +825,46 @@ def test_code_step_lands_on_her_saved_events_when_an_event_was_bookmarked(client
 
 
 @pytest.mark.django_db
+def test_code_step_welcomes_her_to_the_club_once_on_her_account(client):
+    beneficiary = Beneficiary.objects.create(
+        username="oceane@example.com",
+        email="oceane@example.com",
+        first_name="Océane",
+        last_name="Durand",
+    )
+    code = beneficiary.issue_login_code()
+
+    client.post(FUNNEL_URL, {"action": "code", "email": beneficiary.email, "code": code})
+
+    assert "Bienvenue au club" in client.get(reverse("show_account")).content.decode()
+    assert "Bienvenue au club" not in client.get(reverse("show_account")).content.decode()
+
+
+@pytest.mark.django_db
+def test_code_step_welcomes_her_to_the_club_on_her_saved_events(client, approved_salon):
+    beneficiary = Beneficiary.objects.create(
+        username="oceane@example.com",
+        email="oceane@example.com",
+        first_name="Océane",
+        last_name="Durand",
+    )
+    code = beneficiary.issue_login_code()
+
+    client.post(
+        FUNNEL_URL,
+        {
+            "action": "code",
+            "email": beneficiary.email,
+            "code": code,
+            "saved_event": str(approved_salon.pk),
+        },
+    )
+
+    content = client.get(reverse("index_beneficiary_events")).content.decode()
+    assert "Bienvenue au club" in content
+
+
+@pytest.mark.django_db
 def test_email_step_hands_the_bookmarked_event_over_when_the_account_already_exists(
     client, approved_salon, beneficiary
 ):
