@@ -61,7 +61,7 @@ def new_mentoree(request):
     cta_label = "S'inscrire au mentorat"
     cta_disabled = False
     if not request.user.is_authenticated:
-        cta_href = f"{reverse('inscription_funnel')}?wants_mentor=1"
+        cta_href = f"{reverse('new_inscription_funnel')}?wants_mentor=1"
     if beneficiary is not None:
         if beneficiary.jobirl_user_id:
             cta_href = reverse("login_to_jobirl")
@@ -82,7 +82,7 @@ def new_training_ambassador_beneficiary(request):
     cta_href = None
     cta_label = "Rejoindre le club"
     if not request.user.is_authenticated:
-        cta_href = f"{reverse('inscription_funnel')}?wants_training_ambassador=1"
+        cta_href = f"{reverse('new_inscription_funnel')}?wants_training_ambassador=1"
     if beneficiary is not None:
         cta_href = reverse("new_training_ambassador_request")
         cta_label = "Échanger avec une étudiante"

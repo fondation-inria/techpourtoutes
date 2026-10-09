@@ -1,7 +1,7 @@
 <c-components.modal title="Es-tu sûre de vouloir passer cette étape ?">
     <br>
     <p class="text-center text-sm">
-        Pour te mettre en relation avec une {{ contact }}, nous avons besoin que tu nous transmettes ces informations.
+        Pour te mettre en relation avec une {% if step == "mentoring_signup" %}mentor{% else %}ambassadrice{% endif %}, nous avons besoin que tu nous transmettes ces informations.
         <br><br>
         Si tu passes cette étape, tu pourras toujours compléter le formulaire plus tard dans ton espace personnel.
     </p>
@@ -13,8 +13,8 @@
             hx-swap="outerHTML"
             class="max-w-lg"
         >
-            <input type="hidden" name="action" value="{{ action }}">
-            <input type="hidden" name="{{ declined_field }}" value="false">
+            <input type="hidden" name="action" value="skip">
+            <input type="hidden" name="step" value="{{ step }}">
             <div class="flex flex-col items-center gap-4">
                 <c-components.button
                     label="Compléter le formulaire"
