@@ -8,7 +8,6 @@ NEVER_LISTED_URL_NAMES = {
     "search_schools",
     "search_formations",
     "search_addresses",
-    "show_skip_mentoring_signup_modal",
     # Auth ("Mon compte" is the entry point)
     "login_request",
     "login_code",
@@ -36,6 +35,8 @@ NEVER_LISTED_URL_NAMES = {
     "index_pro_events",
     "index_beneficiary_events",
     "new_event",
+    "new_training_ambassador_request",
+    "create_training_ambassador_request",
     # Form submission endpoints (their GET page is the one listed)
     "create_mentor",
     "create_work_ambassador",

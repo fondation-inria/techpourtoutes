@@ -119,6 +119,53 @@ def test_new_mentoree_cta_for_connected_non_beneficiary_points_to_mentoring_funn
     assert response.context["cta_disabled"] is False
 
 
+NEW_TRAINING_AMBASSADOR_BENEFICIARY_URL = "/echanger-avec-une-etudiante/"
+
+
+@pytest.mark.django_db
+def test_new_training_ambassador_beneficiary_cta_for_anonymous_user(client):
+    response = client.get(NEW_TRAINING_AMBASSADOR_BENEFICIARY_URL)
+
+    assert response.status_code == 200
+    assert response.context["cta_href"] == "/inscription/?wants_training_ambassador=1"
+    assert response.context["cta_label"] == "Rejoindre le club"
+
+
+@pytest.mark.django_db
+def test_new_training_ambassador_beneficiary_cta_for_beneficiary_points_to_the_request(
+    client, beneficiary
+):
+    client.force_login(beneficiary)
+
+    response = client.get(NEW_TRAINING_AMBASSADOR_BENEFICIARY_URL)
+
+    assert response.context["cta_href"] == reverse("new_training_ambassador_request")
+
+
+@pytest.mark.django_db
+def test_new_training_ambassador_beneficiary_cta_once_requested_points_to_account(
+    client, beneficiary
+):
+    beneficiary.has_requested_training_ambassador = True
+    beneficiary.save()
+    client.force_login(beneficiary)
+
+    response = client.get(NEW_TRAINING_AMBASSADOR_BENEFICIARY_URL)
+
+    assert response.status_code == 200
+    assert response.context["cta_href"] == reverse("show_account")
+
+
+@pytest.mark.django_db
+def test_new_training_ambassador_beneficiary_no_cta_for_pro(client, pro):
+    client.force_login(pro)
+
+    response = client.get(NEW_TRAINING_AMBASSADOR_BENEFICIARY_URL)
+
+    assert response.status_code == 200
+    assert response.context["cta_href"] is None
+
+
 INDEX_EVENTS_URL = "/evenements/"
 
 

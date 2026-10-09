@@ -12,6 +12,9 @@ class Beneficiary(User):
     legal_representative_email = models.EmailField(
         blank=True, verbose_name=_("email de la personne responsable légale")
     )
+    has_requested_training_ambassador = models.BooleanField(
+        default=False, verbose_name=_("a demandé à être mise en contact avec une ambassadrice")
+    )
 
     class Meta:
         verbose_name = _("bénéficiaire")

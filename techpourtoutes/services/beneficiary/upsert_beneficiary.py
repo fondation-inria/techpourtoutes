@@ -1,6 +1,6 @@
 from django.db import transaction
 
-from ...mailers import AuthMailer
+from ...mailers import AuthMailer, ConsortiumMailer
 from ...models import Beneficiary
 from ...tasks import send_beneficiary_welcome_email_task
 from ...utils.dates import compute_age
@@ -20,6 +20,7 @@ class UpsertBeneficiary(BaseService):
         beneficiary_data=None,
         training_experience_form=None,
         mentoring_signup_data=None,
+        training_ambassador_request_data=None,
     ):
         is_new = beneficiary is None
         self.beneficiary = beneficiary or Beneficiary(
@@ -32,11 +33,16 @@ class UpsertBeneficiary(BaseService):
                 beneficiary_data=beneficiary_data,
                 is_minor=is_minor,
                 mentoring_signup_data=mentoring_signup_data,
+                training_ambassador_request_data=training_ambassador_request_data,
             )
             if training_experience_form:
                 self._create_training_experience(training_experience_form)
             if mentoring_signup_data:
                 self._sign_up_for_mentoring(is_minor, mentoring_signup_data)
+        if training_ambassador_request_data:
+            ConsortiumMailer.training_ambassador_requested(
+                beneficiary=self.beneficiary, topic=training_ambassador_request_data["topic"]
+            )
         if training_experience_form:
             report_missing_record(
                 training_experience_form, self.beneficiary, "Funnel d'inscription"
@@ -51,11 +57,20 @@ class UpsertBeneficiary(BaseService):
         if data.get("birth_date"):
             self.beneficiary.birth_date = data["birth_date"]
 
-    def _save_beneficiary(self, *, beneficiary_data, is_minor, mentoring_signup_data):
+    def _save_beneficiary(
+        self,
+        *,
+        beneficiary_data,
+        is_minor,
+        mentoring_signup_data,
+        training_ambassador_request_data,
+    ):
         if beneficiary_data:
             self._apply_identity(beneficiary_data)
         if mentoring_signup_data:
             self._apply_mentoring_contact(mentoring_signup_data, is_minor)
+        if training_ambassador_request_data:
+            self.beneficiary.has_requested_training_ambassador = True
         self.beneficiary.save()
 
     def _apply_identity(self, beneficiary_data):

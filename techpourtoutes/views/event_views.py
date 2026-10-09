@@ -38,6 +38,7 @@ def index_beneficiary_events(request):
         {
             "upcoming_events": events.approved().upcoming(),
             "past_events": events.approved().past().order_by("-start_date", "-start_time"),
+            "show_welcome_modal": request.session.pop("show_welcome_modal", False),
         },
     )
 

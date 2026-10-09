@@ -13,9 +13,24 @@ urlpatterns = [
     path("trouver-une-mentore/", views.new_mentoree, name="new_mentoree"),
     path("devenir-mentoree/", views.mentoring_funnel, name="mentoring_funnel"),
     path(
-        "inscription/passer-mentorat/",
-        views.show_skip_mentoring_signup_modal,
-        name="show_skip_mentoring_signup_modal",
+        "echanger-avec-une-etudiante/",
+        views.new_training_ambassador_beneficiary,
+        name="new_training_ambassador_beneficiary",
+    ),
+    path(
+        "echanger-avec-une-etudiante/demande/",
+        views.new_training_ambassador_request,
+        name="new_training_ambassador_request",
+    ),
+    path(
+        "echanger-avec-une-etudiante/demande/envoyer/",
+        views.create_training_ambassador_request,
+        name="create_training_ambassador_request",
+    ),
+    path(
+        "inscription/passer/<str:step>/",
+        views.show_skip_inscription_step_modal,
+        name="show_skip_inscription_step_modal",
     ),
     path(
         "bientot-disponible/",

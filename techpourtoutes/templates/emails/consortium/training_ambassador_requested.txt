@@ -1,0 +1,10 @@
+Bonjour,
+
+{{ beneficiary.first_name }} {{ beneficiary.last_name }} souhaite parler à une ambassadrice étudiante. Voici son message :
+
+{{ topic }}
+
+Voici son adresse pour la recontacter : {{ beneficiary.email }}
+
+Bonne journée
+L'équipe TechPourToutes

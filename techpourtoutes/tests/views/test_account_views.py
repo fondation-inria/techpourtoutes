@@ -156,6 +156,78 @@ def test_show_account_ignores_the_past_events_the_beneficiary_saved(client, bene
 
 
 @pytest.mark.django_db
+def test_show_account_offers_a_training_ambassador_exchange_to_the_beneficiary(
+    client, beneficiary
+):
+    client.force_login(beneficiary)
+
+    content = client.get(reverse("show_account")).content.decode()
+
+    assert "TechPourToutes peut te mettre en relation avec une étudiante" in content
+    assert "Tu as demandé à être mise en relation" not in content
+
+
+@pytest.mark.django_db
+def test_show_account_acknowledges_the_training_ambassador_request_once_sent(client, beneficiary):
+    beneficiary.has_requested_training_ambassador = True
+    beneficiary.save()
+    client.force_login(beneficiary)
+
+    content = client.get(reverse("show_account")).content.decode()
+
+    assert "Tu as demandé à être mise en relation" in content
+    assert "TechPourToutes peut te mettre en relation avec une étudiante" not in content
+
+
+def _welcome_modal(client, beneficiary):
+    client.force_login(beneficiary)
+    session = client.session
+    session["show_welcome_modal"] = True
+    session.save()
+    return client.get(reverse("show_account")).content.decode()
+
+
+@pytest.mark.django_db
+def test_show_account_welcome_modal_announces_a_call_about_mentoring(client, beneficiary):
+    beneficiary.legal_representative_email = "parent@example.com"
+    beneficiary.save()
+
+    content = _welcome_modal(client, beneficiary)
+
+    assert "Pour le mentorat, tu seras contactée prochainement" in content
+
+
+@pytest.mark.django_db
+def test_show_account_welcome_modal_announces_a_call_about_the_training_ambassador(
+    client, beneficiary
+):
+    beneficiary.has_requested_training_ambassador = True
+    beneficiary.save()
+
+    content = _welcome_modal(client, beneficiary)
+
+    assert "Pour échanger avec une ambassadrice, tu seras contactée prochainement" in content
+
+
+@pytest.mark.django_db
+def test_show_account_welcome_modal_announces_no_call_when_she_asked_for_nothing(
+    client, beneficiary
+):
+    content = _welcome_modal(client, beneficiary)
+
+    assert "Bienvenue au club" in content
+    assert "tu seras contactée prochainement" not in content
+
+
+@pytest.mark.django_db
+def test_show_account_welcome_modal_is_labelled_by_its_title_below_the_image(client, beneficiary):
+    content = _welcome_modal(client, beneficiary)
+
+    assert 'aria-labelledby="modal-title"' in content
+    assert content.index("bienvenue.webp") < content.index('id="modal-title"')
+
+
+@pytest.mark.django_db
 def test_show_user_info_requires_login(client):
     response = client.get(reverse("show_user_info"))
 

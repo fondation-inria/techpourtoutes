@@ -1,0 +1,15 @@
+<c-layout.email>
+  <p style="font-size:15px;color:#374151;">Bonjour,</p>
+  <p style="font-size:15px;color:#374151;">
+    {{ beneficiary.first_name }} {{ beneficiary.last_name }} souhaite parler à une ambassadrice étudiante. Voici son message :
+  </p>
+  <p style="font-size:15px;color:#374151;">
+    {{ topic|linebreaksbr }}
+  </p>
+  <p style="font-size:15px;color:#374151;">
+    Voici son adresse pour la recontacter : {{ beneficiary.email }}
+  </p>
+  <p style="font-size:15px;color:#374151;">
+    Bonne journée
+  </p>
+</c-layout.email>

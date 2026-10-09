@@ -1,0 +1,25 @@
+{% load static %}
+{% with beneficiary=request.user.beneficiary %}
+    <c-components.modal title="Bienvenue au club !">
+        <c-slot name="image">
+            <img src="{% static 'images/bienvenue.webp' %}" alt=""
+                 class="mb-6 w-full" width="1056" height="430" />
+        </c-slot>
+        <br>
+        <p class="text-center text-sm">
+            Tu es maintenant inscrite au programme TechPourToutes. La communauté est là pour
+            t'accompagner dans ton orientation, t'aider à trouver des stages, des conseils, des
+            inspirations, etc.
+        </p>
+        {% if beneficiary.is_registered_for_mentoring or beneficiary.has_requested_training_ambassador %}
+            <br>
+            <p class="text-center text-sm">
+                Pour {% if beneficiary.is_registered_for_mentoring %}le mentorat{% else %}échanger avec une ambassadrice{% endif %}, tu seras contactée prochainement par notre équipe.
+            </p>
+        {% endif %}
+        <br>
+        <div class="flex justify-center">
+            <c-components.button label="Découvrir le club" hx-on:click="this.closest('dialog').close()" />
+        </div>
+    </c-components.modal>
+{% endwith %}

@@ -22,3 +22,16 @@
         Retrouve tes événements enregistrés et découvre d'autres événements susceptibles de t'intéresser.
     {% endif %}
 </c-components.card-link>
+{% if user.has_requested_training_ambassador %}
+    <c-components.card-link color="orange" title="Tes échanges"
+                            button="Échanger avec une ambassadrice"
+                            :disabled="True">
+        Tu as demandé à être mise en relation avec une ambassadrice étudiante.
+    </c-components.card-link>
+{% else %}
+    <c-components.card-link color="orange" title="Tes échanges"
+                            button="Échanger avec une ambassadrice"
+                            href="{% url "new_training_ambassador_request" %}">
+        TechPourToutes peut te mettre en relation avec une étudiante pour que tu puisses lui poser toutes tes questions sur les études dans la tech.
+    </c-components.card-link>
+{% endif %}

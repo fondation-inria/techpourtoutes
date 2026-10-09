@@ -2,7 +2,7 @@ from datetime import date
 
 from django.contrib import messages
 from django.contrib.auth import login
-from django.http import HttpResponse
+from django.http import Http404, HttpResponse
 from django.shortcuts import redirect, render
 from django.urls import reverse
 from django.utils.http import urlencode
@@ -12,6 +12,7 @@ from ...forms import (
     BeneficiaryIdentityForm,
     BeneficiaryMentoringSignUpForm,
     BeneficiaryStudyStatusForm,
+    BeneficiaryTrainingAmbassadorRequestForm,
     VerificationCodeForm,
 )
 from ...mailers import AuthMailer
@@ -29,7 +30,24 @@ from ..beneficiary_views import (
 )
 
 # The funnel steps in order — the single source of truth navigation is derived from.
-_STEPS = ("email", "identity", "study_status", "training_experience", "mentoring_signup")
+_STEPS = (
+    "email",
+    "identity",
+    "study_status",
+    "training_experience",
+    "mentoring_signup",
+    "training_ambassador_request",
+)
+
+# The optional steps, each with the answer that declines it and who it would have put her in
+# touch with.
+_SKIPPABLE_STEPS = {
+    "mentoring_signup": {"declined_field": "wants_mentor", "contact": "mentor"},
+    "training_ambassador_request": {
+        "declined_field": "wants_training_ambassador",
+        "contact": "ambassadrice",
+    },
+}
 
 
 def inscription_funnel(request):
@@ -45,6 +63,7 @@ def inscription_funnel(request):
             "beneficiary/funnels/inscription_funnel.html",
             {
                 "wants_mentor": request.GET.get("wants_mentor") == "1",
+                "wants_training_ambassador": request.GET.get("wants_training_ambassador") == "1",
                 "saved_event": request.GET.get("saved_event", ""),
             },
         )
@@ -61,11 +80,13 @@ def inscription_funnel(request):
     return handler(request)
 
 
-def show_skip_mentoring_signup_modal(request):
+def show_skip_inscription_step_modal(request, step):
+    if step not in _SKIPPABLE_STEPS:
+        raise Http404
     return render(
         request,
-        "beneficiary/funnels/partials/inscription/show_skip_mentoring_signup_modal.html",
-        {"action": _previous_step("mentoring_signup")},
+        "beneficiary/funnels/partials/inscription/show_skip_inscription_step_modal.html",
+        {"action": _last_step({}), **_SKIPPABLE_STEPS[step]},
     )
 
 
@@ -89,31 +110,35 @@ def _advance(request):
 
 
 def _handle_back(request):
-    return _render_step(request, _previous_step(request.POST.get("to")))
+    return _render_step(request, _previous_step(request.POST.get("to"), request.POST))
 
 
 def _create_beneficiary(request):
     # The client can't be trusted, so the whole payload is re-validated here, reusing each step's
     # validator. On the first failure the user is sent back to that screen with an error banner.
     wants_mentor = _wants_mentor(request.POST)
+    wants_training_ambassador = _wants_training_ambassador(request.POST)
     try:
         email = _validate_email(request, error=_EMAIL_ERROR)
         identity = _validate_identity(request, error=_IDENTITY_ERROR)
         _validate_study(request, error=_STUDY_ERROR)
         training_experience_form = _validate_training_experience(request)
-        if wants_mentor:
-            mentoring_signup_data = _validate_mentoring_signup(request)
+        mentoring_signup_data = _validate_mentoring_signup(request) if wants_mentor else None
+        training_ambassador_request_data = (
+            _validate_training_ambassador_request(request) if wants_training_ambassador else None
+        )
     except _StepInterrupt as interrupt:
         return interrupt.response
 
     result = UpsertBeneficiary(
         beneficiary_data=email | identity,
         training_experience_form=training_experience_form,
-        mentoring_signup_data=mentoring_signup_data if wants_mentor else None,
+        mentoring_signup_data=mentoring_signup_data,
+        training_ambassador_request_data=training_ambassador_request_data,
     )
     if result.failure:
         relay_errors(request, result)
-        return _render_step(request, "mentoring_signup")
+        return _render_step(request, _last_step(request.POST))
     saved_event = request.POST.get("saved_event", "")
     response = _render_step(
         request, "code", email=result.beneficiary.email, saved_event=saved_event
@@ -136,6 +161,7 @@ def _handle_code(request):
         # required because django-axes is configured
         user.backend = "django.contrib.auth.backends.ModelBackend"
         login(request, user)
+        request.session["show_welcome_modal"] = True
         saved_event = save_pending_event(request, request.POST.get("saved_event", ""))
         landing = "index_beneficiary_events" if saved_event else "show_account"
         return HttpResponse(headers={"HX-Redirect": reverse(landing)})
@@ -216,6 +242,15 @@ def _validate_mentoring_signup(request, *, error=None):
     return form.cleaned_data
 
 
+def _validate_training_ambassador_request(request, *, error=None):
+    form = BeneficiaryTrainingAmbassadorRequestForm(data=request.POST)
+    if not form.is_valid():
+        raise _StepInterrupt(
+            _render_step_with_error(request, "training_ambassador_request", error, form=form)
+        )
+    return form.cleaned_data
+
+
 def _login_redirect_for_existing_email(request, email):
     user = User.objects.filter(email=email).first()
     if user is None:
@@ -239,6 +274,12 @@ def _destination_view_for_existing_user(user, data):
         return (
             "show_account" if user.beneficiary.is_registered_for_mentoring else "mentoring_funnel"
         )
+    if _wants_training_ambassador(data) and hasattr(user, "beneficiary"):
+        return (
+            "show_account"
+            if user.beneficiary.has_requested_training_ambassador
+            else "new_training_ambassador_request"
+        )
     return "home"
 
 
@@ -248,6 +289,7 @@ _STEP_VALIDATORS = {
     "study_status": _validate_study,
     "training_experience": _validate_training_experience,
     "mentoring_signup": _validate_mentoring_signup,
+    "training_ambassador_request": _validate_training_ambassador_request,
 }
 
 
@@ -258,11 +300,16 @@ _STEP_FORMS = {
     "identity": BeneficiaryIdentityForm,
     "study_status": BeneficiaryStudyStatusForm,
     "mentoring_signup": BeneficiaryMentoringSignUpForm,
+    "training_ambassador_request": BeneficiaryTrainingAmbassadorRequestForm,
 }
 
 
 def _steps(data):
-    return _STEPS if _wants_mentor(data) else _STEPS[:-1]
+    return [
+        step
+        for step in _STEPS
+        if step not in _OPTIONAL_STEP_FLAGS or _OPTIONAL_STEP_FLAGS[step](data)
+    ]
 
 
 def _next_step(step, data):
@@ -270,10 +317,11 @@ def _next_step(step, data):
     return steps[steps.index(step) + 1]
 
 
-def _previous_step(step):
-    if step not in _STEPS:
-        return _STEPS[0]
-    return _STEPS[max(_STEPS.index(step) - 1, 0)]
+def _previous_step(step, data):
+    steps = _steps(data)
+    if step not in steps:
+        return steps[0]
+    return steps[max(steps.index(step) - 1, 0)]
 
 
 def _last_step(data):
@@ -305,10 +353,9 @@ def _resume_last_step(data):
     study_status = data.get("study_status")
     if study_status not in TRAINING_EXPERIENCE_FORMS:
         return "study_status"
-    has_filled_training_experience = _has_answer_for(TRAINING_EXPERIENCE_FORMS[study_status], data)
-    if _wants_mentor(data) and has_filled_training_experience:
-        return "mentoring_signup"
-    return "training_experience"
+    if not _has_answer_for(TRAINING_EXPERIENCE_FORMS[study_status], data):
+        return "training_experience"
+    return _last_step(data)
 
 
 def _has_answer_for(form_class, data):
@@ -322,6 +369,16 @@ def _has_answer_for(form_class, data):
 
 def _wants_mentor(data):
     return data.get("wants_mentor") == "true"
+
+
+def _wants_training_ambassador(data):
+    return data.get("wants_training_ambassador") == "true"
+
+
+_OPTIONAL_STEP_FLAGS = {
+    "mentoring_signup": _wants_mentor,
+    "training_ambassador_request": _wants_training_ambassador,
+}
 
 
 def _posted_birth_date(data):
@@ -341,6 +398,9 @@ _FORM_BUILDERS = {
         initial={"study_status": data.get("study_status")}
     ),
     "mentoring_signup": lambda data: BeneficiaryMentoringSignUpForm(initial=data),
+    "training_ambassador_request": lambda data: BeneficiaryTrainingAmbassadorRequestForm(
+        initial=data
+    ),
 }
 
 
@@ -369,6 +429,7 @@ def _step_context(request, step, form=None, **extra):
         "first_name": data.get("first_name"),
         "is_minor": is_minor(_posted_birth_date(data)),
         "wants_mentor": _wants_mentor(data),
+        "wants_training_ambassador": _wants_training_ambassador(data),
         **extra,
     }
     if step in _FORM_BUILDERS:

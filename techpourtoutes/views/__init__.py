@@ -24,14 +24,22 @@ from .auth_views import (
     login_to_jobirl,
     login_verify,
 )
-from .beneficiary.inscription_views import inscription_funnel, show_skip_mentoring_signup_modal
+from .beneficiary.inscription_views import (
+    inscription_funnel,
+    show_skip_inscription_step_modal,
+)
 from .beneficiary.mentoring_views import mentoring_funnel
+from .beneficiary.training_ambassador_request_views import (
+    create_training_ambassador_request,
+    new_training_ambassador_request,
+)
 from .beneficiary_views import (
     beneficiary_home,
     create_saved_event_modal,
     create_upcoming_feature_notification,
     index_events,
     new_mentoree,
+    new_training_ambassador_beneficiary,
     new_upcoming_feature_notification,
     show_event,
     show_participation_modal,
@@ -109,6 +117,7 @@ __all__ = [
     "create_saved_event_modal",
     "create_sponsor",
     "create_training_ambassador",
+    "create_training_ambassador_request",
     "create_upcoming_feature_notification",
     "create_work_ambassador",
     "create_workshop_request",
@@ -137,6 +146,8 @@ __all__ = [
     "new_mentoree",
     "new_sponsor",
     "new_training_ambassador",
+    "new_training_ambassador_beneficiary",
+    "new_training_ambassador_request",
     "new_upcoming_feature_notification",
     "new_work_ambassador",
     "new_workshop_request",
@@ -164,7 +175,7 @@ __all__ = [
     "show_beneficiary_training_experience",
     "show_participation_modal",
     "show_pro_training_experience",
-    "show_skip_mentoring_signup_modal",
+    "show_skip_inscription_step_modal",
     "show_manifeste_signature",
     "show_beneficiary_legal_rep",
     "update_saved_event",

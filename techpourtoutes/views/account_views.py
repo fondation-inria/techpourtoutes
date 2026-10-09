@@ -28,7 +28,12 @@ from ..utils.training_experience import training_experience_slots
 @login_required
 def show_account(request):
     is_pro, is_beneficiary, user = _resolve_user(request)
-    context = {"user": user, "is_pro": is_pro, "is_beneficiary": is_beneficiary}
+    context = {
+        "user": user,
+        "is_pro": is_pro,
+        "is_beneficiary": is_beneficiary,
+        "show_welcome_modal": request.session.pop("show_welcome_modal", False),
+    }
     return render(request, "account/show_account.html", context)
 
 

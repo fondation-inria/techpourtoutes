@@ -1,7 +1,7 @@
 <c-components.modal title="Es-tu sûre de vouloir passer cette étape ?">
     <br>
     <p class="text-center text-sm">
-        Pour te mettre en relation avec une mentor, nous avons besoin que tu nous transmettes ces informations.
+        Pour te mettre en relation avec une {{ contact }}, nous avons besoin que tu nous transmettes ces informations.
         <br><br>
         Si tu passes cette étape, tu pourras toujours compléter le formulaire plus tard dans ton espace personnel.
     </p>
@@ -14,7 +14,7 @@
             class="max-w-lg"
         >
             <input type="hidden" name="action" value="{{ action }}">
-            <input type="hidden" name="wants_mentor" value="false">
+            <input type="hidden" name="{{ declined_field }}" value="false">
             <div class="flex flex-col items-center gap-4">
                 <c-components.button
                     label="Compléter le formulaire"
