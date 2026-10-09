@@ -11,10 +11,31 @@
         data-funnel-close
     />
     <div class="flex min-h-screen flex-col">
-        <c-layout.partials.funnel_messages />
-            <main id="contenu" tabindex="-1" class="focus:outline-none flex flex-1 px-4 {% if not right %}items-center justify-center{% endif %}">
+            {# Once a whole step is swapped in, the button just pressed is gone and the focus with it: #}
+            {# it moves to the first invalid field, else the step's title, else the step itself. #}
+            {# Autocompletes and modals swap their own content and keep their own focus. #}
+            <main id="contenu" tabindex="-1"
+                  x-data
+                  @htmx:after-settle.document="
+                      if (!['funnel-step', 'mentoring-step'].includes($event.detail.target.id)) return;
+                      const step = document.getElementById($event.detail.target.id);
+                      const destination = step.querySelector('[aria-invalid=true]') || step.querySelector('h1') || step;
+                      if (!destination.matches('input, select, textarea, button')) {
+                          destination.setAttribute('tabindex', '-1');
+                          destination.classList.add('focus:outline-none');
+                      }
+                      destination.focus();
+                  "
+                  class="focus:outline-none flex flex-1 px-4 {% if not right %}items-center justify-center{% endif %}">
                 <div class="w-full flex {% if right %}max-w-6xl mx-auto flex-col md:flex-row gap-8 items-stretch{% else %}max-w-xl justify-center{% endif %}">
-                    {{ slot }}
+                    <div class="w-full flex flex-col [&>:last-child]:flex-1 {% if right %}md:max-w-xl{% else %}items-center{% endif %}">
+                        {# The messages overlay the top of the left column instead of pushing it down, #}
+                        {# and stay in view while she scrolls a long screen. #}
+                        <div class="sticky top-0 z-[110] h-0">
+                            <c-layout.partials.funnel_messages />
+                        </div>
+                        {{ slot }}
+                    </div>
                     {{ right }}
                 </div>
             </main>
