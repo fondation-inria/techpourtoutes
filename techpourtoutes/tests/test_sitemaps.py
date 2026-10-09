@@ -2,22 +2,12 @@ import pytest
 from django.urls import reverse
 
 from techpourtoutes.sitemaps import StaticViewSitemap
+from techpourtoutes.tests.sitemap_exclusions import NEVER_LISTED_URL_NAMES, argument_free_url_names
 
-# Public, argument-free pages that are deliberately kept out of the sitemap:
-# auth/account flows, HTMX partials, form endpoints, and legal/info pages we
-# don't want search engines to index. Adding a new public page forces a
-# conscious choice — put it in the sitemap or list it here — see the guard test.
-SITEMAP_EXCLUDED_URL_NAMES = {
-    # HTMX partials
-    "search_schools",
-    "search_formations",
-    "search_addresses",
-    "show_skip_mentoring_signup_modal",
-    # Auth / account (private)
-    "login_request",
-    "login_code",
-    "login_to_jobirl",
-    "destroy_session",
+# Pages the XML sitemap leaves out on top of the NEVER_LISTED_URL_NAMES. Adding a new page
+# forces a conscious choice — put it in the XML sitemap or list it here — see the guard test.
+XML_SITEMAP_EXCLUDED_URL_NAMES = {
+    # Redirects anonymous visitors to the login, which search engines report as an error
     "show_account",
     "show_user_info",
     "edit_user",
@@ -61,33 +51,23 @@ SITEMAP_EXCLUDED_URL_NAMES = {
     "mentions_legales",
     "accessibilite",
     "schema_pluriannuel",
-    "a_propos",
+    # A placeholder, declined in one variant per ?feature=
     "new_upcoming_feature_notification",
 }
 
 
-def _argument_free_names(*url_modules):
-    return {
-        pattern.name
-        for module in url_modules
-        for pattern in module.urlpatterns
-        if pattern.name and not pattern.pattern.converters
-    }
-
-
 @pytest.mark.django_db
 def test_every_public_page_is_either_in_sitemap_or_explicitly_excluded():
-    from techpourtoutes import urls_beneficiary, urls_coalition, urls_common
+    accounted_for = (
+        set(StaticViewSitemap().items()) | NEVER_LISTED_URL_NAMES | XML_SITEMAP_EXCLUDED_URL_NAMES
+    )
 
-    accounted_for = set(StaticViewSitemap().items()) | SITEMAP_EXCLUDED_URL_NAMES
-
-    app_page_names = _argument_free_names(urls_coalition, urls_common, urls_beneficiary)
-
-    unaccounted = app_page_names - accounted_for
+    unaccounted = argument_free_url_names() - accounted_for
     assert not unaccounted, (
-        "New public page(s) not referenced in the sitemap nor excluded: "
-        f"{sorted(unaccounted)}. Add them to a sitemap in techpourtoutes.sitemaps "
-        "or to SITEMAP_EXCLUDED_URL_NAMES."
+        f"Page(s) neither in the XML sitemap nor excluded: {sorted(unaccounted)}. "
+        "Add them to a sitemap in techpourtoutes.sitemaps, to XML_SITEMAP_EXCLUDED_URL_NAMES, "
+        "or to NEVER_LISTED_URL_NAMES if no sitemap should list them (HTMX partial, form "
+        "endpoint, funnel step…)."
     )
 
 
@@ -112,6 +92,7 @@ def test_sitemap_contains_public_urls(client):
     assert reverse("coalition_home") in content
     assert reverse("new_mentor") in content
     assert reverse("notre_manifeste") in content
+    assert reverse("html_sitemap") in content
 
 
 @pytest.fixture

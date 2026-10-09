@@ -16,6 +16,7 @@ Including another URLconf
 """
 
 from django.conf import settings
+from django.conf.urls.static import static
 from django.contrib import admin
 from django.contrib.sitemaps.views import sitemap
 from django.urls import include, path
@@ -38,4 +39,6 @@ urlpatterns = [
     path("", include("techpourtoutes.urls_common")),
     path("", include("techpourtoutes.urls_beneficiary")),
     path("coalition/", include("techpourtoutes.urls_coalition")),
+    # Files stored on the disk when no object storage is configured; only served under DEBUG
+    *static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT),
 ]

@@ -14,7 +14,8 @@ from pathlib import Path
 
 import environ
 
-from techpourtoutes.utils.environment import email_subject_prefix
+from techpourtoutes.utils import object_storage
+from techpourtoutes.utils.environment import email_subject_prefix, review_app_name
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -194,7 +195,9 @@ DEFAULT_FROM_EMAIL = env(
 BREVO_API_KEY = env("BREVO_API_KEY", default="")
 # Scalingo names each app after the environment it serves, and every mail we send announces it:
 # `[staging] `, `[pr-320] `. Production — and local dev, where `$APP` is unset — gets no prefix.
-EMAIL_SUBJECT_PREFIX = email_subject_prefix(env("APP", default=""))
+# Scalingo's name for the running app; empty in local dev.
+APP_NAME = env("APP", default="")
+EMAIL_SUBJECT_PREFIX = email_subject_prefix(APP_NAME)
 if DEBUG:
     EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
     EMAIL_HOST = "localhost"
@@ -325,13 +328,27 @@ STATIC_URL = "static/"
 STATIC_ROOT = BASE_DIR / "staticfiles"
 STATICFILES_DIRS = [BASE_DIR / "ui/static"]
 
+# Files stored on the disk when no object storage is configured; only served under DEBUG
+MEDIA_URL = "media/"
+MEDIA_ROOT = BASE_DIR / "media"
+
 TAILWIND_CLI_USE_DAISY_UI = True
 TAILWIND_CLI_SRC_CSS = BASE_DIR / "ui/source.css"
 
+S3_UPLOAD_URL_TTL = 10 * 60
+S3_PRIVATE_URL_TTL = 5 * 60
 STORAGES = {
-    "default": {  # for uploaded file ; this will change if we use S3
-        "BACKEND": "django.core.files.storage.FileSystemStorage",
-    },
+    **object_storage.settings_dictionary(
+        private_bucket=env("S3_PRIVATE_BUCKET", default=""),
+        public_bucket=env("S3_PUBLIC_BUCKET", default=""),
+        public_object_acl=env("S3_PUBLIC_OBJECT_ACL", default=""),
+        private_url_ttl=S3_PRIVATE_URL_TTL,
+        endpoint_url=env("S3_ENDPOINT_URL", default=""),
+        region_name=env("S3_REGION", default=""),
+        access_key=env("S3_ACCESS_KEY_ID", default=""),
+        secret_key=env("S3_SECRET_ACCESS_KEY", default=""),
+        location=review_app_name(APP_NAME),
+    ),
     "staticfiles": {  # Configure static files storage to use WhiteNoise's optimized storage
         "BACKEND": "whitenoise.storage.CompressedManifestStaticFilesStorage",
     },

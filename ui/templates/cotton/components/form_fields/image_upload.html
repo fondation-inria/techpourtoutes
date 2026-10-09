@@ -1,0 +1,124 @@
+<c-vars
+    field=field
+    upload_url=""
+    preview_url=""
+    accept=""
+    max_size=""
+    max_side="1200"
+    color=""
+    label=""
+    class=""
+/>
+
+{# The file never goes through the app: the browser shrinks it to `max_side`, asks `upload_url` #}
+{# to sign an upload, puts it straight into the bucket, and only its key travels on in the hidden #}
+{# input. `max_size` bounds the file she picks, before it is shrunk. #}
+<div x-data="{
+        key: '{{ field.value|default:""|escapejs }}',
+        preview: '{{ preview_url|escapejs }}',
+        error: '',
+        uploading: false,
+        async upload(file) {
+            this.error = '';
+            if (!file) return;
+            if (!'{{ accept }}'.split(',').includes(file.type)) {
+                this.error = 'Ce format n\'est pas accepté : importez une image JPG, PNG ou WebP.';
+            } else if (file.size > {{ max_size }}) {
+                this.error = 'Ce visuel dépasse la taille maximale de {{ max_size|filesizeformat }}.';
+            } else {
+                this.uploading = true;
+                const image = await this.shrink(file).catch(() => null);
+                if (image) {
+                    await this.send(image);
+                } else {
+                    this.error = 'Ce visuel n\'a pas pu être lu : essayez avec une autre image.';
+                }
+                this.uploading = false;
+            }
+            this.$refs.file.value = '';
+        },
+        async shrink(file) {
+            const bitmap = await createImageBitmap(file);
+            const scale = Math.min(1, {{ max_side }} / Math.max(bitmap.width, bitmap.height));
+            const canvas = document.createElement('canvas');
+            canvas.width = Math.round(bitmap.width * scale);
+            canvas.height = Math.round(bitmap.height * scale);
+            const context = canvas.getContext('2d');
+            context.imageSmoothingQuality = 'high';
+            context.drawImage(bitmap, 0, 0, canvas.width, canvas.height);
+            bitmap.close();
+            const webp = await this.encode(canvas, 'image/webp');
+            if (webp.type === 'image/webp') return webp;
+            {# Safari hands back a PNG instead. JPEG has no transparency: paint it white, not black. #}
+            context.globalCompositeOperation = 'destination-over';
+            context.fillStyle = '#fff';
+            context.fillRect(0, 0, canvas.width, canvas.height);
+            return this.encode(canvas, 'image/jpeg');
+        },
+        encode(canvas, type) {
+            return new Promise((resolve, reject) => {
+                canvas.toBlob((blob) => (blob ? resolve(blob) : reject()), type, 0.82);
+            });
+        },
+        async send(file) {
+            let step = 'signature';
+            try {
+                const signed = await fetch('{{ upload_url }}', {
+                    method: 'POST',
+                    headers: { 'X-CSRFToken': '{{ csrf_token }}' },
+                    body: new URLSearchParams({ content_type: file.type, content_length: file.size }),
+                });
+                if (signed.status === 400) {
+                    this.error = (await signed.json()).error;
+                    return;
+                }
+                if (!signed.ok) throw new Error(`HTTP ${signed.status}`);
+                const upload = await signed.json();
+                step = 'bucket';
+                const stored = await fetch(upload.url, { method: 'PUT', headers: upload.headers, body: file });
+                if (!stored.ok) throw new Error(`HTTP ${stored.status}`);
+                this.key = upload.key;
+                this.preview = URL.createObjectURL(file);
+            } catch (error) {
+                this.error = 'L\'import du visuel a échoué, veuillez réessayer.';
+                window.Sentry?.captureException(error, { tags: { upload_step: step } });
+            }
+        },
+        remove() {
+            this.key = '';
+            this.preview = '';
+        },
+     }"
+     class="flex flex-col gap-2 {{ class }}">
+    <input type="hidden" name="{{ field.html_name }}" :value="key">
+    <input type="file"
+           id="{{ field.id_for_label }}"
+           x-ref="file"
+           accept="{{ accept }}"
+           class="sr-only peer"
+           :disabled="uploading"
+           @change="upload($event.target.files[0])"
+           aria-describedby="{{ field.id_for_label }}_error">
+
+    {# The preview takes the place of the drop zone, on the colour the event page will frame it with. #}
+    <label for="{{ field.id_for_label }}"
+           class="relative w-full max-w-sm aspect-square flex flex-col items-center justify-center gap-1 border border-neutral-900 bg-neutral-0 cursor-pointer label-text-sm peer-focus-visible:outline-2 peer-focus-visible:outline-offset-2"
+           :class="uploading && 'cursor-wait'">
+        <c-components.icon name="upload" class="w-7 h-7" />
+        <span x-text="uploading ? 'Import en cours…' : (key ? 'Changer de visuel' : '{{ label|default:"Importer un visuel"|escapejs }}')">{{ label|default:"Importer un visuel" }}</span>
+        <div x-show="preview" x-cloak data-image-preview class="bg-{{ color }}-500 absolute inset-0" :class="uploading && 'opacity-50'">
+            <img :src="preview" alt="" class="w-full h-full object-contain">
+        </div>
+    </label>
+
+    <div x-show="key" x-cloak>
+        <c-components.button type="button" variant="tertiary_danger" icon="trash" icon_position="start" label="Supprimer le visuel" @click="remove()" />
+    </div>
+
+    <div id="{{ field.id_for_label }}_error" aria-live="polite">
+        <p x-show="error" x-text="error" class="text-xxs leading-[1.4] text-error font-normal"></p>
+        <div x-show="!error">
+            <c-components.form_fields.messages :field=field />
+        </div>
+    </div>
+</div>

@@ -3,6 +3,7 @@ from django.contrib import admin
 from django.contrib.admin.views.main import ChangeList
 from django.http import JsonResponse
 from django.urls import path
+from django.utils.html import format_html
 from django.utils.translation import gettext_lazy as _
 from simple_history.admin import SimpleHistoryAdmin
 
@@ -144,7 +145,7 @@ class EventAdminForm(forms.ModelForm):
 class EventAdmin(SimpleHistoryAdmin):
     form = EventAdminForm
     inlines = [EventSavedByInline]
-    readonly_fields = ("created_at", "updated_at")
+    readonly_fields = ("image_preview", "created_at", "updated_at")
     fieldsets = (
         (
             "Événement",
@@ -193,7 +194,13 @@ class EventAdmin(SimpleHistoryAdmin):
         ),
         (
             "Autres infos",
-            {"fields": ("created_at", "updated_at")},
+            {
+                "fields": (
+                    "image_preview",
+                    "created_at",
+                    "updated_at",
+                )
+            },
         ),
     )
 
@@ -217,6 +224,10 @@ class EventAdmin(SimpleHistoryAdmin):
     @admin.display(description=_("sous-catégorie"))
     def subcategory_label(self, obj):
         return obj.subcategory_label
+
+    @admin.display(description=_("visuel"))
+    def image_preview(self, obj):
+        return format_html('<img src="{}" alt="" style="max-height: 600px;">', obj.image_url)
 
     def get_fieldsets(self, request, obj=None):
         """While an event is pending, its status only ever moves through Publier/Refuser"""

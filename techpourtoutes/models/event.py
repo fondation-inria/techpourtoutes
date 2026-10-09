@@ -5,12 +5,14 @@ from django.core.exceptions import ValidationError
 from django.core.validators import MinValueValidator
 from django.db import IntegrityError, models, transaction
 from django.template.defaultfilters import floatformat
+from django.templatetags.static import static
 from django.utils import timezone
 from django.utils.formats import date_format
 from django.utils.text import slugify
 from django.utils.translation import gettext_lazy as _
 from simple_history.models import HistoricalRecords
 
+from ..utils.object_storage import public_storage
 from ..utils.text import strip_accents
 from .base import BaseModel, BaseQuerySet
 from .pro import Pro
@@ -195,6 +197,13 @@ class Event(BaseModel):
         verbose_name=_("statut"),
     )
     organizer = models.CharField(verbose_name=_("organisateur"))
+    image = models.FileField(
+        max_length=255, blank=True, storage=public_storage, verbose_name=_("visuel")
+    )  # Uploaded by the browser straight to the bucket: the column only ever receives its key.
+    image_alt = models.CharField(
+        max_length=255, blank=True, verbose_name=_("alternative textuelle du visuel")
+    )
+    image_credit = models.CharField(max_length=255, blank=True, verbose_name=_("crédit du visuel"))
 
     objects = EventQuerySet.as_manager()
     history = HistoricalRecords()
@@ -264,14 +273,10 @@ class Event(BaseModel):
 
     @property
     def category(self):
-        """Free text is an unlisted subcategory, so it belongs where `OTHER` does."""
-        subcategory = self.subcategory
-        if subcategory not in self.Subcategory.values:
-            subcategory = self.Subcategory.OTHER
         return next(
             category
             for category, subcategories in self.SUBCATEGORIES.items()
-            if subcategory in subcategories
+            if self._listed_subcategory in subcategories
         )
 
     @property
@@ -281,6 +286,13 @@ class Event(BaseModel):
     @property
     def category_color(self):
         return self.CATEGORY_COLORS[self.category]
+
+    @property
+    def image_url(self):
+        """Without a visual of its own, the event displays the default one of its subcategory."""
+        if self.image:
+            return self.image.url
+        return static(f"images/events/{self.category}/{self._listed_subcategory}.webp")
 
     @property
     def date_range_label(self):
@@ -305,6 +317,13 @@ class Event(BaseModel):
     def price_label(self):
         """A no-break space, not an entity: this is text, templates would escape `&nbsp;`."""
         return "gratuit" if not self.price else f"{floatformat(self.price, '-2')} €"
+
+    @property
+    def _listed_subcategory(self):
+        """Free text is an unlisted subcategory, so it belongs where `OTHER` does."""
+        if self.subcategory in self.Subcategory.values:
+            return self.subcategory
+        return self.Subcategory.OTHER
 
     def _save_under_a_free_slug(self, *args, **kwargs):
         base = slugify(self.title)[:240] or "evenement"

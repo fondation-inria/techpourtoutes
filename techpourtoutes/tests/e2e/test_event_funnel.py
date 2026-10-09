@@ -1,4 +1,6 @@
 import re
+import struct
+import zlib
 from datetime import timedelta
 from decimal import Decimal
 
@@ -91,6 +93,25 @@ def test_leaving_the_funnel_asks_for_confirmation(funnel):
     expect(funnel.get_by_text("ne sera pas enregistré")).to_be_visible()
     funnel.get_by_role("button", name="Annuler").click()
     expect(funnel.get_by_text("ne sera pas enregistré")).to_be_hidden()
+
+
+@pytest.mark.parametrize(
+    ("link_name", "destination"),
+    [
+        ("Accueil TechPourToutes Coalition", "/coalition/"),
+        ("Mentions légales", "/mentions-legales/"),
+    ],
+)
+def test_leaving_through_the_logo_or_the_footer_asks_for_confirmation_too(
+    funnel, link_name, destination
+):
+    """Every way out of the page loses the answers, not only the close button: quitting then
+    goes where the link pointed."""
+    funnel.get_by_role("link", name=link_name).click()
+
+    expect(funnel.get_by_text("ne sera pas enregistré")).to_be_visible()
+    funnel.get_by_role("link", name="Quitter la création").click()
+    expect(funnel).to_have_url(re.compile(f"{destination}$"))
 
 
 @locmem
@@ -351,3 +372,134 @@ def test_an_event_is_edited_through_the_same_funnel(page, live_server, pro, even
     assert event.title == "Salon renommé"
     assert event.address == "8 Boulevard du Port"
     assert Event.objects.count() == 1
+
+
+def png(width, height):
+    """A plain PNG of any size, written by hand: the suite has no imaging library."""
+
+    def chunk(kind, data):
+        return (
+            struct.pack(">I", len(data)) + kind + data + struct.pack(">I", zlib.crc32(kind + data))
+        )
+
+    rows = (b"\x00" + b"\x40\x80\xc0" * width) * height
+    header = struct.pack(">IIBBBBB", width, height, 8, 2, 0, 0, 0)
+    return (
+        b"\x89PNG\r\n\x1a\n"
+        + chunk(b"IHDR", header)
+        + chunk(b"IDAT", zlib.compress(rows))
+        + chunk(b"IEND", b"")
+    )
+
+
+@pytest.fixture
+def details_screen(funnel, settings, tmp_path):
+    settings.MEDIA_ROOT = tmp_path
+    choose_subcategory(funnel, "Salon")
+    funnel.get_by_role("button", name="Continuer").click()
+    return funnel
+
+
+def import_image(page, name, mime_type, content):
+    page.locator("input[type=file]").set_input_files(
+        {"name": name, "mimeType": mime_type, "buffer": content}
+    )
+
+
+def test_an_imported_image_is_shrunk_to_a_webp_before_its_upload(details_screen):
+    import_image(details_screen, "photo.png", "image/png", png(2400, 1600))
+
+    expect(details_screen.get_by_role("button", name="Supprimer le visuel")).to_be_visible()
+    assert details_screen.locator("input[name=image]").input_value().endswith(".webp")
+    preview = details_screen.locator("[data-image-preview] img")
+    assert preview.evaluate("img => [img.naturalWidth, img.naturalHeight]") == [1200, 800]
+
+
+def test_an_image_already_small_keeps_its_size(details_screen):
+    import_image(details_screen, "photo.png", "image/png", png(600, 400))
+
+    expect(details_screen.get_by_role("button", name="Supprimer le visuel")).to_be_visible()
+    preview = details_screen.locator("[data-image-preview] img")
+    assert preview.evaluate("img => [img.naturalWidth, img.naturalHeight]") == [600, 400]
+
+
+def test_a_browser_that_cannot_encode_webp_uploads_a_jpeg(details_screen):
+    """Safari hands back a PNG when asked for a WebP, without a word."""
+    details_screen.evaluate(
+        """() => {
+            const toBlob = HTMLCanvasElement.prototype.toBlob;
+            HTMLCanvasElement.prototype.toBlob = function (callback, type, quality) {
+                const encoded = type === "image/webp" ? "image/png" : type;
+                return toBlob.call(this, callback, encoded, quality);
+            };
+        }"""
+    )
+
+    import_image(details_screen, "photo.png", "image/png", png(2400, 1600))
+
+    expect(details_screen.get_by_role("button", name="Supprimer le visuel")).to_be_visible()
+    assert details_screen.locator("input[name=image]").input_value().endswith(".jpg")
+
+
+def test_an_image_heavier_than_30_mo_is_refused_before_any_upload(details_screen):
+    import_image(details_screen, "huge.png", "image/png", b"\x00" * (30 * 1024 * 1024 + 1))
+
+    expect(
+        details_screen.get_by_text("Ce visuel dépasse la taille maximale de 30,0")
+    ).to_be_visible()
+    assert details_screen.locator("input[name=image]").input_value() == ""
+
+
+def test_an_image_the_browser_cannot_read_is_refused(details_screen):
+    import_image(details_screen, "broken.png", "image/png", b"not an image")
+
+    expect(details_screen.get_by_text("Ce visuel n'a pas pu être lu")).to_be_visible()
+    assert details_screen.locator("input[name=image]").input_value() == ""
+
+
+@pytest.fixture
+def sentry_captures(details_screen):
+    """Stands in for the Sentry SDK, which only loads where a DSN is configured."""
+    details_screen.evaluate(
+        """() => {
+            window.captured = [];
+            window.Sentry = {
+                captureException: (error, context) =>
+                    window.captured.push({ error: String(error), step: context.tags.upload_step }),
+            };
+        }"""
+    )
+    return lambda: details_screen.evaluate("() => window.captured")
+
+
+def test_an_upload_the_bucket_refuses_is_reported_to_sentry(details_screen, sentry_captures):
+    details_screen.route("**/uploads-locaux/**", lambda route: route.fulfill(status=403))
+
+    import_image(details_screen, "photo.png", "image/png", png(600, 400))
+
+    expect(details_screen.get_by_text("L'import du visuel a échoué")).to_be_visible()
+    assert sentry_captures() == [{"error": "Error: HTTP 403", "step": "bucket"}]
+
+
+def test_an_upload_cut_off_by_the_network_is_reported_to_sentry(details_screen, sentry_captures):
+    """A refusal without a CORS header looks the same to the page: the fetch itself throws."""
+    details_screen.route("**/uploads-locaux/**", lambda route: route.abort())
+
+    import_image(details_screen, "photo.png", "image/png", png(600, 400))
+
+    expect(details_screen.get_by_text("L'import du visuel a échoué")).to_be_visible()
+    [capture] = sentry_captures()
+    assert capture["step"] == "bucket"
+    assert capture["error"].startswith("TypeError")
+
+
+def test_a_format_the_app_refuses_is_not_reported_to_sentry(details_screen, sentry_captures):
+    details_screen.route(
+        "**/evenements/importer-un-visuel/",
+        lambda route: route.fulfill(status=400, json={"error": "Ce format n'est pas accepté."}),
+    )
+
+    import_image(details_screen, "photo.png", "image/png", png(600, 400))
+
+    expect(details_screen.get_by_text("Ce format n'est pas accepté.")).to_be_visible()
+    assert sentry_captures() == []
