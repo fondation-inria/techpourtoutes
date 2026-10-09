@@ -31,6 +31,7 @@ FAVICON_DYNAMIC_ENABLED = env.bool("FAVICON_DYNAMIC_ENABLED", default=False)
 
 ALLOWED_HOSTS = env.list("ALLOWED_HOSTS")
 SITE_URL = env("HOST", default="https://localhost:8000").rstrip("/")
+COALITION_OLD_HOST = "coalition.techpourtoutes.io"
 BENEFICIARY_BOOKING_URL = env(
     "BENEFICIARY_BOOKING_URL",
     default="https://outlook.office.com/bookwithme/user/ef04c95ea1e44a329c6ba9bd01786932@fondation-inria.fr/meetingtype/4RQaWcoi4kCW8TruTK0Rxg2?anonymous&ismsaljsauthenabled&ep=mlink",
@@ -84,6 +85,7 @@ AUTH_USER_MODEL = "techpourtoutes.User"
 
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
+    "techpourtoutes.middleware.coalition_host_redirect",
     "whitenoise.middleware.WhiteNoiseMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
     "django.middleware.common.CommonMiddleware",
