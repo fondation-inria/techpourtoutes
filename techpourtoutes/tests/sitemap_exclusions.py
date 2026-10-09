@@ -50,6 +50,7 @@ NEVER_LISTED_URL_NAMES = {
     "update_event",
     # Funnel steps (not entry points)
     "inscription_funnel",
+    "new_inscription_funnel",
     "mentoring_funnel",
     "coalition_welcome",
     "show_manifeste_signature",

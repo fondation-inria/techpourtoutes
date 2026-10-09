@@ -26,6 +26,7 @@ from .auth_views import (
 )
 from .beneficiary.inscription_views import (
     inscription_funnel,
+    new_inscription_funnel,
     show_skip_inscription_step_modal,
 )
 from .beneficiary.mentoring_views import mentoring_funnel
@@ -135,6 +136,7 @@ __all__ = [
     "index_events",
     "new_internship",
     "inscription_funnel",
+    "new_inscription_funnel",
     "login_code",
     "login_request",
     "login_to_jobirl",
