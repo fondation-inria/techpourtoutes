@@ -21,4 +21,8 @@
         <c-components.card title="Événements passés" title_bg="black" />
         {% include "coalition/partials/event_cards.html" with events=past_events %}
     {% endif %}
+
+    {% if show_welcome_modal %}
+        {% include "beneficiary/partials/welcome_modal.html" %}
+    {% endif %}
 </c-layout.base>
