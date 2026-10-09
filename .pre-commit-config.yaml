@@ -51,3 +51,9 @@ repos:
         language: system
         files: \.(css|html)$
         pass_filenames: false
+      - id: build-svg-sprite
+        name: Build SVG sprite
+        entry: uv run python manage.py build_svg_sprite
+        language: system
+        files: ^ui/(svg_source/|static/svg/sprite\.svg$|management/commands/build_svg_sprite\.py$)
+        pass_filenames: false
