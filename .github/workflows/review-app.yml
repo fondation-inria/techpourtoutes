@@ -163,6 +163,20 @@ jobs:
           REVIEW_APP: techpourtoutes-staging-pr${{ steps.pr.outputs.number }}
         run: scalingo --app "$REVIEW_APP" run python manage.py seed
 
+      # `/deploy-review-app ACTIVE_SWITCHES=a,b` turns those waffle switches on. Read back from the
+      # app's env rather than the comment, so a later redeploy without the token keeps them on.
+      - name: Activate requested switches
+        env:
+          REVIEW_APP: techpourtoutes-staging-pr${{ steps.pr.outputs.number }}
+        run: |
+          switches=$(scalingo --app "$REVIEW_APP" env | sed -n 's/^ACTIVE_SWITCHES=//p')
+          [ -z "$switches" ] && exit 0
+          command="true"
+          for switch in ${switches//,/ }; do
+            command+=" && python manage.py waffle_switch $switch on"
+          done
+          scalingo --app "$REVIEW_APP" run "$command"
+
       - name: Comment PR with review app URL
         uses: peter-evans/create-or-update-comment@v5
         with:
