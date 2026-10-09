@@ -6,7 +6,7 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('techpourtoutes', '0057_event_image'),
+        ('techpourtoutes', '0058_create_new_pro_features_switch'),
     ]
 
     operations = [
