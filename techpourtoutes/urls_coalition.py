@@ -4,6 +4,12 @@ from . import views
 
 urlpatterns = [
     path("", views.coalition_home, name="coalition_home"),
+    path("inscription/", views.pro_inscription_funnel, name="pro_inscription_funnel"),
+    path(
+        "inscription/new/",
+        views.new_pro_inscription_funnel,
+        name="new_pro_inscription_funnel",
+    ),
     path("mentorer/", views.new_mentor, name="new_mentor"),
     path("mentorer/inscription/", views.create_mentor, name="create_mentor"),
     path("pitcher-mon-metier/", views.new_work_ambassador, name="new_work_ambassador"),

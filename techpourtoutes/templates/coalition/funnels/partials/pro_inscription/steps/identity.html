@@ -1,0 +1,16 @@
+<c-patterns.funnel_step post_url="{% url 'pro_inscription_funnel' %}" action="identity" title="Rejoignez la coalition !">
+    <c-slot name="header">
+        <c-patterns.funnel_progress post_url="{% url 'pro_inscription_funnel' %}" progress="{{ progress }}" />
+    </c-slot>
+    <p class="text-xs text-neutral-500">
+        Les champs suivis d'un astérisque (*) sont obligatoires
+    </p>
+    <c-components.form_fields.select field=form.civility />
+    <c-components.form_fields.input field=form.first_name autocomplete="given-name" />
+    <c-components.form_fields.input field=form.last_name autocomplete="family-name" />
+    <div class="flex flex-col gap-3 mt-2">
+        <c-components.form_fields.checkbox field=form.manifeste_accepted />
+        <c-components.form_fields.checkbox field=form.newsletter_consent />
+        <c-components.form_fields.checkbox field=form.terms_accepted />
+    </div>
+</c-patterns.funnel_step>

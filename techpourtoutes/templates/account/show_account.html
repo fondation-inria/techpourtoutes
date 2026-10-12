@@ -17,6 +17,10 @@
     </div>
 
     {% if show_welcome_modal %}
-        {% include "beneficiary/partials/welcome_modal.html" %}
+        {% if is_pro %}
+            {% include "coalition/partials/welcome_modal.html" %}
+        {% else %}
+            {% include "beneficiary/partials/welcome_modal.html" %}
+        {% endif %}
     {% endif %}
 </c-layout.base>

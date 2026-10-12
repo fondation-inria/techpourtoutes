@@ -2,6 +2,7 @@ from datetime import timedelta
 
 import pytest
 from django.contrib.sessions.middleware import SessionMiddleware
+from django.http import QueryDict
 from django.test import RequestFactory
 from django.utils import timezone
 
@@ -93,6 +94,15 @@ def test_missing_before_only_requires_the_active_steps():
     assert _STEPS.missing_before("ambassador", answered, {"wants_mentor": True}) == "mentoring"
 
 
+def test_an_optional_step_may_be_shown_by_a_predicate_over_the_answers():
+    steps = FunnelSteps(
+        ("email", "workshop"),
+        optional={"workshop": lambda answers: "workshops" in answers.get("engagements", [])},
+    )
+    assert steps.active({"engagements": ["mentor"]}) == ["email"]
+    assert steps.active({"engagements": ["mentor", "workshops"]}) == ["email", "workshop"]
+
+
 def test_progress_leaves_the_first_step_without_a_bar():
     assert _STEPS.progress("email", {}) is None
 
@@ -134,6 +144,18 @@ def test_save_step_ignores_the_control_fields(request_with_session):
     funnel = _funnel(request_with_session)
     funnel.save_step("email", {"email": "a@b.fr", "action": "email", "csrfmiddlewaretoken": "t"})
     assert funnel.answers == {"email": "a@b.fr"}
+
+
+def test_save_step_keeps_every_value_of_a_multiple_field(request_with_session):
+    funnel = FunnelSession(request_with_session, "test_funnel", multiple=("engagements",))
+    funnel.save_step("engagements", QueryDict("engagements=mentor&engagements=sponsor&message=Hi"))
+    assert funnel.answers == {"engagements": ["mentor", "sponsor"], "message": "Hi"}
+
+
+def test_save_step_keeps_a_single_value_of_a_multiple_field_as_a_list(request_with_session):
+    funnel = FunnelSession(request_with_session, "test_funnel", multiple=("engagements",))
+    funnel.save_step("engagements", QueryDict("engagements=mentor"))
+    assert funnel.answers == {"engagements": ["mentor"]}
 
 
 def test_answers_with_replaces_one_step_without_saving_it(request_with_session):
