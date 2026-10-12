@@ -2,6 +2,8 @@ from django.conf import settings
 from django.contrib import messages
 from django.shortcuts import redirect, render
 from django.views.decorators.http import require_POST
+from waffle import switch_is_active
+from waffle.decorators import waffle_switch
 
 from ..forms import (
     EngagementForm,
@@ -99,8 +101,15 @@ def create_sponsor(request):
     )
 
 
+@waffle_switch("new_pro_features")
+def new_structure_engagement(request):
+    return render(request, "coalition/new_structure_engagement.html", {})
+
+
 def new_internship(request):
-    return render(request, "coalition/new_internship.html", {})
+    if switch_is_active("new_pro_features"):
+        return render(request, "coalition/new_internship.html", {})
+    return render(request, "coalition/new_internship_legacy.html", {})
 
 
 def new_workshop_request(request):

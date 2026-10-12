@@ -25,6 +25,11 @@ urlpatterns = [
     path("accueillir-une-stagiaire/", views.new_internship, name="new_internship"),
     path("devenir-mecene/", views.new_sponsor, name="new_sponsor"),
     path("devenir-mecene/inscription/", views.create_sponsor, name="create_sponsor"),
+    path(
+        "engager-ma-structure/",
+        views.new_structure_engagement,
+        name="new_structure_engagement",
+    ),
     path("organiser-un-atelier/", views.new_workshop_request, name="new_workshop_request"),
     path(
         "organiser-un-atelier/demande/",
