@@ -47,29 +47,13 @@ def test_create_mentor_saves_the_pro_with_its_engagement_and_jobirl_fields(valid
 
 
 @override_settings(EMAIL_BACKEND="django.core.mail.backends.locmem.EmailBackend")
-def test_create_mentor_sends_welcome_email(valid_pro_model_data):
+def test_create_mentor_leaves_the_mail_to_the_pro_to_its_caller(valid_pro_model_data):
     from django.core import mail
 
     with patch(REGISTER, return_value=_registered()):
         CreateMentor(pro=_unsaved_pro(valid_pro_model_data))
 
-    assert len(mail.outbox) == 1
-    assert mail.outbox[0].to == [valid_pro_model_data["email"]]
-    assert "Bienvenue" in mail.outbox[0].subject
-
-
-def test_create_mentor_existing_pro_sends_engagement_added(pro):
-    from techpourtoutes.mailers import ProMailer
-
-    with (
-        patch(REGISTER, return_value=_registered()),
-        patch.object(ProMailer, "engagement_added") as engagement_added,
-        patch.object(ProMailer, "welcome") as welcome,
-    ):
-        CreateMentor(pro=pro)
-
-    engagement_added.assert_called_once_with(pro=pro)
-    welcome.assert_not_called()
+    assert mail.outbox == []
 
 
 @pytest.mark.django_db(transaction=True)

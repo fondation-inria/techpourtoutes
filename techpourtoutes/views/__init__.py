@@ -74,6 +74,7 @@ from .event_views import (
     update_event,
 )
 from .local_upload_views import create_local_upload
+from .pro_inscription_views import new_pro_inscription_funnel, pro_inscription_funnel
 from .search_views import search_addresses, search_formations, search_schools
 from .static_views import (
     a_propos,
@@ -151,10 +152,12 @@ __all__ = [
     "new_training_ambassador_beneficiary",
     "new_training_ambassador_request",
     "new_upcoming_feature_notification",
+    "new_pro_inscription_funnel",
     "new_work_ambassador",
     "new_workshop_request",
     "notre_manifeste",
     "pourquoi_nous_ecrivons_au_feminin",
+    "pro_inscription_funnel",
     "qui_sommes_nous",
     "schema_pluriannuel",
     "html_sitemap",
