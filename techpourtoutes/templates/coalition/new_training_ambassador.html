@@ -1,3 +1,4 @@
+{% load waffle_tags %}
 <c-layout.base title="Devenir ambassadrice étudiante – TechPourToutes" description="Devenir ambassadrice étudiante TechPourToutes, c'est s'engager concrètement pour l'égalité de genre dans la tech et développer des compétences clés pour la suite de son parcours.">
     <c-components.title title="Ambassadrice étudiante" title_bg="yellow" />
     <div class="flex flex-wrap gap-2 md:gap-4">
@@ -14,11 +15,19 @@
             Un webinaire d'accueil prévu pour vous faire découvrir le programme, les missions, rencontrer l'équipe et poser toutes vos questions&nbsp;;
             Un engagement complémentaire avec vos engagements étudiants existants&nbsp;: égalité, Cordées de la réussite, vie étudiante, etc.
         </c-components.list>
+        {% switch "new_pro_features" %}
+            <div class="flex w-full items-center justify-center mt-5">
+                <c-components.button href="{% url "new_pro_inscription_funnel" %}?engagement=training_ambassador" label="Je deviens ambassadrice" />
+            </div>
+        {% endswitch %}
     </c-components.card>
 
-    <div class="flex justify-center w-full md:hidden">
-        <c-components.button href="#training-ambassador-card" label="Je deviens ambassadrice" />
-    </div>
+    {% switch "new_pro_features" %}
+    {% else %}
+        <div class="flex justify-center w-full md:hidden">
+            <c-components.button href="#training-ambassador-card" label="Je deviens ambassadrice" />
+        </div>
+    {% endswitch %}
 
     <c-components.card title="1. Devenez le contact étudiant de référence de votre établissement concernant le programme TechPourToutes">
         <p class="mt-5 mb-3">
@@ -39,6 +48,11 @@
         <p class="mt-5">
             Vous êtes invitée à participer à des événements ambassadrices TechPourToutes, l'occasion de rencontrer d'autres étudiantes engagées et les partenaires du programme&nbsp;!
         </p>
+        {% switch "new_pro_features" %}
+            <div class="flex w-full items-center justify-center mt-5">
+                <c-components.button href="{% url "new_pro_inscription_funnel" %}?engagement=training_ambassador" label="Je deviens ambassadrice" />
+            </div>
+        {% endswitch %}
     </c-components.card>
 
     <c-components.accordion title="Si vous souhaitez aller plus loin">
@@ -59,10 +73,18 @@
         <c-components.button href="{% url "qui_sommes_nous" %}" label="Découvrir tous les membres du consortium TechPourToutes" variant="tertiary" />
     </c-components.accordion>
 
+    {% switch "new_pro_features" %}
+        <div class="sticky bottom-0 z-20 md:hidden self-stretch -mx-4 flex justify-center p-4 border-t border-b border-black bg-white">
+            <c-components.button href="{% url "new_pro_inscription_funnel" %}?engagement=training_ambassador" label="Je deviens ambassadrice" />
+        </div>
+    {% endswitch %}
+
     <c-slot name="decorations">
         <c-components.codex-letter letter="A" row="6" col="16" class="text-purple-500" />
     </c-slot>
 
+    {% switch "new_pro_features" %}
+    {% else %}
     <c-slot name="right">
         <div class="flex flex-col items-center px-4 md:mt-[100px] md:self-start"
              x-data="{ showForm: {{ form.is_bound|yesno:'true,false' }} }"
@@ -138,4 +160,5 @@
             </div>
         </div>
     </c-slot>
+    {% endswitch %}
 </c-layout.base>
