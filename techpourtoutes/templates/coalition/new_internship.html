@@ -30,8 +30,7 @@
             {% if user.is_authenticated %}
                 <c-components.button href="{% url "new_event" %}" label="Organiser des portes ouvertes" variant="secondary"/>
             {% else %}
-                {% url "index_pro_events" as pro_events_url %}
-                <c-components.button href="{% url "login_request" %}?next={{ pro_events_url|urlencode }}" label="Organiser des portes ouvertes" variant="secondary"/>
+                <c-components.button href="{% url "new_pro_inscription_funnel" %}?engagement=events" label="Organiser des portes ouvertes" variant="secondary"/>
             {% endif %}
         </div>
     </c-components.horizontal_card>
@@ -41,8 +40,7 @@
             {% if user.is_authenticated %}
                 <c-components.button href="{% url "new_event" %}" label="Organiser un vis ma vie" variant="secondary"/>
             {% else %}
-                {% url "index_pro_events" as pro_events_url %}
-                <c-components.button href="{% url "login_request" %}?next={{ pro_events_url|urlencode }}" label="Organiser un vis ma vie" variant="secondary"/>
+                <c-components.button href="{% url "new_pro_inscription_funnel" %}?engagement=events" label="Organiser un vis ma vie" variant="secondary"/>
             {% endif %}
         </div>
     </c-components.horizontal_card>
