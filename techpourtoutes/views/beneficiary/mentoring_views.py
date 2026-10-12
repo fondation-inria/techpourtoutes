@@ -123,13 +123,14 @@ def _mentoring_signup_step(request, beneficiary, form=None):
 
 def _render_mentoring_step(request, step, **context):
     # The shell carries the first screen; every later step is swapped in on its own.
-    template = (
-        "funnels/mentoring_funnel.html"
-        if request.method == "GET"
-        else "funnels/partials/mentoring/step.html"
-    )
+    step_template = f"beneficiary/funnels/partials/mentoring/steps/{step}.html"
     return render(
         request,
-        f"beneficiary/{template}",
-        {"step": step, "adult_birth_date": adult_birth_date().isoformat(), **context},
+        "beneficiary/funnels/mentoring_funnel.html" if request.method == "GET" else step_template,
+        {
+            "step": step,
+            "step_template": step_template,
+            "adult_birth_date": adult_birth_date().isoformat(),
+            **context,
+        },
     )

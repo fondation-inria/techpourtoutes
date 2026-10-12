@@ -1,0 +1,7 @@
+<c-patterns.funnel_step post_url="{% url 'beneficiary_inscription_funnel' %}" action="training_experience" title="Rejoins le club, {{ first_name }}" submit_label="{% if wants_mentor or wants_training_ambassador %}Continuer{% else %}Rejoindre le club{% endif %}">
+    <c-slot name="header">
+        <c-patterns.funnel_progress post_url="{% url 'beneficiary_inscription_funnel' %}" progress="{{ progress }}" />
+    </c-slot>
+    <p class="text-xs text-neutral-500">Tous les champs sont obligatoires</p>
+    {% include "beneficiary/funnels/partials/fields/training_experience.html" %}
+</c-patterns.funnel_step>

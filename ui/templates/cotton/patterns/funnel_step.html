@@ -1,0 +1,24 @@
+{# One screen of a funnel: a form posting back to the funnel's view, which swaps the whole #}
+{# screen in place; the hidden `action` says which step is coming back. #}
+<c-vars target_id="funnel-step" post_url="" action="" title="" submit_label="Continuer" centered=False header="" footer="" />
+
+<div id="{{ target_id }}" class="w-full flex flex-col flex-1">
+    {{ header }}
+    <div class="flex flex-col{% if centered %} my-auto{% endif %}">
+        <c-layout.partials.funnel_messages oob="true" />
+        <c-components.card nobg=True>
+            <c-patterns.form
+                hx-post="{{ post_url }}"
+                hx-target="#{{ target_id }}"
+                hx-swap="outerHTML">
+                <input type="hidden" name="action" value="{{ action }}">
+                <c-components.title :title="title" variant="h1" />
+                {{ slot }}
+                <div class="flex justify-center">
+                    <c-components.button type="submit" :label="submit_label" />
+                </div>
+            </c-patterns.form>
+            {{ footer }}
+        </c-components.card>
+    </div>
+</div>
