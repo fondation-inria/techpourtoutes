@@ -62,9 +62,9 @@
     </c-components.accordion>
 
     {% switch "new_pro_features" %}
-        <div class="sticky bottom-0 z-20 md:hidden self-stretch -mx-4 flex justify-center p-4 border-t border-b border-black bg-white">
+        <c-slot name="mobile_cta">
             <c-components.button href="{% url "new_pro_inscription_funnel" %}?engagement=work_ambassador" label="Je deviens ambassadrice" />
-        </div>
+        </c-slot>
     {% endswitch %}
 
     <c-slot name="decorations">
