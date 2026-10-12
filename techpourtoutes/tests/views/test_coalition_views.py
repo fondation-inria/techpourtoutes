@@ -81,6 +81,24 @@ def test_new_internship_renders_page_according_to_switch(client, active, templat
 
 
 @pytest.mark.django_db
+@pytest.mark.parametrize(
+    ("page", "form_url"),
+    [
+        ("new_mentor", "create_mentor"),
+        ("new_work_ambassador", "create_work_ambassador"),
+        ("new_training_ambassador", "create_training_ambassador"),
+        ("new_workshop_request", "create_workshop_request"),
+    ],
+)
+@pytest.mark.parametrize("active", [True, False])
+def test_engagement_pages_show_form_only_without_switch(client, page, form_url, active):
+    with override_switch("new_pro_features", active=active):
+        response = client.get(reverse(page))
+
+    assert (f'action="{reverse(form_url)}"' in response.content.decode()) is not active
+
+
+@pytest.mark.django_db
 def test_new_work_ambassador_get(client):
     assert client.get(reverse("new_work_ambassador")).status_code == 200
 
