@@ -51,6 +51,13 @@ def locmem_email(settings):
     settings.EMAIL_BACKEND = "django.core.mail.backends.locmem.EmailBackend"
 
 
+# Celery runs eagerly: a pro created with a workshop request would otherwise call n8n for real.
+@pytest.fixture(autouse=True)
+def notify_workshop_request():
+    with patch("techpourtoutes.services.pro.create_pro.notify_workshop_request_task") as task:
+        yield task
+
+
 def _funnel(client):
     return FunnelSession(SimpleNamespace(session=client.session), "pro_inscription_funnel")
 
