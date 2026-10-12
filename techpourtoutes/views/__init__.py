@@ -25,9 +25,9 @@ from .auth_views import (
     login_verify,
 )
 from .beneficiary.inscription_views import (
-    inscription_funnel,
-    new_inscription_funnel,
-    show_skip_inscription_step_modal,
+    beneficiary_inscription_funnel,
+    new_beneficiary_inscription_funnel,
+    show_skip_beneficiary_inscription_step_modal,
 )
 from .beneficiary.mentoring_views import mentoring_funnel
 from .beneficiary.training_ambassador_request_views import (
@@ -135,8 +135,8 @@ __all__ = [
     "edit_pro_training_experience",
     "index_events",
     "new_internship",
-    "inscription_funnel",
-    "new_inscription_funnel",
+    "beneficiary_inscription_funnel",
+    "new_beneficiary_inscription_funnel",
     "login_code",
     "login_request",
     "login_to_jobirl",
@@ -177,7 +177,7 @@ __all__ = [
     "show_beneficiary_training_experience",
     "show_participation_modal",
     "show_pro_training_experience",
-    "show_skip_inscription_step_modal",
+    "show_skip_beneficiary_inscription_step_modal",
     "show_manifeste_signature",
     "show_beneficiary_legal_rep",
     "update_saved_event",

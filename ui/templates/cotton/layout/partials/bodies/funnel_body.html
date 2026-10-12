@@ -1,4 +1,5 @@
-<c-vars back="" right="" />
+{% load static %}
+<c-vars back="" right="" hero=False />
 <body class="min-h-screen font-sans bg-neutral-0 text-neutral-900">
     <c-layout.partials.skip_link />
     <c-components.button
@@ -26,17 +27,30 @@
                       }
                       destination.focus();
                   "
-                  class="focus:outline-none flex flex-1 px-4 {% if not right %}items-center justify-center{% endif %}">
-                <div class="w-full flex {% if right %}max-w-6xl mx-auto flex-col md:flex-row gap-8 items-stretch{% else %}max-w-xl justify-center{% endif %}">
-                    <div class="w-full flex flex-col [&>:last-child]:flex-1 {% if right %}md:max-w-xl{% else %}items-center{% endif %}">
+                  class="focus:outline-none flex flex-1 px-4 {% if not right and not hero %}items-center justify-center{% endif %}">
+                <div class="w-full flex {% if right or hero %}max-w-6xl mx-auto flex-col md:flex-row gap-8 items-stretch{% else %}max-w-xl justify-center{% endif %}">
+                    <div class="w-full flex flex-col [&>:last-child]:flex-1 {% if right or hero %}md:max-w-xl{% else %}items-center{% endif %}">
                         {# The messages overlay the top of the left column instead of pushing it down, #}
                         {# and stay in view while she scrolls a long screen. #}
                         <div class="sticky top-0 z-[110] h-0">
                             <c-layout.partials.funnel_messages />
                         </div>
-                        {{ slot }}
+                        <div class="w-full md:max-w-xl flex flex-col py-8">
+                            <c-components.brand_mark class="w-fit shrink-0 mb-8" data-funnel-exit />
+                            {{ slot }}
+                        </div>
                     </div>
-                    {{ right }}
+                    {% if hero %}
+                        {# Out of the flow, so the picture fills the column without lengthening the page. #}
+                        <div class="hidden md:block flex-1 relative">
+                            <img src="{% static 'images/inscription-funnel-hero.webp' %}"
+                                 alt="Le futur sera numérique... et féminin"
+                                 class="absolute inset-0 w-full h-full object-cover"
+                                 width="1128" height="1600" loading="lazy" decoding="async" />
+                        </div>
+                    {% else %}
+                        {{ right }}
+                    {% endif %}
                 </div>
             </main>
         <c-layout.partials.footer />
