@@ -38,7 +38,7 @@ def _engagements(*engagements, message=""):
     return {"engagements": list(engagements), "message": message}
 
 
-def _last_information(**overrides):
+def _additional_information(**overrides):
     return {
         "structure_type": Pro.StructureType.COMPANY,
         "structure_name": "Inria",
@@ -87,7 +87,7 @@ def _sent_to(recipient):
 
 
 def test_create_pro_saves_her_identity_and_information():
-    result = _create("sponsor", last_information=_last_information())
+    result = _create("sponsor", additional_information=_additional_information())
 
     assert result.success
     pro = Pro.objects.get(email="hedy@example.com")
@@ -103,7 +103,7 @@ def test_create_pro_saves_her_identity_and_information():
 
 
 def test_create_pro_stores_neither_events_nor_other_as_engagements():
-    _create("sponsor", "events", "other", last_information=_last_information())
+    _create("sponsor", "events", "other", additional_information=_additional_information())
 
     assert Pro.objects.get(email="hedy@example.com").engagements == ["sponsor"]
 
@@ -112,7 +112,9 @@ def test_create_pro_stores_neither_events_nor_other_as_engagements():
 def test_create_pro_derives_her_situation_from_her_structure_type(structure_type):
     _create(
         "sponsor",
-        last_information=_last_information(structure_type=structure_type, structure_name=""),
+        additional_information=_additional_information(
+            structure_type=structure_type, structure_name=""
+        ),
     )
 
     assert Pro.objects.get(email="hedy@example.com").professional_situation == structure_type
@@ -173,6 +175,7 @@ def test_create_pro_records_one_workshop_request_per_workshop():
         )
 
     pro = Pro.objects.get(email="hedy@example.com")
+    assert pro.structure_type == "school"
     assert pro.structure_name == "Lycée Voltaire"
     assert pro.job_title == "Enseignante"
     assert pro.postal_code == "75005"
@@ -190,12 +193,38 @@ def test_create_pro_records_one_workshop_request_per_workshop():
     )
 
 
-def test_create_pro_keeps_the_last_information_over_the_workshop_ones():
+@pytest.mark.parametrize(
+    "job_title",
+    ["DRANE / DAN / IAN", "parent d'élèves", "je ne travaille pas dans un établissement"],
+)
+def test_create_pro_does_not_take_the_workshop_school_for_hers_when_she_works_elsewhere(
+    job_title,
+):
+    with patch(NOTIFY_WORKSHOP) as notify:
+        CreatePro(
+            identity=_identity(),
+            engagements=_engagements("workshops"),
+            workshop_request_form=_workshop_request_form(job_title=job_title),
+        )
+
+    pro = Pro.objects.get(email="hedy@example.com")
+    assert (pro.structure_type, pro.structure_name, pro.job_title, pro.postal_code) == (
+        "",
+        "",
+        "",
+        "",
+    )
+    assert pro.professional_situation == "working"
+    assert pro.workshop_requests.count() == 2
+    assert notify.delay.call_args.kwargs["structure_uai"] == "0750001A"
+
+
+def test_create_pro_keeps_the_additional_information_over_the_workshop_ones():
     _create(
         "workshops",
         "sponsor",
         workshop_request_form=_workshop_request_form(),
-        last_information=_last_information(),
+        additional_information=_additional_information(),
     )
 
     pro = Pro.objects.get(email="hedy@example.com")
@@ -207,7 +236,7 @@ def test_create_pro_keeps_the_last_information_over_the_workshop_ones():
 
 
 def test_create_pro_welcomes_her_with_a_login_code():
-    _create("sponsor", last_information=_last_information())
+    _create("sponsor", additional_information=_additional_information())
 
     welcome = next(m for m in _sent_to("hedy@example.com") if "Bienvenue" in m.subject)
     code = re.search(r"\b(\d{6})\b", welcome.body).group(1)
@@ -215,20 +244,24 @@ def test_create_pro_welcomes_her_with_a_login_code():
 
 
 def test_create_pro_tells_the_team_about_a_structure_to_mobilize():
-    _create("mobilize_structure", last_information=_last_information())
+    _create("mobilize_structure", additional_information=_additional_information())
 
     assert len(_sent_to("structure@example.com")) == 1
 
 
 def test_create_pro_relays_the_message_of_another_engagement():
-    _create("other", message="Je veux aider autrement.", last_information=_last_information())
+    _create(
+        "other",
+        message="Je veux aider autrement.",
+        additional_information=_additional_information(),
+    )
 
     [relayed] = _sent_to("agir@example.com")
     assert "Je veux aider autrement." in relayed.body
 
 
 def test_create_pro_relays_nothing_without_another_engagement():
-    _create("sponsor", last_information=_last_information())
+    _create("sponsor", additional_information=_additional_information())
 
     assert _sent_to("agir@example.com") == []
 
@@ -239,7 +272,7 @@ def test_create_pro_relays_nothing_without_another_engagement():
 def test_create_pro_registers_a_mentor_on_jobirl():
     registered = MagicMock(success=True, failure=False, user_id=287565, token="tpt_abc")
     with patch(REGISTER, return_value=registered):
-        result = _create("mentor", last_information=_last_information())
+        result = _create("mentor", additional_information=_additional_information())
 
     assert result.success
     pro = Pro.objects.get(email="hedy@example.com")
@@ -257,7 +290,7 @@ def test_create_pro_saves_nothing_when_jobirl_refuses_the_mentor():
         error_kind=ErrorKind.PERMANENT,
     )
     with patch(REGISTER, return_value=refused):
-        result = _create("mentor", last_information=_last_information())
+        result = _create("mentor", additional_information=_additional_information())
 
     assert result.failure
     assert result.errors == ["EMAIL ALREADY EXISTS"]

@@ -36,7 +36,7 @@ class CreatePro(BaseService):
         engagements,
         training_ambassador_form=None,
         workshop_request_form=None,
-        last_information=None,
+        additional_information=None,
     ):
         self.chosen = engagements["engagements"]
         self.pro = Pro(username=identity["email"], email=identity["email"])
@@ -44,9 +44,9 @@ class CreatePro(BaseService):
         if training_ambassador_form:
             self._apply_training_ambassador(training_ambassador_form.cleaned_data)
         if workshop_request_form:
-            self._apply_workshop_request(workshop_request_form.cleaned_data)
-        if last_information:
-            self._apply_last_information(last_information)
+            self._apply_workshop_request(workshop_request_form)
+        if additional_information:
+            self._apply_additional_information(additional_information)
 
         with transaction.atomic():
             self._save_pro()
@@ -76,13 +76,16 @@ class CreatePro(BaseService):
         if answers["phone"]:
             self.pro.phone = answers["phone"]
 
-    def _apply_workshop_request(self, answers):
+    # The school she asks a workshop for is hers only when she works there.
+    def _apply_workshop_request(self, form):
         self.pro.professional_situation = Pro.ProfessionalSituation.WORKING
-        self.pro.structure_name = answers["school_label"]
-        self.pro.job_title = answers["job_title"]
-        self.pro.postal_code = answers["postal_code"]
+        if form.works_at_school:
+            self.pro.structure_type = Pro.StructureType.SCHOOL
+            self.pro.structure_name = form.cleaned_data["school_label"]
+            self.pro.job_title = form.cleaned_data["job_title"]
+            self.pro.postal_code = form.cleaned_data["postal_code"]
 
-    def _apply_last_information(self, answers):
+    def _apply_additional_information(self, answers):
         self.pro.professional_situation = _SITUATIONS.get(
             answers["structure_type"], Pro.ProfessionalSituation.WORKING
         )

@@ -22,7 +22,7 @@ _IDENTITY = {
     "manifeste_accepted": "on",
     "terms_accepted": "on",
 }
-_LAST_INFORMATION = {
+_ADDITIONAL_INFORMATION = {
     "structure_type": "company",
     "structure_name": "Inria",
     "job_title": "Chercheuse",
@@ -208,10 +208,11 @@ def test_engagements_step_requires_an_engagement(client):
     [
         (["training_ambassador"], "training_ambassador"),
         (["workshops"], "workshop_request"),
-        (["mentor"], "last_information"),
-        (["events"], "last_information"),
-        (["other"], "last_information"),
+        (["mentor"], "additional_information"),
+        (["events"], "additional_information"),
+        (["other"], "additional_information"),
         (["workshops", "sponsor"], "workshop_request"),
+        (["workshops", "events"], "workshop_request"),
     ],
 )
 def test_engagements_step_leads_to_the_screen_they_call_for(client, engagements, step):
@@ -231,7 +232,7 @@ def test_several_engagements_go_through_every_screen_they_call_for(
         "training_ambassador",
         {"school_id": str(higher_ed_school.id), "formation_id": str(higher_ed_formation.pk)},
     )
-    assert response.context["step"] == "last_information"
+    assert response.context["step"] == "additional_information"
 
 
 def test_only_the_last_screen_joins_the_coalition(client):
@@ -243,14 +244,103 @@ def test_only_the_last_screen_joins_the_coalition(client):
     assert "Rejoindre la coalition" in response.content.decode()
 
 
-def test_the_last_screen_shows_the_job_given_for_the_workshop_locked(client):
+@pytest.mark.parametrize(
+    "engagements,step",
+    [
+        (["workshops", "events"], "workshop_request"),
+        (["training_ambassador", "events"], "training_ambassador"),
+    ],
+)
+def test_events_add_no_screen_to_the_one_of_an_engagement(client, engagements, step):
+    _seed_until_engagements(client, *engagements, current=step)
+    response = client.get(FUNNEL_URL)
+    assert "Rejoindre la coalition" in response.content.decode()
+
+
+def _field(response, name):
+    return re.search(rf'<(input|button)[^>]*id="id_{name}"[^>]*>', response).group()
+
+
+def test_the_last_screen_hides_the_school_and_job_given_for_the_workshop(client):
     _seed_until_engagements(client, "workshops", "sponsor", current="workshop_request")
 
-    response = _post_step(client, "workshop_request", _WORKSHOP_REQUEST)
+    response = _post_step(client, "workshop_request", _WORKSHOP_REQUEST).content.decode()
 
-    job_title = re.search(r'<input[^>]*name="job_title"[^>]*>', response.content.decode()).group()
-    assert 'value="Enseignante"' in job_title
-    assert "disabled" in job_title
+    for name in ("job_title", "structure_name", "structure_type"):
+        assert f'id="id_{name}"' not in response
+    assert 'value="75005"' in _field(response, "postal_code")
+
+
+def test_the_last_screen_asks_the_job_of_another_mission_at_the_school(client):
+    _seed_until_engagements(client, "workshops", "sponsor", current="workshop_request")
+
+    response = _post_step(
+        client,
+        "workshop_request",
+        {**_WORKSHOP_REQUEST, "workshop-job_title": "Autre mission au sein d'un établissement"},
+    ).content.decode()
+
+    assert 'value=""' in _field(response, "job_title")
+    for name in ("structure_name", "structure_type"):
+        assert f'id="id_{name}"' not in response
+
+
+def test_the_job_of_another_mission_is_saved_with_the_workshop_school(client):
+    _seed_until_engagements(
+        client,
+        "workshops",
+        "sponsor",
+        current="additional_information",
+        workshop_request={
+            **_WORKSHOP_REQUEST,
+            "workshop-job_title": "Autre mission au sein d'un établissement",
+        },
+    )
+
+    _post_step(
+        client, "additional_information", {**_ADDITIONAL_INFORMATION, "job_title": "Infirmière"}
+    )
+
+    pro = Pro.objects.get(email="hedy@example.com")
+    assert (pro.structure_type, pro.structure_name, pro.job_title) == (
+        "school",
+        "Lycée Voltaire",
+        "Infirmière",
+    )
+
+
+@pytest.mark.parametrize(
+    "job_title",
+    ["DRANE / DAN / IAN", "parent d'élèves", "je ne travaille pas dans un établissement"],
+)
+def test_the_last_screen_asks_for_her_own_structure_when_she_works_elsewhere(client, job_title):
+    _seed_until_engagements(client, "workshops", "sponsor", current="workshop_request")
+
+    response = _post_step(
+        client, "workshop_request", {**_WORKSHOP_REQUEST, "workshop-job_title": job_title}
+    ).content.decode()
+
+    for name in ("job_title", "structure_name", "structure_type"):
+        assert "disabled" not in _field(response, name)
+
+
+def test_the_structure_she_gives_is_saved_when_she_works_elsewhere(client):
+    _seed_until_engagements(
+        client,
+        "workshops",
+        "sponsor",
+        current="additional_information",
+        workshop_request={**_WORKSHOP_REQUEST, "workshop-job_title": "DRANE / DAN / IAN"},
+    )
+
+    _post_step(client, "additional_information", _ADDITIONAL_INFORMATION)
+
+    pro = Pro.objects.get(email="hedy@example.com")
+    assert (pro.structure_type, pro.structure_name, pro.job_title) == (
+        "company",
+        "Inria",
+        "Chercheuse",
+    )
 
 
 def test_the_job_given_for_the_workshop_is_the_one_saved(client):
@@ -258,21 +348,30 @@ def test_the_job_given_for_the_workshop_is_the_one_saved(client):
         client,
         "workshops",
         "sponsor",
-        current="last_information",
+        current="additional_information",
         workshop_request=_WORKSHOP_REQUEST,
     )
 
-    _post_step(client, "last_information", {**_LAST_INFORMATION, "job_title": "Chercheuse"})
+    _post_step(
+        client, "additional_information", {**_ADDITIONAL_INFORMATION, "job_title": "Chercheuse"}
+    )
 
-    assert Pro.objects.get(email="hedy@example.com").job_title == "Enseignante"
+    pro = Pro.objects.get(email="hedy@example.com")
+    assert (pro.structure_type, pro.structure_name, pro.job_title) == (
+        "school",
+        "Lycée Voltaire",
+        "Enseignante",
+    )
 
 
 def test_the_job_is_free_again_once_the_workshop_is_no_longer_wanted(client):
     _seed_until_engagements(
-        client, "sponsor", current="last_information", workshop_request=_WORKSHOP_REQUEST
+        client, "sponsor", current="additional_information", workshop_request=_WORKSHOP_REQUEST
     )
 
-    _post_step(client, "last_information", {**_LAST_INFORMATION, "job_title": "Chercheuse"})
+    _post_step(
+        client, "additional_information", {**_ADDITIONAL_INFORMATION, "job_title": "Chercheuse"}
+    )
 
     assert Pro.objects.get(email="hedy@example.com").job_title == "Chercheuse"
 
@@ -285,7 +384,7 @@ def test_back_from_engagements_returns_to_identity(client):
 
 def test_a_screen_sent_without_an_earlier_one_goes_back_to_the_first_missing(client):
     _seed_funnel(client, current="identity", email=_EMAIL)
-    response = _post_step(client, "last_information", _LAST_INFORMATION)
+    response = _post_step(client, "additional_information", _ADDITIONAL_INFORMATION)
     assert response.context["step"] == "identity"
     assert b"Reprenez" in response.content
 
@@ -294,9 +393,9 @@ def test_a_screen_sent_without_an_earlier_one_goes_back_to_the_first_missing(cli
 
 
 def test_the_last_screen_creates_the_pro_and_shows_the_code_screen(client):
-    _seed_until_engagements(client, "sponsor", current="last_information")
+    _seed_until_engagements(client, "sponsor", current="additional_information")
 
-    response = _post_step(client, "last_information", _LAST_INFORMATION)
+    response = _post_step(client, "additional_information", _ADDITIONAL_INFORMATION)
 
     assert response.context["step"] == "code"
     assert _funnel(client).answers == {}
@@ -306,9 +405,9 @@ def test_the_last_screen_creates_the_pro_and_shows_the_code_screen(client):
 
 
 def test_the_last_screen_sends_the_welcome_mail_with_the_login_code(client):
-    _seed_until_engagements(client, "sponsor", current="last_information")
+    _seed_until_engagements(client, "sponsor", current="additional_information")
 
-    _post_step(client, "last_information", _LAST_INFORMATION)
+    _post_step(client, "additional_information", _ADDITIONAL_INFORMATION)
 
     welcome = next(m for m in mail.outbox if m.to == ["hedy@example.com"])
     code = re.search(r"\b(\d{6})\b", welcome.body).group(1)
@@ -319,33 +418,39 @@ def test_the_message_of_another_engagement_reaches_the_team(client, settings):
     settings.COALITION_OTHER_ENGAGEMENT_RECIPIENTS = ["agir@example.com"]
     _seed_funnel(
         client,
-        current="last_information",
+        current="additional_information",
         email=_EMAIL,
         identity=_IDENTITY,
         engagements={"engagements": ["other"], "message": "Je veux aider autrement."},
     )
 
-    _post_step(client, "last_information", _LAST_INFORMATION)
+    _post_step(client, "additional_information", _ADDITIONAL_INFORMATION)
 
     [relayed] = [m for m in mail.outbox if m.to == ["agir@example.com"]]
     assert "Je veux aider autrement." in relayed.body
 
 
 def test_a_refused_account_creation_stays_on_the_last_screen_with_the_error(client):
-    _seed_until_engagements(client, "mentor", current="last_information")
+    _seed_until_engagements(client, "mentor", current="additional_information")
     refused = MagicMock(failure=True, errors=["EMAIL ALREADY EXISTS"])
 
     with patch("techpourtoutes.views.pro_inscription_views.CreatePro", return_value=refused):
-        response = _post_step(client, "last_information", _LAST_INFORMATION)
+        response = _post_step(client, "additional_information", _ADDITIONAL_INFORMATION)
 
-    assert response.context["step"] == "last_information"
+    assert response.context["step"] == "additional_information"
     assert b"EMAIL ALREADY EXISTS" in response.content
 
 
-def test_the_code_screen_remembers_she_wants_to_propose_events(client):
-    _seed_until_engagements(client, "events", current="last_information")
-    response = _post_step(client, "last_information", _LAST_INFORMATION)
-    assert re.search(r'name="wants_events" value="1"', response.content.decode())
+def test_the_code_screen_remembers_she_only_wants_to_propose_events(client):
+    _seed_until_engagements(client, "events", current="additional_information")
+    response = _post_step(client, "additional_information", _ADDITIONAL_INFORMATION)
+    assert re.search(r'name="events_only" value="1"', response.content.decode())
+
+
+def test_the_code_screen_forgets_events_proposed_alongside_another_engagement(client):
+    _seed_until_engagements(client, "events", "sponsor", current="additional_information")
+    response = _post_step(client, "additional_information", _ADDITIONAL_INFORMATION)
+    assert re.search(r'name="events_only" value=""', response.content.decode())
 
 
 # ------------------- login code -------------------
@@ -366,10 +471,10 @@ def test_a_valid_code_logs_in_and_shows_the_account_with_the_welcome_modal(clien
     assert "Bienvenue dans la coalition" in account.content.decode()
 
 
-def test_a_valid_code_leads_to_her_events_when_she_wants_to_propose_some(client, pro):
+def test_a_valid_code_leads_to_her_events_when_she_only_wants_to_propose_some(client, pro):
     response = client.post(
         FUNNEL_URL,
-        {"action": "code", "email": pro.email, "code": _code_for(pro), "wants_events": "1"},
+        {"action": "code", "email": pro.email, "code": _code_for(pro), "events_only": "1"},
     )
 
     assert response["HX-Redirect"] == reverse("index_pro_events")
