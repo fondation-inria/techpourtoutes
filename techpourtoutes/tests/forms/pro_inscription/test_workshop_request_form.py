@@ -1,3 +1,5 @@
+import pytest
+
 from techpourtoutes.forms import ProWorkshopRequestForm
 
 
@@ -43,3 +45,19 @@ def test_workshop_request_form_requires_a_workshop():
     form = ProWorkshopRequestForm(data=_workshop_request(ateliers=[]))
     assert not form.is_valid()
     assert "ateliers" in form.errors
+
+
+@pytest.mark.parametrize(
+    "job_title,works_at_school",
+    [
+        ("Enseignante", True),
+        ("Autre mission au sein d'un établissement", True),
+        ("DRANE / DAN / IAN", False),
+        ("parent d'élèves", False),
+        ("je ne travaille pas dans un établissement", False),
+    ],
+)
+def test_workshop_request_form_tells_whether_she_works_at_the_school(job_title, works_at_school):
+    form = ProWorkshopRequestForm(data=_workshop_request(job_title=job_title))
+    assert form.is_valid()
+    assert form.works_at_school is works_at_school

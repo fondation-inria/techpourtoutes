@@ -7,10 +7,10 @@ from django.utils.http import urlencode
 from waffle.decorators import waffle_switch
 
 from ..forms import (
+    ProAdditionalInformationForm,
     ProEmailForm,
     ProEngagementsForm,
     ProIdentityForm,
-    ProLastInformationForm,
     ProTrainingAmbassadorForm,
     ProWorkshopRequestForm,
     VerificationCodeForm,
@@ -116,7 +116,7 @@ def _create_pro(request):
         engagements=validated["engagements"],
         training_ambassador_form=validated.get("training_ambassador"),
         workshop_request_form=validated.get("workshop_request"),
-        last_information=validated.get("last_information"),
+        additional_information=validated.get("additional_information"),
     )
     if result.failure:
         for error in result.errors:
@@ -127,7 +127,7 @@ def _create_pro(request):
         request,
         "code",
         email=result.pro.email,
-        wants_events=EVENTS in answers["engagements"],
+        events_only=answers["engagements"] == [EVENTS],
     )
 
 
@@ -161,7 +161,7 @@ _RESEND_NOTICE = "Un nouveau code vous a été envoyé par mail."
 
 def _handle_code(request):
     email = request.POST.get("email", "")
-    wants_events = request.POST.get("wants_events") == "1"
+    events_only = request.POST.get("events_only") == "1"
     user = User.objects.filter(email=email, is_active=True).first()
     form = VerificationCodeForm(request.POST)
     if form.is_valid() and user is not None and user.consume_login_code(form.cleaned_data["code"]):
@@ -169,10 +169,10 @@ def _handle_code(request):
         user.backend = "django.contrib.auth.backends.ModelBackend"
         login(request, user)
         request.session["show_welcome_modal"] = True
-        landing = "index_pro_events" if wants_events else "show_account"
+        landing = "index_pro_events" if events_only else "show_account"
         return HttpResponse(headers={"HX-Redirect": reverse(landing)})
     messages.error(request, _CODE_ERROR)
-    return _render_step(request, "code", email=email, wants_events=wants_events)
+    return _render_step(request, "code", email=email, events_only=events_only)
 
 
 @rate_limit("RATELIMIT_LOGIN", keys=("email",))
@@ -183,7 +183,7 @@ def _handle_resend(request):
         AuthMailer.login_code(user=user, code=user.issue_login_code())
     messages.success(request, _RESEND_NOTICE)
     return _render_step(
-        request, "code", email=email, wants_events=request.POST.get("wants_events") == "1"
+        request, "code", email=email, events_only=request.POST.get("events_only") == "1"
     )
 
 
@@ -236,7 +236,7 @@ _STEP_FORMS = {
     "engagements": ProEngagementsForm,
     "training_ambassador": ProTrainingAmbassadorForm,
     "workshop_request": ProWorkshopRequestForm,
-    "last_information": ProLastInformationForm,
+    "additional_information": ProAdditionalInformationForm,
 }
 
 # The training ambassador and workshop screens hand over their form: it saves what they ask.
@@ -246,7 +246,7 @@ _STEP_VALIDATORS = {
     "engagements": _cleaned("engagements"),
     "training_ambassador": _validated("training_ambassador"),
     "workshop_request": _validated("workshop_request"),
-    "last_information": _cleaned("last_information"),
+    "additional_information": _cleaned("additional_information"),
 }
 
 
@@ -262,8 +262,15 @@ def _preselected_engagement(engagement):
 
 
 # The training ambassador and workshop screens have their own: every other engagement, Autre
-# and events included, ends on the last information screen.
+# included, ends on the additional information screen. So do events, unless they come with one
+# of those.
 _OWN_SCREENS = (Pro.Engagement.TRAINING_AMBASSADOR, Pro.Engagement.WORKSHOPS)
+
+
+def _asks_additional_information(answers):
+    others = set(_engagements(answers)) - set(_OWN_SCREENS) - {EVENTS}
+    return bool(others) or _engagements(answers) == [EVENTS]
+
 
 _FUNNEL = FunnelSteps(
     (
@@ -272,14 +279,14 @@ _FUNNEL = FunnelSteps(
         "engagements",
         "training_ambassador",
         "workshop_request",
-        "last_information",
+        "additional_information",
     ),
     optional={
         "training_ambassador": lambda answers: (
             Pro.Engagement.TRAINING_AMBASSADOR in _engagements(answers)
         ),
         "workshop_request": lambda answers: Pro.Engagement.WORKSHOPS in _engagements(answers),
-        "last_information": lambda answers: bool(set(_engagements(answers)) - set(_OWN_SCREENS)),
+        "additional_information": _asks_additional_information,
     },
 )
 
@@ -311,8 +318,8 @@ def _step_context(request, step, form=None, **extra):
 
 
 def _form_kwargs(step, answers):
-    if step == "last_information" and "workshop_request" in _FUNNEL.active(answers):
-        return {"workshop_job_title": answers.get(f"{ProWorkshopRequestForm.prefix}-job_title")}
+    if step == "additional_information" and "workshop_request" in _FUNNEL.active(answers):
+        return {"workshop": _workshop_answers(answers)}
     return {}
 
 
@@ -320,6 +327,12 @@ def _initial(step, data):
     if step == "engagements" and data.get("preselected_engagement"):
         return {"engagements": [data["preselected_engagement"]], **data}
     if step == "workshop_request":
-        prefix = f"{ProWorkshopRequestForm.prefix}-"
-        return {name.removeprefix(prefix): value for name, value in data.items()}
+        return _workshop_answers(data)
     return data
+
+
+def _workshop_answers(data):
+    prefix = f"{ProWorkshopRequestForm.prefix}-"
+    return {
+        name.removeprefix(prefix): value for name, value in data.items() if name.startswith(prefix)
+    }

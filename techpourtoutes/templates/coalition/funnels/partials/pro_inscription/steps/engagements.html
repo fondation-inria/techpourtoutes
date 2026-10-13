@@ -2,12 +2,26 @@
     <c-slot name="header">
         <c-patterns.funnel_progress post_url="{% url 'pro_inscription_funnel' %}" progress="{{ progress }}" />
     </c-slot>
-    {# The message only matters to the team when none of the engagements fits. #}
-    <div x-data="{ other: {% if 'other' in form.engagements.value %}true{% else %}false{% endif %} }"
-         @change="if ($event.target.value === 'other') other = $event.target.checked"
+    {# Checking training ambassador locks every engagement but events; checking any other one but events locks training ambassador. #}
+    {# The message is only asked with Autre, when none of the listed engagements fits. #}
+    <div x-data="{
+            checked: [],
+            sync() {
+                this.checked = [...this.$el.querySelectorAll('input[name=engagements]:checked')].map(input => input.value)
+            },
+            lockReason(value) {
+                const apart = (engagement) => !['training_ambassador', 'events'].includes(engagement)
+                if (value === 'training_ambassador') {
+                    return this.checked.some(apart) ? '{{ form.training_ambassador_apart_reason|escapejs }}' : ''
+                }
+                return apart(value) && this.checked.includes('training_ambassador') ? '{{ form.student_only_reason|escapejs }}' : ''
+            },
+         }"
+         x-init="sync()"
+         @change="sync()"
          class="flex flex-col gap-y-4">
-        <c-components.form_fields.checkbox_group field=form.engagements description="Vous pouvez sélectionner plusieurs actions." />
-        <div x-show="other" x-cloak>
+        <c-components.form_fields.checkbox_group field=form.engagements lock="lockReason" description="Vous pouvez sélectionner plusieurs actions." />
+        <div x-show="checked.includes('other')" x-cloak>
             <c-components.form_fields.textarea field=form.message rows="3" maxlength="{{ form.message.field.max_length }}" description="1 000 caractères maximum" grow />
         </div>
     </div>

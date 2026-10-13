@@ -19,8 +19,22 @@ ENGAGEMENT_CHOICES = [
     (OTHER, _("Autre")),
 ]
 
+# The only engagement a training ambassador may take on besides her own, for now.
+TRAINING_AMBASSADOR_COMPATIBLE = (Pro.Engagement.TRAINING_AMBASSADOR, EVENTS)
+
 
 class ProEngagementsForm(forms.Form):
+    # Shown on hover over the engagements locked by the ones checked.
+    student_only_reason = _(
+        "Si vous êtes étudiante, vous ne pouvez que proposer des événements ou être "
+        "ambassadrice étudiante. Les autres formes d'engagement vous seront ouvertes "
+        "prochainement."
+    )
+    training_ambassador_apart_reason = _(
+        "L'ambassadorat étudiant n'est pour l'instant pas compatible avec les autres formes "
+        "d'engagement."
+    )
+
     engagements = forms.MultipleChoiceField(
         label=_("Comment souhaitez-vous contribuer ?"),
         choices=ENGAGEMENT_CHOICES,
@@ -36,7 +50,12 @@ class ProEngagementsForm(forms.Form):
 
     def clean(self):
         cleaned_data = super().clean()
-        if OTHER not in cleaned_data.get("engagements", []):
+        engagements = cleaned_data.get("engagements", [])
+        if Pro.Engagement.TRAINING_AMBASSADOR in engagements and (
+            set(engagements) - set(TRAINING_AMBASSADOR_COMPATIBLE)
+        ):
+            self.add_error("engagements", self.training_ambassador_apart_reason)
+        if OTHER not in engagements:
             cleaned_data["message"] = ""
         elif not cleaned_data.get("message") and "message" not in self.errors:
             self.add_error("message", _("Ce champ est obligatoire."))

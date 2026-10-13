@@ -36,6 +36,8 @@ def _complete_email_and_identity(page):
     page.locator('input[name="terms_accepted"]').check(force=True)
     page.get_by_role("button", name="Continuer").click()
     expect(_current_step(page)).to_have_value("engagements")
+    # Once the step settles, its title takes the focus: acting before would lose it.
+    expect(page.get_by_role("heading", name="Choisissez vos engagements")).to_be_focused()
 
 
 def test_retired_sponsor_joins_with_a_message_for_the_team(page, new_funnel_url):
@@ -48,7 +50,7 @@ def test_retired_sponsor_joins_with_a_message_for_the_team(page, new_funnel_url)
     page.get_by_text("Autre", exact=True).click()
     message.fill("Je peux aussi relire des CV.")
     page.get_by_role("button", name="Continuer").click()
-    expect(_current_step(page)).to_have_value("last_information")
+    expect(_current_step(page)).to_have_value("additional_information")
 
     structure_name = page.locator('input[name="structure_name"]')
     expect(structure_name).to_be_hidden()
@@ -86,3 +88,58 @@ def test_a_training_ambassador_learns_why_her_school_may_be_missing(page, new_fu
     page.get_by_role("button", name="Je ne trouve pas mon établissement").click()
     expect(notice).to_be_visible()
     expect(page.get_by_role("button", name="Je ne trouve pas ma formation")).to_be_visible()
+
+
+def test_a_training_ambassador_can_only_add_events(page, new_funnel_url):
+    page.goto(f"{new_funnel_url}?engagement=training_ambassador")
+    _complete_email_and_identity(page)
+
+    mentor = page.locator('input[value="mentor"]')
+    expect(mentor).to_be_disabled()
+    page.get_by_text("Je veux devenir mentor").hover()
+    expect(page.get_by_role("tooltip")).to_have_text(re.compile("Si vous êtes étudiante"))
+    expect(page.locator('input[value="events"]')).to_be_enabled()
+
+    page.get_by_text("Je veux devenir ambassadrice étudiante").click()
+    expect(mentor).to_be_enabled()
+    page.get_by_text("Je veux devenir mentor").click()
+    expect(page.locator('input[value="training_ambassador"]')).to_be_disabled()
+    page.get_by_text("Je veux devenir ambassadrice étudiante").hover()
+    expect(page.get_by_role("tooltip")).to_have_text(
+        re.compile("pas compatible avec les autres formes d'engagement")
+    )
+
+
+@pytest.fixture
+def touch_page(browser):
+    context = browser.new_context(has_touch=True, viewport={"width": 390, "height": 844})
+    yield context.new_page()
+    context.close()
+
+
+def test_a_locked_engagement_explains_itself_on_tap(touch_page, new_funnel_url):
+    touch_page.goto(f"{new_funnel_url}?engagement=training_ambassador")
+    _complete_email_and_identity(touch_page)
+
+    # A label whose box is locked counts as disabled to Playwright, though a finger can tap it.
+    touch_page.get_by_text("Je veux devenir mentor").tap(force=True)
+    expect(touch_page.get_by_role("tooltip")).to_have_text(re.compile("Si vous êtes étudiante"))
+
+    touch_page.get_by_text("Choisissez vos engagements").tap()
+    expect(touch_page.get_by_role("tooltip")).to_have_count(0)
+
+
+def test_a_locked_engagement_explains_itself_to_the_keyboard(page, new_funnel_url):
+    page.goto(f"{new_funnel_url}?engagement=training_ambassador")
+    _complete_email_and_identity(page)
+
+    mentor = page.locator('input[value="mentor"]')
+    mentor.focus()
+    expect(mentor).to_have_accessible_description(re.compile("Si vous êtes étudiante"))
+    expect(page.get_by_role("tooltip")).to_be_visible()
+
+    page.keyboard.press("Space")
+    expect(mentor).not_to_be_checked()
+
+    page.keyboard.press("Escape")
+    expect(page.get_by_role("tooltip")).to_have_count(0)

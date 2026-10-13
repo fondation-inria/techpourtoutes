@@ -7,12 +7,16 @@
     name=""
     variant="default"
     class=""
+    lock=""
 />
 
+{# `lock` names an Alpine method of the enclosing component: why an option is locked, or "". #}
 <c-components.form-fields.base label=label description=description message=message class=class span_label=True>
     <div class="flex flex-col gap-3">
         {% for opt_value, opt_label in field.field.choices %}
-            <label class="inline-flex items-center gap-3 cursor-pointer">
+            {# A locked option stays focusable, so the reason reaches the keyboard and screen readers too; it shows on hover, focus or tap, and Escape hides it. #}
+            <label class="inline-flex items-center gap-3 {% if lock %}relative{% else %}cursor-pointer{% endif %}"
+                   {% if lock %}x-data="{ tip: false }" @pointerenter="if ($event.pointerType === 'mouse') tip = true" @pointerleave="if ($event.pointerType === 'mouse') tip = false" @click="tip = true" @click.outside="tip = false" @keydown.escape="tip = false" :class="{{ lock }}('{{ opt_value }}') ? 'cursor-not-allowed' : 'cursor-pointer'"{% endif %}>
                 <span class="inline-flex items-center justify-center">
                     <input
                         type="checkbox"
@@ -20,12 +24,27 @@
                         value="{{ opt_value }}"
                         {% if opt_value in field.value|default_if_none:"" %}checked{% endif %}
                         {% if variant == "disabled" %}disabled{% endif %}
+                        {% if lock %}
+                            :aria-disabled="{{ lock }}('{{ opt_value }}') !== ''"
+                            aria-describedby="{{ field.html_name|default:name }}-{{ opt_value }}-lock"
+                            @click="{{ lock }}('{{ opt_value }}') && $event.preventDefault()"
+                            @focus="tip = true"
+                            @blur="tip = false"
+                        {% endif %}
                         class="peer sr-only"
                     />
-                    <span class="tick-base rounded-xs peer-checked:bg-primary {% if variant == "disabled" %}tick-disabled{% elif field.errors or errors or variant == "error" %}tick-error{% elif variant == "valid" %}tick-valid{% else %}tick-default{% endif %}"></span>
+                    <span {% if lock %}:class="{{ lock }}('{{ opt_value }}') && 'tick-disabled'"{% endif %} class="tick-base rounded-xs peer-checked:bg-primary {% if variant == "disabled" %}tick-disabled{% elif field.errors or errors or variant == "error" %}tick-error{% elif variant == "valid" %}tick-valid{% else %}tick-default{% endif %}"></span>
                     <c-components.icon name="check" class="absolute h-3 w-3 hidden peer-checked:block text-neutral-50 pointer-events-none" />
                 </span>
-                <span class="text-sm {% if variant == "disabled" %}text-disabled{% else %}text-neutral-950{% endif %}">{{ opt_label }}</span>
+                <span class="text-sm {% if variant == "disabled" %}text-disabled{% elif not lock %}text-neutral-950{% endif %}" {% if lock %}:class="{{ lock }}('{{ opt_value }}') ? 'text-disabled' : 'text-neutral-950'"{% endif %}>{{ opt_label }}</span>
+                {% if lock %}
+                    <span role="tooltip"
+                          id="{{ field.html_name|default:name }}-{{ opt_value }}-lock"
+                          x-show="tip && {{ lock }}('{{ opt_value }}')"
+                          x-cloak
+                          x-text="{{ lock }}('{{ opt_value }}')"
+                          class="absolute left-8 top-full z-10 mt-1 w-72 max-w-[80vw] rounded bg-neutral-950 px-3 py-2 text-xs text-neutral-50"></span>
+                {% endif %}
             </label>
         {% endfor %}
     </div>

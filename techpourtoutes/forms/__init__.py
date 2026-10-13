@@ -24,10 +24,10 @@ from .engagement import EngagementForm, TrainingAmbassadorForm, WorkshopRequestF
 from .event import EventDetailsForm, EventLocationForm, EventSubcategoryForm
 from .manifeste_signature_form import ManifesteSignatureForm
 from .pro_inscription import (
+    ProAdditionalInformationForm,
     ProEmailForm,
     ProEngagementsForm,
     ProIdentityForm,
-    ProLastInformationForm,
     ProTrainingAmbassadorForm,
     ProWorkshopRequestForm,
 )
@@ -60,7 +60,7 @@ __all__ = [
     "ProEmailForm",
     "ProEngagementsForm",
     "ProIdentityForm",
-    "ProLastInformationForm",
+    "ProAdditionalInformationForm",
     "ProTrainingAmbassadorForm",
     "ProWorkshopRequestForm",
     "ProTrainingExperienceForm",
