@@ -1,0 +1,15 @@
+{% load phone_filters %}
+Bonjour,
+
+{{ pro.civility }} {{ pro.first_name }} {{ pro.last_name }}{% if pro.structure_name %}, de la structure {{ pro.structure_name }},{% endif %} vient de rejoindre la coalition et souhaite s'engager autrement.
+
+Voici son message :
+
+{{ message }}
+
+Peux-tu {% if pro.civility == "Madame" %}la{% else %}le{% endif %} recontacter ?
+- {{ pro.email }}
+{% if pro.phone %}- {{ pro.phone|phone_national }}{% endif %}
+
+Bonne journée
+L'équipe TechPourToutes

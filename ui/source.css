@@ -320,6 +320,7 @@
   --color-warning: var(--color-warning-500);
   --color-info: var(--color-info-50);
   --color-error: var(--color-red-500);
+  --color-error-content: var(--color-neutral-0);
 }
 
 [x-cloak] {

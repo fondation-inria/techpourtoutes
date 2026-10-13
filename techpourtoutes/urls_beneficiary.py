@@ -9,7 +9,14 @@ urlpatterns = [
         "page-d-accueil-techpourtoutes-992956/",
         RedirectView.as_view(pattern_name="home", permanent=True),
     ),
-    path("inscription/", views.inscription_funnel, name="inscription_funnel"),
+    path(
+        "inscription/", views.beneficiary_inscription_funnel, name="beneficiary_inscription_funnel"
+    ),
+    path(
+        "inscription/new/",
+        views.new_beneficiary_inscription_funnel,
+        name="new_beneficiary_inscription_funnel",
+    ),
     path("trouver-une-mentore/", views.new_mentoree, name="new_mentoree"),
     path("devenir-mentoree/", views.mentoring_funnel, name="mentoring_funnel"),
     path(
@@ -29,8 +36,8 @@ urlpatterns = [
     ),
     path(
         "inscription/passer/<str:step>/",
-        views.show_skip_inscription_step_modal,
-        name="show_skip_inscription_step_modal",
+        views.show_skip_beneficiary_inscription_step_modal,
+        name="show_skip_beneficiary_inscription_step_modal",
     ),
     path(
         "bientot-disponible/",

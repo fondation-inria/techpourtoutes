@@ -53,6 +53,7 @@ def index_pro_events(request):
             "upcoming_events": events.approved().upcoming(),
             "pending_events": events.pending(),
             "past_events": events.approved().past().order_by("-start_date", "-start_time"),
+            "show_welcome_modal": request.session.pop("show_welcome_modal", False),
         },
     )
 

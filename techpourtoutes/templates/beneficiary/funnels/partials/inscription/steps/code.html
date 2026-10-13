@@ -1,0 +1,24 @@
+<c-patterns.funnel_step post_url="{% url 'beneficiary_inscription_funnel' %}" action="code" title="Saisis le code reçu par mail" centered>
+    <input type="hidden" name="email" value="{{ email }}">
+    <input type="hidden" name="saved_event" value="{{ saved_event }}">
+    <p>
+        Un code à 6 chiffres t'a été envoyé par mail à
+        <span class="font-medium break-all">{{ email }}</span>
+    </p>
+    <div class="flex flex-col gap-2">
+        <label class="label-text-sm" for="code">Code de vérification</label>
+        <input type="text" id="code" name="code" inputmode="numeric" maxlength="6" autocomplete="one-time-code" class="field-base field-default" />
+    </div>
+    <c-slot name="footer">
+        <c-patterns.form
+            hx-post="{% url 'beneficiary_inscription_funnel' %}"
+            hx-target="#funnel-step"
+            hx-swap="outerHTML"
+            class="mt-4 items-center">
+            <input type="hidden" name="action" value="resend">
+            <input type="hidden" name="email" value="{{ email }}">
+            <input type="hidden" name="saved_event" value="{{ saved_event }}">
+            <c-components.button type="submit" variant="tertiary" label="Je n'ai pas reçu de code" />
+        </c-patterns.form>
+    </c-slot>
+</c-patterns.funnel_step>

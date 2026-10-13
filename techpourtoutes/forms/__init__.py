@@ -23,6 +23,14 @@ from .beneficiary_inscription import (
 from .engagement import EngagementForm, TrainingAmbassadorForm, WorkshopRequestForm
 from .event import EventDetailsForm, EventLocationForm, EventSubcategoryForm
 from .manifeste_signature_form import ManifesteSignatureForm
+from .pro_inscription import (
+    ProAdditionalInformationForm,
+    ProEmailForm,
+    ProEngagementsForm,
+    ProIdentityForm,
+    ProTrainingAmbassadorForm,
+    ProWorkshopRequestForm,
+)
 from .upcoming_feature_notification_form import UpcomingFeatureNotificationForm
 
 __all__ = [
@@ -49,6 +57,12 @@ __all__ = [
     "LoginRequestForm",
     "ManifesteSignatureForm",
     "ProEditUserForm",
+    "ProEmailForm",
+    "ProEngagementsForm",
+    "ProIdentityForm",
+    "ProAdditionalInformationForm",
+    "ProTrainingAmbassadorForm",
+    "ProWorkshopRequestForm",
     "ProTrainingExperienceForm",
     "TrainingAmbassadorForm",
     "VerificationCodeForm",

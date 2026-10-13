@@ -16,6 +16,7 @@ class ConsortiumMailer(BaseMailer):
             Pro.Engagement.INTERNSHIPS: settings.COALITION_INTERNSHIPS_RECIPIENTS,
             Pro.Engagement.WORK_AMBASSADOR: settings.COALITION_WORK_AMBASSADOR_RECIPIENTS,
             Pro.Engagement.SPONSOR: settings.COALITION_SPONSOR_RECIPIENTS,
+            Pro.Engagement.MOBILIZE_STRUCTURE: settings.COALITION_MOBILIZE_STRUCTURE_RECIPIENTS,
         }.get(engagement, [])
 
         engagement_label = Pro.Engagement(engagement).label if engagement else ""
@@ -23,6 +24,15 @@ class ConsortiumMailer(BaseMailer):
             subject=f"Une nouvelle demande pour {engagement_label}",
             recipient_list=recipient_list,
             context={"pro": pro, "engagement": engagement_label},
+            tags=["interne", "coalition", "nouvelle demande d'engagement"],
+        )
+
+    @classmethod
+    def other_engagement_requested(cls, *, pro, message):
+        cls.send_mail(
+            subject="Une nouvelle demande d'engagement « Autre »",
+            recipient_list=settings.COALITION_OTHER_ENGAGEMENT_RECIPIENTS,
+            context={"pro": pro, "message": message},
             tags=["interne", "coalition", "nouvelle demande d'engagement"],
         )
 
