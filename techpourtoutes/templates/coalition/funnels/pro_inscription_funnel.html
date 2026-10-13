@@ -1,0 +1,10 @@
+<c-layout.base
+    variant="funnel"
+    title="Rejoignez la coalition TechPourToutes !"
+    back="{% url 'coalition_home' %}">
+    {# The page opens on the step reached; every step after it arrives through htmx. #}
+    {% include step_template %}
+    <c-slot name="right">
+        <div class="hidden md:block flex-1"></div>
+    </c-slot>
+</c-layout.base>

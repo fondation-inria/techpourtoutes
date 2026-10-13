@@ -1,0 +1,96 @@
+import pytest
+
+from techpourtoutes.forms import ProAdditionalInformationForm
+
+
+def _additional_information(**overrides):
+    return {
+        "structure_type": "company",
+        "structure_name": "Inria",
+        "job_title": "Chercheuse",
+        "phone": "0612345678",
+        "postal_code": "75011",
+        **overrides,
+    }
+
+
+def test_additional_information_form_accepts_complete_information():
+    assert ProAdditionalInformationForm(data=_additional_information()).is_valid()
+
+
+def test_additional_information_form_requires_a_structure_name_for_a_structure():
+    form = ProAdditionalInformationForm(data=_additional_information(structure_name=""))
+    assert not form.is_valid()
+    assert "structure_name" in form.errors
+
+
+@pytest.mark.parametrize("structure_type", ["retired", "jobless"])
+def test_additional_information_form_needs_no_structure_name_without_a_structure(structure_type):
+    form = ProAdditionalInformationForm(
+        data=_additional_information(structure_type=structure_type, structure_name="")
+    )
+    assert form.is_valid()
+
+
+def test_additional_information_form_requires_every_other_field():
+    form = ProAdditionalInformationForm(data={})
+    assert not form.is_valid()
+    assert {"structure_type", "job_title", "phone", "postal_code"} <= set(form.errors)
+
+
+def test_additional_information_form_rejects_an_invalid_postal_code():
+    form = ProAdditionalInformationForm(data=_additional_information(postal_code="7501"))
+    assert not form.is_valid()
+    assert "postal_code" in form.errors
+
+
+def _workshop(**overrides):
+    return {
+        "school_label": "Lycée Voltaire",
+        "job_title": "Enseignante",
+        "postal_code": "75005",
+        **overrides,
+    }
+
+
+def test_additional_information_form_keeps_the_school_and_job_given_for_the_workshop():
+    form = ProAdditionalInformationForm(data=_additional_information(), workshop=_workshop())
+    assert all(
+        form.fields[name].disabled for name in ("structure_type", "structure_name", "job_title")
+    )
+    assert form.is_valid()
+    assert form.cleaned_data["structure_type"] == "school"
+    assert form.cleaned_data["structure_name"] == "Lycée Voltaire"
+    assert form.cleaned_data["job_title"] == "Enseignante"
+
+
+def test_additional_information_form_asks_the_job_of_another_mission_at_the_school():
+    form = ProAdditionalInformationForm(
+        data=_additional_information(job_title="Infirmière"),
+        workshop=_workshop(job_title="Autre mission au sein d'un établissement"),
+    )
+    assert not form.fields["job_title"].disabled
+    assert form.is_valid()
+    assert form.cleaned_data["structure_name"] == "Lycée Voltaire"
+    assert form.cleaned_data["job_title"] == "Infirmière"
+
+
+@pytest.mark.parametrize(
+    "job_title",
+    ["DRANE / DAN / IAN", "parent d'élèves", "je ne travaille pas dans un établissement"],
+)
+def test_additional_information_form_asks_everything_of_who_works_elsewhere(job_title):
+    form = ProAdditionalInformationForm(workshop=_workshop(job_title=job_title))
+    assert not any(field.disabled for field in form.fields.values())
+    assert form["postal_code"].value() is None
+
+
+def test_additional_information_form_suggests_the_postal_code_of_the_school():
+    form = ProAdditionalInformationForm(initial={}, workshop=_workshop())
+    assert form["postal_code"].value() == "75005"
+    assert not form.fields["postal_code"].disabled
+
+
+def test_additional_information_form_keeps_the_postal_code_she_already_gave():
+    form = ProAdditionalInformationForm(initial={"postal_code": "75011"}, workshop=_workshop())
+    assert form["postal_code"].value() == "75011"

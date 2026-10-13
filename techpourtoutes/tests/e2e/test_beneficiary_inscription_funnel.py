@@ -1,5 +1,3 @@
-import re
-
 import pytest
 from playwright.sync_api import expect
 
@@ -8,7 +6,6 @@ from techpourtoutes.models import (
     Formation,
     Level,
     TrainingExperience,
-    User,
 )
 from techpourtoutes.utils.school_year import current_school_year_start_date
 
@@ -22,8 +19,9 @@ from .helpers import (
     voltaire_teaching,
 )
 
-# These tests drive a real browser to cover what the view tests cannot: the client-side
-# sessionStorage behaviour (survive reload, wipe on explicit exit) wired through Alpine + HTMX.
+# These tests drive a real browser to cover what the view tests cannot: the JavaScript of the
+# funnel — the school and formation autocompletes, the Alpine state of the fields — and complete
+# sign-ups through HTMX, reload included.
 
 
 _DIPLOMA_SCHOOL_LABEL = "Dans quel établissement étais-tu scolarisée ?*"
@@ -49,10 +47,6 @@ def _complete_identity_step(page, birth_date="2005-01-01"):
     page.locator('input[name="age_eligibility_accepted"]').check(force=True)
     page.locator('input[name="terms_accepted"]').check(force=True)
     page.get_by_role("button", name="Continuer").click()
-
-
-def _go_back(page):
-    page.get_by_role("button", name="Retour").click()
 
 
 def test_graduate_registers_with_her_last_diploma(page, funnel_url):
@@ -198,89 +192,9 @@ def test_reload_keeps_progress(page, funnel_url):
 
     page.reload()
 
-    # The stored answers are re-hydrated from sessionStorage and the funnel resumes where it was.
+    # The answers live in the session, so the reloaded page opens on the step she had reached.
     expect(page.locator('input[name="action"]:not([value="back"])')).to_have_value("study_status")
     expect(page.get_by_text("Océane")).to_be_visible()
-
-
-def test_closing_the_funnel_wipes_progress(page, funnel_url):
-    page.goto(funnel_url)
-    _complete_email_step(page)
-    expect(page.locator('input[name="action"]:not([value="back"])')).to_have_value("identity")
-
-    page.locator("[data-funnel-close]").click()
-    page.goto(funnel_url)
-
-    # Coming back after an explicit exit starts a fresh funnel, not a resumed one.
-    expect(page.locator('input[name="action"]:not([value="back"])')).to_have_value("email")
-    expect(page.locator('input[name="email"]')).to_have_value("")
-
-
-def test_unchecking_a_box_after_going_back_is_kept(page, funnel_url):
-    page.goto(funnel_url)
-    _complete_email_step(page)
-    page.locator('input[name="newsletter_consent"]').check(force=True)
-    _complete_identity_step(page)
-    expect(page.locator('input[name="action"]:not([value="back"])')).to_have_value("study_status")
-
-    _go_back(page)
-    expect(page.locator('input[name="newsletter_consent"]')).to_be_checked()
-    page.locator('input[name="newsletter_consent"]').uncheck(force=True)
-    page.get_by_role("button", name="Continuer").click()
-    expect(page.locator('input[name="action"]:not([value="back"])')).to_have_value("study_status")
-
-    # An unchecked box must clear its stored answer, not fall back to the one sent the first time.
-    _go_back(page)
-    expect(page.locator('input[name="newsletter_consent"]')).not_to_be_checked()
-
-
-def test_unchecking_a_required_box_after_going_back_blocks_the_step(page, funnel_url):
-    page.goto(funnel_url)
-    _complete_email_step(page)
-    _complete_identity_step(page)
-    expect(page.locator('input[name="action"]:not([value="back"])')).to_have_value("study_status")
-
-    _go_back(page)
-    page.locator('input[name="age_eligibility_accepted"]').uncheck(force=True)
-    page.get_by_role("button", name="Continuer").click()
-
-    expect(
-        page.get_by_text("Tu dois confirmer être éligible au programme pour continuer.")
-    ).to_be_visible()
-    expect(page.locator('input[name="action"]:not([value="back"])')).to_have_value("identity")
-
-
-def test_existing_email_wipes_progress(page, funnel_url):
-    User.objects.create_user(
-        username="taken@example.com",
-        email="taken@example.com",
-        password="irrelevant",
-        first_name="Taken",
-        last_name="User",
-    )
-    page.goto(funnel_url)
-    expect(page.locator('input[name="action"]:not([value="back"])')).to_have_value("email")
-    page.fill('input[name="email"]', "taken@example.com")
-    page.get_by_role("button", name="Continuer").click()
-
-    expect(page).to_have_url(re.compile("se-connecter"))
-
-    # The email can never be submitted, so nothing of the funnel should survive the redirect.
-    page.goto(funnel_url)
-    expect(page.locator('input[name="action"]:not([value="back"])')).to_have_value("email")
-    expect(page.locator('input[name="email"]')).to_have_value("")
-
-
-def test_age_gate_wipes_progress(page, funnel_url):
-    page.goto(funnel_url)
-    _complete_email_step(page)
-    _complete_identity_step(page, birth_date="1990-01-01")
-
-    expect(page.get_by_role("link", name="Rejoindre la coalition")).to_be_visible()
-
-    page.goto(funnel_url)
-    expect(page.locator('input[name="action"]:not([value="back"])')).to_have_value("email")
-    expect(page.locator('input[name="email"]')).to_have_value("")
 
 
 def test_a_missing_school_frees_the_field_and_opens_the_whole_catalogue(page, funnel_url):

@@ -161,3 +161,21 @@ def test_soft_delete_anonymizes_expected_fields(pro):
     assert pro.structure_name == original_structure_name
     assert pro.civility == original_civility
     assert pro.job_title == original_job_title
+
+
+@pytest.mark.django_db
+def test_pro_saves_a_structure_type(pro):
+    from techpourtoutes.models import Pro
+
+    pro.structure_type = Pro.StructureType.ASSOCIATION
+    pro.save()
+    assert Pro.objects.get(pk=pro.pk).structure_type == "association"
+
+
+@pytest.mark.django_db
+def test_pro_may_mobilize_her_structure(pro):
+    from techpourtoutes.models import Pro
+
+    pro.add_engagement(Pro.Engagement.MOBILIZE_STRUCTURE)
+    pro.save()
+    assert Pro.objects.get(pk=pro.pk).engagements == ["mobilize_structure"]

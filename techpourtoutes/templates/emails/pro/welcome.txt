@@ -5,11 +5,15 @@ Bienvenue dans la Coalition TechPourToutes et merci beaucoup pour votre engageme
 
 Nous prendrons contact avec vous sous 48 heures pour vous accompagner dans le programme.
 
-Vous disposez dès à présent d'un compte auquel vous pouvez accéder via ce lien :
+{% if code %}Vous disposez dès à présent d'un compte. Pour vous y connecter, voici votre code de vérification :
+
+{{ code }}
+
+Ce code est valable pendant 15 minutes. Il est à usage unique.{% else %}Vous disposez dès à présent d'un compte auquel vous pouvez accéder via ce lien :
 
 {{ login_url }}
 
-Ce lien est valable pendant 1 heure. Il est à usage unique.
+Ce lien est valable pendant 1 heure. Il est à usage unique.{% endif %}
 
 Si vous n'avez pas demandé à vous connecter à votre compte TechPourToutes, il est possible que quelqu'un d'autre cherche à le faire. Nous vous recommandons de changer le mot de passe de votre boîte mail rapidement.
 

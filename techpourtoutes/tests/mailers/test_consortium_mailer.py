@@ -13,6 +13,7 @@ from techpourtoutes.models import Pro
     COALITION_WORK_AMBASSADOR_RECIPIENTS=["ambassador@example.com"],
     COALITION_TRAINING_AMBASSADOR_RECIPIENTS=["training@example.com"],
     COALITION_SPONSOR_RECIPIENTS=["sponsor@example.com"],
+    COALITION_MOBILIZE_STRUCTURE_RECIPIENTS=["structure@example.com"],
 )
 @pytest.mark.parametrize(
     "engagement,recipient",
@@ -20,6 +21,7 @@ from techpourtoutes.models import Pro
         (Pro.Engagement.INTERNSHIPS, "internships@example.com"),
         (Pro.Engagement.WORK_AMBASSADOR, "ambassador@example.com"),
         (Pro.Engagement.SPONSOR, "sponsor@example.com"),
+        (Pro.Engagement.MOBILIZE_STRUCTURE, "structure@example.com"),
     ],
 )
 def test_pro_signed_up_routes_to_engagement_recipient(pro, engagement, recipient):
@@ -29,6 +31,20 @@ def test_pro_signed_up_routes_to_engagement_recipient(pro, engagement, recipient
     message = mail.outbox[0]
     assert message.to == [recipient]
     assert str(Pro.Engagement(engagement).label) in message.subject
+
+
+@pytest.mark.django_db
+@override_settings(
+    EMAIL_BACKEND="django.core.mail.backends.locmem.EmailBackend",
+    COALITION_OTHER_ENGAGEMENT_RECIPIENTS=["agir@example.com"],
+)
+def test_other_engagement_requested_relays_the_message_of_the_pro(pro):
+    ConsortiumMailer.other_engagement_requested(pro=pro, message="Je veux aider autrement.")
+
+    message = mail.outbox[0]
+    assert message.to == ["agir@example.com"]
+    assert "Je veux aider autrement." in message.body
+    assert pro.email in message.body
 
 
 @pytest.mark.django_db

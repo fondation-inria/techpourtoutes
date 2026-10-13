@@ -7,7 +7,7 @@
     {# out (close button, logo, footer) is intercepted to say so, until the last screen #}
     {# announces there is nothing left to lose. Quitting then goes where the clicked link #}
     {# pointed. `back` keeps the close button working if Alpine never boots. #}
-    <div class="w-full md:max-w-xl flex flex-col py-8"
+    <div class="flex flex-col flex-1"
          x-data="{ quitting: false, submitted: false, destination: '' }"
          @funnel-submitted="submitted = true"
          x-init="document.querySelectorAll('[data-funnel-close], [data-funnel-exit], footer a')
@@ -17,7 +17,6 @@
                          destination = link.href;
                          quitting = true;
                      }))">
-        <c-components.brand-mark class="w-fit shrink-0 mb-8" data-funnel-exit />
         {% include "coalition/funnels/partials/event/subcategory.html" with messages_in_layout=True %}
 
         <template x-if="quitting">

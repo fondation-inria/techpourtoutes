@@ -1,0 +1,17 @@
+<c-patterns.funnel_step post_url="{% url 'beneficiary_inscription_funnel' %}" action="identity" title="Rejoins le club TechPourToutes !">
+    <c-slot name="header">
+        <c-patterns.funnel_progress post_url="{% url 'beneficiary_inscription_funnel' %}" progress="{{ progress }}" />
+    </c-slot>
+    <p>TechPourToutes est un programme 100% gratuit, à la carte et sur mesure pour les filles de 15 à 25 ans.</p>
+    <p class="text-xs text-neutral-500">
+        Les champs suivis d'un astérisque (*) sont obligatoires
+    </p>
+    <c-components.form_fields.input field=form.first_name />
+    <c-components.form_fields.input field=form.last_name />
+    <c-components.form_fields.input field=form.birth_date type="date" />
+    <div class="flex flex-col gap-3 mt-2">
+        <c-components.form_fields.checkbox field=form.age_eligibility_accepted />
+        <c-components.form_fields.checkbox field=form.newsletter_consent />
+        <c-components.form_fields.checkbox field=form.terms_accepted />
+    </div>
+</c-patterns.funnel_step>

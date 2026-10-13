@@ -1,0 +1,6 @@
+<c-patterns.funnel_step target_id="mentoring-step" post_url="{% url 'mentoring_funnel' %}" action="training_experience" title="Rejoins le programme de mentorat">
+    {# The only answer the previous step hands over. #}
+    <input type="hidden" name="study_status" value="{{ study_status }}">
+    <p class="text-xs text-neutral-500">Tous les champs sont obligatoires</p>
+    {% include "beneficiary/funnels/partials/fields/training_experience.html" %}
+</c-patterns.funnel_step>

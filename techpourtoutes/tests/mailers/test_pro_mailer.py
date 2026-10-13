@@ -27,6 +27,19 @@ def test_welcome_includes_account_login_url(pro):
 
 @pytest.mark.django_db
 @override_settings(EMAIL_BACKEND="django.core.mail.backends.locmem.EmailBackend")
+def test_welcome_with_a_code_gives_the_code_instead_of_the_login_url(pro):
+    ProMailer.welcome(pro=pro, code="123456")
+
+    message = mail.outbox[0]
+    html = message.alternatives[0][0]
+    assert "123456" in message.body
+    assert "123456" in html
+    assert "/se-connecter/token/" not in message.body
+    assert "Accéder à mon compte" not in html
+
+
+@pytest.mark.django_db
+@override_settings(EMAIL_BACKEND="django.core.mail.backends.locmem.EmailBackend")
 def test_engagement_added_sends_email_to_pro(pro):
     ProMailer.engagement_added(pro=pro)
 
