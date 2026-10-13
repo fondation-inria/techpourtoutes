@@ -1,6 +1,9 @@
-<c-patterns.funnel_step post_url="{% url 'pro_inscription_funnel' %}" action="workshop_request" title="Demander un atelier" submit_label="{% if is_last_step %}Rejoindre la coalition{% else %}Continuer{% endif %}">
+<c-patterns.funnel_step post_url="{{ funnel_url }}" action="workshop_request" title="Demander un atelier" submit_label="{{ submit_label }}">
+    {# Shared with the engagement a pro adds later, which is a single screen: no progress there. #}
     <c-slot name="header">
-        <c-patterns.funnel_progress post_url="{% url 'pro_inscription_funnel' %}" progress="{{ progress }}" />
+        {% if progress %}
+            <c-patterns.funnel_progress post_url="{{ funnel_url }}" progress="{{ progress }}" />
+        {% endif %}
     </c-slot>
     <c-components.form_fields.school_search
         name_field=form.school_label
