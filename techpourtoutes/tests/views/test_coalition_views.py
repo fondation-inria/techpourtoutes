@@ -406,10 +406,10 @@ def test_new_structure_engagement_not_found_when_switch_inactive(client):
 @pytest.mark.django_db
 @pytest.mark.parametrize("page", ["new_internship", "new_structure_engagement"])
 @override_switch("new_pro_features", active=True)
-def test_pages_send_anonymous_visitor_to_login_before_events(client, page):
+def test_pages_send_anonymous_visitor_to_inscription_funnel_before_events(client, page):
     html = client.get(reverse(page)).content.decode()
 
-    assert f'href="{reverse("login_request")}?next={reverse("index_pro_events")}"' in html
+    assert f'href="{reverse("new_pro_inscription_funnel")}?engagement=events"' in html
     assert f'href="{reverse("new_event")}"' not in html
 
 

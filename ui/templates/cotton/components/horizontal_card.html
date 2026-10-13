@@ -13,8 +13,8 @@
     blue_class="bg-blue-500 text-neutral-0"
 />
 
-<div class="flex w-full bg-neutral-0 border border-black shadow-box {{ class }}">
-    <div class="shrink-0 w-[142px] flex items-center justify-center p-4 text-center
+<div class="flex flex-col md:flex-row w-full bg-neutral-0 border border-black shadow-box {{ class }}">
+    <div class="md:shrink-0 md:w-[142px] flex items-center justify-center px-4 py-2 md:p-4 text-center
         {% if color == "orange" %}
             {{ orange_class }}
         {% elif color == "green" %}
