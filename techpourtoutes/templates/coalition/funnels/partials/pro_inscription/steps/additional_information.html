@@ -1,21 +1,31 @@
-<c-patterns.funnel_step post_url="{% url 'pro_inscription_funnel' %}" action="additional_information" title="Informations supplémentaires" submit_label="{% if is_last_step %}Rejoindre la coalition{% else %}Continuer{% endif %}">
+<c-patterns.funnel_step post_url="{{ funnel_url }}" action="additional_information" title="Informations supplémentaires" submit_label="{{ submit_label }}">
+    {# Shared with the engagement a pro adds later, which is a single screen: no progress there. #}
     <c-slot name="header">
-        <c-patterns.funnel_progress post_url="{% url 'pro_inscription_funnel' %}" progress="{{ progress }}" />
+        {% if progress %}
+            <c-patterns.funnel_progress post_url="{{ funnel_url }}" progress="{{ progress }}" />
+        {% endif %}
     </c-slot>
-    {# Retired and jobless pros work in no structure to name: it is only asked once the type is known. What the workshop request already answered is not asked again. #}
-    <div x-data="{ structureType: '{{ form.structure_type.value|default:''|escapejs }}' }"
+    {# Retired and jobless pros work in no structure to name: it is only asked once the type is known. #}
+    {# What is already known — from the workshop request, or from her profile — is not asked again. #}
+    <div x-data="{ structureType: '{{ form.structure_type_value|default:''|escapejs }}' }"
          @select-change="structureType = $event.detail.value"
          class="flex flex-col gap-y-4">
-        {% if not form.structure_type.field.disabled %}
+        {% if "structure_type" in form.fields %}
             <c-components.form_fields.select field=form.structure_type :watchable=True />
+        {% endif %}
+        {% if "structure_name" in form.fields %}
             <div x-show="structureType && !['retired', 'jobless'].includes(structureType)" x-cloak>
                 <c-components.form_fields.input field=form.structure_name autocomplete="organization" />
             </div>
         {% endif %}
-        {% if not form.job_title.field.disabled %}
+        {% if "job_title" in form.fields %}
             <c-components.form_fields.input field=form.job_title autocomplete="organization-title" />
         {% endif %}
-        <c-components.form_fields.input field=form.phone autocomplete="tel" />
-        <c-components.form_fields.input field=form.postal_code autocomplete="postal-code" />
+        {% if "phone" in form.fields %}
+            <c-components.form_fields.input field=form.phone autocomplete="tel" />
+        {% endif %}
+        {% if "postal_code" in form.fields %}
+            <c-components.form_fields.input field=form.postal_code autocomplete="postal-code" />
+        {% endif %}
     </div>
 </c-patterns.funnel_step>

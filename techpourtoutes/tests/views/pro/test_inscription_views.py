@@ -54,7 +54,9 @@ def locmem_email(settings):
 # Celery runs eagerly: a pro created with a workshop request would otherwise call n8n for real.
 @pytest.fixture(autouse=True)
 def notify_workshop_request():
-    with patch("techpourtoutes.services.pro.create_pro.notify_workshop_request_task") as task:
+    with patch(
+        "techpourtoutes.services.pro.pro_engagement_mixin.notify_workshop_request_task"
+    ) as task:
         yield task
 
 
@@ -434,7 +436,7 @@ def test_a_refused_account_creation_stays_on_the_last_screen_with_the_error(clie
     _seed_until_engagements(client, "mentor", current="additional_information")
     refused = MagicMock(failure=True, errors=["EMAIL ALREADY EXISTS"])
 
-    with patch("techpourtoutes.views.pro_inscription_views.CreatePro", return_value=refused):
+    with patch("techpourtoutes.views.pro.inscription_views.CreatePro", return_value=refused):
         response = _post_step(client, "additional_information", _ADDITIONAL_INFORMATION)
 
     assert response.context["step"] == "additional_information"

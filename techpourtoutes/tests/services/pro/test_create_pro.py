@@ -10,7 +10,7 @@ from techpourtoutes.services.base import ErrorKind
 from techpourtoutes.services.pro.create_pro import CreatePro
 
 REGISTER = "techpourtoutes.services.pro.create_mentor.RegisterUserOnJobirl"
-NOTIFY_WORKSHOP = "techpourtoutes.services.pro.create_pro.notify_workshop_request_task"
+NOTIFY_WORKSHOP = "techpourtoutes.services.pro.pro_engagement_mixin.notify_workshop_request_task"
 
 pytestmark = pytest.mark.django_db
 
@@ -178,7 +178,7 @@ def test_create_pro_records_one_workshop_request_per_workshop():
     assert pro.structure_type == "school"
     assert pro.structure_name == "Lycée Voltaire"
     assert pro.job_title == "Enseignante"
-    assert pro.postal_code == "75005"
+    assert pro.postal_code == ""
     assert pro.professional_situation == "working"
     assert sorted(pro.workshop_requests.values_list("type", flat=True)) == [
         "future_of_ia",
@@ -217,6 +217,22 @@ def test_create_pro_does_not_take_the_workshop_school_for_hers_when_she_works_el
     assert pro.professional_situation == "working"
     assert pro.workshop_requests.count() == 2
     assert notify.delay.call_args.kwargs["structure_uai"] == "0750001A"
+
+
+def test_create_pro_leaves_the_job_of_another_mission_at_the_school_blank():
+    _create(
+        "workshops",
+        workshop_request_form=_workshop_request_form(
+            job_title="Autre mission au sein d'un établissement"
+        ),
+    )
+
+    pro = Pro.objects.get(email="hedy@example.com")
+    assert (pro.structure_type, pro.structure_name, pro.job_title) == (
+        "school",
+        "Lycée Voltaire",
+        "",
+    )
 
 
 def test_create_pro_keeps_the_additional_information_over_the_workshop_ones():
