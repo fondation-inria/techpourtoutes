@@ -6,7 +6,7 @@ from django.urls import reverse
 from django.utils.http import urlencode
 from waffle.decorators import waffle_switch
 
-from ..forms import (
+from ...forms import (
     ProAdditionalInformationForm,
     ProEmailForm,
     ProEngagementsForm,
@@ -15,12 +15,12 @@ from ..forms import (
     ProWorkshopRequestForm,
     VerificationCodeForm,
 )
-from ..forms.pro_inscription import ENGAGEMENT_CHOICES, EVENTS
-from ..mailers import AuthMailer
-from ..models import Pro, User
-from ..ratelimit import rate_limit
-from ..services.pro.create_pro import CreatePro
-from ..utils.funnel import FunnelSession, FunnelSteps
+from ...forms.pro_inscription import ENGAGEMENT_CHOICES, EVENTS
+from ...mailers import AuthMailer
+from ...models import Pro, User
+from ...ratelimit import rate_limit
+from ...services.pro.create_pro import CreatePro
+from ...utils.funnel import FunnelSession, FunnelSteps
 
 _SWITCH = "new_pro_features"
 
@@ -261,14 +261,12 @@ def _preselected_engagement(engagement):
     return engagement if engagement in dict(ENGAGEMENT_CHOICES) else ""
 
 
-# The training ambassador and workshop screens have their own: every other engagement, Autre
-# included, ends on the additional information screen. So do events, unless they come with one
-# of those.
-_OWN_SCREENS = (Pro.Engagement.TRAINING_AMBASSADOR, Pro.Engagement.WORKSHOPS)
-
-
 def _asks_additional_information(answers):
-    others = set(_engagements(answers)) - set(_OWN_SCREENS) - {EVENTS}
+    others = (
+        set(_engagements(answers))
+        - set(Pro.Engagement.TRAINING_AMBASSADOR, Pro.Engagement.WORKSHOPS)
+        - {EVENTS}
+    )
     return bool(others) or _engagements(answers) == [EVENTS]
 
 
@@ -307,7 +305,8 @@ def _step_context(request, step, form=None, **extra):
         "step": step,
         "step_template": f"coalition/funnels/partials/pro_inscription/steps/{step}.html",
         "progress": _FUNNEL.progress(step, data),
-        "is_last_step": step in _FUNNEL.steps and step == _FUNNEL.last(data),
+        "funnel_url": reverse("pro_inscription_funnel"),
+        "submit_label": _submit_label(step, data),
         **extra,
     }
     if step in _STEP_FORMS:
@@ -315,6 +314,12 @@ def _step_context(request, step, form=None, **extra):
             initial=_initial(step, data), **_form_kwargs(step, data)
         )
     return context
+
+
+def _submit_label(step, data):
+    if step in _FUNNEL.steps and step == _FUNNEL.last(data):
+        return "Rejoindre la coalition"
+    return "Continuer"
 
 
 def _form_kwargs(step, answers):
