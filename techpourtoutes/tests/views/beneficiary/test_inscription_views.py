@@ -1,4 +1,5 @@
-from datetime import date
+from datetime import date, timedelta
+from types import SimpleNamespace
 from unittest.mock import MagicMock, patch
 from urllib.parse import quote
 
@@ -6,9 +7,11 @@ import pytest
 from django.core import mail
 from django.test import override_settings
 from django.urls import reverse
+from django.utils import timezone
 
 from techpourtoutes.models import Beneficiary, Level, User
 from techpourtoutes.services.base import ErrorKind
+from techpourtoutes.utils.funnel import FunnelSession
 from techpourtoutes.utils.school_year import (
     current_school_year_label,
     current_school_year_start_date,
@@ -17,18 +20,53 @@ from techpourtoutes.utils.school_year import (
 )
 
 FUNNEL_URL = "/inscription/"
+NEW_FUNNEL_URL = "/inscription/new/"
 
 
-def _valid_identity_post():
-    return {
-        "action": "identity",
-        "email": "oceane@example.com",
-        "first_name": "Océane",
-        "last_name": "Durand",
-        "birth_date": "01/01/2005",
-        "age_eligibility_accepted": "on",
-        "terms_accepted": "on",
-    }
+_EMAIL = {"email": "oceane@example.com"}
+_IDENTITY = {
+    "first_name": "Océane",
+    "last_name": "Durand",
+    "birth_date": "2005-01-01",
+    "age_eligibility_accepted": "on",
+    "terms_accepted": "on",
+}
+
+
+def _funnel(client):
+    return FunnelSession(SimpleNamespace(session=client.session), "inscription_funnel")
+
+
+# Starts the funnel midway, as if she had already answered `steps`.
+def _seed_funnel(client, *, current, values=None, **steps):
+    session = client.session
+    funnel = FunnelSession(SimpleNamespace(session=session), "inscription_funnel")
+    funnel.update(**(values or {}))
+    for step, data in steps.items():
+        funnel.save_step(step, data)
+    funnel.current_step = current
+    session.save()
+
+
+def _seed_until_training(
+    client, study_status, *, current="training_experience", email=_EMAIL, identity=None, **kwargs
+):
+    _seed_funnel(
+        client,
+        current=current,
+        email=email,
+        identity=_IDENTITY | (identity or {}),
+        study_status={"study_status": study_status},
+        **kwargs,
+    )
+
+
+def _post_step(client, step, data=None):
+    return client.post(FUNNEL_URL, {"action": step, **(data or {})})
+
+
+def _identity_for_age(age):
+    return {**_IDENTITY, "birth_date": _birth_date_for_age(age).isoformat()}
 
 
 def _birth_date_for_age(age):
@@ -39,47 +77,26 @@ def _birth_date_for_age(age):
         return today.replace(year=today.year - age, day=28)
 
 
-def _identity_post_for_age(age):
-    return {**_valid_identity_post(), "birth_date": _birth_date_for_age(age).isoformat()}
-
-
-# The client is stateless: each POST carries the whole set of answers accumulated so far
-# (this is what the Alpine/sessionStorage front-end injects into every request).
-def _answers(**overrides):
+def _higher_education_training(higher_ed_school, higher_ed_formation, **overrides):
     return {
-        "action": "training_experience",
-        "email": "oceane@example.com",
-        "first_name": "Océane",
-        "last_name": "Durand",
-        "birth_date": "2005-01-01",
-        "age_eligibility_accepted": "on",
-        "terms_accepted": "on",
+        "level": "bac_3",
+        "school_id": str(higher_ed_school.pk),
+        "school_label": higher_ed_school.display_label,
+        "formation_id": str(higher_ed_formation.pk),
+        "formation_label": higher_ed_formation.name,
         **overrides,
     }
 
 
-def _higher_education_post(higher_ed_school, higher_ed_formation, **overrides):
-    answers = _answers(
-        study_status="higher_education",
-        level="bac_3",
-        school_id=str(higher_ed_school.pk),
-        school_label=higher_ed_school.display_label,
-        formation_id=str(higher_ed_formation.pk),
-        formation_label=higher_ed_formation.name,
-    )
-    return answers | overrides
-
-
-def _high_school_post(school, formation, **overrides):
-    answers = _answers(
-        study_status="high_school",
-        level="terminale",
-        school_label=school.location_label,
-        school_id=str(school.pk),
-        formation_id=str(formation.pk),
-        formation_label=formation.name,
-    )
-    return answers | overrides
+def _high_school_training(school, formation, **overrides):
+    return {
+        "level": "terminale",
+        "school_label": school.location_label,
+        "school_id": str(school.pk),
+        "formation_id": str(formation.pk),
+        "formation_label": formation.name,
+        **overrides,
+    }
 
 
 # Three school years back, so the label stays inside the offered window whatever the year is.
@@ -87,95 +104,216 @@ _DIPLOMA_YEAR = current_school_year_start_date().year - 3
 DIPLOMA_PERIOD_LABEL = f"{_DIPLOMA_YEAR}-{_DIPLOMA_YEAR + 1}"
 
 
-def _last_diploma_post(school, formation, **overrides):
-    answers = _answers(
-        study_status="finished",
-        period_label=DIPLOMA_PERIOD_LABEL,
-        level="terminale",
-        school_label=school.location_label,
-        school_id=str(school.pk),
-        formation_id=str(formation.pk),
-        formation_label=formation.name,
+def _last_diploma_training(school, formation):
+    return {
+        "period_label": DIPLOMA_PERIOD_LABEL,
+        "level": "terminale",
+        "school_label": school.location_label,
+        "school_id": str(school.pk),
+        "formation_id": str(formation.pk),
+        "formation_label": formation.name,
+    }
+
+
+# She answered every screen up to the optional ones, which `values` ask for.
+def _seed_after_training(client, higher_ed_school, higher_ed_formation, *, current, **kwargs):
+    _seed_until_training(
+        client,
+        "higher_education",
+        current=current,
+        training_experience=_higher_education_training(higher_ed_school, higher_ed_formation),
+        **kwargs,
     )
-    return answers | overrides
 
 
 @pytest.mark.django_db
-def test_get_renders_funnel_shell(client):
+def test_get_renders_the_email_step_of_a_fresh_funnel(client):
     response = client.get(FUNNEL_URL)
+
     assert response.status_code == 200
-    # The GET is a stateless shell; the step itself is fetched by the client via "resume".
     assert b'id="funnel-step"' in response.content
-    assert b'x-data="beneficiaryFunnel"' in response.content
-    assert b'"action": "resume"' in response.content
-
-
-@pytest.mark.django_db
-def test_get_without_the_mentor_parameter_starts_a_funnel_without_the_mentoring_screen(client):
-    response = client.get(FUNNEL_URL)
-    assert b'"wants_mentor": false' in response.content
-
-
-@pytest.mark.django_db
-def test_get_with_the_mentor_parameter_starts_a_funnel_with_the_mentoring_screen(client):
-    response = client.get(f"{FUNNEL_URL}?wants_mentor=1")
-    assert b'"wants_mentor": true' in response.content
-
-
-@pytest.mark.django_db
-@pytest.mark.parametrize(
-    ("query", "flag"), [("", b"false"), ("?wants_training_ambassador=1", b"true")]
-)
-def test_get_always_hands_the_training_ambassador_flag_over(client, query, flag):
-    # Always sent, false included: it must overwrite a stale one left in sessionStorage.
-    response = client.get(f"{FUNNEL_URL}{query}")
-    assert b'"wants_training_ambassador": ' + flag in response.content
-
-
-@pytest.mark.django_db
-def test_resume_without_answers_renders_email_step(client):
-    response = client.post(FUNNEL_URL, {"action": "resume"})
-    assert response.status_code == 200
     assert b'name="action" value="email"' in response.content
 
 
 @pytest.mark.django_db
-def test_resume_returns_furthest_reached_step_prefilled(client):
-    response = client.post(
-        FUNNEL_URL,
-        {
-            "action": "resume",
-            "email": "oceane@example.com",
-            "first_name": "Océane",
-            "last_name": "Durand",
-            "birth_date": "2005-01-01",
-        },
-    )
-    assert b'name="action" value="study_status"' in response.content
+def test_get_resumes_on_the_current_step_prefilled(client):
+    _seed_funnel(client, current="identity", email=_EMAIL, identity=_IDENTITY)
+
+    response = client.get(FUNNEL_URL)
+
+    assert b'name="action" value="identity"' in response.content
     assert "Océane".encode() in response.content
 
 
 @pytest.mark.django_db
-def test_resume_returns_to_the_study_status_when_it_is_unknown(client):
-    # The last screen is picked from the study status, so a forged one can't reach it.
-    response = client.post(
-        FUNNEL_URL,
-        {
-            "action": "resume",
-            "email": "oceane@example.com",
-            "first_name": "Océane",
-            "last_name": "Durand",
-            "birth_date": "2005-01-01",
-            "study_status": "whatever",
-        },
+def test_a_valid_step_is_the_one_a_reload_resumes_after(client):
+    _post_step(client, "email", _EMAIL)
+
+    assert b'name="action" value="identity"' in client.get(FUNNEL_URL).content
+
+
+@pytest.mark.django_db
+def test_an_invalid_step_saves_nothing(client):
+    _post_step(client, "email", {"email": "pas-un-email"})
+
+    assert _funnel(client).answers.get("email") is None
+
+
+@pytest.mark.django_db
+def test_a_submitted_screen_replaces_its_previous_answers(client):
+    _seed_funnel(
+        client,
+        current="identity",
+        email=_EMAIL,
+        identity={**_IDENTITY, "newsletter_consent": "on"},
     )
 
-    assert b'name="action" value="study_status"' in response.content
+    _post_step(client, "identity", _IDENTITY)
+
+    assert "newsletter_consent" not in _funnel(client).answers
+
+
+@pytest.mark.django_db
+def test_new_inscription_funnel_redirects_to_the_funnel(client):
+    response = client.get(NEW_FUNNEL_URL)
+
+    assert response.status_code == 302
+    assert response["Location"] == FUNNEL_URL
+
+
+@pytest.mark.django_db
+def test_new_inscription_funnel_starts_over(client):
+    _seed_funnel(
+        client,
+        current="identity",
+        values={"wants_training_ambassador": True},
+        email=_EMAIL,
+        identity=_IDENTITY,
+    )
+
+    client.get(NEW_FUNNEL_URL)
+
+    assert _funnel(client).current_step is None
+    assert "email" not in _funnel(client).answers
+    assert _funnel(client).answers["wants_training_ambassador"] is False
+    assert b'name="action" value="email"' in client.get(FUNNEL_URL).content
+
+
+@pytest.mark.django_db
+@pytest.mark.parametrize(("query", "flag"), [("", False), ("?wants_mentor=1", True)])
+def test_new_inscription_funnel_records_whether_a_mentor_is_wanted(client, query, flag):
+    client.get(f"{NEW_FUNNEL_URL}{query}")
+
+    assert _funnel(client).answers["wants_mentor"] is flag
+
+
+@pytest.mark.django_db
+def test_reloading_the_funnel_keeps_progress_and_what_she_came_for(client):
+    client.get(f"{NEW_FUNNEL_URL}?wants_mentor=1")
+    _post_step(client, "email", _EMAIL)
+
+    response = client.get(FUNNEL_URL)
+
+    assert b'name="action" value="identity"' in response.content
+    assert _funnel(client).answers["wants_mentor"] is True
+
+
+@pytest.mark.django_db
+def test_new_inscription_funnel_redirects_authenticated_user_to_account(client, beneficiary):
+    client.force_login(beneficiary)
+
+    response = client.get(NEW_FUNNEL_URL)
+
+    assert response["Location"] == reverse("show_account")
+
+
+_LOST_PROGRESS = "Ton inscription a expiré ou a été recommencée dans un autre onglet"
+
+
+def _expire_funnel(client):
+    session = client.session
+    state = session["inscription_funnel"]
+    state["updated_at"] = (timezone.now() - timedelta(hours=2)).isoformat()
+    session["inscription_funnel"] = state
+    session.save()
+
+
+@pytest.mark.django_db
+def test_a_screen_sent_after_the_funnel_restarted_elsewhere_starts_over_with_a_message(
+    client, higher_ed_school, higher_ed_formation
+):
+    _seed_until_training(client, "higher_education")
+    client.get(NEW_FUNNEL_URL)
+
+    response = _post_step(
+        client,
+        "training_experience",
+        _higher_education_training(higher_ed_school, higher_ed_formation),
+    )
+
+    assert b'name="action" value="email"' in response.content
+    assert _LOST_PROGRESS.encode() in response.content
+    assert "None" not in response.content.decode()
+    assert not Beneficiary.objects.exists()
+
+
+@pytest.mark.django_db
+def test_a_screen_sent_after_the_funnel_expired_starts_over_with_a_message(client):
+    _seed_funnel(client, current="study_status", email=_EMAIL, identity=_IDENTITY)
+    _expire_funnel(client)
+
+    response = _post_step(client, "study_status", {"study_status": "higher_education"})
+
+    assert b'name="action" value="email"' in response.content
+    assert _LOST_PROGRESS.encode() in response.content
+    assert _funnel(client).answered == set()
+
+
+@pytest.mark.django_db
+def test_a_screen_sent_without_an_earlier_one_goes_back_to_the_first_missing(client):
+    _seed_funnel(client, current="study_status", email=_EMAIL)
+
+    response = _post_step(client, "study_status", {"study_status": "higher_education"})
+
+    assert b'name="action" value="identity"' in response.content
+    assert _LOST_PROGRESS.encode() in response.content
+    assert "study_status" not in _funnel(client).answered
+
+
+@pytest.mark.django_db
+def test_skipping_after_the_funnel_restarted_elsewhere_starts_over_with_a_message(
+    client, higher_ed_school, higher_ed_formation
+):
+    _seed_after_training(
+        client,
+        higher_ed_school,
+        higher_ed_formation,
+        current="mentoring_signup",
+        values={"wants_mentor": True},
+    )
+    client.get(NEW_FUNNEL_URL)
+
+    response = _post_step(client, "skip", {"step": "mentoring_signup"})
+
+    assert b'name="action" value="email"' in response.content
+    assert _LOST_PROGRESS.encode() in response.content
+    assert not Beneficiary.objects.exists()
+
+
+@pytest.mark.django_db
+def test_going_back_after_the_funnel_restarted_elsewhere_starts_over_with_a_message(client):
+    _seed_funnel(client, current="study_status", email=_EMAIL, identity=_IDENTITY)
+    client.get(NEW_FUNNEL_URL)
+
+    response = client.post(FUNNEL_URL, {"action": "back"})
+
+    assert b'name="action" value="email"' in response.content
+    assert _LOST_PROGRESS.encode() in response.content
 
 
 @pytest.mark.django_db
 def test_email_step_advances_to_identity(client):
-    response = client.post(FUNNEL_URL, {"action": "email", "email": "oceane@example.com"})
+    response = _post_step(client, "email", _EMAIL)
     assert response.status_code == 200
     assert b'name="action" value="identity"' in response.content
 
@@ -189,17 +327,20 @@ def test_existing_email_redirects_to_login(client):
         first_name="Taken",
         last_name="User",
     )
-    response = client.post(FUNNEL_URL, {"action": "email", "email": "taken@example.com"})
+    client.get(FUNNEL_URL)
+
+    response = _post_step(client, "email", {"email": "taken@example.com"})
+
     assert "se-connecter" in response["HX-Redirect"]
     assert f"back={quote('/', safe='')}" in response["HX-Redirect"]
     assert f"next={quote('/', safe='')}" in response["HX-Redirect"]
-    # A dead-end too: the client must not keep answers it can never submit.
-    assert "funnelReset" in response["HX-Trigger"]
+    # A dead-end too: no point keeping answers she can never submit.
+    assert _funnel(client).answers == {}
 
 
 @pytest.mark.django_db
 def test_existing_pro_email_redirects_to_login_with_coalition_back(client, pro):
-    response = client.post(FUNNEL_URL, {"action": "email", "email": pro.email})
+    response = _post_step(client, "email", {"email": pro.email})
     assert "se-connecter" in response["HX-Redirect"]
     assert f"back={quote('/coalition/', safe='')}" in response["HX-Redirect"]
     assert f"next={quote('/coalition/', safe='')}" in response["HX-Redirect"]
@@ -211,10 +352,9 @@ def test_existing_registered_beneficiary_email_with_wants_mentor_logs_in_to_acco
 ):
     beneficiary.jobirl_user_id = 42
     beneficiary.save()
+    client.get(f"{NEW_FUNNEL_URL}?wants_mentor=1")
 
-    response = client.post(
-        FUNNEL_URL, {"action": "email", "email": beneficiary.email, "wants_mentor": "true"}
-    )
+    response = _post_step(client, "email", {"email": beneficiary.email})
 
     assert "se-connecter" in response["HX-Redirect"]
     assert f"back={quote('/', safe='')}" in response["HX-Redirect"]
@@ -225,9 +365,9 @@ def test_existing_registered_beneficiary_email_with_wants_mentor_logs_in_to_acco
 def test_existing_unregistered_beneficiary_email_with_wants_mentor_logs_in_to_mentoring_funnel(
     client, beneficiary
 ):
-    response = client.post(
-        FUNNEL_URL, {"action": "email", "email": beneficiary.email, "wants_mentor": "true"}
-    )
+    client.get(f"{NEW_FUNNEL_URL}?wants_mentor=1")
+
+    response = _post_step(client, "email", {"email": beneficiary.email})
 
     assert "se-connecter" in response["HX-Redirect"]
     assert f"back={quote('/', safe='')}" in response["HX-Redirect"]
@@ -238,10 +378,9 @@ def test_existing_unregistered_beneficiary_email_with_wants_mentor_logs_in_to_me
 def test_existing_beneficiary_email_with_wants_training_ambassador_logs_in_to_the_request(
     client, beneficiary
 ):
-    response = client.post(
-        FUNNEL_URL,
-        {"action": "email", "email": beneficiary.email, "wants_training_ambassador": "true"},
-    )
+    client.get(f"{NEW_FUNNEL_URL}?wants_training_ambassador=1")
+
+    response = _post_step(client, "email", {"email": beneficiary.email})
 
     next_url = reverse("new_training_ambassador_request")
     assert f"next={quote(next_url, safe='')}" in response["HX-Redirect"]
@@ -253,11 +392,9 @@ def test_existing_beneficiary_email_who_already_requested_a_training_ambassador_
 ):
     beneficiary.has_requested_training_ambassador = True
     beneficiary.save()
+    client.get(f"{NEW_FUNNEL_URL}?wants_training_ambassador=1")
 
-    response = client.post(
-        FUNNEL_URL,
-        {"action": "email", "email": beneficiary.email, "wants_training_ambassador": "true"},
-    )
+    response = _post_step(client, "email", {"email": beneficiary.email})
 
     assert f"next={quote(reverse('show_account'), safe='')}" in response["HX-Redirect"]
 
@@ -266,7 +403,7 @@ def test_existing_beneficiary_email_who_already_requested_a_training_ambassador_
 def test_existing_beneficiary_email_without_wants_mentor_redirects_to_home_back(
     client, beneficiary
 ):
-    response = client.post(FUNNEL_URL, {"action": "email", "email": beneficiary.email})
+    response = _post_step(client, "email", {"email": beneficiary.email})
 
     assert "se-connecter" in response["HX-Redirect"]
     assert f"back={quote('/', safe='')}" in response["HX-Redirect"]
@@ -276,32 +413,41 @@ def test_existing_beneficiary_email_without_wants_mentor_redirects_to_home_back(
 @pytest.mark.django_db
 @pytest.mark.parametrize("age", [15, 20, 25])
 def test_identity_step_advances_when_age_is_eligible(client, age):
-    response = client.post(FUNNEL_URL, _identity_post_for_age(age))
+    _seed_funnel(client, current="identity", email=_EMAIL)
+
+    response = _post_step(client, "identity", _identity_for_age(age))
     assert b'name="action" value="study_status"' in response.content
 
 
 @pytest.mark.django_db
 def test_identity_step_shows_too_young_screen_below_15(client):
-    response = client.post(FUNNEL_URL, _identity_post_for_age(14))
+    _seed_funnel(client, current="identity", email=_EMAIL)
+
+    response = _post_step(client, "identity", _identity_for_age(14))
+
     assert b'name="action" value="study_status"' not in response.content
     assert b"un peu de patience" in response.content
-    # The terminal screen tells the client to wipe its stored answers.
-    assert "funnelReset" in response["HX-Trigger"]
+    assert _funnel(client).answers == {}
 
 
 @pytest.mark.django_db
 def test_identity_step_shows_too_old_screen_above_25(client):
-    response = client.post(FUNNEL_URL, _identity_post_for_age(26))
+    _seed_funnel(client, current="identity", email=_EMAIL)
+
+    response = _post_step(client, "identity", _identity_for_age(26))
+
     assert b'name="action" value="study_status"' not in response.content
     assert b"Rejoindre la coalition" in response.content
-    assert "funnelReset" in response["HX-Trigger"]
+    assert _funnel(client).answers == {}
 
 
 @pytest.mark.django_db
 def test_identity_step_keeps_birth_date_when_form_is_invalid(client):
     # <input type="date"> only accepts YYYY-MM-DD, so the re-rendered field must keep that format.
     birth_date = _birth_date_for_age(20)
-    response = client.post(FUNNEL_URL, {**_identity_post_for_age(20), "terms_accepted": ""})
+    _seed_funnel(client, current="identity", email=_EMAIL)
+
+    response = _post_step(client, "identity", {**_identity_for_age(20), "terms_accepted": ""})
 
     assert b'name="action" value="identity"' in response.content
     assert f'value="{birth_date.isoformat()}"'.encode() in response.content
@@ -309,10 +455,9 @@ def test_identity_step_keeps_birth_date_when_form_is_invalid(client):
 
 @pytest.mark.django_db
 def test_study_status_step_offers_the_secondary_levels_to_a_high_schooler(client):
-    response = client.post(
-        FUNNEL_URL,
-        {**_valid_identity_post(), "action": "study_status", "study_status": "high_school"},
-    )
+    _seed_funnel(client, current="study_status", email=_EMAIL, identity=_IDENTITY)
+
+    response = _post_step(client, "study_status", {"study_status": "high_school"})
     assert b'name="action" value="training_experience"' in response.content
     assert b"En quelle classe es-tu ?" in response.content
     assert b"Terminale" in response.content
@@ -321,10 +466,9 @@ def test_study_status_step_offers_the_secondary_levels_to_a_high_schooler(client
 
 @pytest.mark.django_db
 def test_study_status_step_offers_the_higher_ed_levels_to_a_student(client):
-    response = client.post(
-        FUNNEL_URL,
-        {**_valid_identity_post(), "action": "study_status", "study_status": "higher_education"},
-    )
+    _seed_funnel(client, current="study_status", email=_EMAIL, identity=_IDENTITY)
+
+    response = _post_step(client, "study_status", {"study_status": "higher_education"})
     assert "Quel est ton niveau d&#x27;études actuel ?".encode() in response.content
     assert b"Bac +5" in response.content
     assert b"Terminale" not in response.content
@@ -332,10 +476,9 @@ def test_study_status_step_offers_the_higher_ed_levels_to_a_student(client):
 
 @pytest.mark.django_db
 def test_study_status_step_asks_a_graduate_about_her_last_diploma(client):
-    response = client.post(
-        FUNNEL_URL,
-        {**_valid_identity_post(), "action": "study_status", "study_status": "finished"},
-    )
+    _seed_funnel(client, current="study_status", email=_EMAIL, identity=_IDENTITY)
+
+    response = _post_step(client, "study_status", {"study_status": "finished"})
     content = response.content.decode()
 
     assert "En quelle année était-ce ?" in content
@@ -351,12 +494,16 @@ def test_study_status_step_asks_a_graduate_about_her_last_diploma(client):
 def test_training_experience_step_creates_beneficiary_and_shows_code_screen(
     client, higher_ed_school, higher_ed_formation
 ):
-    response = client.post(
-        FUNNEL_URL, _higher_education_post(higher_ed_school, higher_ed_formation)
+    _seed_until_training(client, "higher_education")
+
+    response = _post_step(
+        client,
+        "training_experience",
+        _higher_education_training(higher_ed_school, higher_ed_formation),
     )
 
     assert b"Saisis le code" in response.content
-    assert "funnelReset" in response["HX-Trigger"]
+    assert _funnel(client).answers == {}
     beneficiary = Beneficiary.objects.get(email="oceane@example.com")
     assert beneficiary.first_name == "Océane"
     assert beneficiary.last_name == "Durand"
@@ -368,7 +515,13 @@ def test_training_experience_step_creates_beneficiary_and_shows_code_screen(
 def test_training_experience_step_creates_the_current_year_training(
     client, higher_ed_school, higher_ed_formation
 ):
-    client.post(FUNNEL_URL, _higher_education_post(higher_ed_school, higher_ed_formation))
+    _seed_until_training(client, "higher_education")
+
+    _post_step(
+        client,
+        "training_experience",
+        _higher_education_training(higher_ed_school, higher_ed_formation),
+    )
 
     experience = Beneficiary.objects.get(email="oceane@example.com").training_experiences.get()
     assert experience.school == higher_ed_school
@@ -381,7 +534,9 @@ def test_training_experience_step_creates_the_current_year_training(
 def test_training_experience_step_creates_the_training_of_a_high_schooler(
     client, school, formation
 ):
-    client.post(FUNNEL_URL, _high_school_post(school, formation))
+    _seed_until_training(client, "high_school")
+
+    _post_step(client, "training_experience", _high_school_training(school, formation))
 
     experience = Beneficiary.objects.get(email="oceane@example.com").training_experiences.get()
     assert experience.school == school
@@ -395,7 +550,9 @@ def test_training_experience_step_creates_the_training_of_a_high_schooler(
 def test_training_experience_step_creates_the_training_of_a_graduate(
     client, school, formation, study_status
 ):
-    client.post(FUNNEL_URL, _last_diploma_post(school, formation, study_status=study_status))
+    _seed_until_training(client, study_status)
+
+    _post_step(client, "training_experience", _last_diploma_training(school, formation))
 
     experience = Beneficiary.objects.get(email="oceane@example.com").training_experiences.get()
     assert experience.school == school
@@ -408,7 +565,11 @@ def test_training_experience_step_creates_the_training_of_a_graduate(
 def test_training_experience_step_does_not_create_without_an_establishment(
     client, school, formation
 ):
-    response = client.post(FUNNEL_URL, _high_school_post(school, formation, school_id=""))
+    _seed_until_training(client, "high_school")
+
+    response = _post_step(
+        client, "training_experience", _high_school_training(school, formation, school_id="")
+    )
 
     assert b'name="action" value="training_experience"' in response.content
     assert "Sélectionnez un établissement valide.".encode() in response.content
@@ -418,9 +579,12 @@ def test_training_experience_step_does_not_create_without_an_establishment(
 @pytest.mark.django_db
 @override_settings(EMAIL_BACKEND="django.core.mail.backends.locmem.EmailBackend")
 def test_a_missing_school_still_creates_the_account_and_reports_it(client, school, formation):
-    client.post(
-        FUNNEL_URL,
-        _high_school_post(
+    _seed_until_training(client, "high_school")
+
+    _post_step(
+        client,
+        "training_experience",
+        _high_school_training(
             school,
             formation,
             school_id="",
@@ -443,7 +607,13 @@ def test_a_missing_school_still_creates_the_account_and_reports_it(client, schoo
 def test_training_experience_step_sends_login_code_and_welcome_emails(
     client, higher_ed_school, higher_ed_formation
 ):
-    client.post(FUNNEL_URL, _higher_education_post(higher_ed_school, higher_ed_formation))
+    _seed_until_training(client, "higher_education")
+
+    _post_step(
+        client,
+        "training_experience",
+        _higher_education_training(higher_ed_school, higher_ed_formation),
+    )
 
     beneficiary = Beneficiary.objects.get(email="oceane@example.com")
     assert beneficiary.login_code_hash != ""
@@ -461,15 +631,15 @@ def test_training_experience_step_sends_login_code_and_welcome_emails(
 def test_skipping_the_mentoring_screen_creates_beneficiary_without_mentoring_signup(
     client, higher_ed_school, higher_ed_formation
 ):
-    response = client.post(
-        FUNNEL_URL,
-        _higher_education_post(
-            higher_ed_school,
-            higher_ed_formation,
-            action="training_experience",
-            wants_mentor="false",
-        ),
+    _seed_after_training(
+        client,
+        higher_ed_school,
+        higher_ed_formation,
+        current="mentoring_signup",
+        values={"wants_mentor": True},
     )
+
+    response = _post_step(client, "skip", {"step": "mentoring_signup"})
 
     assert b"Saisis le code" in response.content
     beneficiary = Beneficiary.objects.get(email="oceane@example.com")
@@ -479,23 +649,51 @@ def test_skipping_the_mentoring_screen_creates_beneficiary_without_mentoring_sig
 
 
 @pytest.mark.django_db
-def test_show_skip_inscription_step_modal_submits_the_step_preceding_the_mentoring_screen(client):
+def test_skipping_the_mentoring_screen_leads_to_the_training_ambassador_request_when_wanted(
+    client, higher_ed_school, higher_ed_formation
+):
+    _seed_after_training(
+        client,
+        higher_ed_school,
+        higher_ed_formation,
+        current="mentoring_signup",
+        values={"wants_mentor": True, "wants_training_ambassador": True},
+    )
+
+    response = _post_step(client, "skip", {"step": "mentoring_signup"})
+
+    assert b'name="action" value="training_ambassador_request"' in response.content
+    assert not Beneficiary.objects.exists()
+
+
+@pytest.mark.django_db
+def test_skipping_a_step_that_cannot_be_skipped_starts_over(client):
+    _seed_funnel(client, current="identity", email=_EMAIL)
+
+    response = _post_step(client, "skip", {"step": "identity"})
+
+    assert b'name="action" value="email"' in response.content
+    assert not Beneficiary.objects.exists()
+
+
+@pytest.mark.django_db
+def test_show_skip_inscription_step_modal_submits_the_skipped_mentoring_screen(client):
     response = client.get(reverse("show_skip_inscription_step_modal", args=["mentoring_signup"]))
 
-    # Skipping makes the step before the mentoring screen the last one, and it is already filled.
-    assert b'name="action" value="training_experience"' in response.content
-    assert b'name="wants_mentor" value="false"' in response.content
+    assert b'name="action" value="skip"' in response.content
+    assert b'name="step" value="mentoring_signup"' in response.content
 
 
 @pytest.mark.django_db
 def test_training_experience_step_leads_to_the_training_ambassador_request_when_one_is_wanted(
     client, higher_ed_school, higher_ed_formation
 ):
-    response = client.post(
-        FUNNEL_URL,
-        _higher_education_post(
-            higher_ed_school, higher_ed_formation, wants_training_ambassador="true"
-        ),
+    _seed_until_training(client, "higher_education", values={"wants_training_ambassador": True})
+
+    response = _post_step(
+        client,
+        "training_experience",
+        _higher_education_training(higher_ed_school, higher_ed_formation),
     )
 
     assert b'name="action" value="training_ambassador_request"' in response.content
@@ -507,15 +705,16 @@ def test_training_experience_step_leads_to_the_training_ambassador_request_when_
 def test_training_ambassador_request_step_creates_beneficiary_and_mails_the_topic(
     client, higher_ed_school, higher_ed_formation
 ):
-    response = client.post(
-        FUNNEL_URL,
-        _higher_education_post(
-            higher_ed_school,
-            higher_ed_formation,
-            action="training_ambassador_request",
-            wants_training_ambassador="true",
-            topic="Parcoursup et la vie sur le campus",
-        ),
+    _seed_after_training(
+        client,
+        higher_ed_school,
+        higher_ed_formation,
+        current="training_ambassador_request",
+        values={"wants_training_ambassador": True},
+    )
+
+    response = _post_step(
+        client, "training_ambassador_request", {"topic": "Parcoursup et la vie sur le campus"}
     )
 
     assert b"Saisis le code" in response.content
@@ -532,31 +731,28 @@ def test_training_ambassador_request_step_creates_beneficiary_and_mails_the_topi
 def test_training_ambassador_request_step_without_a_topic_creates_nothing(
     client, higher_ed_school, higher_ed_formation
 ):
-    response = client.post(
-        FUNNEL_URL,
-        _higher_education_post(
-            higher_ed_school,
-            higher_ed_formation,
-            action="training_ambassador_request",
-            wants_training_ambassador="true",
-            topic="",
-        ),
+    _seed_after_training(
+        client,
+        higher_ed_school,
+        higher_ed_formation,
+        current="training_ambassador_request",
+        values={"wants_training_ambassador": True},
     )
+
+    response = _post_step(client, "training_ambassador_request", {"topic": ""})
 
     assert b'name="action" value="training_ambassador_request"' in response.content
     assert not Beneficiary.objects.exists()
 
 
 @pytest.mark.django_db
-def test_show_skip_inscription_step_modal_submits_the_step_preceding_the_ambassador_screen(
-    client,
-):
+def test_show_skip_inscription_step_modal_submits_the_skipped_ambassador_screen(client):
     response = client.get(
         reverse("show_skip_inscription_step_modal", args=["training_ambassador_request"])
     )
 
-    assert b'name="action" value="training_experience"' in response.content
-    assert b'name="wants_training_ambassador" value="false"' in response.content
+    assert b'name="action" value="skip"' in response.content
+    assert b'name="step" value="training_ambassador_request"' in response.content
     assert b"une ambassadrice" in response.content
 
 
@@ -569,53 +765,43 @@ def test_show_skip_inscription_step_modal_rejects_a_step_that_cannot_be_skipped(
 
 @pytest.mark.django_db
 def test_back_from_the_training_ambassador_request_skips_the_mentoring_screen(client):
-    response = client.post(
-        FUNNEL_URL,
-        {
-            **_identity_post_for_age(20),
-            "action": "back",
-            "to": "training_ambassador_request",
-            "study_status": "higher_education",
-            "wants_training_ambassador": "true",
-        },
+    _seed_until_training(
+        client,
+        "higher_education",
+        current="training_ambassador_request",
+        values={"wants_training_ambassador": True},
     )
+
+    response = client.post(FUNNEL_URL, {"action": "back"})
 
     assert b'name="action" value="training_experience"' in response.content
 
 
-@pytest.mark.django_db
-def test_resume_returns_to_the_training_ambassador_request_once_the_training_is_filled(
-    client, higher_ed_school, higher_ed_formation
-):
-    response = client.post(
-        FUNNEL_URL,
-        _higher_education_post(
-            higher_ed_school,
-            higher_ed_formation,
-            action="resume",
-            wants_training_ambassador="true",
-        ),
+def _seed_until_mentoring(client, higher_ed_school, higher_ed_formation, *, age=None):
+    _seed_after_training(
+        client,
+        higher_ed_school,
+        higher_ed_formation,
+        current="mentoring_signup",
+        values={"wants_mentor": True},
+        identity=_identity_for_age(age) if age else {},
     )
-
-    assert b'name="action" value="training_ambassador_request"' in response.content
 
 
 @pytest.mark.django_db
 def test_mentoring_signup_step_persists_legal_representative_email_for_a_minor(
     client, higher_ed_school, higher_ed_formation
 ):
-    response = client.post(
-        FUNNEL_URL,
-        _higher_education_post(
-            higher_ed_school,
-            higher_ed_formation,
-            action="mentoring_signup",
-            wants_mentor="true",
-            birth_date=_birth_date_for_age(16).isoformat(),
-            legal_representative_name="Parent Test",
-            legal_representative_email="parent@example.com",
-            phone="0612345678",
-        ),
+    _seed_until_mentoring(client, higher_ed_school, higher_ed_formation, age=16)
+
+    response = _post_step(
+        client,
+        "mentoring_signup",
+        {
+            "legal_representative_name": "Parent Test",
+            "legal_representative_email": "parent@example.com",
+            "phone": "0612345678",
+        },
     )
 
     assert b"Saisis le code" in response.content
@@ -628,17 +814,9 @@ def test_mentoring_signup_step_persists_legal_representative_email_for_a_minor(
 def test_mentoring_signup_step_blocks_a_minor_without_legal_representative_fields(
     client, higher_ed_school, higher_ed_formation
 ):
-    response = client.post(
-        FUNNEL_URL,
-        _higher_education_post(
-            higher_ed_school,
-            higher_ed_formation,
-            action="mentoring_signup",
-            wants_mentor="true",
-            birth_date=_birth_date_for_age(16).isoformat(),
-            phone="0612345678",
-        ),
-    )
+    _seed_until_mentoring(client, higher_ed_school, higher_ed_formation, age=16)
+
+    response = _post_step(client, "mentoring_signup", {"phone": "0612345678"})
 
     assert b"Saisis le code" not in response.content
     assert b"Ce champ est obligatoire." in response.content
@@ -651,21 +829,13 @@ def test_mentoring_signup_step_creates_an_adult_beneficiary_without_legal_repres
 ):
     # The template never shows the legal-representative fields to an adult, so the form must
     # accept a submission carrying only the phone number.
+    _seed_until_mentoring(client, higher_ed_school, higher_ed_formation)
     instance = MagicMock(success=True, failure=False, errors=[])
     with patch(
         "techpourtoutes.services.beneficiary.sign_up_for_mentoring.CreateMentoree",
         return_value=instance,
     ):
-        response = client.post(
-            FUNNEL_URL,
-            _higher_education_post(
-                higher_ed_school,
-                higher_ed_formation,
-                action="mentoring_signup",
-                wants_mentor="true",
-                phone="0612345678",
-            ),
-        )
+        response = _post_step(client, "mentoring_signup", {"phone": "0612345678"})
 
     assert b"Saisis le code" in response.content
     beneficiary = Beneficiary.objects.get(email="oceane@example.com")
@@ -677,6 +847,7 @@ def test_mentoring_signup_step_creates_an_adult_beneficiary_without_legal_repres
 def test_a_mentoring_sign_up_jobirl_refuses_sends_her_back_with_no_account(
     client, higher_ed_school, higher_ed_formation
 ):
+    _seed_until_mentoring(client, higher_ed_school, higher_ed_formation)
     refused = MagicMock(
         success=False,
         failure=True,
@@ -688,20 +859,12 @@ def test_a_mentoring_sign_up_jobirl_refuses_sends_her_back_with_no_account(
         "techpourtoutes.services.beneficiary.sign_up_for_mentoring.CreateMentoree",
         return_value=refused,
     ):
-        response = client.post(
-            FUNNEL_URL,
-            _higher_education_post(
-                higher_ed_school,
-                higher_ed_formation,
-                action="mentoring_signup",
-                wants_mentor="true",
-                phone="0612345678",
-            ),
-        )
+        response = _post_step(client, "mentoring_signup", {"phone": "0612345678"})
 
     assert b"Saisis le code" not in response.content
     assert "EMAIL ALREADY EXISTS" in response.content.decode()
-    assert "HX-Trigger" not in response
+    # She can try again: what she typed is kept, the last screen included.
+    assert _funnel(client).answers["phone"] == "0612345678"
     assert not Beneficiary.objects.exists()
 
 
@@ -753,9 +916,9 @@ def approved_salon(pro):
 def test_inscription_funnel_carries_the_bookmarked_event_through_every_step(
     client, approved_salon
 ):
-    response = client.get(FUNNEL_URL, {"saved_event": str(approved_salon.pk)})
+    client.get(NEW_FUNNEL_URL, {"saved_event": str(approved_salon.pk)})
 
-    assert f'"saved_event": "{approved_salon.pk}"' in response.content.decode()
+    assert _funnel(client).answers["saved_event"] == str(approved_salon.pk)
 
 
 @pytest.mark.django_db
@@ -763,16 +926,16 @@ def test_inscription_funnel_carries_the_bookmarked_event_through_every_step(
 def test_account_creation_step_carries_the_bookmarked_event_onto_the_code_screen(
     client, higher_ed_school, higher_ed_formation, approved_salon
 ):
-    # The "code" screen fires a funnelReset, wiping the client's sessionStorage answers before the
-    # code is even submitted, so the event bookmark must travel as a field of that screen itself.
-    response = client.post(
-        FUNNEL_URL,
-        _higher_education_post(
-            higher_ed_school,
-            higher_ed_formation,
-            wants_mentor="false",
-            saved_event=str(approved_salon.pk),
-        ),
+    # The funnel is cleared as soon as the account exists, before the code is even submitted, so
+    # the event bookmark must travel as a field of the "code" screen itself.
+    _seed_until_training(
+        client, "higher_education", values={"saved_event": str(approved_salon.pk)}
+    )
+
+    response = _post_step(
+        client,
+        "training_experience",
+        _higher_education_training(higher_ed_school, higher_ed_formation),
     )
 
     assert f'name="saved_event" value="{approved_salon.pk}"'.encode() in response.content
@@ -868,10 +1031,9 @@ def test_code_step_welcomes_her_to_the_club_on_her_saved_events(client, approved
 def test_email_step_hands_the_bookmarked_event_over_when_the_account_already_exists(
     client, approved_salon, beneficiary
 ):
-    response = client.post(
-        FUNNEL_URL,
-        {"action": "email", "email": beneficiary.email, "saved_event": str(approved_salon.pk)},
-    )
+    client.get(NEW_FUNNEL_URL, {"saved_event": str(approved_salon.pk)})
+
+    response = _post_step(client, "email", {"email": beneficiary.email})
 
     assert f"saved_event={approved_salon.pk}" in response["HX-Redirect"]
 
@@ -929,42 +1091,55 @@ def test_resend_step_with_unknown_email_sends_nothing(client):
     assert mail.outbox == []
 
 
+# The answers were valid when given, but no longer are by the time the account is created.
 @pytest.mark.django_db
-def test_training_experience_step_routes_back_to_furthest_invalid_step_with_error(
+def test_an_email_taken_meanwhile_sends_her_to_the_login_instead_of_creating(
     client, higher_ed_school, higher_ed_formation
 ):
-    # Email and study status are fine, but the birth date is invalid: the user is sent back
-    # to the identity step (the furthest-back screen that needs correcting), not to email.
-    response = client.post(
-        FUNNEL_URL,
-        _higher_education_post(higher_ed_school, higher_ed_formation, birth_date="not-a-date"),
+    _seed_until_training(client, "higher_education")
+    User.objects.create_user(
+        username="oceane@example.com",
+        email="oceane@example.com",
+        password="irrelevant",
+        first_name="Océane",
+        last_name="Autre",
     )
 
-    assert b'name="action" value="identity"' in response.content
-    assert "Certaines informations sont incomplètes ou invalides".encode() in response.content
+    response = _post_step(
+        client,
+        "training_experience",
+        _higher_education_training(higher_ed_school, higher_ed_formation),
+    )
+
+    assert "se-connecter" in response["HX-Redirect"]
     assert not Beneficiary.objects.exists()
 
 
 @pytest.mark.django_db
-def test_training_experience_step_does_not_create_when_email_is_missing(
+def test_a_school_removed_meanwhile_sends_her_back_to_the_training_screen(
     client, higher_ed_school, higher_ed_formation
 ):
-    response = client.post(
-        FUNNEL_URL, _higher_education_post(higher_ed_school, higher_ed_formation, email="")
+    _seed_after_training(
+        client,
+        higher_ed_school,
+        higher_ed_formation,
+        current="training_ambassador_request",
+        values={"wants_training_ambassador": True},
     )
+    higher_ed_school.delete()
 
-    assert response.status_code == 200
-    assert b'name="action" value="email"' in response.content
-    assert b"Ton adresse mail n" in response.content
+    response = _post_step(client, "training_ambassador_request", {"topic": "Parcoursup"})
+
+    assert b'name="action" value="training_experience"' in response.content
+    assert "Sélectionnez un établissement valide.".encode() in response.content
     assert not Beneficiary.objects.exists()
 
 
 @pytest.mark.django_db
 def test_progress_ignores_the_mentoring_screen_when_it_is_not_part_of_the_funnel(client):
-    response = client.post(
-        FUNNEL_URL,
-        {**_valid_identity_post(), "action": "study_status", "study_status": "higher_education"},
-    )
+    _seed_funnel(client, current="study_status", email=_EMAIL, identity=_IDENTITY)
+
+    response = _post_step(client, "study_status", {"study_status": "higher_education"})
 
     # Three counted steps — the email screen takes no share — plus the final segment reserved
     # for the success screen.
@@ -973,24 +1148,21 @@ def test_progress_ignores_the_mentoring_screen_when_it_is_not_part_of_the_funnel
 
 @pytest.mark.django_db
 def test_progress_counts_the_mentoring_screen_when_a_mentor_is_wanted(client):
-    response = client.post(
-        FUNNEL_URL,
-        {
-            **_valid_identity_post(),
-            "action": "study_status",
-            "study_status": "higher_education",
-            "wants_mentor": "true",
-        },
-    )
+    client.get(f"{NEW_FUNNEL_URL}?wants_mentor=1")
+    _post_step(client, "email", _EMAIL)
+    _post_step(client, "identity", _IDENTITY)
+
+    response = _post_step(client, "study_status", {"study_status": "higher_education"})
 
     assert b"width: 60%" in response.content
 
 
 @pytest.mark.django_db
 def test_back_step_returns_previous_step_prefilled(client):
-    response = client.post(
-        FUNNEL_URL, {**_identity_post_for_age(20), "action": "back", "to": "study_status"}
-    )
+    _seed_funnel(client, current="study_status", email=_EMAIL, identity=_identity_for_age(20))
+
+    response = client.post(FUNNEL_URL, {"action": "back"})
+
     assert b'name="action" value="identity"' in response.content
     assert "Océane".encode() in response.content
     assert f'value="{_birth_date_for_age(20).isoformat()}"'.encode() in response.content

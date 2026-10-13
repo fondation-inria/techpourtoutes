@@ -63,7 +63,7 @@ def test_new_mentoree_cta_for_anonymous_user(client):
     response = client.get(NEW_MENTOREE_URL)
 
     assert response.status_code == 200
-    assert response.context["cta_href"] == "/inscription/?wants_mentor=1"
+    assert response.context["cta_href"] == "/inscription/new/?wants_mentor=1"
     assert response.context["cta_label"] == "S'inscrire au mentorat"
     assert response.context["cta_disabled"] is False
 
@@ -127,7 +127,7 @@ def test_new_training_ambassador_beneficiary_cta_for_anonymous_user(client):
     response = client.get(NEW_TRAINING_AMBASSADOR_BENEFICIARY_URL)
 
     assert response.status_code == 200
-    assert response.context["cta_href"] == "/inscription/?wants_training_ambassador=1"
+    assert response.context["cta_href"] == "/inscription/new/?wants_training_ambassador=1"
     assert response.context["cta_label"] == "Rejoindre le club"
 
 
@@ -468,7 +468,7 @@ def test_create_saved_event_modal_offers_signing_up_and_logging_in(client, salon
 
     assert response.status_code == 200
     assert b"Rejoins le club TechPourToutes" in response.content
-    assert reverse("inscription_funnel").encode() in response.content
+    assert reverse("new_inscription_funnel").encode() in response.content
     assert reverse("login_request").encode() in response.content
 
 
@@ -476,7 +476,7 @@ def test_create_saved_event_modal_offers_signing_up_and_logging_in(client, salon
 def test_create_saved_event_modal_carries_the_event_into_both_ways_in(client, salon):
     content = client.get(reverse("create_saved_event_modal", args=[salon.pk])).content.decode()
 
-    assert f"{reverse('inscription_funnel')}?saved_event={salon.pk}" in content
+    assert f"{reverse('new_inscription_funnel')}?saved_event={salon.pk}" in content
     assert f"{reverse('login_request')}?saved_event={salon.pk}" in content
 
 

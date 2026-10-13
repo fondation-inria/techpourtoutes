@@ -20,6 +20,7 @@ from ...models import User
 from ...ratelimit import rate_limit
 from ...services.beneficiary.upsert_beneficiary import UpsertBeneficiary
 from ...utils.dates import compute_age
+from ...utils.funnel import FunnelSession, FunnelSteps
 from ..beneficiary_views import (
     TRAINING_EXPERIENCE_FORMS,
     is_minor,
@@ -29,122 +30,150 @@ from ..beneficiary_views import (
     training_experience_context,
 )
 
-# The funnel steps in order — the single source of truth navigation is derived from.
-_STEPS = (
-    "email",
-    "identity",
-    "study_status",
-    "training_experience",
-    "mentoring_signup",
-    "training_ambassador_request",
-)
 
-# The optional steps, each with the answer that declines it and who it would have put her in
-# touch with.
-_SKIPPABLE_STEPS = {
-    "mentoring_signup": {"declined_field": "wants_mentor", "contact": "mentor"},
-    "training_ambassador_request": {
-        "declined_field": "wants_training_ambassador",
-        "contact": "ambassadrice",
-    },
-}
+# Every way in from elsewhere on the site starts over, while the URL it redirects to resumes:
+# reloading it keeps her answers.
+def new_inscription_funnel(request):
+    if request.user.is_authenticated:
+        return redirect(reverse("show_account"))
+    funnel = _funnel(request)
+    funnel.clear()
+    funnel.update(
+        wants_mentor=request.GET.get("wants_mentor") == "1",
+        wants_training_ambassador=request.GET.get("wants_training_ambassador") == "1",
+        saved_event=request.GET.get("saved_event", ""),
+    )
+    return redirect(reverse("inscription_funnel"))
 
 
 def inscription_funnel(request):
     if request.user.is_authenticated:
         return redirect(reverse("show_account"))
 
-    # The funnel is stateless server-side: the accumulated answers live in the browser's
-    # sessionStorage (Alpine) and travel with every POST. GET only renders the shell, which
-    # asks the server for the right step through a "resume" POST once Alpine has hydrated.
+    # The answers given so far live in the session, so every POST only carries its own screen.
     if request.method != "POST":
-        return render(
-            request,
-            "beneficiary/funnels/inscription_funnel.html",
-            {
-                "wants_mentor": request.GET.get("wants_mentor") == "1",
-                "wants_training_ambassador": request.GET.get("wants_training_ambassador") == "1",
-                "saved_event": request.GET.get("saved_event", ""),
-            },
-        )
+        return _resume(request)
 
     handlers = {
-        "resume": _handle_resume,
         "back": _handle_back,
+        "skip": _handle_skip,
         "code": _handle_code,
         "resend": _handle_resend,
-        # The one step that doesn't move forward: submitting the last one creates the account.
-        _last_step(request.POST): _create_beneficiary,
     }
     handler = handlers.get(request.POST.get("action"), _advance)
     return handler(request)
 
 
 def show_skip_inscription_step_modal(request, step):
-    if step not in _SKIPPABLE_STEPS:
+    if step not in _FUNNEL.optional:
         raise Http404
     return render(
         request,
         "beneficiary/funnels/partials/inscription/show_skip_inscription_step_modal.html",
-        {"action": _last_step({}), **_SKIPPABLE_STEPS[step]},
+        {"step": step},
     )
 
 
 # ------------------- actions -------------------
 
 
-def _handle_resume(request):
-    return _render_step(request, _resume_step(request.POST))
+def _funnel(request):
+    return FunnelSession(request, "inscription_funnel")
+
+
+def _resume(request):
+    step = _funnel(request).current_step or _FUNNEL.first
+    return render(
+        request,
+        "beneficiary/funnels/inscription_funnel.html",
+        {**_step_context(request, step), "messages_in_layout": True},
+    )
 
 
 def _advance(request):
-    # Each forward step validates its own answers, then hands off to the next screen.
+    # Each step validates its own answers and is saved only once valid.
     step = request.POST.get("action")
     if step not in _STEP_VALIDATORS:
-        step = _STEPS[0]
+        step = _FUNNEL.first
     try:
-        _STEP_VALIDATORS[step](request)
+        _require_earlier_steps(request, step)
+        _STEP_VALIDATORS[step](request, _funnel(request).answers_with(step, request.POST))
     except _StepInterrupt as interrupt:
         return interrupt.response
-    return _render_step(request, _next_step(step, request.POST))
+    _funnel(request).save_step(step, request.POST)
+    return _continue_after(request, step)
 
 
 def _handle_back(request):
-    return _render_step(request, _previous_step(request.POST.get("to"), request.POST))
+    funnel = _funnel(request)
+    if funnel.current_step is None:
+        return _render_lost_progress(request, _FUNNEL.first)
+    return _render_step(request, _FUNNEL.previous(funnel.current_step, funnel.answers))
+
+
+def _handle_skip(request):
+    step = request.POST.get("step")
+    if step not in _FUNNEL.optional:
+        return _render_step(request, _FUNNEL.first)
+    try:
+        _require_earlier_steps(request, step)
+    except _StepInterrupt as interrupt:
+        return interrupt.response
+    _funnel(request).update(**{_FUNNEL.optional[step]: False})
+    return _continue_after(request, step)
+
+
+# Once the last screen is answered, the account is created.
+def _continue_after(request, step):
+    following = _FUNNEL.next(step, _funnel(request).answers)
+    if following is None:
+        return _create_beneficiary(request)
+    return _render_step(request, following)
 
 
 def _create_beneficiary(request):
-    # The client can't be trusted, so the whole payload is re-validated here, reusing each step's
-    # validator. On the first failure the user is sent back to that screen with an error banner.
-    wants_mentor = _wants_mentor(request.POST)
-    wants_training_ambassador = _wants_training_ambassador(request.POST)
+    answers = _funnel(request).answers
     try:
-        email = _validate_email(request, error=_EMAIL_ERROR)
-        identity = _validate_identity(request, error=_IDENTITY_ERROR)
-        _validate_study(request, error=_STUDY_ERROR)
-        training_experience_form = _validate_training_experience(request)
-        mentoring_signup_data = _validate_mentoring_signup(request) if wants_mentor else None
-        training_ambassador_request_data = (
-            _validate_training_ambassador_request(request) if wants_training_ambassador else None
-        )
+        validated = {
+            step: _STEP_VALIDATORS[step](request, answers) for step in _FUNNEL.active(answers)
+        }
     except _StepInterrupt as interrupt:
         return interrupt.response
 
     result = UpsertBeneficiary(
-        beneficiary_data=email | identity,
-        training_experience_form=training_experience_form,
-        mentoring_signup_data=mentoring_signup_data,
-        training_ambassador_request_data=training_ambassador_request_data,
+        beneficiary_data=validated["email"] | validated["identity"],
+        training_experience_form=validated["training_experience"],
+        mentoring_signup_data=validated.get("mentoring_signup"),
+        training_ambassador_request_data=validated.get("training_ambassador_request"),
     )
     if result.failure:
         relay_errors(request, result)
-        return _render_step(request, _last_step(request.POST))
-    saved_event = request.POST.get("saved_event", "")
-    response = _render_step(
-        request, "code", email=result.beneficiary.email, saved_event=saved_event
+        return _render_step(request, _FUNNEL.last(answers))
+    _funnel(request).clear()
+    return _render_step(
+        request, "code", email=result.beneficiary.email, saved_event=answers.get("saved_event", "")
     )
-    response["HX-Trigger"] = "funnelReset"
-    return response
+
+
+# ------------------- lost progress -------------------
+
+_LOST_PROGRESS = (
+    "Ton inscription a expiré ou a été recommencée dans un autre onglet. Reprends à partir d'ici."
+)
+
+
+# A screen only counts once every screen before it has been answered: the session may have
+# expired, or been started over from another tab, since that screen was displayed.
+def _require_earlier_steps(request, step):
+    funnel = _funnel(request)
+    missing = _FUNNEL.missing_before(step, funnel.answered, funnel.answers)
+    if missing is not None:
+        raise _StepInterrupt(_render_lost_progress(request, missing))
+
+
+def _render_lost_progress(request, step):
+    messages.error(request, _LOST_PROGRESS)
+    return _render_step(request, step)
 
 
 # ------------------- login code -------------------
@@ -165,8 +194,9 @@ def _handle_code(request):
         saved_event = save_pending_event(request, request.POST.get("saved_event", ""))
         landing = "index_beneficiary_events" if saved_event else "show_account"
         return HttpResponse(headers={"HX-Redirect": reverse(landing)})
-    return _render_step_with_error(
-        request, "code", _CODE_ERROR, email=email, saved_event=request.POST.get("saved_event", "")
+    messages.error(request, _CODE_ERROR)
+    return _render_step(
+        request, "code", email=email, saved_event=request.POST.get("saved_event", "")
     )
 
 
@@ -184,12 +214,6 @@ def _handle_resend(request):
 
 # ------------------- validation -------------------
 
-_EMAIL_ERROR = "Ton adresse mail n'est pas valide, corrige-la pour continuer."
-_IDENTITY_ERROR = (
-    "Certaines informations sont incomplètes ou invalides, corrige-les pour continuer."
-)
-_STUDY_ERROR = "Indique où tu en es dans tes études pour continuer."
-
 
 class _StepInterrupt(Exception):
     # Raised by a step validator to short-circuit with a ready-made response: a re-render with
@@ -198,73 +222,70 @@ class _StepInterrupt(Exception):
         self.response = response
 
 
-def _validate_email(request, *, error=None):
-    form = BeneficiaryEmailForm(data=request.POST)
+def _validate_email(request, answers):
+    form = BeneficiaryEmailForm(data=answers)
     if not form.is_valid():
-        raise _StepInterrupt(_render_step_with_error(request, "email", error, form=form))
-    existing = _login_redirect_for_existing_email(request, form.cleaned_data["email"])
+        raise _StepInterrupt(_render_step(request, "email", form=form))
+    existing = _login_redirect_for_existing_email(request, form.cleaned_data["email"], answers)
     if existing is not None:
         raise _StepInterrupt(existing)
     return form.cleaned_data
 
 
-def _validate_identity(request, *, error=None):
-    form = BeneficiaryIdentityForm(data=request.POST)
+def _validate_identity(request, answers):
+    form = BeneficiaryIdentityForm(data=answers)
     if not form.is_valid():
-        raise _StepInterrupt(_render_step_with_error(request, "identity", error, form=form))
+        raise _StepInterrupt(_render_step(request, "identity", form=form))
     age = compute_age(birth_date=form.cleaned_data["birth_date"])
     if age < 15 or age > 25:
         raise _StepInterrupt(_render_age_dead_end(request, "too_young" if age < 15 else "too_old"))
     return form.cleaned_data
 
 
-def _validate_study(request, *, error=None):
-    form = BeneficiaryStudyStatusForm(data=request.POST)
+def _validate_study(request, answers):
+    form = BeneficiaryStudyStatusForm(data=answers)
     if not form.is_valid():
-        raise _StepInterrupt(_render_step_with_error(request, "study_status", error, form=form))
+        raise _StepInterrupt(_render_step(request, "study_status", form=form))
     return form.cleaned_data
 
 
-def _validate_training_experience(request):
-    form = TRAINING_EXPERIENCE_FORMS[request.POST["study_status"]](data=request.POST)
+def _validate_training_experience(request, answers):
+    form = TRAINING_EXPERIENCE_FORMS[answers["study_status"]](data=answers)
     if not form.is_valid():
         raise _StepInterrupt(_render_step(request, "training_experience", form=form))
     return form
 
 
-def _validate_mentoring_signup(request, *, error=None):
-    form = BeneficiaryMentoringSignUpForm(data=request.POST)
-    require_legal_representative(form, is_minor(_posted_birth_date(request.POST)))
+def _validate_mentoring_signup(request, answers):
+    form = BeneficiaryMentoringSignUpForm(data=answers)
+    require_legal_representative(form, is_minor(_birth_date(answers)))
     if not form.is_valid():
-        raise _StepInterrupt(
-            _render_step_with_error(request, "mentoring_signup", error, form=form)
-        )
+        raise _StepInterrupt(_render_step(request, "mentoring_signup", form=form))
     return form.cleaned_data
 
 
-def _validate_training_ambassador_request(request, *, error=None):
-    form = BeneficiaryTrainingAmbassadorRequestForm(data=request.POST)
+def _validate_training_ambassador_request(request, answers):
+    form = BeneficiaryTrainingAmbassadorRequestForm(data=answers)
     if not form.is_valid():
-        raise _StepInterrupt(
-            _render_step_with_error(request, "training_ambassador_request", error, form=form)
-        )
+        raise _StepInterrupt(_render_step(request, "training_ambassador_request", form=form))
     return form.cleaned_data
 
 
-def _login_redirect_for_existing_email(request, email):
+def _login_redirect_for_existing_email(request, email, answers):
     user = User.objects.filter(email=email).first()
     if user is None:
         return None
     messages.error(request, "Un compte existe déjà avec cet email.")
     back_url = reverse("coalition_home" if hasattr(user, "pro") else "home")
-    next_url = reverse(_destination_view_for_existing_user(user, request.POST))
+    next_url = reverse(_destination_view_for_existing_user(user, answers))
     params = {
         "back": back_url,
         "next": next_url,
-        "saved_event": request.POST.get("saved_event", ""),
+        "saved_event": answers.get("saved_event", ""),
     }
     login_url = f"{reverse('login_request')}?{urlencode(params)}"
-    return HttpResponse(headers={"HX-Redirect": login_url, "HX-Trigger": "funnelReset"})
+    _funnel(request).clear()
+    return HttpResponse(headers={"HX-Redirect": login_url})
 
 
 def _destination_view_for_existing_user(user, data):
@@ -293,8 +314,44 @@ _STEP_VALIDATORS = {
 }
 
 
-# ------------------- navigation -------------------
+# ------------------- answers -------------------
 
+
+def _wants_mentor(data):
+    return data.get("wants_mentor", False)
+
+
+def _wants_training_ambassador(data):
+    return data.get("wants_training_ambassador", False)
+
+
+def _birth_date(data):
+    """The identity screen sends an ISO date; anything else settles nothing."""
+    try:
+        return date.fromisoformat(data.get("birth_date", ""))
+    except ValueError:
+        return None
+
+
+_FUNNEL = FunnelSteps(
+    (
+        "email",
+        "identity",
+        "study_status",
+        "training_experience",
+        "mentoring_signup",
+        "training_ambassador_request",
+    ),
+    optional={
+        "mentoring_signup": "wants_mentor",
+        "training_ambassador_request": "wants_training_ambassador",
+    },
+)
+
+
+# ------------------- rendering -------------------
+
+# The training experience screen is left out: its form depends on the study status.
 _STEP_FORMS = {
     "email": BeneficiaryEmailForm,
     "identity": BeneficiaryIdentityForm,
@@ -304,139 +361,33 @@ _STEP_FORMS = {
 }
 
 
-def _steps(data):
-    return [
-        step
-        for step in _STEPS
-        if step not in _OPTIONAL_STEP_FLAGS or _OPTIONAL_STEP_FLAGS[step](data)
-    ]
-
-
-def _next_step(step, data):
-    steps = _steps(data)
-    return steps[steps.index(step) + 1]
-
-
-def _previous_step(step, data):
-    steps = _steps(data)
-    if step not in steps:
-        return steps[0]
-    return steps[max(steps.index(step) - 1, 0)]
-
-
-def _last_step(data):
-    return _steps(data)[-1]
-
-
-# The email screen carries no bar, so it takes no share. The "+ 1" reserves a final segment for
-# the success screen, which shows none either, so the last form step stops short of 100%.
-def _progress(step, data):
-    steps = _steps(data)[1:]
-    if step not in steps:
-        return None
-    return round(100 * (steps.index(step) + 1) / (len(steps) + 1))
-
-
-# Furthest step the client can resume to, based on which answers it already carries.
-def _resume_step(data):
-    for step in _STEPS:
-        if step not in _STEP_FORMS:
-            break
-        if not _has_answer_for(_STEP_FORMS[step], data):
-            return step
-    return _resume_last_step(data)
-
-
-def _resume_last_step(data):
-    # The training experience screen is picked from the study status, so an unknown one resumes
-    # on that question.
-    study_status = data.get("study_status")
-    if study_status not in TRAINING_EXPERIENCE_FORMS:
-        return "study_status"
-    if not _has_answer_for(TRAINING_EXPERIENCE_FORMS[study_status], data):
-        return "training_experience"
-    return _last_step(data)
-
-
-def _has_answer_for(form_class, data):
-    return any(field in data for field in form_class.base_fields)
-
-
-# ------------------- answers -------------------
-
-# Read straight out of the payload the client replays on every POST.
-
-
-def _wants_mentor(data):
-    return data.get("wants_mentor") == "true"
-
-
-def _wants_training_ambassador(data):
-    return data.get("wants_training_ambassador") == "true"
-
-
-_OPTIONAL_STEP_FLAGS = {
-    "mentoring_signup": _wants_mentor,
-    "training_ambassador_request": _wants_training_ambassador,
-}
-
-
-def _posted_birth_date(data):
-    """The client sends an ISO date; anything else settles nothing."""
-    try:
-        return date.fromisoformat(data.get("birth_date", ""))
-    except ValueError:
-        return None
-
-
-# ------------------- rendering -------------------
-
-_FORM_BUILDERS = {
-    "email": lambda data: BeneficiaryEmailForm(initial={"email": data.get("email")}),
-    "identity": lambda data: BeneficiaryIdentityForm(initial=data),
-    "study_status": lambda data: BeneficiaryStudyStatusForm(
-        initial={"study_status": data.get("study_status")}
-    ),
-    "mentoring_signup": lambda data: BeneficiaryMentoringSignUpForm(initial=data),
-    "training_ambassador_request": lambda data: BeneficiaryTrainingAmbassadorRequestForm(
-        initial=data
-    ),
-}
-
-
 def _render_step(request, step, *, form=None, **extra):
+    if step in _FUNNEL.steps:
+        _funnel(request).current_step = step
     context = _step_context(request, step, form, **extra)
-    return render(request, f"beneficiary/funnels/partials/inscription/{step}.html", context)
-
-
-def _render_step_with_error(request, step, error, **extra):
-    if error:
-        messages.error(request, error)
-    return _render_step(request, step, **extra)
+    return render(request, context["step_template"], context)
 
 
 def _render_age_dead_end(request, template):
-    response = render(request, f"beneficiary/funnels/partials/inscription/{template}.html", {})
-    response["HX-Trigger"] = "funnelReset"
-    return response
+    _funnel(request).clear()
+    return render(request, f"beneficiary/funnels/partials/inscription/{template}.html", {})
 
 
 def _step_context(request, step, form=None, **extra):
-    data = request.POST
+    data = _funnel(request).answers
     context = {
         "step": step,
-        "progress": _progress(step, data),
+        "step_template": f"beneficiary/funnels/partials/inscription/{step}.html",
+        "progress": _FUNNEL.progress(step, data),
         "first_name": data.get("first_name"),
-        "is_minor": is_minor(_posted_birth_date(data)),
+        "is_minor": is_minor(_birth_date(data)),
         "wants_mentor": _wants_mentor(data),
         "wants_training_ambassador": _wants_training_ambassador(data),
         **extra,
     }
-    if step in _FORM_BUILDERS:
-        context["form"] = form or _FORM_BUILDERS[step](data)
+    if step in _STEP_FORMS:
+        context["form"] = form or _STEP_FORMS[step](initial=data)
     if step == "training_experience":
         # `initial` is rewritten by the form, so it needs a mutable copy of the answers.
-        context.update(
-            training_experience_context(data.get("study_status"), form, initial=data.dict())
-        )
+        context.update(training_experience_context(data.get("study_status"), form, initial=data))
     return context
