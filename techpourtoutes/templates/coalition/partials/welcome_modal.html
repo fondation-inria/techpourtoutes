@@ -1,4 +1,10 @@
+{% load static %}
+
 <c-components.modal title="Bienvenue dans la coalition !">
+    <c-slot name="image">
+        <img src="{% static 'images/badge-purple.webp' %}" alt=""
+             class="mx-auto mb-4 size-32" width="128" height="128" />
+    </c-slot>
     <br>
     <p class="text-center text-sm">Merci beaucoup pour votre engagement&nbsp;!</p>
     <br>
