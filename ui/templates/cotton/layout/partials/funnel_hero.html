@@ -1,9 +1,9 @@
 {% load static %}
-{# The column is a size container, so the artboard can fit it like object-contain: as wide as it #}
-{# allows, unless its height runs out first. Everything inside is a fraction of the artboard, #}
-{# the tagline's text included (cqw), so the composition only ever changes scale. #}
-<div class="items-center py-8 @container-[size] {{ class }}">
-    <div class="@container relative mx-auto aspect-4/5 w-[min(100cqw,80cqh)] [&>img]:absolute [&>img]:w-[20%]">
+{# Sized by the column's width alone, so it keeps the same size whether the step scrolls or not. #}
+{# Everything inside is a fraction of the artboard, the tagline's text included (cqw), so the #}
+{# composition only ever changes scale. #}
+<div class="pt-20 pb-8 {{ class }}">
+    <div class="@container relative aspect-4/5 [&>img]:absolute [&>img]:w-[20%]">
         <img src="{% static 'images/badge-purple.webp' %}" alt=""
              class="left-0 top-0" width="128" height="128" decoding="async" />
         <c-components.title variant="tagline"
