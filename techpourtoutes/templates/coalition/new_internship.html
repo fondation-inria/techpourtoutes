@@ -1,51 +1,64 @@
-<c-layout.base title="Accueillir une stagiaire – TechPourToutes" description="De la seconde au stage de fin d'études, offrez une expérience professionnelle à des filles motivées et talentueuses et contribuez à la diversité dans le numérique en postant une annonce.">
+<c-layout.base title="Accueillir une stagiaire – TechPourToutes" description="De la troisième au stage de fin d'études, offrez une expérience professionnelle à des filles motivées et talentueuses et contribuez à la diversité dans le numérique en postant une annonce.">
     <c-components.title title="Accueillir une stagiaire" title_bg="yellow" />
     <div class="flex flex-wrap gap-2 md:gap-4">
-        <c-components.badge label="2 semaines" />
+        <c-components.badge label="Ponctuel" />
+        <c-components.badge label="Long terme" />
         <c-components.badge label="En présentiel" />
     </div>
 
-    <c-components.card title="De la seconde au stage de fin d'études, aidez les jeunes à construire leur avenir">
+    <c-components.card title="Ouvrez vos portes aux futurs talents du numérique">
         <c-components.text>
-            Grâce au programme TechPourToutes, recrutez des filles pleines de motivation et de talents. Faites-leur découvrir votre métier à l'occasion d'un stage de 2 semaines en seconde ou sur plusieurs mois dans le cadre d'une alternance ou d'un stage lors des études supérieures.
+            En vous engageant avec TechPourToutes, vous investissez dans le vivier de talents dont vos équipes auront besoin demain et contribuez à bâtir une tech plus inclusive, plus performante, plus souveraine.
         </c-components.text>
     </c-components.card>
 
-    <div class="flex justify-center w-full md:hidden">
-        <c-components.button label="Proposer un stage" icon="external-link" target="_blank" href="https://stages.techpourtoutes.io/" class="my-5" />
-    </div>
+    <c-components.horizontal_card color="purple" title="Recrutez la prochaine génération de talents" style="serif" label="Stage ou alternance dans le supérieur">
+        Valorisez vos opportunités de stage et d'alternance auprès d'étudiantes en les publiant sur notre plateforme&nbsp;: une manière concrète d'agir en faveur de l'égalité de genre et de la féminisation des métiers de la tech et du numérique.
+        <div class="flex justify-end mt-3">
+            <c-components.button icon="external-link" target="_blank" href="https://stages.techpourtoutes.io/professionnels" label="Proposer un stage" variant="secondary"/>
+        </div>
+    </c-components.horizontal_card>
+    <c-components.horizontal_card color="yellow" title="Accueillez les talents de demain" style="serif" label="Stages de 3ème et de 2nde">
+        Déposez vos offres sur la plateforme dédiée et accueillez des élèves en stage en troisième ou en seconde pour leur faire découvrir les métiers du numérique et les aider à construire leur orientation.
+        <div class="flex justify-end mt-3">
+            <c-components.button icon="external-link" target="_blank" href="https://stages.techpourtoutes.io/professionnels" label="Proposer un stage" variant="secondary"/>
+        </div>
+    </c-components.horizontal_card>
+    <c-components.horizontal_card color="orange" title="Faites découvrir les coulisses de votre entreprise" style="serif" label="Portes ouvertes">
+        Ouvrez vos portes aux filles pour leur présenter vos activités, leur faire visiter vos locaux et échanger avec vos équipes sur les métiers de la tech.
+        <div class="flex justify-end mt-3">
+            {% if user.is_authenticated %}
+                <c-components.button href="{% url "new_event" %}" label="Organiser des portes ouvertes" variant="secondary"/>
+            {% else %}
+                <c-components.button href="{% url "new_pro_inscription_funnel" %}?engagement=events" label="Organiser des portes ouvertes" variant="secondary"/>
+            {% endif %}
+        </div>
+    </c-components.horizontal_card>
+    <c-components.horizontal_card color="green" title="Partagez le quotidien de vos métiers" style="serif" label="Stages « Vis ma vie »">
+        Accueillez une lycéenne ou une étudiante pendant une journée aux côtés d'une professionnelle de votre entreprise pour lui faire découvrir son métier, ses missions et son environnement de travail.
+        <div class="flex justify-end mt-3">
+            {% if user.is_authenticated %}
+                <c-components.button href="{% url "new_event" %}" label="Organiser un vis ma vie" variant="secondary"/>
+            {% else %}
+                <c-components.button href="{% url "new_pro_inscription_funnel" %}?engagement=events" label="Organiser un vis ma vie" variant="secondary"/>
+            {% endif %}
+        </div>
+    </c-components.horizontal_card>
 
-    <c-components.card title="La mixité, accélérateur de performance">
-        <c-components.text>
-            TechPourToutes est une opportunité concrète pour répondre à vos enjeux de recrutement, pour un numérique plus diversifié et plus performant. Les talents se font rares&nbsp;; ne passez pas à côté de 50% d'entre eux&nbsp;!
-        </c-components.text>
-    </c-components.card>
-
-    <c-components.card title="La priorité du moment&nbsp;- les stages de seconde">
-        <c-components.text>
-            Du 15 au 26 juin 2026, tous les élèves de seconde général et technologique doivent effectuer un stage d'observation.
-
-            Vous pouvez publier gratuitement vos offres sur notre plateforme partenaire et ainsi toucher une très large communauté de lycéennes passionnées par les nouvelles technologies.
-        </c-components.text>
-    </c-components.card>
 
     <c-components.accordion title="Cette action est menée par">
         <c-components.text>
             Numeum, syndicat patronal et organisation des professionnels du numérique, qui représente près de 2&nbsp;500 entreprises adhérentes, dont 50% en région.
 
+            La Conférence des Grandes Écoles est une association loi de 1901 qui rassemble 246 écoles de niveau master et au-delà, ainsi qu'une cinquantaine d'entreprises et organismes membres.
+
         </c-components.text>
         <c-components.button href="{% url "qui_sommes_nous" %}" label="Découvrir tous les membres du consortium TechPourToutes" variant="tertiary" />
     </c-components.accordion>
+
 
     <c-slot name="decorations">
         <c-components.codex-letter letter="S" row="6" col="16" class="text-green-500" />
     </c-slot>
 
-
-    <c-slot name="right">
-        <div class="flex flex-col items-center px-4 md:mt-[100px] md:self-start md:sticky md:top-14 xl:top-8">
-            <c-components.starburst-title title="Recrutez la prochaine<br>génération de talents&nbsp;!" class="mb-4" />
-            <c-components.button label="Proposer un stage" icon="external-link" target="_blank" href="https://stages.techpourtoutes.io/professionnels" class="my-5" />
-        </div>
-    </c-slot>
 </c-layout.base>

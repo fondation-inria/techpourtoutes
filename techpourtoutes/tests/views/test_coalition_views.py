@@ -4,6 +4,7 @@ from unittest.mock import MagicMock, patch
 import pytest
 from django.test import override_settings
 from django.urls import reverse
+from waffle.testutils import override_switch
 
 
 def _email_input_is_disabled(html):
@@ -65,6 +66,18 @@ def test_create_mentor_shows_error_on_create_mentor_failure(client, valid_pro_da
 @pytest.mark.django_db
 def test_new_internship_get(client):
     assert client.get(reverse("new_internship")).status_code == 200
+
+
+@pytest.mark.django_db
+@pytest.mark.parametrize(
+    ("active", "template"),
+    [(True, "coalition/new_internship.html"), (False, "coalition/new_internship_legacy.html")],
+)
+def test_new_internship_renders_page_according_to_switch(client, active, template):
+    with override_switch("new_pro_features", active=active):
+        response = client.get(reverse("new_internship"))
+
+    assert response.templates[0].name == template
 
 
 @pytest.mark.django_db
@@ -358,6 +371,57 @@ def test_create_workshop_request_invalid_rerenders_with_errors(client):
 @pytest.mark.django_db
 def test_new_sponsor_get(client):
     assert client.get(reverse("new_sponsor")).status_code == 200
+
+
+@pytest.mark.django_db
+@override_switch("new_pro_features", active=True)
+def test_new_structure_engagement_get(client):
+    assert client.get(reverse("new_structure_engagement")).status_code == 200
+
+
+@pytest.mark.django_db
+@override_switch("new_pro_features", active=False)
+def test_new_structure_engagement_not_found_when_switch_inactive(client):
+    assert client.get(reverse("new_structure_engagement")).status_code == 404
+
+
+@pytest.mark.django_db
+@pytest.mark.parametrize("page", ["new_internship", "new_structure_engagement"])
+@override_switch("new_pro_features", active=True)
+def test_pages_send_anonymous_visitor_to_inscription_funnel_before_events(client, page):
+    html = client.get(reverse(page)).content.decode()
+
+    assert f'href="{reverse("new_pro_inscription_funnel")}?engagement=events"' in html
+    assert f'href="{reverse("new_event")}"' not in html
+
+
+@pytest.mark.django_db
+@pytest.mark.parametrize("page", ["new_internship", "new_structure_engagement"])
+@override_switch("new_pro_features", active=True)
+def test_pages_send_signed_in_pro_to_new_event(client, pro, page):
+    client.force_login(pro)
+
+    html = client.get(reverse(page)).content.decode()
+
+    assert f'href="{reverse("new_event")}"' in html
+    assert f"?next={reverse('index_pro_events')}" not in html
+
+
+@pytest.mark.django_db
+@pytest.mark.parametrize("page", ["coalition_home", "html_sitemap"])
+@pytest.mark.parametrize(
+    ("active", "linked", "unlinked"),
+    [
+        (True, "new_structure_engagement", "new_sponsor"),
+        (False, "new_sponsor", "new_structure_engagement"),
+    ],
+)
+def test_pages_link_sponsor_page_according_to_switch(client, page, active, linked, unlinked):
+    with override_switch("new_pro_features", active=active):
+        html = client.get(reverse(page)).content.decode()
+
+    assert f'href="{reverse(linked)}"' in html
+    assert f'href="{reverse(unlinked)}"' not in html
 
 
 @pytest.mark.django_db

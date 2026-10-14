@@ -1,0 +1,39 @@
+<c-vars 
+    title="" 
+    label=""
+    title_bg="black" 
+    title_class="mb-3"
+    style="" 
+    class="" 
+    color="yellow" 
+    yellow_class="bg-yellow-500 text-neutral-950"
+    orange_class="bg-orange-500 text-neutral-950"
+    green_class="bg-green-500 text-neutral-950"
+    purple_class="bg-purple-500 text-neutral-950"
+    blue_class="bg-blue-500 text-neutral-0"
+/>
+
+<div class="flex flex-col md:flex-row w-full bg-neutral-0 border border-black shadow-box {{ class }}">
+    <div class="md:shrink-0 md:w-[142px] flex items-center justify-center px-4 py-2 md:p-4 text-center
+        {% if color == "orange" %}
+            {{ orange_class }}
+        {% elif color == "green" %}
+            {{ green_class }}
+        {% elif color == "purple" %}
+            {{ purple_class }}
+        {% elif color == "blue" %}
+            {{ blue_class }}
+        {% else %}
+            {{ yellow_class }}
+        {% endif %}">
+        <p class="text-lg leading-[1.4] font-serif font-extrabold italic">{{ label }}</p>
+    </div>
+    <div class="flex-1 min-w-0 p-4">
+        {% if title %}
+            <c-components.title title="{{ title|safe }}" variant="h3" title_bg="{{ title_bg }}" style="{{ style }}" class="{{ title_class }}" />
+        {% endif %}
+        <div class="text-black leading-[1.4]">
+            {{ slot }}
+        </div>
+    </div>
+</div>

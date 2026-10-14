@@ -1,0 +1,114 @@
+<c-layout.base title="Engager ma structure – TechPourToutes" description="Mentorat, événements, ambassadorat, mécénat : découvrez comment votre structure peut s'engager avec TechPourToutes pour féminiser les métiers du numérique.">
+    <c-components.title title="Engager ma structure" title_bg="yellow" />
+    <div class="flex flex-wrap gap-2 md:gap-4">
+        <c-components.badge label="Long terme" />
+        <c-components.badge label="Ponctuel" />
+        <c-components.badge label="À distance" />
+        <c-components.badge label="En présentiel" />
+    </div>
+
+    <c-components.card title="Incitez vos équipes à transmettre leur passion et leur métier">
+        <p class="mt-5">
+            Parmi les nombreuses façons de contribuer au programme TechPourToutes, choisissez la ou les modalités qui vous conviennent. Vous avez les cartes en main pour changer la donne&nbsp;!
+        </p>
+    </c-components.card>
+
+    <c-components.horizontal_card color="yellow" label="Mentorat">
+        Encouragez vos collaborateurs à devenir mentor pour transmettre leur expérience et aider une fille à trouver sa place dans la tech. Le mentorat c'est aussi une aventure humaine pleine de sens, avec un engagement flexible, 100&nbsp;% à distance, à raison de 2 heures par mois.
+        <div class="flex justify-end mt-3">
+            <c-components.button href="{% url "new_mentor" %}" label="Découvrir le mentorat" variant="secondary"/>
+        </div>
+    </c-components.horizontal_card>
+    <c-components.horizontal_card color="blue" label="Événement">
+        Vous organisez une conférence, un afterwork ou un job dating et souhaitez valoriser vos actions auprès de notre communauté&nbsp;? Partagez votre événement sur notre site et faites-le connaître à notre réseau.
+        <div class="flex justify-end mt-3">
+            {% if user.is_authenticated %}
+                <c-components.button href="{% url "new_event" %}" label="Proposer un événement" variant="secondary"/>
+            {% else %}
+                <c-components.button href="{% url "new_pro_inscription_funnel" %}?engagement=events" label="Proposer un événement" variant="secondary"/>
+            {% endif %}
+        </div>
+    </c-components.horizontal_card>
+    <c-components.horizontal_card color="orange" label="Ambassadorat">
+        Partagez votre expérience et les coulisses de votre métier avec des jeunes du programme en répondant à des sollicitations ponctuelles.
+        <div class="flex justify-end mt-3">
+            <c-components.button href="{% url "new_work_ambassador" %}" label="Découvrir l'ambassadorat" variant="secondary"/>
+        </div>
+    </c-components.horizontal_card>
+
+
+    <c-components.card title="Devenez Grand Mécène">
+        <div class="mt-5 mb-5">
+            Véritable levier de votre politique RSE, soutenir TechPourToutes vous permet de traduire en actions les engagements de votre entreprise et d'avoir un impact sur le parcours des étudiantes. Choisissez la forme d'engagement qui vous convient, notre équipe construira avec vous un partenariat sur mesure. Ces dons, qu'ils soient matériels, humains ou financiers, peuvent donner lieu à une déduction fiscale.
+            <c-components.list>
+                Mécénat financier&nbsp;: apportez un soutien financier pour soutenir des actions à impact
+                Mécénat en nature&nbsp;: don de matériel informatique, audiovisuel
+                Mécénat de compétences&nbsp;: mobilisez vos collaborateurs volontaires, sur leur temps de travail, pour des missions structurantes
+            </c-components.list>
+        </div>
+        <div class="flex justify-end mt-3">
+            <c-components.button href="{% url "new_pro_inscription_funnel" %}?engagement=sponsor" label="Nous soutenir" variant="secondary"/>
+        </div>
+    </c-components.card>
+
+    <c-components.card title="Les mécènes du programme">
+        <div class="grid grid-cols-3 w-full gap-5 lg:gap-15 mb-5 text-center mt-3">
+            <c-components.card-shadow class="flex flex-col items-center">
+                <c-components.icon name="logo-la-poste" variant="image" class="h-25 w-25 object-contain" />
+                La Poste
+            </c-components.card-shadow>
+            <c-components.card-shadow class="flex flex-col items-center">
+                <c-components.icon name="logo-accenture" variant="image" class="h-25 w-25 object-contain" />
+                Accenture
+            </c-components.card-shadow>
+            <c-components.card-shadow class="flex flex-col items-center">
+                <c-components.icon name="logo-dusens" variant="image" class="h-25 w-25 object-contain" />
+                Dusens
+            </c-components.card-shadow>
+        </div>
+    </c-components.card>
+
+    <c-components.card title="Contribuez à des bourses allant jusqu'à 7&nbsp;000 euros">
+        <p class="mt-5 mb-5">
+            Ces bourses permettront concrètement à des lycéennes et étudiantes de poursuivre leurs études dans la voie qui les motive et pour laquelle elles sont talentueuses. Attribuées sur critères sociaux et venant en complément des bourses du CROUS, elles permettront de lever les freins matériels, témoignant d'un soutien concret à la féminisation et d'un engagement des entreprises qui veulent élargir le vivier de leurs futures collaboratrices.
+        </p>
+        <div class="flex justify-end mt-3">
+            <c-components.button href="{% url "new_pro_inscription_funnel" %}?engagement=sponsor" label="Nous soutenir" variant="secondary"/>
+        </div>
+    </c-components.card>
+
+    <c-components.accordion title="Mécène, une antonomase&nbsp;?">
+        <c-components.text>
+            Oui, comme pour mentor, mais Mécène a bien existé, lui. Caius Maecenas était un homme politique romain qui vécut lors de la deuxième moitié du 1er siècle avant notre ère. Il fut célèbre pour avoir consacré une partie de sa fortune et de son influence à la promotion des arts et des lettres. Faites comme lui et participez à la promotion d'une tech plus mixte&nbsp;!
+
+        </c-components.text>
+        <c-components.button href="https://fr.wikipedia.org/wiki/M%C3%A9c%C3%A8ne" label="Source&nbsp;: Wikipedia" icon="external-link" variant="tertiary" target="_blank" />
+    </c-components.accordion>
+
+    <c-components.accordion title="Cette action est menée par">
+        <c-components.text>
+            la Fondation Inria, pilote du programme TechPourToutes.
+
+            JobIRL, spécialiste du mentorat depuis 2013 et association loi 1901 reconnue d'intérêt général à caractère social et éducatif, et conventionnée par le ministère de l'Éducation nationale.
+
+        </c-components.text>
+        <c-components.button href="{% url "qui_sommes_nous" %}" label="Découvrir tous les membres du consortium TechPourToutes" variant="tertiary" />
+    </c-components.accordion>
+
+    <c-components.horizontal_card color="purple" label="Faire coalition">
+        <p class="mb-5">
+            Votre structure (association, entreprise, établissement ou institution) agit en faveur de la féminisation de la tech ou souhaite s'engager&nbsp;?
+        </p>
+        <p>
+            TechPourToutes met en lumière vos initiatives et vous permet de rejoindre des actions en cours. Signez le manifeste et rejoignez la coalition pour faire avancer collectivement la place des femmes dans la tech.
+        </p>
+        <div class="flex justify-end mt-3">
+            <c-components.button href="/" label="Rejoindre la coalition" variant="primary"/>
+        </div>
+    </c-components.horizontal_card>
+
+    <c-slot name="decorations">
+        <c-components.codex-letter letter="M" row="6" col="16" class="text-green-500" />
+    </c-slot>
+
+</c-layout.base>
