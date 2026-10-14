@@ -29,7 +29,7 @@
         </c-components.text>
         {% switch "new_pro_features" %}
             <div class="flex w-full items-center justify-center mt-5">
-                <c-components.button href="{% url "new_pro_inscription_funnel" %}?engagement=mentor" label="Je deviens mentor" />
+                <c-patterns.pro_engagement_button engagement="mentor" label="Je deviens mentor" />
             </div>
         {% endswitch %}
     </c-components.card>
@@ -52,7 +52,7 @@
 
     {% switch "new_pro_features" %}
         <c-slot name="mobile_cta">
-            <c-components.button href="{% url "new_pro_inscription_funnel" %}?engagement=mentor" label="Je deviens mentor" />
+            <c-patterns.pro_engagement_button engagement="mentor" label="Je deviens mentor" />
         </c-slot>
     {% endswitch %}
 
