@@ -29,7 +29,7 @@
         </div>
         {% switch "new_pro_features" %}
             <div class="flex w-full items-center justify-center mt-5">
-                <c-components.button href="{% url "new_pro_inscription_funnel" %}?engagement=workshops" label="Je demande un atelier Latitudes" />
+                <c-patterns.pro_engagement_button engagement="workshops" label="Je demande un atelier Latitudes" />
             </div>
         {% endswitch %}
     </c-components.card>

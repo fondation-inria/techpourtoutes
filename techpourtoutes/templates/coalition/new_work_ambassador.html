@@ -19,7 +19,7 @@
         </ul>
         {% switch "new_pro_features" %}
             <div class="flex justify-center w-full">
-                <c-components.button href="{% url "new_pro_inscription_funnel" %}?engagement=work_ambassador" label="Je deviens ambassadrice" />
+                <c-patterns.pro_engagement_button engagement="work_ambassador" label="Je deviens ambassadrice" />
             </div>
         {% endswitch %}
     </c-components.card>
@@ -63,7 +63,7 @@
 
     {% switch "new_pro_features" %}
         <c-slot name="mobile_cta">
-            <c-components.button href="{% url "new_pro_inscription_funnel" %}?engagement=work_ambassador" label="Je deviens ambassadrice" />
+            <c-patterns.pro_engagement_button engagement="work_ambassador" label="Je deviens ambassadrice" />
         </c-slot>
     {% endswitch %}
 
