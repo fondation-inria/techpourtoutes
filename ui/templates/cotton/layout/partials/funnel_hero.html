@@ -1,0 +1,24 @@
+{% load static %}
+{# The column is a size container, so the artboard can fit it like object-contain: as wide as it #}
+{# allows, unless its height runs out first. Everything inside is a fraction of the artboard, #}
+{# the tagline's text included (cqw), so the composition only ever changes scale. #}
+<div class="items-center py-8 @container-[size] {{ class }}">
+    <div class="@container relative mx-auto aspect-4/5 w-[min(100cqw,80cqh)] [&>img]:absolute [&>img]:w-[20%]">
+        <img src="{% static 'images/badge-purple.webp' %}" alt=""
+             class="left-0 top-0" width="128" height="128" decoding="async" />
+        <c-components.title variant="tagline"
+                            class="absolute left-[26.5%] top-[16%] text-[6.25cqw]! [&>span]:h-[1.75em]! [&>span:nth-child(even)]:ml-[2.75em]!">
+            <span>Le futur sera </span>
+            <span>numérique...</span>
+            <span>et féminin</span>
+        </c-components.title>
+        <img src="{% static 'images/badge-yellow.webp' %}" alt=""
+             class="left-[14%] top-[52.5%]" width="128" height="128" decoding="async" />
+        <img src="{% static 'images/badge-green.webp' %}" alt=""
+             class="left-[80%] top-[46.5%]" width="128" height="128" decoding="async" />
+        <img src="{% static 'images/badge-orange.webp' %}" alt=""
+             class="left-[25.5%] top-[76.5%]" width="128" height="128" decoding="async" />
+        <img src="{% static 'images/badge-blue.webp' %}" alt=""
+             class="left-[63.5%] bottom-0" width="128" height="128" decoding="async" />
+    </div>
+</div>
