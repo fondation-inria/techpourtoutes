@@ -47,7 +47,7 @@
             </c-components.list>
         </div>
         <div class="flex justify-end mt-3">
-            <c-components.button href="{% url "new_pro_inscription_funnel" %}?engagement=sponsor" label="Nous soutenir" variant="secondary"/>
+            <c-patterns.pro_engagement_button engagement="sponsor" label="Nous soutenir" variant="secondary" />
         </div>
     </c-components.card>
 
@@ -73,7 +73,7 @@
             Ces bourses permettront concrètement à des lycéennes et étudiantes de poursuivre leurs études dans la voie qui les motive et pour laquelle elles sont talentueuses. Attribuées sur critères sociaux et venant en complément des bourses du CROUS, elles permettront de lever les freins matériels, témoignant d'un soutien concret à la féminisation et d'un engagement des entreprises qui veulent élargir le vivier de leurs futures collaboratrices.
         </p>
         <div class="flex justify-end mt-3">
-            <c-components.button href="{% url "new_pro_inscription_funnel" %}?engagement=sponsor" label="Nous soutenir" variant="secondary"/>
+            <c-patterns.pro_engagement_button engagement="sponsor" label="Nous soutenir" variant="secondary" />
         </div>
     </c-components.card>
 
@@ -103,12 +103,12 @@
             TechPourToutes met en lumière vos initiatives et vous permet de rejoindre des actions en cours. Signez le manifeste et rejoignez la coalition pour faire avancer collectivement la place des femmes dans la tech.
         </p>
         <div class="flex justify-end mt-3">
-            <c-components.button href="/" label="Rejoindre la coalition" variant="primary"/>
+            <c-patterns.pro_engagement_button engagement="mobilize_structure" label="Rejoindre la coalition" />
         </div>
     </c-components.horizontal_card>
 
     <c-slot name="decorations">
-        <c-components.codex-letter letter="M" row="6" col="16" class="text-green-500" />
+        <c-components.codex-letter letter="M" row="6" col="24" class="text-green-500" />
     </c-slot>
 
 </c-layout.base>

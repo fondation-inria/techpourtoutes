@@ -1,19 +1,4 @@
 """What an engagement button does for whoever sees it.
-
-    {% load pro_engagements %}
-    {% pro_engagement_action request.user "mentor" as action %}
-    {% url "create_pro_engagement" "mentor" as add_url %}
-    {% url "new_pro_engagement" "mentor" as new_url %}
-    {% if action == "add" %}
-        {# Nothing left to give: the click itself adds the engagement. #}
-        <c-patterns.form hx-post="{{ add_url }}?next={{ request.get_full_path|urlencode }}">
-            <c-components.button type="submit" label="Devenir mentor" />
-        </c-patterns.form>
-    {% elif action %}
-        {# "complete": the screen the engagement still calls for; "sign_up": the inscription. #}
-        <c-components.button href="{{ new_url }}" label="Devenir mentor" />
-    {% endif %}
-
 No action, no button: a beneficiary, or a pro who may not take the engagement on. `next` is
 where a failed addition sends her back, with its message; success leads to her account.
 """

@@ -1,3 +1,4 @@
+{% load waffle_tags %}
 <c-layout.base title="Pitcher mon métier – TechPourToutes" description="Partagez votre parcours professionnel durant des échanges ponctuels et inspirez les jeunes femmes à s'orienter vers la tech en devenant ambassadrice métier TechPourToutes.">
     <c-components.title title="Pitcher mon métier" title_bg="yellow" />
     <div class="flex flex-wrap gap-2 md:gap-4">
@@ -7,20 +8,28 @@
     </div>
 
     <c-components.card title="Qui peut devenir ambassadrice métier&nbsp;?">
-            <br>
-            Nous avons <c-components.inline-link label="fait le choix de féminiser les termes sur le site TechPourToutes" href="{% url "pourquoi_nous_ecrivons_au_feminin" %}"/> par cohérence avec notre objectif de visibiliser la place des femmes dans le numérique et plus largement de contribuer à la mixité dans ce secteur. Pour autant, <span class="font-bold">les ambassadeurs sont bien évidemment les bienvenus&nbsp;!</span> Tous les parcours, linéaires, créatifs, faits de reconversion ou de choix audacieux sont instructifs et permettront aux lycéennes et étudiantes de découvrir de nouveaux métiers et de se projeter dans un monde du travail en constante évolution.
-            <br><br>
-            Trois prérequis :
-            <ul class="steps steps-vertical">
-                <li class="step step-secondary text-left">Avoir plus de 20 ans</li>
-                <li class="step step-secondary text-left">Travailler ou avoir travaillé dans le secteur numérique, dans un métier technique ou non</li>
-                <li class="step step-secondary text-left"><span>Adhérer au <c-components.inline-link label="manifeste TechPourToutes" href="{% url "notre_manifeste" %}"/></span></li>
-            </ul>
+        <br>
+        Nous avons <c-components.inline-link label="fait le choix de féminiser les termes sur le site TechPourToutes" href="{% url "pourquoi_nous_ecrivons_au_feminin" %}"/> par cohérence avec notre objectif de visibiliser la place des femmes dans le numérique et plus largement de contribuer à la mixité dans ce secteur. Pour autant, <span class="font-bold">les ambassadeurs sont bien évidemment les bienvenus&nbsp;!</span> Tous les parcours, linéaires, créatifs, faits de reconversion ou de choix audacieux sont instructifs et permettront aux lycéennes et étudiantes de découvrir de nouveaux métiers et de se projeter dans un monde du travail en constante évolution.
+        <br><br>
+        Trois prérequis :
+        <ul class="steps steps-vertical">
+            <li class="step step-secondary text-left">Avoir plus de 20 ans</li>
+            <li class="step step-secondary text-left">Travailler ou avoir travaillé dans le secteur numérique, dans un métier technique ou non</li>
+            <li class="step step-secondary text-left"><span>Adhérer au <c-components.inline-link label="manifeste TechPourToutes" href="{% url "notre_manifeste" %}"/></span></li>
+        </ul>
+        {% switch "new_pro_features" %}
+            <div class="flex justify-center w-full">
+                <c-patterns.pro_engagement_button engagement="work_ambassador" label="Je deviens ambassadrice" />
+            </div>
+        {% endswitch %}
     </c-components.card>
 
-    <div class="flex justify-center w-full md:hidden">
-        <c-components.button href="#work-ambassador-card" label="Je deviens ambassadrice" />
-    </div>
+    {% switch "new_pro_features" %}
+    {% else %}
+        <div class="flex justify-center w-full md:hidden">
+            <c-components.button href="#work-ambassador-card" label="Je deviens ambassadrice" />
+        </div>
+    {% endswitch %}
 
     <c-components.card title="Un engagement adapté à vos disponibilités">
         <c-components.text>
@@ -52,10 +61,18 @@
         <c-components.button href="{% url "qui_sommes_nous" %}" label="Découvrir tous les membres du consortium TechPourToutes" variant="tertiary" />
     </c-components.accordion>
 
+    {% switch "new_pro_features" %}
+        <c-slot name="mobile_cta">
+            <c-patterns.pro_engagement_button engagement="work_ambassador" label="Je deviens ambassadrice" />
+        </c-slot>
+    {% endswitch %}
+
     <c-slot name="decorations">
-        <c-components.codex-letter letter="P" row="6" col="16" class="text-orange-500" />
+        <c-components.codex-letter letter="P" row="6" col="24" class="text-orange-500" />
     </c-slot>
 
+    {% switch "new_pro_features" %}
+    {% else %}
     <c-slot name="right">
         <div class="flex flex-col items-center px-4 md:mt-[100px] md:self-start"
              x-data="{ showForm: {{ form.is_bound|yesno:'true,false' }}, situation: '{{ form.professional_situation.value|default:'' }}' }"
@@ -122,4 +139,5 @@
             </div>
         </div>
     </c-slot>
+    {% endswitch %}
 </c-layout.base>

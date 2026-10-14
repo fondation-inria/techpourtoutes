@@ -1,3 +1,4 @@
+{% load waffle_tags %}
 <c-layout.base title="Devenir mentor – TechPourToutes" description="Accompagnez une lycéenne ou étudiante dans son orientation vers les métiers du numérique et donnez de votre temps en rejoignant la communauté TechPourToutes de mentors.">
     <c-components.title title="Mentorer" title_bg="yellow" />
     <div class="flex flex-wrap gap-2 md:gap-4">
@@ -26,6 +27,11 @@
 
             Les équipes de JobIRL, membre du consortium TechPourToutes, vous apportent tout le soutien dont vous avez besoin au fur et à mesure de vos échanges.
         </c-components.text>
+        {% switch "new_pro_features" %}
+            <div class="flex w-full items-center justify-center mt-5">
+                <c-patterns.pro_engagement_button engagement="mentor" label="Je deviens mentor" />
+            </div>
+        {% endswitch %}
     </c-components.card>
 
     <c-components.accordion title="Mentor ou mentore&nbsp;?">
@@ -44,10 +50,18 @@
         <c-components.button href="{% url "qui_sommes_nous" %}" label="Découvrir tous les membres du consortium TechPourToutes" variant="tertiary" />
     </c-components.accordion>
 
+    {% switch "new_pro_features" %}
+        <c-slot name="mobile_cta">
+            <c-patterns.pro_engagement_button engagement="mentor" label="Je deviens mentor" />
+        </c-slot>
+    {% endswitch %}
+
     <c-slot name="decorations">
-        <c-components.codex-letter letter="M" row="6" col="16" class="text-purple-500" />
+        <c-components.codex-letter letter="M" row="6" col="24" class="text-purple-500" />
     </c-slot>
 
+    {% switch "new_pro_features" %}
+    {% else %}
     <c-slot name="right">
         <div class="flex flex-col items-center px-4 md:mt-[100px] md:self-start"
              x-data="{ showForm: {{ form.is_bound|yesno:'true,false' }}, situation: '{{ form.professional_situation.value|default:'' }}' }"
@@ -121,4 +135,5 @@
 
         </div>
     </c-slot>
+    {% endswitch %}
 </c-layout.base>
