@@ -1,5 +1,6 @@
 from django.db import transaction
 
+from ...forms.pro_inscription import OTHER
 from ...forms.pro_inscription.workshop_request_form import OTHER_SCHOOL_MISSION
 from ...mailers import ConsortiumMailer, ProMailer
 from ...models import Pro, WorkshopRequest
@@ -13,6 +14,7 @@ _NOTIFIED_ENGAGEMENTS = (
     Pro.Engagement.WORK_AMBASSADOR,
     Pro.Engagement.SPONSOR,
     Pro.Engagement.MOBILIZE_STRUCTURE,
+    OTHER,
 )
 
 _SITUATIONS = {
@@ -57,10 +59,14 @@ class ProEngagementMixin:
                     )
 
     # Only once everything is saved: the team and Latitudes must find what they are told about.
-    def _notify_about_engagements(self, engagements):
+    def _notify_about_engagements(self, engagements, other_message=""):
         for engagement in _NOTIFIED_ENGAGEMENTS:
             if engagement in engagements:
-                ConsortiumMailer.pro_signed_up(pro=self.pro, engagement=engagement)
+                ConsortiumMailer.pro_signed_up(
+                    pro=self.pro,
+                    engagement=engagement,
+                    message=other_message if engagement == OTHER else "",
+                )
         if self.training_ambassador_form:
             ConsortiumMailer.training_ambassador_signed_up(
                 pro=self.pro, training_experience=self.training_experience

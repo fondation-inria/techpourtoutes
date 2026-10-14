@@ -264,7 +264,7 @@ def _preselected_engagement(engagement):
 def _asks_additional_information(answers):
     others = (
         set(_engagements(answers))
-        - set(Pro.Engagement.TRAINING_AMBASSADOR, Pro.Engagement.WORKSHOPS)
+        - {Pro.Engagement.TRAINING_AMBASSADOR, Pro.Engagement.WORKSHOPS}
         - {EVENTS}
     )
     return bool(others) or _engagements(answers) == [EVENTS]

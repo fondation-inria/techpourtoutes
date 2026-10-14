@@ -3,36 +3,31 @@ from urllib.parse import urlencode
 from django.conf import settings
 from django.urls import reverse
 
+from ..forms.pro_inscription import OTHER
 from ..models import Pro
 from .base_mailer import BaseMailer
+
+_ENGAGEMENT_LABELS = {**dict(Pro.Engagement.choices), OTHER: "s'engager autrement"}
 
 
 class ConsortiumMailer(BaseMailer):
     from_email = "TechPourToutes <agir@techpourtoutes.io>"
 
     @classmethod
-    def pro_signed_up(cls, *, pro, engagement):
+    def pro_signed_up(cls, *, pro, engagement, message=""):
         recipient_list = {
             Pro.Engagement.INTERNSHIPS: settings.COALITION_INTERNSHIPS_RECIPIENTS,
             Pro.Engagement.WORK_AMBASSADOR: settings.COALITION_WORK_AMBASSADOR_RECIPIENTS,
             Pro.Engagement.SPONSOR: settings.COALITION_SPONSOR_RECIPIENTS,
             Pro.Engagement.MOBILIZE_STRUCTURE: settings.COALITION_MOBILIZE_STRUCTURE_RECIPIENTS,
+            OTHER: settings.COALITION_OTHER_ENGAGEMENT_RECIPIENTS,
         }.get(engagement, [])
 
-        engagement_label = Pro.Engagement(engagement).label if engagement else ""
+        engagement_label = _ENGAGEMENT_LABELS[engagement]
         cls.send_mail(
             subject=f"Une nouvelle demande pour {engagement_label}",
             recipient_list=recipient_list,
-            context={"pro": pro, "engagement": engagement_label},
-            tags=["interne", "coalition", "nouvelle demande d'engagement"],
-        )
-
-    @classmethod
-    def other_engagement_requested(cls, *, pro, message):
-        cls.send_mail(
-            subject="Une nouvelle demande d'engagement « Autre »",
-            recipient_list=settings.COALITION_OTHER_ENGAGEMENT_RECIPIENTS,
-            context={"pro": pro, "message": message},
+            context={"pro": pro, "engagement": engagement_label, "message": message},
             tags=["interne", "coalition", "nouvelle demande d'engagement"],
         )
 

@@ -276,6 +276,18 @@ def test_create_pro_relays_the_message_of_another_engagement():
     assert "Je veux aider autrement." in relayed.body
 
 
+def test_create_pro_relays_the_message_of_another_engagement_to_its_team_only():
+    _create(
+        "other",
+        "mobilize_structure",
+        message="Je veux aider autrement.",
+        additional_information=_additional_information(),
+    )
+
+    [notified] = _sent_to("structure@example.com")
+    assert "Je veux aider autrement." not in notified.body
+
+
 def test_create_pro_relays_nothing_without_another_engagement():
     _create("sponsor", additional_information=_additional_information())
 

@@ -1,8 +1,12 @@
 {% load phone_filters %}
 Bonjour,
 
-{{ pro.civility }} {{ pro.first_name }} {{ pro.last_name }}, de la structure {{ pro.structure_name }} souhaite {{ engagement }}.
+{{ pro.civility }} {{ pro.first_name }} {{ pro.last_name }}{% if pro.structure_name %}, de la structure {{ pro.structure_name }},{% endif %} souhaite {{ engagement }}.
+{% if message %}
+Voici son message :
 
+{{ message }}
+{% endif %}
 Peux-tu {% if pro.civility == "Madame" %}la{% else %}le{% endif %} recontacter ?
 - {{ pro.email }}
 {% if pro.phone %}- {{ pro.phone|phone_national }}{% endif %}
