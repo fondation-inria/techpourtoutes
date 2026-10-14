@@ -1,5 +1,5 @@
 from ...forms.pro_inscription import EVENTS, OTHER
-from ...mailers import ConsortiumMailer, ProMailer
+from ...mailers import ProMailer
 from ...models import Pro
 from ..base import BaseService
 from .pro_engagement_mixin import ProEngagementMixin
@@ -33,11 +33,7 @@ class CreatePro(ProEngagementMixin, BaseService):
         )
 
         ProMailer.welcome(pro=self.pro, code=self.pro.issue_login_code())
-        if OTHER in self.chosen:
-            ConsortiumMailer.other_engagement_requested(
-                pro=self.pro, message=engagements["message"]
-            )
-        self._notify_about_engagements(self.pro.engagements)
+        self._notify_about_engagements(self.chosen, engagements["message"])
 
     def _apply_identity(self, identity):
         self.pro.civility = identity["civility"]

@@ -2,6 +2,7 @@ import pytest
 from django.core import mail
 from django.test import override_settings
 
+from techpourtoutes.forms.pro_inscription import OTHER
 from techpourtoutes.mailers import ConsortiumMailer
 from techpourtoutes.models import Pro
 
@@ -38,13 +39,43 @@ def test_pro_signed_up_routes_to_engagement_recipient(pro, engagement, recipient
     EMAIL_BACKEND="django.core.mail.backends.locmem.EmailBackend",
     COALITION_OTHER_ENGAGEMENT_RECIPIENTS=["agir@example.com"],
 )
-def test_other_engagement_requested_relays_the_message_of_the_pro(pro):
-    ConsortiumMailer.other_engagement_requested(pro=pro, message="Je veux aider autrement.")
+def test_pro_signed_up_relays_the_message_of_another_engagement(pro):
+    ConsortiumMailer.pro_signed_up(pro=pro, engagement=OTHER, message="Je veux aider autrement.")
 
     message = mail.outbox[0]
     assert message.to == ["agir@example.com"]
+    assert "s'engager autrement" in message.subject
     assert "Je veux aider autrement." in message.body
+    assert "Je veux aider autrement." in message.alternatives[0][0]
     assert pro.email in message.body
+
+
+@pytest.mark.django_db
+@override_settings(
+    EMAIL_BACKEND="django.core.mail.backends.locmem.EmailBackend",
+    COALITION_SPONSOR_RECIPIENTS=["sponsor@example.com"],
+)
+def test_pro_signed_up_without_a_message_announces_none(pro):
+    ConsortiumMailer.pro_signed_up(pro=pro, engagement=Pro.Engagement.SPONSOR)
+
+    message = mail.outbox[0]
+    assert "Voici son message" not in message.body
+    assert "Voici son message" not in message.alternatives[0][0]
+
+
+@pytest.mark.django_db
+@override_settings(
+    EMAIL_BACKEND="django.core.mail.backends.locmem.EmailBackend",
+    COALITION_SPONSOR_RECIPIENTS=["sponsor@example.com"],
+)
+def test_pro_signed_up_without_a_structure_names_none(pro):
+    pro.structure_name = ""
+
+    ConsortiumMailer.pro_signed_up(pro=pro, engagement=Pro.Engagement.SPONSOR)
+
+    message = mail.outbox[0]
+    assert "de la structure" not in message.body
+    assert "de la structure" not in message.alternatives[0][0]
 
 
 @pytest.mark.django_db
