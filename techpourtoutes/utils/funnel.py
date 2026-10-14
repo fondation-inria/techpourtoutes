@@ -10,8 +10,9 @@ _TTL = timedelta(hours=1)
 
 
 class FunnelSteps:
-    """The ordered screens of a funnel. `optional` maps a screen to the answer that shows it:
-    the screen is part of the funnel only while that answer is true."""
+    """The ordered screens of a funnel. `optional` maps a screen to what shows it — the name of
+    an answer, or a predicate over the answers: the screen is part of the funnel only while that
+    answer, or that predicate, is true."""
 
     def __init__(self, steps, optional=None):
         self.steps = steps
@@ -22,11 +23,7 @@ class FunnelSteps:
         return self.steps[0]
 
     def active(self, answers):
-        return [
-            step
-            for step in self.steps
-            if step not in self.optional or answers.get(self.optional[step])
-        ]
+        return [step for step in self.steps if self._shows(step, answers)]
 
     def next(self, step, answers):
         """The first active screen following `step`, which may itself no longer be active; None
@@ -63,13 +60,21 @@ class FunnelSteps:
             return None
         return round(100 * (steps.index(step) + 1) / (len(steps) + 1))
 
+    def _shows(self, step, answers):
+        if step not in self.optional:
+            return True
+        condition = self.optional[step]
+        return condition(answers) if callable(condition) else answers.get(condition)
+
 
 class FunnelSession:
-    """The answers of a funnel in progress, kept in the visitor's session under `key`."""
+    """The answers of a funnel in progress, kept in the visitor's session under `key`.
+    The fields named in `multiple` keep every value posted — checkboxes — as a list."""
 
-    def __init__(self, request, key):
+    def __init__(self, request, key, multiple=()):
         self.session = request.session
         self.key = key
+        self.multiple = multiple
 
     @property
     def answers(self):
@@ -79,7 +84,7 @@ class FunnelSession:
     def answers_with(self, step, data):
         """The answers as they would be once `step` is replaced by `data`, without saving them."""
         state = self._state()
-        return _merged(state["values"], {**state["steps"], step: _answers_in(data)})
+        return _merged(state["values"], {**state["steps"], step: self._answers_in(data)})
 
     @property
     def answered(self):
@@ -94,7 +99,7 @@ class FunnelSession:
         self._write(current=step)
 
     def save_step(self, step, data):
-        self._write(steps={**self._state()["steps"], step: _answers_in(data)})
+        self._write(steps={**self._state()["steps"], step: self._answers_in(data)})
 
     def update(self, **values):
         self._write(values={**self._state()["values"], **values})
@@ -117,9 +122,12 @@ class FunnelSession:
             "updated_at": timezone.now().isoformat(),
         }
 
-
-def _answers_in(data):
-    return {name: value for name, value in data.items() if name not in _CONTROL_FIELDS}
+    def _answers_in(self, data):
+        return {
+            name: data.getlist(name) if name in self.multiple else value
+            for name, value in data.items()
+            if name not in _CONTROL_FIELDS
+        }
 
 
 def _merged(values, steps):

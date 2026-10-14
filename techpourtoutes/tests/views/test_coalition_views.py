@@ -654,6 +654,20 @@ def test_create_workshop_request_new_pro_receives_welcome_email(
     welcome.assert_called_once()
 
 
+@pytest.mark.django_db
+def test_create_mentor_new_pro_receives_welcome_email(client, valid_pro_data, mock_create_mentor):
+    from techpourtoutes.mailers import ProMailer
+
+    with (
+        patch.object(ProMailer, "engagement_added") as engagement_added,
+        patch.object(ProMailer, "welcome") as welcome,
+    ):
+        client.post(reverse("create_mentor"), data=valid_pro_data)
+
+    engagement_added.assert_not_called()
+    welcome.assert_called_once()
+
+
 # --- Existing pro receives new engagement email ---
 
 
@@ -680,6 +694,23 @@ def test_existing_pro_receives_engagement_added_email(client, pro, url_name):
         )
 
     assert response.status_code == 302
+
+    engagement_added.assert_called_once_with(pro=pro)
+    welcome.assert_not_called()
+
+
+@pytest.mark.django_db
+def test_create_mentor_existing_pro_receives_engagement_added_email(
+    client, pro, mock_create_mentor
+):
+    from techpourtoutes.mailers import ProMailer
+
+    client.force_login(pro)
+    with (
+        patch.object(ProMailer, "engagement_added") as engagement_added,
+        patch.object(ProMailer, "welcome") as welcome,
+    ):
+        client.post(reverse("create_mentor"), data=_pro_post_data(pro))
 
     engagement_added.assert_called_once_with(pro=pro)
     welcome.assert_not_called()

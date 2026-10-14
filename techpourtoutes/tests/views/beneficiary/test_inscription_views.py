@@ -174,7 +174,7 @@ def test_a_submitted_screen_replaces_its_previous_answers(client):
 
 
 @pytest.mark.django_db
-def test_new_inscription_funnel_redirects_to_the_funnel(client):
+def test_new_beneficiary_inscription_funnel_redirects_to_the_funnel(client):
     response = client.get(NEW_FUNNEL_URL)
 
     assert response.status_code == 302
@@ -182,7 +182,7 @@ def test_new_inscription_funnel_redirects_to_the_funnel(client):
 
 
 @pytest.mark.django_db
-def test_new_inscription_funnel_starts_over(client):
+def test_new_beneficiary_inscription_funnel_starts_over(client):
     _seed_funnel(
         client,
         current="identity",
@@ -201,7 +201,9 @@ def test_new_inscription_funnel_starts_over(client):
 
 @pytest.mark.django_db
 @pytest.mark.parametrize(("query", "flag"), [("", False), ("?wants_mentor=1", True)])
-def test_new_inscription_funnel_records_whether_a_mentor_is_wanted(client, query, flag):
+def test_new_beneficiary_inscription_funnel_records_whether_a_mentor_is_wanted(
+    client, query, flag
+):
     client.get(f"{NEW_FUNNEL_URL}{query}")
 
     assert _funnel(client).answers["wants_mentor"] is flag
@@ -219,7 +221,9 @@ def test_reloading_the_funnel_keeps_progress_and_what_she_came_for(client):
 
 
 @pytest.mark.django_db
-def test_new_inscription_funnel_redirects_authenticated_user_to_account(client, beneficiary):
+def test_new_beneficiary_inscription_funnel_redirects_authenticated_user_to_account(
+    client, beneficiary
+):
     client.force_login(beneficiary)
 
     response = client.get(NEW_FUNNEL_URL)
@@ -677,11 +681,45 @@ def test_skipping_a_step_that_cannot_be_skipped_starts_over(client):
 
 
 @pytest.mark.django_db
-def test_show_skip_inscription_step_modal_submits_the_skipped_mentoring_screen(client):
-    response = client.get(reverse("show_skip_inscription_step_modal", args=["mentoring_signup"]))
+def test_show_skip_beneficiary_inscription_step_modal_submits_the_skipped_mentoring_screen(client):
+    response = client.get(
+        reverse("show_skip_beneficiary_inscription_step_modal", args=["mentoring_signup"])
+    )
 
     assert b'name="action" value="skip"' in response.content
     assert b'name="step" value="mentoring_signup"' in response.content
+
+
+@pytest.mark.django_db
+@pytest.mark.parametrize("step", ["mentoring_signup", "training_ambassador_request"])
+def test_beneficiary_inscription_funnel_offers_to_skip_an_optional_step(
+    client, higher_ed_school, higher_ed_formation, step
+):
+    _seed_after_training(
+        client,
+        higher_ed_school,
+        higher_ed_formation,
+        current=step,
+        values={"wants_mentor": True, "wants_training_ambassador": True},
+    )
+
+    response = client.get(FUNNEL_URL)
+
+    assert (
+        reverse("show_skip_beneficiary_inscription_step_modal", args=[step]).encode()
+        in response.content
+    )
+    assert b'id="modal-container"' in response.content
+
+
+@pytest.mark.django_db
+def test_beneficiary_inscription_funnel_does_not_offer_to_skip_a_required_step(client):
+    _seed_until_training(client, "higher_education")
+
+    response = client.get(FUNNEL_URL)
+
+    assert b"/passer/" not in response.content
+    assert b'id="modal-container"' not in response.content
 
 
 @pytest.mark.django_db
@@ -746,9 +784,13 @@ def test_training_ambassador_request_step_without_a_topic_creates_nothing(
 
 
 @pytest.mark.django_db
-def test_show_skip_inscription_step_modal_submits_the_skipped_ambassador_screen(client):
+def test_show_skip_beneficiary_inscription_step_modal_submits_the_skipped_ambassador_screen(
+    client,
+):
     response = client.get(
-        reverse("show_skip_inscription_step_modal", args=["training_ambassador_request"])
+        reverse(
+            "show_skip_beneficiary_inscription_step_modal", args=["training_ambassador_request"]
+        )
     )
 
     assert b'name="action" value="skip"' in response.content
@@ -757,8 +799,12 @@ def test_show_skip_inscription_step_modal_submits_the_skipped_ambassador_screen(
 
 
 @pytest.mark.django_db
-def test_show_skip_inscription_step_modal_rejects_a_step_that_cannot_be_skipped(client):
-    response = client.get(reverse("show_skip_inscription_step_modal", args=["identity"]))
+def test_show_skip_beneficiary_inscription_step_modal_rejects_a_step_that_cannot_be_skipped(
+    client,
+):
+    response = client.get(
+        reverse("show_skip_beneficiary_inscription_step_modal", args=["identity"])
+    )
 
     assert response.status_code == 404
 
@@ -913,7 +959,7 @@ def approved_salon(pro):
 
 
 @pytest.mark.django_db
-def test_inscription_funnel_carries_the_bookmarked_event_through_every_step(
+def test_beneficiary_inscription_funnel_carries_the_bookmarked_event_through_every_step(
     client, approved_salon
 ):
     client.get(NEW_FUNNEL_URL, {"saved_event": str(approved_salon.pk)})

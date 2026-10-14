@@ -41,7 +41,7 @@ XML_SITEMAP_EXCLUDED_URL_NAMES = {
     # Funnel steps (not landing pages)
     "show_manifeste_signature",
     "coalition_welcome",
-    "inscription_funnel",
+    "beneficiary_inscription_funnel",
     "new_event",
     "create_event",
     "update_event",

@@ -1,17 +1,5 @@
-{# A POST, not a link: the answers have to travel in the body. It is a sibling of the step's #}
-{# own form, never nested — HTML forbids that — and pulls that form's fields in, so what she #}
-{# typed on this screen comes back with her. #}
-<c-patterns.form
-    hx-post="{{ funnel_url }}"
-    hx-include="#funnel-answers"
-    hx-target="#funnel-step"
-    hx-swap="outerHTML">
-    <input type="hidden" name="action" value="back">
+{# A sibling of the step's own form, never nested — HTML forbids that — which pulls that #}
+{# form's fields in, so what she typed on this screen comes back with her. #}
+<c-patterns.funnel_back post_url="{{ funnel_url }}" hx-include="#funnel-answers">
     <input type="hidden" name="to" value="{{ step }}">
-    <c-components.button type="submit" variant="tertiary" class="w-fit px-4 bg-white! hover:bg-secondary/20! active:bg-orange-500! text-neutral-900! font-normal">
-        <span class="flex items-center gap-1">
-            <c-components.icon name="chevron-down" class="w-4 h-4 rotate-90" />
-            Retour
-        </span>
-    </c-components.button>
-</c-patterns.form>
+</c-patterns.funnel_back>

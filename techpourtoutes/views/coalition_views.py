@@ -38,11 +38,14 @@ def create_mentor(request):
     if not form.is_valid():
         return _reject_engagement_form(request, form, pro, MENTOR_TEMPLATE)
 
-    result = CreateMentor(pro=form.save(commit=False))
+    mentor = form.save(commit=False)
+    already_exists = mentor.pk is not None
+    result = CreateMentor(pro=mentor)
     if result.failure:
         for error in result.errors:
             messages.error(request, error)
         return render(request, MENTOR_TEMPLATE, {"form": form, "pro": pro})
+    _mail_pro_about_engagement(mentor, already_exists)
     return redirect("coalition_welcome")
 
 

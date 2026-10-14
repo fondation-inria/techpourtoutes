@@ -1,0 +1,40 @@
+<c-patterns.funnel_step post_url="{{ funnel_url }}" action="training_ambassador" title="Ambassadorat étudiant" submit_label="{{ submit_label }}">
+    {# Shared with the engagement a pro adds later, which is a single screen: no progress there. #}
+    <c-slot name="header">
+        {% if progress %}
+            <c-patterns.funnel_progress post_url="{{ funnel_url }}" progress="{{ progress }}" />
+        {% endif %}
+    </c-slot>
+    {# Only partner schools take part: instead of a free-text fallback, a word on why hers may be missing. #}
+    <div class="flex flex-col gap-y-1">
+        <c-components.form_fields.school_search
+            name_field=form.school_label
+            id_field=form.school_id
+            allow_school_not_found=False
+            scope="training_ambassador"
+            description="Recherchez par nom" />
+        <div x-data="{ open: false }">
+            <button type="button"
+                    @click="open = !open"
+                    :aria-expanded="open"
+                    aria-controls="partner-schools-notice"
+                    class="inline-flex items-center gap-1 text-xs underline cursor-pointer">
+                Je ne trouve pas mon établissement
+                <span class="w-3 h-3 block transition-transform duration-200" :class="{ 'rotate-180': open }">
+                    <c-components.icon name="chevron-down" class="w-full h-full" />
+                </span>
+            </button>
+            <p id="partner-schools-notice" x-show="open" x-cloak x-transition class="mt-1 text-xs text-neutral-500">
+                L'ambassadorat étudiant n'est disponible que dans une liste d'établissements partenaires.
+            </p>
+        </div>
+    </div>
+    <c-components.form_fields.formation_search
+        name_field=form.formation_label
+        id_field=form.formation_id
+        not_found_field=form.formation_not_found
+        school_id_field=form.school_id
+        scope="higher_ed"
+        description="Recherchez par nom" />
+    <c-components.form_fields.input field=form.phone autocomplete="tel" />
+</c-patterns.funnel_step>

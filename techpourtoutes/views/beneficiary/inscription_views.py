@@ -33,7 +33,7 @@ from ..beneficiary_views import (
 
 # Every way in from elsewhere on the site starts over, while the URL it redirects to resumes:
 # reloading it keeps her answers.
-def new_inscription_funnel(request):
+def new_beneficiary_inscription_funnel(request):
     if request.user.is_authenticated:
         return redirect(reverse("show_account"))
     funnel = _funnel(request)
@@ -43,10 +43,10 @@ def new_inscription_funnel(request):
         wants_training_ambassador=request.GET.get("wants_training_ambassador") == "1",
         saved_event=request.GET.get("saved_event", ""),
     )
-    return redirect(reverse("inscription_funnel"))
+    return redirect(reverse("beneficiary_inscription_funnel"))
 
 
-def inscription_funnel(request):
+def beneficiary_inscription_funnel(request):
     if request.user.is_authenticated:
         return redirect(reverse("show_account"))
 
@@ -64,12 +64,12 @@ def inscription_funnel(request):
     return handler(request)
 
 
-def show_skip_inscription_step_modal(request, step):
+def show_skip_beneficiary_inscription_step_modal(request, step):
     if step not in _FUNNEL.optional:
         raise Http404
     return render(
         request,
-        "beneficiary/funnels/partials/inscription/show_skip_inscription_step_modal.html",
+        "beneficiary/funnels/partials/inscription/show_skip_beneficiary_inscription_step_modal.html",
         {"step": step},
     )
 
@@ -85,7 +85,7 @@ def _resume(request):
     step = _funnel(request).current_step or _FUNNEL.first
     return render(
         request,
-        "beneficiary/funnels/inscription_funnel.html",
+        "beneficiary/funnels/beneficiary_inscription_funnel.html",
         {**_step_context(request, step), "messages_in_layout": True},
     )
 
@@ -370,14 +370,16 @@ def _render_step(request, step, *, form=None, **extra):
 
 def _render_age_dead_end(request, template):
     _funnel(request).clear()
-    return render(request, f"beneficiary/funnels/partials/inscription/{template}.html", {})
+    return render(
+        request, f"beneficiary/funnels/partials/inscription/dead_ends/{template}.html", {}
+    )
 
 
 def _step_context(request, step, form=None, **extra):
     data = _funnel(request).answers
     context = {
         "step": step,
-        "step_template": f"beneficiary/funnels/partials/inscription/{step}.html",
+        "step_template": f"beneficiary/funnels/partials/inscription/steps/{step}.html",
         "progress": _FUNNEL.progress(step, data),
         "first_name": data.get("first_name"),
         "is_minor": is_minor(_birth_date(data)),

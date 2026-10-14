@@ -25,9 +25,9 @@ from .auth_views import (
     login_verify,
 )
 from .beneficiary.inscription_views import (
-    inscription_funnel,
-    new_inscription_funnel,
-    show_skip_inscription_step_modal,
+    beneficiary_inscription_funnel,
+    new_beneficiary_inscription_funnel,
+    show_skip_beneficiary_inscription_step_modal,
 )
 from .beneficiary.mentoring_views import mentoring_funnel
 from .beneficiary.training_ambassador_request_views import (
@@ -74,6 +74,8 @@ from .event_views import (
     update_event,
 )
 from .local_upload_views import create_local_upload
+from .pro.engagement_views import create_pro_engagement, new_pro_engagement
+from .pro.inscription_views import new_pro_inscription_funnel, pro_inscription_funnel
 from .search_views import search_addresses, search_formations, search_schools
 from .static_views import (
     a_propos,
@@ -135,8 +137,8 @@ __all__ = [
     "edit_pro_training_experience",
     "index_events",
     "new_internship",
-    "inscription_funnel",
-    "new_inscription_funnel",
+    "beneficiary_inscription_funnel",
+    "new_beneficiary_inscription_funnel",
     "login_code",
     "login_request",
     "login_to_jobirl",
@@ -151,10 +153,14 @@ __all__ = [
     "new_training_ambassador_beneficiary",
     "new_training_ambassador_request",
     "new_upcoming_feature_notification",
+    "create_pro_engagement",
+    "new_pro_engagement",
+    "new_pro_inscription_funnel",
     "new_work_ambassador",
     "new_workshop_request",
     "notre_manifeste",
     "pourquoi_nous_ecrivons_au_feminin",
+    "pro_inscription_funnel",
     "qui_sommes_nous",
     "schema_pluriannuel",
     "html_sitemap",
@@ -177,7 +183,7 @@ __all__ = [
     "show_beneficiary_training_experience",
     "show_participation_modal",
     "show_pro_training_experience",
-    "show_skip_inscription_step_modal",
+    "show_skip_beneficiary_inscription_step_modal",
     "show_manifeste_signature",
     "show_beneficiary_legal_rep",
     "update_saved_event",
