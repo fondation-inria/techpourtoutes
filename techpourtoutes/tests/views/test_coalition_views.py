@@ -431,6 +431,7 @@ _ENGAGEMENT_PAGES = [
     ("new_training_ambassador", "training_ambassador"),
     ("new_workshop_request", "workshops"),
     ("new_structure_engagement", "sponsor"),
+    ("new_structure_engagement", "mobilize_structure"),
 ]
 
 
