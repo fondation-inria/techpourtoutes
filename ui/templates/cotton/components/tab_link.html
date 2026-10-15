@@ -1,6 +1,6 @@
 <c-vars href="#" label="" class="" />
 
 <a href="{{ href }}" role="tab"
-   class="tab font-medium border border-orange-500 not-first:border-l-0 text-black rounded-none{% if request.path == href %} bg-orange-500 [--tab-border-color:orange-500] tab-active{% else %} bg-white{% endif %} {{ class }}">
+   class="tab font-medium border border-orange-500 -ml-px -mt-px text-black rounded-none{% if request.path == href %} bg-orange-500 [--tab-border-color:orange-500] tab-active{% else %} bg-white{% endif %} {{ class }}">
     {{ label|safe }}
 </a>
