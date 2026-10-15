@@ -224,13 +224,6 @@ L'import réel peut aussi se lancer à la main, en synchrone pour voir défiler 
 scalingo --app <app> run python manage.py import_schools_and_formations
 ```
 
-**Première mise en production de la fusion des tables établissements.** La migration `0036` transforme les établissements existants en placeholders `legacy-*`, que `remap_training_experience_schools` rattache ensuite à leur ligne Onisep par UAI puis SIRET. Le `postdeploy` n'important que les 188 établissements d'échantillon, presque aucun placeholder n'y trouvera sa contrepartie — ils survivent alors, et les parcours continuent d'afficher le bon nom d'établissement. Le rattachement définitif se fait une fois, après le premier import réel :
-
-```bash
-scalingo --app <app> run python manage.py import_schools_and_formations
-scalingo --app <app> run python manage.py remap_training_experience_schools
-```
-
 **Établissements « ambassadrice de formation »** — `data/onisep/training_ambassador_school_onisep_ids.csv` est la source de vérité : 609 identifiants Onisep. Un identifiant retiré du fichier perd son drapeau au prochain passage.
 
 Les noms d'établissements sont aussi stockés dans une version normalisée sans accents (`name_normalized`, `acronym_normalized`) afin de permettre une recherche accent-insensitive dans les formulaires.

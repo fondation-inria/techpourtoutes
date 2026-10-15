@@ -1,12 +1,10 @@
 import pytest
 from django.core import mail
-from django.test import override_settings
 
 from techpourtoutes.mailers import AuthMailer
 
 
 @pytest.mark.django_db
-@override_settings(EMAIL_BACKEND="django.core.mail.backends.locmem.EmailBackend")
 def test_login_send_code_sends_email_to_user(pro):
     AuthMailer.login_code(user=pro, code="123456")
 
@@ -17,7 +15,6 @@ def test_login_send_code_sends_email_to_user(pro):
 
 
 @pytest.mark.django_db
-@override_settings(EMAIL_BACKEND="django.core.mail.backends.locmem.EmailBackend")
 def test_login_send_code_body_contains_the_code(pro):
     AuthMailer.login_code(user=pro, code="123456")
 
@@ -25,7 +22,6 @@ def test_login_send_code_body_contains_the_code(pro):
 
 
 @pytest.mark.django_db
-@override_settings(EMAIL_BACKEND="django.core.mail.backends.locmem.EmailBackend")
 def test_login_code_attaches_its_brevo_tags(pro):
     AuthMailer.login_code(user=pro, code="123456")
 

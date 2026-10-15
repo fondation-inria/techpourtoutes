@@ -5,6 +5,8 @@ import pytest
 from techpourtoutes.forms.event import EventLocationForm
 from techpourtoutes.models import Event
 
+from ...models.test_event import build_event
+
 GEOCODED = {
     "location_type": Event.LocationType.PHYSICAL,
     "address": "8 Boulevard du Port",
@@ -217,7 +219,6 @@ def test_the_form_prefilled_from_an_event_hands_back_a_geocoded_address_this_for
 @pytest.mark.django_db
 def test_the_form_prefilled_from_an_event_reads_the_pricing_branch_back_off_the_price(pro):
     """`pricing` is the question she answered, not a column the event carries."""
-    from ...models.test_event import build_event
 
     paid = build_event(pro, price=Decimal("12.50"))
     paid.save()
@@ -232,8 +233,6 @@ def test_the_form_prefilled_from_an_event_reads_the_pricing_branch_back_off_the_
 
 @pytest.mark.django_db
 def test_the_form_prefilled_from_an_event_leaves_an_online_event_without_coordinates(pro):
-    from ...models.test_event import build_event
-
     online = build_event(pro, location_type=Event.LocationType.ONLINE, city="")
     online.save()
 

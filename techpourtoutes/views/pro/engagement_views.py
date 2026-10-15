@@ -5,7 +5,6 @@ from django.shortcuts import redirect, render
 from django.urls import reverse
 from django.utils.http import url_has_allowed_host_and_scheme, urlencode
 from django.views.decorators.http import require_POST
-from waffle.decorators import waffle_switch
 
 from ...forms import (
     ProAdditionalInformationForm,
@@ -16,12 +15,10 @@ from ...models import Pro
 from ...services.pro.add_pro_engagement import AddProEngagement
 from ...utils.pro_engagement_screens import screen_for
 
-_SWITCH = "new_pro_features"
 _ADDED = "Votre engagement a bien été ajouté."
 
 
 # A visitor signs up with the engagement; a pro completes, on one screen, what it still needs.
-@waffle_switch(_SWITCH)
 def new_pro_engagement(request, engagement):
     _require_engagement(engagement)
     if not request.user.is_authenticated:
@@ -39,7 +36,6 @@ def new_pro_engagement(request, engagement):
     )
 
 
-@waffle_switch(_SWITCH)
 @login_required
 @require_POST
 def create_pro_engagement(request, engagement):

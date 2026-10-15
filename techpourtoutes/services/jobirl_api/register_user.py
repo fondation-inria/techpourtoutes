@@ -1,10 +1,10 @@
 from techpourtoutes.models import Pro, TrainingExperience
 from techpourtoutes.services.jobirl_api.base_service import JobirlApiBaseService
 
+# Any other structure type, or none at all, means she is working.
 SITUATION_PRO_MAPPING = {
-    Pro.ProfessionalSituation.WORKING: "actif",
-    Pro.ProfessionalSituation.RETIRED: "retraite",
-    Pro.ProfessionalSituation.JOBLESS: "chomeur",
+    Pro.StructureType.RETIRED: "retraite",
+    Pro.StructureType.JOBLESS: "chomeur",
 }
 
 # Jobirl "secteurs_activites" identifier sent for every mentor registration.
@@ -45,10 +45,10 @@ class RegisterUserOnJobirl(JobirlApiBaseService):
         data = {
             "jobirl_profil": "pro",
             "mentorat_profil": "mentor",
-            "situation_pro": SITUATION_PRO_MAPPING[user.professional_situation],
+            "situation_pro": SITUATION_PRO_MAPPING.get(user.structure_type, "actif"),
             "poste": user.job_title,
         }
-        if user.professional_situation == "working":
+        if user.structure_type not in Pro.WITHOUT_STRUCTURE:
             data["nom_structure"] = user.structure_name
         return data
 

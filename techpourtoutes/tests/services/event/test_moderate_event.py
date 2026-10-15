@@ -1,15 +1,11 @@
 import pytest
 from django.core import mail
-from django.test import override_settings
 
 from techpourtoutes.models import Event
 from techpourtoutes.services.event.moderate_event import ModerateEvent
 
-locmem = override_settings(EMAIL_BACKEND="django.core.mail.backends.locmem.EmailBackend")
-
 
 @pytest.mark.django_db
-@locmem
 def test_approving_publishes_the_event_and_notifies_its_author(event):
     result = ModerateEvent(event=event, status=Event.Status.APPROVED, comment="Bravo !")
 
@@ -23,7 +19,6 @@ def test_approving_publishes_the_event_and_notifies_its_author(event):
 
 
 @pytest.mark.django_db
-@locmem
 def test_rejecting_notifies_its_author_without_publishing(event):
     result = ModerateEvent(
         event=event, status=Event.Status.REJECTED, comment="Adresse incomplète."
@@ -39,7 +34,6 @@ def test_rejecting_notifies_its_author_without_publishing(event):
 
 
 @pytest.mark.django_db
-@locmem
 def test_the_comment_is_optional(event):
     result = ModerateEvent(event=event, status=Event.Status.APPROVED)
 

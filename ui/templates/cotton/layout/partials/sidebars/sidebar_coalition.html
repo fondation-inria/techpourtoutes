@@ -1,4 +1,3 @@
-{% load waffle_tags %}
 <c-components.nav-section label="Accompagner individuellement" class="bg-purple-500">
     <c-components.nav-link href="{% url "new_mentor" %}" label="Mentorer" icon="mentorer" icon_class="w-6 h-6"/>
     <c-components.nav-link href="{% url "new_internship" %}" label="Accueillir une stagiaire"  icon="accueillir-une-stagiaire" icon_class="w-6 h-6"/>
@@ -7,11 +6,7 @@
 
 <c-components.nav-section label="Soutenir la coalition" class="bg-purple-500">
     <c-components.nav-link href="{% url "new_training_ambassador" %}" label="Devenir ambassadrice étudiante" icon="devenir-ambassadrice-etudiante" icon_class="w-6 h-6"/>
-    {% switch "new_pro_features" %}
-        <c-components.nav-link href="{% url "new_structure_engagement" %}" label="Engager ma structure" icon="engager-ma-structure" icon_class="w-6 h-6"/>
-    {% else %}
-        <c-components.nav-link href="{% url "new_sponsor" %}" label="Devenir mécène" icon="engager-ma-structure" icon_class="w-6 h-6"/>
-    {% endswitch %}
+    <c-components.nav-link href="{% url "new_structure_engagement" %}" label="Engager ma structure" icon="engager-ma-structure" icon_class="w-6 h-6"/>
 </c-components.nav-section>
 
 <c-components.nav-section label="Motiver mes élèves" class="bg-purple-500">

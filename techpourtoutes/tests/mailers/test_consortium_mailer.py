@@ -4,12 +4,11 @@ from django.test import override_settings
 
 from techpourtoutes.forms.pro_inscription import OTHER
 from techpourtoutes.mailers import ConsortiumMailer
-from techpourtoutes.models import Pro
+from techpourtoutes.models import Formation, Pro, TrainingExperience
 
 
 @pytest.mark.django_db
 @override_settings(
-    EMAIL_BACKEND="django.core.mail.backends.locmem.EmailBackend",
     COALITION_INTERNSHIPS_RECIPIENTS=["internships@example.com"],
     COALITION_WORK_AMBASSADOR_RECIPIENTS=["ambassador@example.com"],
     COALITION_TRAINING_AMBASSADOR_RECIPIENTS=["training@example.com"],
@@ -36,7 +35,6 @@ def test_pro_signed_up_routes_to_engagement_recipient(pro, engagement, recipient
 
 @pytest.mark.django_db
 @override_settings(
-    EMAIL_BACKEND="django.core.mail.backends.locmem.EmailBackend",
     COALITION_OTHER_ENGAGEMENT_RECIPIENTS=["agir@example.com"],
 )
 def test_pro_signed_up_relays_the_message_of_another_engagement(pro):
@@ -52,7 +50,6 @@ def test_pro_signed_up_relays_the_message_of_another_engagement(pro):
 
 @pytest.mark.django_db
 @override_settings(
-    EMAIL_BACKEND="django.core.mail.backends.locmem.EmailBackend",
     COALITION_SPONSOR_RECIPIENTS=["sponsor@example.com"],
 )
 def test_pro_signed_up_without_a_message_announces_none(pro):
@@ -65,7 +62,6 @@ def test_pro_signed_up_without_a_message_announces_none(pro):
 
 @pytest.mark.django_db
 @override_settings(
-    EMAIL_BACKEND="django.core.mail.backends.locmem.EmailBackend",
     COALITION_SPONSOR_RECIPIENTS=["sponsor@example.com"],
 )
 def test_pro_signed_up_without_a_structure_names_none(pro):
@@ -80,12 +76,9 @@ def test_pro_signed_up_without_a_structure_names_none(pro):
 
 @pytest.mark.django_db
 @override_settings(
-    EMAIL_BACKEND="django.core.mail.backends.locmem.EmailBackend",
     COALITION_TRAINING_AMBASSADOR_RECIPIENTS=["training@example.com"],
 )
 def test_training_ambassador_signed_up_includes_experience_in_body(pro, higher_ed_school):
-    from techpourtoutes.models import Formation, TrainingExperience
-
     formation = Formation(onisep_id="9701", name="Master IA")
     formation.save()
     experience = TrainingExperience.objects.create(
@@ -101,7 +94,6 @@ def test_training_ambassador_signed_up_includes_experience_in_body(pro, higher_e
 
 @pytest.mark.django_db
 @override_settings(
-    EMAIL_BACKEND="django.core.mail.backends.locmem.EmailBackend",
     COALITION_WORK_AMBASSADOR_RECIPIENTS=["ambassador@example.com"],
 )
 def test_pro_signed_up_includes_pro_details_in_body(pro):
@@ -115,7 +107,6 @@ def test_pro_signed_up_includes_pro_details_in_body(pro):
 
 @pytest.mark.django_db
 @override_settings(
-    EMAIL_BACKEND="django.core.mail.backends.locmem.EmailBackend",
     NEW_EVENT_RECIPIENTS=["agir@techpourtoutes.io"],
 )
 def test_event_submitted_notifies_the_moderation_team(event):
@@ -131,7 +122,6 @@ def test_event_submitted_notifies_the_moderation_team(event):
 
 @pytest.mark.django_db
 @override_settings(
-    EMAIL_BACKEND="django.core.mail.backends.locmem.EmailBackend",
     NEW_EVENT_RECIPIENTS=["agir@techpourtoutes.io"],
 )
 def test_event_submitted_also_notifies_the_event_moderators(
@@ -151,7 +141,6 @@ def test_event_submitted_also_notifies_the_event_moderators(
 
 @pytest.mark.django_db
 @override_settings(
-    EMAIL_BACKEND="django.core.mail.backends.locmem.EmailBackend",
     NEW_EVENT_RECIPIENTS=["agir@techpourtoutes.io"],
     SITE_URL="https://example.test",
 )
@@ -170,7 +159,6 @@ def test_event_submitted_links_to_the_event_in_the_admin_through_the_user_login(
 
 @pytest.mark.django_db
 @override_settings(
-    EMAIL_BACKEND="django.core.mail.backends.locmem.EmailBackend",
     NEW_EVENT_RECIPIENTS=["agir@techpourtoutes.io"],
     SITE_URL="https://example.test",
 )

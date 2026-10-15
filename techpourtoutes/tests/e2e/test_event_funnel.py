@@ -16,8 +16,7 @@ from techpourtoutes.models import Event, Pro
 # of this funnel is revealed client-side, and the answers only exist in the page — a step is
 # submitted with hidden inputs the previous screen rendered.
 
-locmem = override_settings(
-    EMAIL_BACKEND="django.core.mail.backends.locmem.EmailBackend",
+new_event_recipients = override_settings(
     NEW_EVENT_RECIPIENTS=["agir@techpourtoutes.io"],
 )
 
@@ -32,7 +31,6 @@ def funnel(live_server, page, db):
         first_name="Alice",
         last_name="Martin",
         email="alice@example.com",
-        professional_situation=Pro.ProfessionalSituation.WORKING,
     )
     pro.save()
     page.goto(f"{live_server.url}/se-connecter/token/{pro.issue_login_token()}/")
@@ -114,7 +112,7 @@ def test_leaving_through_the_logo_or_the_footer_asks_for_confirmation_too(
     expect(funnel).to_have_url(re.compile(f"{destination}$"))
 
 
-@locmem
+@new_event_recipients
 def test_leaving_a_submitted_event_closes_straight_away(funnel):
     """The confirmation is there to say the answers are about to be lost: once they are saved
     there is nothing left to warn about."""
@@ -129,7 +127,7 @@ def test_leaving_a_submitted_event_closes_straight_away(funnel):
     expect(funnel).to_have_url(account_url)
 
 
-@locmem
+@new_event_recipients
 def test_an_online_event_is_published_for_validation(funnel):
     choose_subcategory(funnel, "Webinaire d'info")
     funnel.get_by_role("button", name="Continuer").click()
@@ -153,7 +151,7 @@ def test_an_online_event_is_published_for_validation(funnel):
     assert len(mail.outbox) == 2
 
 
-@locmem
+@new_event_recipients
 def test_a_physical_event_is_geocoded_through_the_address_search(funnel, mock_geocoding):
     mock_geocoding(
         addresses=[
@@ -193,7 +191,7 @@ def test_a_physical_event_is_geocoded_through_the_address_search(funnel, mock_ge
     assert event.ban_id == "80021_6590_00008"
 
 
-@locmem
+@new_event_recipients
 def test_a_venue_is_published_without_a_street_address(funnel, mock_geocoding):
     """A POI has no postal address, so the venue name and its commune are all we store."""
     mock_geocoding(
@@ -232,7 +230,7 @@ def test_a_venue_is_published_without_a_street_address(funnel, mock_geocoding):
     assert event.location_label == "Station F 75013 Paris 13e Arrondissement"
 
 
-@locmem
+@new_event_recipients
 def test_a_registration_link_is_demanded_only_when_registration_is_required(funnel):
     choose_subcategory(funnel, "Salon")
     funnel.get_by_role("button", name="Continuer").click()
@@ -274,7 +272,7 @@ def reach_the_location_step(page):
     page.get_by_text("Gratuit", exact=True).click()
 
 
-@locmem
+@new_event_recipients
 def test_a_malformed_link_is_refused_by_the_page_not_by_the_browser(funnel):
     """A `type="url"` input would keep the submission from ever leaving the browser, behind a
     native bubble we cannot word."""
@@ -286,7 +284,7 @@ def test_a_malformed_link_is_refused_by_the_page_not_by_the_browser(funnel):
     expect(funnel.get_by_text("Saisissez un lien valide")).to_be_visible()
 
 
-@locmem
+@new_event_recipients
 def test_a_paid_event_without_a_price_comes_back_on_payant(funnel):
     """ "Payant" is an answer of its own, so it survives the round trip and the field the error
     is on stays visible."""
@@ -299,7 +297,7 @@ def test_a_paid_event_without_a_price_comes_back_on_payant(funnel):
     expect(funnel.get_by_text("Renseignez le tarif de l'événement.")).to_be_visible()
 
 
-@locmem
+@new_event_recipients
 def test_a_price_typed_in_words_is_refused_then_accepted_with_a_comma(funnel):
     reach_the_location_step(funnel)
     funnel.get_by_text("En ligne", exact=True).click()
@@ -344,7 +342,7 @@ def test_stepping_back_keeps_what_the_current_screen_already_holds(funnel):
     expect(funnel.get_by_label("Quel est le lien de connexion à l'événement ?")).to_be_visible()
 
 
-@locmem
+@new_event_recipients
 def test_an_event_is_edited_through_the_same_funnel(page, live_server, pro, event):
     event.status = Event.Status.APPROVED
     event.description = "Une journée pour rencontrer des professionnelles."

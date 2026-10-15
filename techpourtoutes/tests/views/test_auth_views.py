@@ -1,12 +1,19 @@
 from datetime import timedelta
 from unittest.mock import patch
+from urllib.parse import quote
 
 import pytest
+from django.conf import settings
+from django.contrib.auth import get_user_model
 from django.contrib.messages import get_messages
 from django.core import mail
 from django.test import override_settings
 from django.urls import reverse
 from django.utils import timezone
+
+from techpourtoutes.models import Event, SavedEvent
+from techpourtoutes.models.user import VERIFICATION_CODE_MAX_ATTEMPTS
+from techpourtoutes.tests.models.test_event import build_event
 
 
 @pytest.mark.django_db
@@ -111,7 +118,6 @@ def test_login_request_while_authenticated_ignores_an_external_next(client, pro)
 
 
 @pytest.mark.django_db
-@override_settings(EMAIL_BACKEND="django.core.mail.backends.locmem.EmailBackend")
 def test_login_request_post_with_known_email_sends_code(client, pro):
     response = client.post(reverse("login_request"), data={"email": pro.email})
 
@@ -124,7 +130,6 @@ def test_login_request_post_with_known_email_sends_code(client, pro):
 
 
 @pytest.mark.django_db
-@override_settings(EMAIL_BACKEND="django.core.mail.backends.locmem.EmailBackend")
 def test_login_request_post_with_known_email_in_another_case_sends_code(client, pro):
     response = client.post(reverse("login_request"), data={"email": pro.email.upper()})
 
@@ -136,7 +141,6 @@ def test_login_request_post_with_known_email_in_another_case_sends_code(client, 
 
 
 @pytest.mark.django_db
-@override_settings(EMAIL_BACKEND="django.core.mail.backends.locmem.EmailBackend")
 @patch("techpourtoutes.models.user.generate_numeric_code", return_value="123456")
 def test_login_request_post_email_contains_the_code(_code, client, pro):
     client.post(reverse("login_request"), data={"email": pro.email})
@@ -145,7 +149,6 @@ def test_login_request_post_email_contains_the_code(_code, client, pro):
 
 
 @pytest.mark.django_db
-@override_settings(EMAIL_BACKEND="django.core.mail.backends.locmem.EmailBackend")
 def test_login_request_post_for_pro_sends_vouvoiement_email(client, pro):
     client.post(reverse("login_request"), data={"email": pro.email})
 
@@ -153,7 +156,6 @@ def test_login_request_post_for_pro_sends_vouvoiement_email(client, pro):
 
 
 @pytest.mark.django_db
-@override_settings(EMAIL_BACKEND="django.core.mail.backends.locmem.EmailBackend")
 def test_login_request_post_with_unknown_email_sends_nothing(client):
     response = client.post(reverse("login_request"), data={"email": "ghost@example.com"})
 
@@ -199,8 +201,6 @@ def test_login_request_post_strips_external_back(client):
 
 @pytest.mark.django_db
 def test_login_request_post_from_code_page_shows_resend_message(client):
-    from django.conf import settings
-
     referer = f"{settings.SITE_URL}{reverse('login_code')}"
     response = client.post(
         reverse("login_request"),
@@ -214,7 +214,6 @@ def test_login_request_post_from_code_page_shows_resend_message(client):
 
 
 @pytest.mark.django_db
-@override_settings(EMAIL_BACKEND="django.core.mail.backends.locmem.EmailBackend")
 def test_login_request_post_with_inactive_user_sends_nothing(client, inactive_user):
     response = client.post(reverse("login_request"), data={"email": inactive_user.email})
 
@@ -225,8 +224,6 @@ def test_login_request_post_with_inactive_user_sends_nothing(client, inactive_us
 
 @pytest.mark.django_db
 def test_sidebar_login_link_carries_current_page_as_back(client):
-    from urllib.parse import quote
-
     response = client.get(reverse("new_mentor"))
 
     assert response.status_code == 200
@@ -324,8 +321,6 @@ def test_login_code_post_expired_code_does_not_log_in(client, pro):
 
 @pytest.mark.django_db
 def test_login_code_post_clears_code_after_max_attempts(client, pro):
-    from techpourtoutes.models.user import VERIFICATION_CODE_MAX_ATTEMPTS
-
     pro.issue_login_code()
     pro.login_code_attempts = VERIFICATION_CODE_MAX_ATTEMPTS - 1
     pro.save()
@@ -428,8 +423,6 @@ def test_login_verify_with_already_used_token_does_not_log_in(client, pro):
 def test_login_verify_while_another_user_authenticated_logs_them_out_and_logs_in_token_user(
     client, pro
 ):
-    from django.contrib.auth import get_user_model
-
     User = get_user_model()
     other_user = User.objects.create_user(
         username="other@example.com",
@@ -544,9 +537,6 @@ def test_login_to_jobirl_redirects_to_jobirl_url_for_beneficiary(client, benefic
 
 @pytest.fixture
 def approved_salon(pro):
-    from techpourtoutes.models import Event
-    from techpourtoutes.tests.models.test_event import build_event
-
     event = build_event(pro, title="Salon des métiers du numérique", status=Event.Status.APPROVED)
     event.save()
     return event
@@ -592,8 +582,6 @@ def test_login_code_announces_the_saved_event_on_the_account_page(
 
 @pytest.mark.django_db
 def test_login_code_keeps_an_event_already_saved(client, beneficiary, approved_salon):
-    from techpourtoutes.models import SavedEvent
-
     SavedEvent.objects.toggle(event=approved_salon, beneficiary=beneficiary)
     code = _ask_for_a_code(client, beneficiary, saved_event=str(approved_salon.pk))
 
@@ -604,8 +592,6 @@ def test_login_code_keeps_an_event_already_saved(client, beneficiary, approved_s
 
 @pytest.mark.django_db
 def test_login_code_saves_no_event_for_a_pro(client, pro, approved_salon):
-    from techpourtoutes.models import SavedEvent
-
     code = _ask_for_a_code(client, pro, saved_event=str(approved_salon.pk))
 
     client.post(reverse("login_code"), data={"code": code})

@@ -17,7 +17,6 @@ def beneficiary(db):
 
 
 @pytest.mark.django_db
-@override_settings(EMAIL_BACKEND="django.core.mail.backends.locmem.EmailBackend")
 def test_beneficiary_welcome_sends_email(beneficiary):
     BeneficiaryMailer.welcome(beneficiary=beneficiary)
 
@@ -30,7 +29,6 @@ def test_beneficiary_welcome_sends_email(beneficiary):
 
 
 @pytest.mark.django_db
-@override_settings(EMAIL_BACKEND="django.core.mail.backends.locmem.EmailBackend")
 def test_beneficiary_welcome_attaches_its_brevo_tags(beneficiary):
     BeneficiaryMailer.welcome(beneficiary=beneficiary)
 
@@ -39,7 +37,6 @@ def test_beneficiary_welcome_attaches_its_brevo_tags(beneficiary):
 
 @pytest.mark.django_db
 @override_settings(
-    EMAIL_BACKEND="django.core.mail.backends.locmem.EmailBackend",
     SITE_URL="https://example.test",
 )
 def test_event_updated_links_to_the_event(event, beneficiary):

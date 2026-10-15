@@ -1,7 +1,9 @@
 import pytest
 from django.urls import reverse
 
+from techpourtoutes.models import Event
 from techpourtoutes.sitemaps import StaticViewSitemap
+from techpourtoutes.tests.models.test_event import build_event
 from techpourtoutes.tests.sitemap_exclusions import NEVER_LISTED_URL_NAMES, argument_free_url_names
 
 # Pages the XML sitemap leaves out on top of the NEVER_LISTED_URL_NAMES. Adding a new page
@@ -31,16 +33,10 @@ XML_SITEMAP_EXCLUDED_URL_NAMES = {
     "index_pro_events",
     "index_beneficiary_events",
     # Form submission endpoints (their GET page is what gets indexed)
-    "create_mentor",
-    "create_work_ambassador",
-    "create_training_ambassador",
-    "create_sponsor",
-    "create_workshop_request",
     "create_manifeste_signature",
     "create_upcoming_feature_notification",
     # Funnel steps (not landing pages)
     "show_manifeste_signature",
-    "coalition_welcome",
     "beneficiary_inscription_funnel",
     "new_event",
     "create_event",
@@ -97,9 +93,6 @@ def test_sitemap_contains_public_urls(client):
 
 @pytest.fixture
 def approved_salon(pro):
-    from techpourtoutes.models import Event
-    from techpourtoutes.tests.models.test_event import build_event
-
     event = build_event(pro, title="Salon des métiers du numérique", status=Event.Status.APPROVED)
     event.save()
     return event

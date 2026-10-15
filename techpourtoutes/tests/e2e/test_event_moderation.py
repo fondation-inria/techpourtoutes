@@ -56,14 +56,12 @@ def ungeocoded_event(db, settings):
     """What the funnel leaves behind when the address API was down: a place named by hand,
     with no coordinates — the one thing a moderator cannot publish as is."""
     settings.DISABLE_ADMIN_2FA = True
-    settings.EMAIL_BACKEND = "django.core.mail.backends.locmem.EmailBackend"
     moderator = Pro(
         username="admin@example.com",
         civility=Pro.Civility.MADAME,
         first_name="Alice",
         last_name="Martin",
         email="admin@example.com",
-        professional_situation=Pro.ProfessionalSituation.WORKING,
         is_staff=True,
         is_superuser=True,
     )

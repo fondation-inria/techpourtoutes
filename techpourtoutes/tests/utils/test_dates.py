@@ -1,11 +1,12 @@
 from datetime import timedelta
 
-from techpourtoutes.utils.dates import adult_birth_date, compute_age
+from techpourtoutes.tests.birth_dates import birth_date_for_age
+from techpourtoutes.utils.dates import compute_age
 
 
-def test_adult_birth_date_turns_eighteen_today():
-    assert compute_age(adult_birth_date()) == 18
+def test_compute_age_counts_the_birthday_reached_today():
+    assert compute_age(birth_date_for_age(18)) == 18
 
 
-def test_a_birth_date_past_the_cutoff_is_still_a_minor():
-    assert compute_age(adult_birth_date() + timedelta(days=1)) == 17
+def test_compute_age_waits_for_the_birthday():
+    assert compute_age(birth_date_for_age(18) + timedelta(days=1)) == 17

@@ -1,11 +1,12 @@
 import pytest
+from django.contrib.auth.models import Permission
 from django.core.exceptions import ValidationError
+
+from techpourtoutes.models import Pro
 
 
 @pytest.mark.django_db
 def test_pro_save_sets_unusable_password(valid_pro_model_data):
-    from techpourtoutes.models import Pro
-
     pro = Pro(username="marie.dupont@example.com", **valid_pro_model_data)
     pro.save()
     assert not pro.has_usable_password()
@@ -13,19 +14,15 @@ def test_pro_save_sets_unusable_password(valid_pro_model_data):
 
 @pytest.mark.django_db
 def test_pro_creation_saves_all_fields(valid_pro_model_data):
-    from techpourtoutes.models import Pro
-
     Pro(username="marie.dupont@example.com", **valid_pro_model_data).save()
 
     saved = Pro.objects.get(email="marie.dupont@example.com")
     assert saved.phone.national_number == 612345678
-    assert saved.professional_situation == "working"
+    assert saved.structure_type == "company"
 
 
 @pytest.mark.django_db
 def test_pro_structure_name_optional(valid_pro_model_data):
-    from techpourtoutes.models import Pro
-
     data = {**valid_pro_model_data, "email": "autre@example.com", "structure_name": ""}
     Pro(username="autre@example.com", **data).save()
     assert Pro.objects.filter(email="autre@example.com").exists()
@@ -33,8 +30,6 @@ def test_pro_structure_name_optional(valid_pro_model_data):
 
 @pytest.mark.django_db
 def test_pro_save_raises_if_invalid(valid_pro_model_data):
-    from techpourtoutes.models import Pro
-
     data = {**valid_pro_model_data, "email": "not-an-email"}
     pro = Pro(username="bad@example.com", **data)
     with pytest.raises(ValidationError):
@@ -43,8 +38,6 @@ def test_pro_save_raises_if_invalid(valid_pro_model_data):
 
 @pytest.mark.django_db
 def test_pro_engagements_defaults_to_empty_list(valid_pro_model_data):
-    from techpourtoutes.models import Pro
-
     Pro(username="marie.dupont@example.com", **valid_pro_model_data).save()
     saved = Pro.objects.get(email="marie.dupont@example.com")
     assert saved.engagements == []
@@ -52,8 +45,6 @@ def test_pro_engagements_defaults_to_empty_list(valid_pro_model_data):
 
 @pytest.mark.django_db
 def test_pro_rejects_invalid_postal_code(valid_pro_model_data):
-    from techpourtoutes.models import Pro
-
     data = {**valid_pro_model_data, "email": "badcp@example.com", "postal_code": "123"}
     with pytest.raises(ValidationError):
         Pro(username="badcp@example.com", **data).save()
@@ -61,8 +52,6 @@ def test_pro_rejects_invalid_postal_code(valid_pro_model_data):
 
 @pytest.mark.django_db
 def test_add_engagement_appends_new_engagement(valid_pro_model_data):
-    from techpourtoutes.models import Pro
-
     pro = Pro(username="marie.dupont@example.com", **valid_pro_model_data)
     pro.add_engagement(Pro.Engagement.MENTOR)
     assert pro.engagements == ["mentor"]
@@ -70,8 +59,6 @@ def test_add_engagement_appends_new_engagement(valid_pro_model_data):
 
 @pytest.mark.django_db
 def test_add_engagement_is_idempotent(valid_pro_model_data):
-    from techpourtoutes.models import Pro
-
     pro = Pro(username="marie.dupont@example.com", **valid_pro_model_data)
     pro.add_engagement(Pro.Engagement.MENTOR)
     pro.add_engagement(Pro.Engagement.MENTOR)
@@ -80,8 +67,6 @@ def test_add_engagement_is_idempotent(valid_pro_model_data):
 
 @pytest.mark.django_db
 def test_add_engagement_does_not_save(valid_pro_model_data):
-    from techpourtoutes.models import Pro
-
     pro = Pro(username="marie.dupont@example.com", **valid_pro_model_data)
     pro.save()
     pro.add_engagement(Pro.Engagement.SPONSOR)
@@ -90,8 +75,6 @@ def test_add_engagement_does_not_save(valid_pro_model_data):
 
 @pytest.mark.django_db
 def test_pro_phone_is_optional(valid_pro_model_data):
-    from techpourtoutes.models import Pro
-
     data = {**valid_pro_model_data, "email": "sansinfos@example.com", "phone": ""}
     Pro(username="sansinfos@example.com", **data).save()
 
@@ -103,9 +86,6 @@ def test_event_moderators_returns_whoever_may_moderate_events(
     pro, valid_pro_model_data, event_moderator_group
 ):
     """Held through a group, as the Chargée de mission holds it, or granted to one account."""
-    from django.contrib.auth.models import Permission
-
-    from techpourtoutes.models import Pro
 
     grouped = Pro(
         username="chargee@example.com", **{**valid_pro_model_data, "email": "chargee@example.com"}
@@ -130,7 +110,7 @@ def test_soft_delete_anonymizes_expected_fields(pro):
     original_pk = pro.pk
     pro.faveod_id = 4242
     pro.save()
-    original_professional_situation = pro.professional_situation
+    original_structure_type = pro.structure_type
     original_engagements = pro.engagements
     original_postal_code = pro.postal_code
     original_structure_name = pro.structure_name
@@ -155,7 +135,7 @@ def test_soft_delete_anonymizes_expected_fields(pro):
     assert pro.jobirl_user_id is None
     assert pro.jobirl_user_token == ""
 
-    assert pro.professional_situation == original_professional_situation
+    assert pro.structure_type == original_structure_type
     assert pro.engagements == original_engagements
     assert pro.postal_code == original_postal_code
     assert pro.structure_name == original_structure_name
@@ -165,8 +145,6 @@ def test_soft_delete_anonymizes_expected_fields(pro):
 
 @pytest.mark.django_db
 def test_pro_saves_a_structure_type(pro):
-    from techpourtoutes.models import Pro
-
     pro.structure_type = Pro.StructureType.ASSOCIATION
     pro.save()
     assert Pro.objects.get(pk=pro.pk).structure_type == "association"
@@ -174,8 +152,6 @@ def test_pro_saves_a_structure_type(pro):
 
 @pytest.mark.django_db
 def test_pro_may_mobilize_her_structure(pro):
-    from techpourtoutes.models import Pro
-
     pro.add_engagement(Pro.Engagement.MOBILIZE_STRUCTURE)
     pro.save()
     assert Pro.objects.get(pk=pro.pk).engagements == ["mobilize_structure"]

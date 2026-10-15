@@ -27,7 +27,6 @@ class ProAdmin(AccountCreationFieldsMixin, admin.ModelAdmin):
             {
                 "fields": (
                     *PERSONAL_FIELDS,
-                    "professional_situation",
                     "structure_type",
                     "structure_name",
                     "job_title",

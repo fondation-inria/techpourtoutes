@@ -16,12 +16,6 @@ class Pro(User):
         WORKSHOPS = "workshops", _("organiser un atelier")
         MOBILIZE_STRUCTURE = "mobilize_structure", _("mobiliser sa structure")
 
-    class ProfessionalSituation(models.TextChoices):
-        WORKING = "working", _("En emploi")
-        STUDENT = "student", _("En étude")
-        RETIRED = "retired", _("À la retraite")
-        JOBLESS = "jobless", _("Sans emploi")
-
     class StructureType(models.TextChoices):
         ASSOCIATION = "association", _("Association")
         HIGHER_ED = "higher_ed", _("Établissement du supérieur")
@@ -31,11 +25,8 @@ class Pro(User):
         RETIRED = "retired", _("Je suis à la retraite")
         JOBLESS = "jobless", _("Je suis sans emploi")
 
-    professional_situation = models.CharField(
-        max_length=20,
-        choices=ProfessionalSituation.choices,
-        verbose_name=_("situation professionnelle"),
-    )
+    WITHOUT_STRUCTURE = (StructureType.RETIRED, StructureType.JOBLESS)
+
     structure_type = models.CharField(
         max_length=30,
         choices=StructureType.choices,

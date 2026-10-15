@@ -21,12 +21,7 @@ class CreatePro(ProEngagementMixin, BaseService):
         additional_information=None,
     ):
         self.chosen = engagements["engagements"]
-        # Working, unless her answers say otherwise.
-        self.pro = Pro(
-            username=identity["email"],
-            email=identity["email"],
-            professional_situation=Pro.ProfessionalSituation.WORKING,
-        )
+        self.pro = Pro(username=identity["email"], email=identity["email"])
         self._apply_identity(identity)
         self._save_pro_with(
             training_ambassador_form, workshop_request_form, additional_information

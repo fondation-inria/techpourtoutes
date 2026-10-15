@@ -3,7 +3,6 @@ import re
 import pytest
 from django.core import mail
 from playwright.sync_api import expect
-from waffle.models import Switch
 
 from techpourtoutes.models import Pro
 
@@ -15,9 +14,7 @@ from .helpers import select_option
 
 
 @pytest.fixture
-def new_funnel_url(live_server, settings):
-    settings.EMAIL_BACKEND = "django.core.mail.backends.locmem.EmailBackend"
-    Switch.objects.update_or_create(name="new_pro_features", defaults={"active": True})
+def new_funnel_url(live_server):
     return f"{live_server.url}/coalition/inscription/new/"
 
 
@@ -66,7 +63,7 @@ def test_retired_sponsor_joins_with_a_message_for_the_team(page, new_funnel_url)
     expect(page.get_by_text("Saisissez le code reçu par mail")).to_be_visible()
     pro = Pro.objects.get(email="hedy@example.com")
     assert pro.engagements == ["sponsor"]
-    assert pro.professional_situation == "retired"
+    assert pro.structure_type == "retired"
     assert any("Je peux aussi relire des CV." in m.body for m in mail.outbox)
 
     welcome = next(m for m in mail.outbox if m.to == ["hedy@example.com"])

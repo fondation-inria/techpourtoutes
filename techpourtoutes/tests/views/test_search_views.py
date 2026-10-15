@@ -419,12 +419,15 @@ def test_the_formation_sentinel_observes_the_dropdown_it_belongs_to(client, scho
 
 
 @pytest.mark.django_db
-def test_school_search_escapes_reflected_value_for_js_context(client):
+def test_school_search_escapes_reflected_value_for_js_context(client, pro):
     # On a failed POST the form re-renders with the submitted school_label interpolated
     # into the Alpine x-data JS strings. escapejs emits ' for a single quote (safe in
     # the JS context); plain HTML autoescaping would emit &#x27; which the browser decodes
     # back to a real quote, breaking out of the string.
-    response = client.post(reverse("create_workshop_request"), {"school_label": "Test'X"})
+    client.force_login(pro)
+    response = client.post(
+        reverse("create_pro_engagement", args=["workshops"]), {"workshop-school_label": "Test'X"}
+    )
 
     assert response.status_code == 200
     content = response.content.decode()
@@ -433,8 +436,11 @@ def test_school_search_escapes_reflected_value_for_js_context(client):
 
 
 @pytest.mark.django_db
-def test_higher_ed_school_search_escapes_reflected_value_for_js_context(client):
-    response = client.post(reverse("create_training_ambassador"), {"school_label": "Test'X"})
+def test_higher_ed_school_search_escapes_reflected_value_for_js_context(client, pro):
+    client.force_login(pro)
+    response = client.post(
+        reverse("create_pro_engagement", args=["training_ambassador"]), {"school_label": "Test'X"}
+    )
 
     assert response.status_code == 200
     content = response.content.decode()
