@@ -2,6 +2,8 @@ import pytest
 from django import forms
 from django.urls import reverse
 
+from techpourtoutes.models import Pro
+
 CHANGELIST = "admin:techpourtoutes_pro_changelist"
 
 
@@ -62,7 +64,6 @@ def test_admin_pro_appoints_a_chargee_de_mission(
 ):
     """The round trip, not just the widget: ticking the role alone brings the pro back staff,
     in the group, and holding exactly what the group carries."""
-    from techpourtoutes.models import Pro
 
     chargee = Pro(
         username="chargee@example.com", **{**valid_pro_model_data, "email": "chargee@example.com"}

@@ -19,12 +19,11 @@ class ProMailer(BaseMailer):
         )
 
     @classmethod
-    def welcome(cls, *, pro, token=None, code=None):
-        login_url = token and f"{settings.SITE_URL}{reverse('login_verify', args=[token])}"
+    def welcome(cls, *, pro, code):
         cls.send_mail(
             subject="Bienvenue dans la Coalition !",
             recipient_list=[pro.email],
-            context={"pro": pro, "login_url": login_url, "code": code},
+            context={"pro": pro, "code": code},
             tags=["utilisateur", "coalition", "mail de bienvenue"],
         )
 

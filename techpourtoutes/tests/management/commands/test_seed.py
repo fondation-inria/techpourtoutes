@@ -3,7 +3,7 @@ from django.core.management import call_command
 from django.core.management.base import CommandError
 from django.test import override_settings
 
-from techpourtoutes.models import Beneficiary, Pro, TrainingExperience
+from techpourtoutes.models import Beneficiary, Event, Pro, TrainingExperience
 from techpourtoutes.utils.dates import compute_age
 
 
@@ -65,11 +65,11 @@ def test_seed_creates_an_adult_student_a_minor_pupil_and_an_admin_pro_per_team_e
     with override_settings(
         SEED_ENABLED=True,
         SEED_ADMIN_PASSWORD="s3cret-review-pass",
-        SEED_TEAM_EMAILS=["manon@example.com", "quentin@example.com"],
+        SEED_TEAM_EMAILS=["abc@example.com", "def@example.com"],
     ):
         call_command("seed")
 
-    for name in ("manon", "quentin"):
+    for name in ("abc", "def"):
         student = Beneficiary.objects.get(email=f"{name}+etudiante@example.com")
         assert compute_age(student.birth_date) >= 18
         assert student.training_experiences.get().formation.higher_ed
@@ -85,30 +85,28 @@ def test_seed_creates_an_adult_student_a_minor_pupil_and_an_admin_pro_per_team_e
 
 @pytest.mark.django_db
 def test_seed_team_accounts_are_idempotent():
-    with override_settings(SEED_ENABLED=True, SEED_TEAM_EMAILS=["manon@example.com"]):
+    with override_settings(SEED_ENABLED=True, SEED_TEAM_EMAILS=["abc@example.com"]):
         call_command("seed")
         call_command("seed")
 
-    assert Beneficiary.objects.filter(email__startswith="manon+").count() == 2
-    assert Pro.objects.filter(email__startswith="manon+").count() == 1
+    assert Beneficiary.objects.filter(email__startswith="abc+").count() == 2
+    assert Pro.objects.filter(email__startswith="abc+").count() == 1
 
 
 @pytest.mark.django_db
 def test_seed_team_accounts_replace_the_default_ones():
     from techpourtoutes.models import Event
 
-    with override_settings(SEED_ENABLED=True, SEED_TEAM_EMAILS=["manon@example.com"]):
+    with override_settings(SEED_ENABLED=True, SEED_TEAM_EMAILS=["abc@example.com"]):
         call_command("seed")
 
     assert not Pro.objects.filter(email="admin@techpourtoutes.io").exists()
     assert not Beneficiary.objects.filter(email="beneficiary@techpourtoutes.io").exists()
-    assert Event.objects.filter(created_by__email="manon+pro@example.com").exists()
+    assert Event.objects.filter(created_by__email="abc+pro@example.com").exists()
 
 
 @pytest.mark.django_db
 def test_seed_creates_one_approved_upcoming_event_per_category():
-    from techpourtoutes.models import Event
-
     with override_settings(SEED_ENABLED=True):
         call_command("seed")
 
@@ -118,8 +116,6 @@ def test_seed_creates_one_approved_upcoming_event_per_category():
 
 @pytest.mark.django_db
 def test_seed_events_have_multiline_descriptions():
-    from techpourtoutes.models import Event
-
     with override_settings(SEED_ENABLED=True):
         call_command("seed")
 
@@ -132,7 +128,6 @@ def test_seed_events_have_multiline_descriptions():
 @pytest.mark.django_db
 def test_seed_includes_events_that_require_registration_or_candidacy():
     """A few seeded events carry a real registration link, so the participation CTA is testable."""
-    from techpourtoutes.models import Event
 
     with override_settings(SEED_ENABLED=True):
         call_command("seed")

@@ -26,7 +26,8 @@ class UpsertBeneficiary(BaseService):
         self.beneficiary = beneficiary or Beneficiary(
             username=beneficiary_data["email"], email=beneficiary_data["email"]
         )
-        self._apply_birth_date(beneficiary_data, mentoring_signup_data)
+        if beneficiary_data:
+            self.beneficiary.birth_date = beneficiary_data["birth_date"]
         is_minor = compute_age(self.beneficiary.birth_date) < 18
         with transaction.atomic():
             self._save_beneficiary(
@@ -49,13 +50,6 @@ class UpsertBeneficiary(BaseService):
             )
         if is_new:
             self._trigger_onboarding()
-
-    def _apply_birth_date(self, beneficiary_data, mentoring_signup_data):
-        # The identity step normally carries it; the mentoring form only does so for an account
-        # imported from Faveod
-        data = beneficiary_data or mentoring_signup_data or {}
-        if data.get("birth_date"):
-            self.beneficiary.birth_date = data["birth_date"]
 
     def _save_beneficiary(
         self,

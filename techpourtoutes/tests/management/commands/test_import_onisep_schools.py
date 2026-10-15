@@ -51,16 +51,6 @@ def test_if_empty_runs_the_import_on_an_empty_table():
     assert School.objects.count() > 1
 
 
-def test_if_empty_runs_the_import_when_only_merge_placeholders_are_there():
-    """Migration 0036 leaves the table full of `legacy-` rows, so a plain `exists()` would
-    skip the very first import — and the remapping would then find nothing to point at."""
-    School(onisep_id="legacy-s-0", name="Lycée Voltaire", uai="0750001A").save()
-
-    call_command("import_onisep_schools", sample=True, if_empty=True)
-
-    assert School.objects.imported().count() > 1
-
-
 def test_a_failed_import_stops_the_command():
     with patch(SERVICE) as service:
         service.return_value.failure = True

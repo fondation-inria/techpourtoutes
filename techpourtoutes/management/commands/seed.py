@@ -74,7 +74,7 @@ class Command(BaseCommand):
             civility=Pro.Civility.MADAME,
             phone="+33600000000",
             postal_code="75001",
-            professional_situation=Pro.ProfessionalSituation.WORKING,
+            structure_type=Pro.StructureType.PUBLIC_INSTITUTION,
             job_title="Admin",
             structure_name="Inria",
             is_superuser=True,

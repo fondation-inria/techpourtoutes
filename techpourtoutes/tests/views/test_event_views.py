@@ -9,15 +9,16 @@ from django.test import override_settings
 from django.urls import reverse, reverse_lazy
 from django.utils import timezone
 
-from techpourtoutes.models import Event
+from techpourtoutes.models import Event, Pro, SavedEvent
+
+from ..models.test_event import build_event
 
 NEW_EVENT_URL = reverse_lazy("new_event")
 CREATE_URL = reverse_lazy("create_event")
 IMAGE_UPLOAD_URL = reverse_lazy("create_event_image_upload")
 UPDATE_URL = reverse_lazy("update_event")
 
-locmem = override_settings(
-    EMAIL_BACKEND="django.core.mail.backends.locmem.EmailBackend",
+new_event_recipients = override_settings(
     NEW_EVENT_RECIPIENTS=["agir@techpourtoutes.io"],
 )
 
@@ -174,7 +175,7 @@ def test_going_back_from_an_unknown_step_lands_on_the_first_screen(client, pro):
 
 
 @pytest.mark.django_db
-@locmem
+@new_event_recipients
 def test_publishing_creates_a_pending_event_and_sends_both_mails(client, pro):
     client.force_login(pro)
 
@@ -192,7 +193,7 @@ def test_publishing_creates_a_pending_event_and_sends_both_mails(client, pro):
 
 
 @pytest.mark.django_db
-@locmem
+@new_event_recipients
 def test_publishing_stores_the_uploaded_image_and_its_alternative_text(
     client, pro, settings, tmp_path
 ):
@@ -233,7 +234,7 @@ def test_the_image_preview_takes_the_color_of_the_category_chosen_earlier(
 
 
 @pytest.mark.django_db
-@locmem
+@new_event_recipients
 def test_create_event_links_to_the_published_event_with_a_way_back_to_the_pro_events(
     client, moderator_pro
 ):
@@ -247,7 +248,7 @@ def test_create_event_links_to_the_published_event_with_a_way_back_to_the_pro_ev
 
 
 @pytest.mark.django_db
-@locmem
+@new_event_recipients
 def test_a_moderator_is_told_her_event_is_already_online(client, moderator_pro):
     client.force_login(moderator_pro)
 
@@ -259,7 +260,7 @@ def test_a_moderator_is_told_her_event_is_already_online(client, moderator_pro):
 
 
 @pytest.mark.django_db
-@locmem
+@new_event_recipients
 def test_publishing_re_validates_every_earlier_step(client, pro):
     """A forged payload must not slip past: the last screen replays all three validators."""
     client.force_login(pro)
@@ -274,7 +275,7 @@ def test_publishing_re_validates_every_earlier_step(client, pro):
 
 
 @pytest.mark.django_db
-@locmem
+@new_event_recipients
 def test_publishing_an_online_event_stores_no_address(client, pro):
     client.force_login(pro)
 
@@ -300,8 +301,6 @@ MY_EVENTS_URL = reverse_lazy("index_pro_events")
 
 
 def approved_event(pro, **overrides):
-    from ..models.test_event import build_event
-
     return build_event(pro, **{"status": Event.Status.APPROVED, **overrides})
 
 
@@ -340,8 +339,6 @@ def test_index_pro_events_cards_link_to_the_event_page(client, pro):
 
 @pytest.mark.django_db
 def test_index_pro_events_ignores_the_events_of_another_pro(client, pro, valid_pro_model_data):
-    from techpourtoutes.models import Pro
-
     other = Pro(**{**valid_pro_model_data, "username": "bea@example.com"})
     other.save()
     approved_event(other, title="Forum d'une autre").save()
@@ -436,8 +433,6 @@ def test_edit_event_carries_the_dates_in_a_format_the_form_parses(client, pro, e
 
 @pytest.mark.django_db
 def test_edit_event_is_reserved_to_the_pro_who_submitted_it(client, event, valid_pro_model_data):
-    from techpourtoutes.models import Pro
-
     other = Pro(**{**valid_pro_model_data, "username": "bea@example.com"})
     other.save()
     client.force_login(other)
@@ -446,7 +441,7 @@ def test_edit_event_is_reserved_to_the_pro_who_submitted_it(client, event, valid
 
 
 @pytest.mark.django_db
-@locmem
+@new_event_recipients
 def test_editing_an_event_awaiting_validation_saves_it_without_asking(client, pro, event):
     client.force_login(pro)
 
@@ -461,7 +456,7 @@ def test_editing_an_event_awaiting_validation_saves_it_without_asking(client, pr
 
 
 @pytest.mark.django_db
-@locmem
+@new_event_recipients
 def test_editing_an_approved_event_asks_before_publishing(client, pro, event):
     event.status = Event.Status.APPROVED
     event.save()
@@ -480,10 +475,8 @@ def test_editing_an_approved_event_asks_before_publishing(client, pro, event):
 
 
 @pytest.mark.django_db
-@locmem
+@new_event_recipients
 def test_confirming_the_edit_of_an_approved_event_publishes_it(client, pro, event, beneficiary):
-    from techpourtoutes.models import SavedEvent
-
     event.status = Event.Status.APPROVED
     event.save()
     SavedEvent.objects.create(event=event, beneficiary=beneficiary)
@@ -510,12 +503,10 @@ def test_confirming_the_edit_of_an_approved_event_publishes_it(client, pro, even
 
 
 @pytest.mark.django_db
-@locmem
+@new_event_recipients
 def test_editing_an_event_that_belongs_to_another_pro_is_a_404(
     client, pro, event, valid_pro_model_data
 ):
-    from techpourtoutes.models import Pro
-
     other = Pro(**{**valid_pro_model_data, "username": "bea@example.com"})
     other.save()
     client.force_login(other)
@@ -530,7 +521,7 @@ def test_editing_an_event_that_belongs_to_another_pro_is_a_404(
 
 
 @pytest.mark.django_db
-@locmem
+@new_event_recipients
 def test_a_forged_event_id_creates_nothing(client, pro):
     client.force_login(pro)
 
@@ -572,7 +563,7 @@ def test_edit_event_ignores_an_unsafe_back_url(client, pro, event):
 
 
 @pytest.mark.django_db
-@locmem
+@new_event_recipients
 def test_updating_an_event_redirects_with_the_carried_back_url(client, pro, event):
     client.force_login(pro)
 
@@ -591,7 +582,7 @@ def test_updating_an_event_redirects_with_the_carried_back_url(client, pro, even
 
 
 @pytest.mark.django_db
-@locmem
+@new_event_recipients
 def test_updating_an_event_without_a_back_url_redirects_to_the_pro_events(client, pro, event):
     client.force_login(pro)
 

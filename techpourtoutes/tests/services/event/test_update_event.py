@@ -9,14 +9,13 @@ from techpourtoutes.services.event.update_event import UpdateEvent
 
 from .test_create_event import valid_forms
 
-locmem = override_settings(
-    EMAIL_BACKEND="django.core.mail.backends.locmem.EmailBackend",
+new_event_recipients = override_settings(
     NEW_EVENT_RECIPIENTS=["agir@techpourtoutes.io"],
 )
 
 
 @pytest.mark.django_db
-@locmem
+@new_event_recipients
 def test_the_answers_are_written_back_onto_the_event(event):
     result = UpdateEvent(event=event, forms=valid_forms())
 
@@ -28,7 +27,7 @@ def test_the_answers_are_written_back_onto_the_event(event):
 
 
 @pytest.mark.django_db
-@locmem
+@new_event_recipients
 def test_the_slug_survives_a_renamed_event(event):
     """An indexed URL outlives a corrected title."""
     slug = event.slug
@@ -40,7 +39,7 @@ def test_the_slug_survives_a_renamed_event(event):
 
 
 @pytest.mark.django_db
-@locmem
+@new_event_recipients
 def test_an_event_awaiting_validation_only_tells_the_team(event, beneficiary):
     """It was never published: nobody but the moderation team knows it exists."""
     SavedEvent.objects.create(event=event, beneficiary=beneficiary)
@@ -51,7 +50,7 @@ def test_an_event_awaiting_validation_only_tells_the_team(event, beneficiary):
 
 
 @pytest.mark.django_db
-@locmem
+@new_event_recipients
 def test_an_approved_event_tells_the_team_its_author_and_everyone_who_saved_it(event, beneficiary):
     event.status = Event.Status.APPROVED
     event.save()
@@ -69,7 +68,7 @@ def test_an_approved_event_tells_the_team_its_author_and_everyone_who_saved_it(e
 
 
 @pytest.mark.django_db
-@locmem
+@new_event_recipients
 def test_the_mail_to_a_saver_recaps_the_new_details(event, beneficiary):
     event.status = Event.Status.APPROVED
     event.save()
@@ -87,7 +86,7 @@ def test_the_mail_to_a_saver_recaps_the_new_details(event, beneficiary):
 
 
 @pytest.mark.django_db
-@locmem
+@new_event_recipients
 def test_each_saver_is_mailed_by_her_own_task(event, beneficiary):
     """One task per recipient: a bounce retries that mail alone, not the whole audience."""
     event.status = Event.Status.APPROVED

@@ -38,11 +38,6 @@ NEVER_LISTED_URL_NAMES = {
     "new_training_ambassador_request",
     "create_training_ambassador_request",
     # Form submission endpoints (their GET page is the one listed)
-    "create_mentor",
-    "create_work_ambassador",
-    "create_training_ambassador",
-    "create_sponsor",
-    "create_workshop_request",
     "create_manifeste_signature",
     "create_upcoming_feature_notification",
     "create_event",
@@ -54,12 +49,10 @@ NEVER_LISTED_URL_NAMES = {
     "pro_inscription_funnel",
     "new_pro_inscription_funnel",
     "mentoring_funnel",
-    "coalition_welcome",
     "show_manifeste_signature",
     # Redirects
     "a_propos",
-    # 404 until the new_pro_features switch is on
-    "new_structure_engagement",
+    "informations_legales",
 }
 
 

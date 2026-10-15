@@ -1,10 +1,24 @@
-from unittest.mock import MagicMock, patch
+from datetime import date, time, timedelta
+from decimal import Decimal
 
 import boto3
 import httpx
 import pytest
+from django.contrib.auth.models import Group
+from django.utils import timezone
 from moto import mock_aws
 
+from techpourtoutes.models import (
+    Beneficiary,
+    Event,
+    Formation,
+    FormationAction,
+    Level,
+    Pro,
+    School,
+    TrainingExperience,
+    User,
+)
 from techpourtoutes.utils import object_storage
 
 
@@ -56,7 +70,6 @@ def s3_storages(settings, s3_location):
 @pytest.fixture
 def event_moderator_group(db):
     """The group the migration creates: the permissions a Chargée de mission is granted."""
-    from django.contrib.auth.models import Group
 
     return Group.objects.get(name="Chargée de mission")
 
@@ -71,8 +84,6 @@ def moderator_pro(pro, event_moderator_group):
 
 @pytest.fixture
 def pro(db):
-    from techpourtoutes.models import Pro
-
     pro = Pro(
         username="alice@example.com",
         civility=Pro.Civility.MADAME,
@@ -81,7 +92,6 @@ def pro(db):
         email="alice@example.com",
         phone="+33612345678",
         postal_code="75001",
-        professional_situation=Pro.ProfessionalSituation.WORKING,
         job_title="Chercheuse",
         structure_name="Inria",
         brevo_sync_enabled=True,
@@ -92,8 +102,6 @@ def pro(db):
 
 @pytest.fixture
 def higher_ed_school(db):
-    from techpourtoutes.models import School
-
     school = School(
         onisep_id="490",
         name="Université Paris-Saclay",
@@ -109,8 +117,6 @@ def higher_ed_school(db):
 
 @pytest.fixture
 def school(db):
-    from techpourtoutes.models import School
-
     school = School(
         onisep_id="14008",
         uai="0750001A",
@@ -124,9 +130,6 @@ def school(db):
 
 @pytest.fixture
 def beneficiary(db):
-    from datetime import date
-
-    from techpourtoutes.models import Beneficiary
 
     beneficiary = Beneficiary(
         username="jade@example.com",
@@ -142,8 +145,6 @@ def beneficiary(db):
 
 @pytest.fixture
 def formation(school):
-    from techpourtoutes.models import Formation, FormationAction
-
     formation = Formation(onisep_id="7118", name="Spécialité mathématiques", secondary=True)
     formation.save()
     FormationAction(onisep_id="69395", formation=formation, school=school).save()
@@ -152,8 +153,6 @@ def formation(school):
 
 @pytest.fixture
 def higher_ed_formation(higher_ed_school):
-    from techpourtoutes.models import Formation, FormationAction
-
     formation = Formation(onisep_id="9701", name="Master Informatique", higher_ed=True)
     formation.save()
     FormationAction(onisep_id="69396", formation=formation, school=higher_ed_school).save()
@@ -162,9 +161,6 @@ def higher_ed_formation(higher_ed_school):
 
 @pytest.fixture
 def experience(pro, higher_ed_school, higher_ed_formation):
-    from datetime import date
-
-    from techpourtoutes.models import Level, TrainingExperience
 
     return TrainingExperience.objects.create(
         user=pro,
@@ -178,9 +174,6 @@ def experience(pro, higher_ed_school, higher_ed_formation):
 
 @pytest.fixture
 def beneficiary_experience(beneficiary, school, formation):
-    from datetime import date
-
-    from techpourtoutes.models import Level, TrainingExperience
 
     return TrainingExperience.objects.create(
         user=beneficiary,
@@ -195,12 +188,6 @@ def beneficiary_experience(beneficiary, school, formation):
 @pytest.fixture
 def event(pro):
     """A geocoded, upcoming event — the nominal case the autocomplete produces."""
-    from datetime import time, timedelta
-    from decimal import Decimal
-
-    from django.utils import timezone
-
-    from techpourtoutes.models import Event
 
     start = timezone.localdate() + timedelta(days=30)
     event = Event(
@@ -333,16 +320,6 @@ def carif_oref_record():
 
 
 @pytest.fixture
-def mock_create_mentor():
-    instance = MagicMock(success=True, failure=False, errors=[])
-    with patch(
-        "techpourtoutes.views.coalition_views.CreateMentor",
-        return_value=instance,
-    ) as mock:
-        yield mock
-
-
-@pytest.fixture
 def valid_pro_model_data():
     return {
         "civility": "Madame",
@@ -351,21 +328,14 @@ def valid_pro_model_data():
         "email": "marie.dupont@example.com",
         "phone": "0612345678",
         "postal_code": "75011",
-        "professional_situation": "working",
+        "structure_type": "company",
         "job_title": "Développeuse backend",
         "structure_name": "Grande entreprise",
     }
 
 
 @pytest.fixture
-def valid_pro_data(valid_pro_model_data):
-    return {**valid_pro_model_data, "terms_accepted": True, "manifeste_accepted": True}
-
-
-@pytest.fixture
 def inactive_user(db):
-    from techpourtoutes.models import User
-
     user = User.objects.create_user(
         username="inactive@example.com",
         email="inactive@example.com",

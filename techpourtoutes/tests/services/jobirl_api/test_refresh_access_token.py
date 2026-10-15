@@ -2,6 +2,8 @@ import httpx
 import pytest
 from django.test import override_settings
 
+from techpourtoutes.services.jobirl_api.refresh_access_token import RefreshAccessToken
+
 JOBIRL_TEST_URL = "https://preprod.jobirl.com"
 JOBIRL_TEST_API_KEY = "test-api-key-abc"
 
@@ -9,8 +11,6 @@ JOBIRL_TEST_API_KEY = "test-api-key-abc"
 @pytest.mark.django_db
 @override_settings(JOBIRL_URL=JOBIRL_TEST_URL, JOBIRL_API_KEY=JOBIRL_TEST_API_KEY)
 def test_refresh_access_token_sends_correct_data_and_exposes_token(httpx_mock, pro):
-    from techpourtoutes.services.jobirl_api.refresh_access_token import RefreshAccessToken
-
     pro.jobirl_user_id = 12345
     pro.jobirl_user_token = "old-token"
     pro.save()
@@ -36,8 +36,6 @@ def test_refresh_access_token_sends_correct_data_and_exposes_token(httpx_mock, p
 @pytest.mark.django_db
 @override_settings(JOBIRL_URL=JOBIRL_TEST_URL, JOBIRL_API_KEY=JOBIRL_TEST_API_KEY)
 def test_refresh_access_token_updates_mentor_token_in_db(httpx_mock, pro):
-    from techpourtoutes.services.jobirl_api.refresh_access_token import RefreshAccessToken
-
     pro.jobirl_user_id = 12345
     pro.jobirl_user_token = "old-token"
     pro.save()
@@ -58,8 +56,6 @@ def test_refresh_access_token_updates_mentor_token_in_db(httpx_mock, pro):
 @pytest.mark.django_db
 @override_settings(JOBIRL_URL=JOBIRL_TEST_URL, JOBIRL_API_KEY=JOBIRL_TEST_API_KEY)
 def test_refresh_access_token_fails_on_http_error(httpx_mock, pro):
-    from techpourtoutes.services.jobirl_api.refresh_access_token import RefreshAccessToken
-
     refresh_url = f"{JOBIRL_TEST_URL}/techpourtoutes/api/user_refresh_access_token"
     httpx_mock.add_response(url=refresh_url, status_code=401)
 
@@ -72,8 +68,6 @@ def test_refresh_access_token_fails_on_http_error(httpx_mock, pro):
 @pytest.mark.django_db
 @override_settings(JOBIRL_URL=JOBIRL_TEST_URL, JOBIRL_API_KEY=JOBIRL_TEST_API_KEY)
 def test_refresh_access_token_fails_on_network_error(httpx_mock, pro):
-    from techpourtoutes.services.jobirl_api.refresh_access_token import RefreshAccessToken
-
     httpx_mock.add_exception(httpx.RequestError("connection failed"))
 
     result = RefreshAccessToken(user=pro)

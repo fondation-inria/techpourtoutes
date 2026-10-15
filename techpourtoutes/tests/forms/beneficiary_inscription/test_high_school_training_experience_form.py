@@ -1,7 +1,7 @@
 import pytest
 
 from techpourtoutes.forms import BeneficiaryHighSchoolTrainingExperienceForm
-from techpourtoutes.models import Level
+from techpourtoutes.models import Formation, Level
 from techpourtoutes.utils.school_year import (
     current_school_year_end_date,
     current_school_year_start_date,
@@ -85,8 +85,6 @@ def test_form_requires_a_formation_once_the_school_is_known(school, formation):
 
 @pytest.mark.django_db
 def test_form_rejects_a_formation_the_school_does_not_teach(school, formation):
-    from techpourtoutes.models import Formation
-
     elsewhere = Formation(onisep_id="9999", name="Diplôme d'ingénieur")
     elsewhere.save()
 
@@ -113,8 +111,6 @@ def test_form_reports_the_school_before_the_formation(school, formation):
 def test_a_missing_school_still_resolves_a_formation_from_the_whole_catalogue(
     beneficiary, school, formation
 ):
-    from techpourtoutes.models import Formation
-
     elsewhere = Formation(onisep_id="9999", name="Diplôme d'ingénieur", secondary=True)
     elsewhere.save()
 
@@ -140,8 +136,6 @@ def test_a_missing_school_still_resolves_a_formation_from_the_whole_catalogue(
 
 @pytest.mark.django_db
 def test_a_missing_school_never_resolves_a_higher_ed_only_formation(beneficiary, school):
-    from techpourtoutes.models import Formation
-
     higher_ed_only = Formation(onisep_id="9999", name="Master Informatique", higher_ed=True)
     higher_ed_only.save()
 

@@ -3,6 +3,8 @@ import pytest
 from techpourtoutes.forms.event import EventSubcategoryForm
 from techpourtoutes.models import Event
 
+from ...models.test_event import build_event
+
 
 def test_a_listed_subcategory_is_stored_as_its_key():
     form = EventSubcategoryForm(data={"subcategory": Event.Subcategory.HACKATHON})
@@ -72,7 +74,6 @@ def test_the_form_prefilled_from_an_event_reads_a_listed_subcategory_straight_of
 @pytest.mark.django_db
 def test_the_form_prefilled_from_an_event_puts_an_unlisted_subcategory_back_under_other(pro):
     """The mirror of `resolved_subcategory`: the free text returns to the field it came from."""
-    from ...models.test_event import build_event
 
     event = build_event(pro, subcategory="Rencontre entre elles")
     event.save()

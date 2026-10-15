@@ -1,16 +1,20 @@
 import hashlib
 import uuid
 from datetime import timedelta
+from urllib.parse import urlencode
 
 import pytest
+from django.core.exceptions import ValidationError
 from django.test import override_settings
+from django.urls import reverse
 from django.utils import timezone
+
+from techpourtoutes.models import User
+from techpourtoutes.models.user import VERIFICATION_CODE_MAX_ATTEMPTS
 
 
 @pytest.mark.django_db
 def test_user_has_uuid_pk():
-    from techpourtoutes.models import User
-
     user = User.objects.create_user(
         username="test@example.com",
         email="test@example.com",
@@ -21,16 +25,12 @@ def test_user_has_uuid_pk():
 
 
 def test_user_full_name_shouts_the_last_name():
-    from techpourtoutes.models import User
-
     user = User(first_name="Ada", last_name="Lovelace")
 
     assert user.full_name == "Ada LOVELACE"
 
 
 def _save_user(**fields):
-    from techpourtoutes.models import User
-
     user = User(first_name="Alice", last_name="Martin", **fields)
     user.set_unusable_password()
     user.save()
@@ -58,8 +58,6 @@ def test_save_lowercases_an_explicit_username():
 
 @pytest.mark.django_db
 def test_saving_a_case_variant_of_an_existing_email_is_rejected(pro):
-    from django.core.exceptions import ValidationError
-
     with pytest.raises(ValidationError):
         _save_user(email=pro.email.upper())
 
@@ -98,8 +96,6 @@ def test_issue_login_token_twice_overwrites_previous(pro):
 
 @pytest.mark.django_db
 def test_consume_login_token_returns_user_and_clears_hash(pro):
-    from techpourtoutes.models import User
-
     plaintext = pro.issue_login_token()
 
     consumed = User.consume_login_token(plaintext=plaintext)
@@ -113,15 +109,11 @@ def test_consume_login_token_returns_user_and_clears_hash(pro):
 
 @pytest.mark.django_db
 def test_consume_login_token_returns_none_for_garbage():
-    from techpourtoutes.models import User
-
     assert User.consume_login_token(plaintext="not-a-real-token") is None
 
 
 @pytest.mark.django_db
 def test_consume_login_token_returns_none_when_expired(pro):
-    from techpourtoutes.models import User
-
     plaintext = pro.issue_login_token()
     pro.login_token_expires_at = timezone.now() - timedelta(minutes=1)
     pro.save()
@@ -131,8 +123,6 @@ def test_consume_login_token_returns_none_when_expired(pro):
 
 @pytest.mark.django_db
 def test_consume_login_token_returns_none_on_second_use(pro):
-    from techpourtoutes.models import User
-
     plaintext = pro.issue_login_token()
     assert User.consume_login_token(plaintext=plaintext) is not None
     assert User.consume_login_token(plaintext=plaintext) is None
@@ -168,8 +158,6 @@ def test_consume_login_code_returns_true_on_match(pro):
 
 @pytest.mark.django_db
 def test_consume_login_code_consumes_code_on_success(pro):
-    from techpourtoutes.models import User
-
     code = pro.issue_login_code()
 
     assert pro.consume_login_code(code) is True
@@ -181,8 +169,6 @@ def test_consume_login_code_consumes_code_on_success(pro):
 
 @pytest.mark.django_db
 def test_consume_login_code_is_single_use_under_concurrent_verify(pro):
-    from techpourtoutes.models import User
-
     code = pro.issue_login_code()
     first = User.objects.get(pk=pro.pk)
     second = User.objects.get(pk=pro.pk)
@@ -217,8 +203,6 @@ def test_consume_login_code_false_when_expired(pro):
 
 @pytest.mark.django_db
 def test_consume_login_code_false_when_locked(pro):
-    from techpourtoutes.models.user import VERIFICATION_CODE_MAX_ATTEMPTS
-
     code = pro.issue_login_code()
     pro.login_code_attempts = VERIFICATION_CODE_MAX_ATTEMPTS
     pro.save()
@@ -228,8 +212,6 @@ def test_consume_login_code_false_when_locked(pro):
 
 @pytest.mark.django_db
 def test_consume_login_code_clears_code_on_final_wrong_attempt(pro):
-    from techpourtoutes.models.user import VERIFICATION_CODE_MAX_ATTEMPTS
-
     pro.issue_login_code()
     pro.login_code_attempts = VERIFICATION_CODE_MAX_ATTEMPTS - 1
     pro.save()
@@ -263,8 +245,6 @@ def test_consume_email_change_code_returns_true_on_match(pro):
 
 @pytest.mark.django_db
 def test_consume_email_change_code_consumes_code_on_success(pro):
-    from techpourtoutes.models import User
-
     code = pro.set_email_change_code()
 
     assert pro.consume_email_change_code(code) is True
@@ -276,8 +256,6 @@ def test_consume_email_change_code_consumes_code_on_success(pro):
 
 @pytest.mark.django_db
 def test_consume_email_change_code_is_single_use_under_concurrent_verify(pro):
-    from techpourtoutes.models import User
-
     code = pro.set_email_change_code()
     first = User.objects.get(pk=pro.pk)
     second = User.objects.get(pk=pro.pk)
@@ -303,8 +281,6 @@ def test_consume_email_change_code_false_when_no_code(pro):
 
 @pytest.mark.django_db
 def test_consume_email_change_code_false_when_locked(pro):
-    from techpourtoutes.models.user import VERIFICATION_CODE_MAX_ATTEMPTS
-
     code = pro.set_email_change_code()
     pro.email_change_attempts = VERIFICATION_CODE_MAX_ATTEMPTS
     pro.save()
@@ -361,9 +337,6 @@ def test_read_email_change_token_rejects_other_user(pro, inactive_user):
 
 @pytest.mark.django_db
 def test_update_email_verification_url_carries_token(pro):
-    from urllib.parse import urlencode
-
-    from django.urls import reverse
 
     token = pro.issue_email_change_token("nouvelle@example.com", "current")
     url = pro.update_email_verification_url(token)

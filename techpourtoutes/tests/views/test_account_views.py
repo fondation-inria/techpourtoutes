@@ -273,7 +273,7 @@ def test_update_user_valid_saves_and_returns_info_card(client, pro):
             "first_name": "Béatrice",
             "last_name": "Dupont",
             "phone": "+33698765432",
-            "professional_situation": "working",
+            "structure_type": "public_institution",
             "structure_name": "CNRS",
             "job_title": "Ingénieure",
             "postal_code": "69001",
@@ -285,6 +285,7 @@ def test_update_user_valid_saves_and_returns_info_card(client, pro):
     assert pro.first_name == "Béatrice"
     assert pro.job_title == "Ingénieure"
     assert pro.postal_code == "69001"
+    assert pro.structure_type == "public_institution"
 
 
 @pytest.mark.django_db
