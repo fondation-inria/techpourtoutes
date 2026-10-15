@@ -47,6 +47,10 @@ SEED_ENABLED = env.bool("SEED_ENABLED", default=DEBUG)
 SEED_ADMIN_EMAIL = env("SEED_ADMIN_EMAIL", default="admin@techpourtoutes.io")
 SEED_ADMIN_PASSWORD = env("SEED_ADMIN_PASSWORD", default="admin")
 SEED_BENEFICIARY_EMAIL = env("SEED_BENEFICIARY_EMAIL", default="beneficiary@techpourtoutes.io")
+SEED_TEAM_EMAILS = env.list("SEED_TEAM_EMAILS", default=[])
+# Every login or email-change code is this one, so local dev never needs a trip to Mailpit.
+# Ignored outside DEBUG: set by mistake on a deployed app, it would open every account.
+FIXED_VERIFICATION_CODE = env("FIXED_VERIFICATION_CODE", default="") if DEBUG else ""
 DATABASES = {
     "default": {
         **env.db("DATABASE_URL"),
