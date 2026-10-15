@@ -1,6 +1,10 @@
 from django.shortcuts import redirect, render
 
 
+def informations_legales(request):
+    return redirect("mentions_legales")
+
+
 def donnees_personnelles(request):
     return render(request, "static/donnees_personnelles.html", {})
 

@@ -52,6 +52,7 @@ NEVER_LISTED_URL_NAMES = {
     "show_manifeste_signature",
     # Redirects
     "a_propos",
+    "informations_legales",
 }
 
 

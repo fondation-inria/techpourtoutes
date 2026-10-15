@@ -1,0 +1,16 @@
+<c-vars title="Informations légales – TechPourToutes" />
+
+<c-layout.base title="{{ title }}">
+    <c-components.title title="Informations légales" variant="h1" title_bg="yellow" />
+
+    <div class="w-full mt-5">
+        <c-components.tabs class="flex">
+            <c-components.tab_link href="{% url 'mentions_legales' %}" label="Mentions légales" class="md:flex-none flex-auto" />
+            <c-components.tab_link href="{% url 'conditions_generales' %}" label="Conditions générales d'utilisation" class="md:flex-none flex-auto" />
+            <c-components.tab_link href="{% url 'donnees_personnelles' %}" label="Données personnelles et cookies" class="md:flex-none flex-auto" />
+        </c-components.tabs>
+        <c-components.card class="relative -mt-0.5 rounded-tl-none w-full z-10">
+            {{ slot }}
+        </c-components.card>
+    </div>
+</c-layout.base>
