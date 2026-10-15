@@ -2,8 +2,15 @@ import re
 from datetime import date
 
 import pytest
-from django.test import override_settings
+from django.contrib.messages import get_messages
+from django.core import mail
 from django.urls import reverse
+
+from techpourtoutes.models import Beneficiary, Formation, Level, Pro, School, TrainingExperience
+from techpourtoutes.utils.school_year import (
+    current_school_year_start_date,
+    next_school_year_start_date,
+)
 
 
 @pytest.mark.django_db
@@ -49,15 +56,12 @@ def test_update_pro_training_experience_updates_experience(client, pro, experien
 
 @pytest.mark.django_db
 def test_edit_pro_training_experience_rejects_another_pro(client, experience):
-    from techpourtoutes.models import Pro
-
     intruder = Pro(
         username="eve@example.com",
         email="eve@example.com",
         first_name="Eve",
         last_name="Intruder",
         civility="Madame",
-        professional_situation="student",
         job_title="Étudiante",
     )
     intruder.save()
@@ -68,8 +72,6 @@ def test_edit_pro_training_experience_rejects_another_pro(client, experience):
 
 
 def _another_school():
-    from techpourtoutes.models import School
-
     school = School(
         onisep_id="11", name="École polytechnique", acronym="X", uai="0911568K", higher_ed=True
     )
@@ -78,8 +80,6 @@ def _another_school():
 
 
 def _another_formation():
-    from techpourtoutes.models import Formation
-
     formation = Formation(onisep_id="12", name="Diplôme d'ingénieur", higher_ed=True)
     formation.save()
     return formation
@@ -97,9 +97,6 @@ def test_show_user_lists_a_card_per_beneficiary_training_experience(
 
 @pytest.mark.django_db
 def test_show_user_places_current_year_placeholder_after_future_experience(client, beneficiary):
-    from techpourtoutes.models import Level, TrainingExperience
-    from techpourtoutes.utils.school_year import next_school_year_start_date
-
     next_year = TrainingExperience.objects.create(
         user=beneficiary,
         out_of_scope_school_name="École du bout du monde",
@@ -150,12 +147,9 @@ def test_create_beneficiary_training_experience_creates_experience(
 
 
 @pytest.mark.django_db
-@override_settings(EMAIL_BACKEND="django.core.mail.backends.locmem.EmailBackend")
 def test_beneficiary_missing_formation_is_saved_reported_and_displayed(
     client, beneficiary, school
 ):
-    from django.core import mail
-
     client.force_login(beneficiary)
 
     response = client.post(
@@ -188,8 +182,6 @@ def test_beneficiary_missing_formation_is_saved_reported_and_displayed(
 def test_create_beneficiary_training_experience_repositions_card_before_older_experience(
     client, beneficiary, school, formation
 ):
-    from techpourtoutes.models import Level, TrainingExperience
-
     older = TrainingExperience.objects.create(
         user=beneficiary,
         school=school,
@@ -248,8 +240,6 @@ def test_create_beneficiary_training_experience_appends_when_it_is_the_earliest(
 def test_update_beneficiary_training_experience_repositions_when_period_changes(
     client, beneficiary, beneficiary_experience, school, formation
 ):
-    from techpourtoutes.models import Level, TrainingExperience
-
     older = TrainingExperience.objects.create(
         user=beneficiary,
         school=school,
@@ -324,9 +314,6 @@ def test_update_beneficiary_training_experience_updates_experience(
 def test_edit_beneficiary_training_experience_rejects_another_beneficiary(
     client, beneficiary_experience
 ):
-    from datetime import date
-
-    from techpourtoutes.models import Beneficiary
 
     intruder = Beneficiary(
         username="eve@example.com",
@@ -357,9 +344,6 @@ def test_edit_beneficiary_training_experience_rejects_a_pro(client, beneficiary_
 def test_destroy_beneficiary_training_experience_removes_experience(
     client, beneficiary, beneficiary_experience
 ):
-    from techpourtoutes.models import Level, TrainingExperience
-    from techpourtoutes.utils.school_year import current_school_year_start_date
-
     TrainingExperience.objects.create(
         user=beneficiary,
         out_of_scope_school_name="Lycée du bout du monde",
@@ -380,9 +364,6 @@ def test_destroy_beneficiary_training_experience_removes_experience(
 
 @pytest.mark.django_db
 def test_destroy_beneficiary_training_experience_rejects_current_school_year(client, beneficiary):
-    from techpourtoutes.models import Level, TrainingExperience
-    from techpourtoutes.utils.school_year import current_school_year_start_date
-
     current = TrainingExperience.objects.create(
         user=beneficiary,
         out_of_scope_school_name="Lycée du bout du monde",
@@ -403,8 +384,6 @@ def test_destroy_beneficiary_training_experience_rejects_current_school_year(cli
 def test_destroy_beneficiary_training_experience_rejects_last_remaining_experience(
     client, beneficiary, beneficiary_experience
 ):
-    from django.contrib.messages import get_messages
-
     client.force_login(beneficiary)
 
     response = client.post(
@@ -422,9 +401,6 @@ def test_destroy_beneficiary_training_experience_rejects_last_remaining_experien
 def test_destroy_beneficiary_training_experience_rejects_another_beneficiary(
     client, beneficiary_experience
 ):
-    from datetime import date
-
-    from techpourtoutes.models import Beneficiary
 
     intruder = Beneficiary(
         username="eve@example.com",
@@ -466,8 +442,6 @@ def test_destroy_beneficiary_training_experience_rejects_a_pro(
 def test_edit_beneficiary_training_experience_forms_have_unique_search_result_ids(
     client, beneficiary, beneficiary_experience, school
 ):
-    from techpourtoutes.models import Level, TrainingExperience
-
     other = TrainingExperience.objects.create(
         user=beneficiary,
         school=school,
@@ -518,9 +492,6 @@ def test_new_beneficiary_training_experience_get_current_year_returns_checked_fo
 
 @pytest.mark.django_db
 def test_show_user_does_not_duplicate_existing_current_year_experience(client, beneficiary):
-    from techpourtoutes.models import Level, TrainingExperience
-    from techpourtoutes.utils.school_year import current_school_year_start_date
-
     current = TrainingExperience.objects.create(
         user=beneficiary,
         out_of_scope_school_name="Lycée du bout du monde",
@@ -559,8 +530,6 @@ def test_create_beneficiary_training_experience_current_year_not_enrolled_create
 def test_create_beneficiary_training_experience_current_year_creates_experience(
     client, beneficiary, school, formation
 ):
-    from techpourtoutes.utils.school_year import current_school_year_start_date
-
     client.force_login(beneficiary)
 
     response = client.post(
@@ -584,9 +553,6 @@ def test_create_beneficiary_training_experience_current_year_creates_experience(
 def test_update_beneficiary_training_experience_not_enrolled_deletes_current_year_experience(
     client, beneficiary, beneficiary_experience
 ):
-    from techpourtoutes.models import Level, TrainingExperience
-    from techpourtoutes.utils.school_year import current_school_year_start_date
-
     current = TrainingExperience.objects.create(
         user=beneficiary,
         out_of_scope_school_name="Lycée du bout du monde",
@@ -711,8 +677,6 @@ def test_create_beneficiary_training_experience_invalid_keeps_current_year_form(
 def test_edit_beneficiary_training_experience_forms_get_distinct_dom_ids(
     client, beneficiary, beneficiary_experience, school
 ):
-    from techpourtoutes.models import Level, TrainingExperience
-
     other = TrainingExperience.objects.create(
         user=beneficiary,
         school=school,
@@ -737,7 +701,6 @@ def test_edit_beneficiary_training_experience_forms_get_distinct_dom_ids(
 @pytest.mark.django_db
 def test_editing_an_out_of_scope_parcours_reopens_its_free_text_fields(client, pro):
     """Both search components read their own state back, names typed included."""
-    from techpourtoutes.models import Level, TrainingExperience
 
     experience = TrainingExperience.objects.create(
         user=pro,
@@ -761,7 +724,6 @@ def test_a_parcours_without_a_linked_formation_shows_the_name_she_typed(
     client, beneficiary, school
 ):
     """A formation absent from the catalogue is displayed like any other."""
-    from techpourtoutes.models import Level, TrainingExperience
 
     TrainingExperience.objects.create(
         user=beneficiary,

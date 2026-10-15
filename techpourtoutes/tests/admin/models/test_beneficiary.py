@@ -3,6 +3,8 @@ from unittest.mock import MagicMock, patch
 import pytest
 from django.urls import reverse
 
+from techpourtoutes.models import SavedEvent
+
 CHANGELIST = "admin:techpourtoutes_beneficiary_changelist"
 
 
@@ -187,8 +189,6 @@ def test_beneficiary_page_lists_training_experiences(
 
 @pytest.mark.django_db
 def test_beneficiary_page_lists_the_events_she_saved(verified_admin_client, beneficiary, event):
-    from techpourtoutes.models import SavedEvent
-
     SavedEvent.objects.toggle(event=event, beneficiary=beneficiary)
 
     url = reverse("admin:techpourtoutes_beneficiary_change", args=[beneficiary.pk])

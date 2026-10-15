@@ -4,11 +4,11 @@ import pytest
 from django.test import override_settings
 from django.urls import clear_url_caches, reverse
 
+import conf.urls
+
 
 @pytest.mark.django_db
 def test_admin_mounts_at_configured_url(client):
-    import conf.urls
-
     try:
         with override_settings(ADMIN_URL="secret-mgmt"):
             importlib.reload(conf.urls)

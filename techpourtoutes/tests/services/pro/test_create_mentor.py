@@ -1,7 +1,7 @@
 from unittest.mock import MagicMock, patch
 
 import pytest
-from django.test import override_settings
+from django.core import mail
 
 from techpourtoutes.models import Pro
 from techpourtoutes.services.base import ErrorKind
@@ -31,7 +31,6 @@ def _registration_failed(*errors, transient):
     )
 
 
-@override_settings(EMAIL_BACKEND="django.core.mail.backends.locmem.EmailBackend")
 def test_create_mentor_saves_the_pro_with_its_engagement_and_jobirl_fields(valid_pro_model_data):
     pro = _unsaved_pro(valid_pro_model_data)
 
@@ -46,10 +45,7 @@ def test_create_mentor_saves_the_pro_with_its_engagement_and_jobirl_fields(valid
     assert db_pro.jobirl_user_token == "tpt_abc"
 
 
-@override_settings(EMAIL_BACKEND="django.core.mail.backends.locmem.EmailBackend")
 def test_create_mentor_leaves_the_mail_to_the_pro_to_its_caller(valid_pro_model_data):
-    from django.core import mail
-
     with patch(REGISTER, return_value=_registered()):
         CreateMentor(pro=_unsaved_pro(valid_pro_model_data))
 
@@ -57,7 +53,6 @@ def test_create_mentor_leaves_the_mail_to_the_pro_to_its_caller(valid_pro_model_
 
 
 @pytest.mark.django_db(transaction=True)
-@override_settings(EMAIL_BACKEND="django.core.mail.backends.locmem.EmailBackend")
 def test_create_mentor_syncs_contact_to_brevo(valid_pro_model_data, mock_brevo_sdk):
     pro = _unsaved_pro(valid_pro_model_data)
     pro.brevo_sync_enabled = True
@@ -75,7 +70,6 @@ def test_create_mentor_syncs_contact_to_brevo(valid_pro_model_data, mock_brevo_s
 
 
 @pytest.mark.django_db(transaction=True)
-@override_settings(EMAIL_BACKEND="django.core.mail.backends.locmem.EmailBackend")
 def test_a_transient_jobirl_failure_is_handed_to_a_task_without_blocking(valid_pro_model_data):
     pro = _unsaved_pro(valid_pro_model_data)
     failed = _registration_failed("Jobirl injoignable.", transient=True)
@@ -101,10 +95,7 @@ def test_a_refused_registration_leaves_the_pro_object_as_it_found_it(pro):
 
 
 @pytest.mark.django_db(transaction=True)
-@override_settings(EMAIL_BACKEND="django.core.mail.backends.locmem.EmailBackend")
 def test_a_refused_jobirl_registration_rolls_the_whole_pro_back(valid_pro_model_data):
-    from django.core import mail
-
     pro = _unsaved_pro(valid_pro_model_data)
     failed = _registration_failed("EMAIL ALREADY EXISTS", transient=False)
 

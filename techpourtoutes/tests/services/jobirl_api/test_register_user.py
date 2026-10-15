@@ -2,14 +2,14 @@ import httpx
 import pytest
 from django.test import override_settings
 
+from techpourtoutes.services.jobirl_api.register_user import RegisterUserOnJobirl
+
 JOBIRL_TEST_URL = "https://preprod.jobirl.com"
 JOBIRL_TEST_API_KEY = "test-api-key-abc"
 
 
 @override_settings(JOBIRL_URL=JOBIRL_TEST_URL, JOBIRL_API_KEY=JOBIRL_TEST_API_KEY)
 def test_register_mentor_on_jobirl_sends_correct_data_and_exposes_ids(httpx_mock, pro):
-    from techpourtoutes.services.jobirl_api.register_user import RegisterUserOnJobirl
-
     register_url = f"{JOBIRL_TEST_URL}/techpourtoutes/api/user_register"
     httpx_mock.add_response(
         url=register_url,
@@ -38,8 +38,6 @@ def test_register_mentor_on_jobirl_sends_correct_data_and_exposes_ids(httpx_mock
 
 @override_settings(JOBIRL_URL=JOBIRL_TEST_URL, JOBIRL_API_KEY=JOBIRL_TEST_API_KEY)
 def test_register_mentor_on_jobirl_fails_on_http_error(httpx_mock, pro):
-    from techpourtoutes.services.jobirl_api.register_user import RegisterUserOnJobirl
-
     register_url = f"{JOBIRL_TEST_URL}/techpourtoutes/api/user_register"
     httpx_mock.add_response(url=register_url, status_code=401)
 
@@ -51,8 +49,6 @@ def test_register_mentor_on_jobirl_fails_on_http_error(httpx_mock, pro):
 
 @override_settings(JOBIRL_URL=JOBIRL_TEST_URL, JOBIRL_API_KEY=JOBIRL_TEST_API_KEY)
 def test_register_mentor_on_jobirl_includes_api_message_on_4xx(httpx_mock, pro):
-    from techpourtoutes.services.jobirl_api.register_user import RegisterUserOnJobirl
-
     register_url = f"{JOBIRL_TEST_URL}/techpourtoutes/api/user_register"
     httpx_mock.add_response(
         url=register_url,
@@ -73,8 +69,6 @@ def test_register_mentor_on_jobirl_includes_api_message_on_4xx(httpx_mock, pro):
 
 @override_settings(JOBIRL_URL=JOBIRL_TEST_URL, JOBIRL_API_KEY=JOBIRL_TEST_API_KEY)
 def test_register_mentor_on_jobirl_fails_on_network_error(httpx_mock, pro):
-    from techpourtoutes.services.jobirl_api.register_user import RegisterUserOnJobirl
-
     httpx_mock.add_exception(httpx.RequestError("connection failed"))
 
     result = RegisterUserOnJobirl(user=pro, is_pro=True)
@@ -87,8 +81,6 @@ def test_register_mentor_on_jobirl_fails_on_network_error(httpx_mock, pro):
 def test_register_mentor_on_jobirl_sends_beneficiary_data(
     httpx_mock, beneficiary, beneficiary_experience
 ):
-    from techpourtoutes.services.jobirl_api.register_user import RegisterUserOnJobirl
-
     register_url = f"{JOBIRL_TEST_URL}/techpourtoutes/api/user_register"
     httpx_mock.add_response(
         url=register_url,
@@ -116,8 +108,6 @@ def test_register_mentor_on_jobirl_sends_beneficiary_data(
 def test_register_mentor_on_jobirl_includes_legal_representative_email_when_set(
     httpx_mock, beneficiary, beneficiary_experience
 ):
-    from techpourtoutes.services.jobirl_api.register_user import RegisterUserOnJobirl
-
     beneficiary.legal_representative_email = "parent@example.com"
     beneficiary.save()
     register_url = f"{JOBIRL_TEST_URL}/techpourtoutes/api/user_register"
@@ -135,19 +125,18 @@ def test_register_mentor_on_jobirl_includes_legal_representative_email_when_set(
 
 @override_settings(JOBIRL_URL=JOBIRL_TEST_URL, JOBIRL_API_KEY=JOBIRL_TEST_API_KEY)
 @pytest.mark.parametrize(
-    "professional_situation,expected_situation_pro",
+    "structure_type,expected_situation_pro",
     [
-        ("working", "actif"),
+        ("company", "actif"),
+        ("", "actif"),
         ("retired", "retraite"),
         ("jobless", "chomeur"),
     ],
 )
-def test_register_mentor_maps_professional_situation(
-    httpx_mock, pro, professional_situation, expected_situation_pro
+def test_register_mentor_derives_her_situation_from_her_structure_type(
+    httpx_mock, pro, structure_type, expected_situation_pro
 ):
-    from techpourtoutes.services.jobirl_api.register_user import RegisterUserOnJobirl
-
-    pro.professional_situation = professional_situation
+    pro.structure_type = structure_type
     pro.save()
 
     register_url = f"{JOBIRL_TEST_URL}/techpourtoutes/api/user_register"
@@ -161,3 +150,23 @@ def test_register_mentor_maps_professional_situation(
 
     body = httpx_mock.get_request().content.decode()
     assert f"situation_pro={expected_situation_pro}" in body
+
+
+@override_settings(JOBIRL_URL=JOBIRL_TEST_URL, JOBIRL_API_KEY=JOBIRL_TEST_API_KEY)
+@pytest.mark.parametrize(
+    ("structure_type", "sends_structure"), [("company", True), ("retired", False)]
+)
+def test_register_mentor_sends_her_structure_only_when_she_works_in_one(
+    httpx_mock, pro, structure_type, sends_structure
+):
+    pro.structure_type = structure_type
+    pro.save()
+    httpx_mock.add_response(
+        url=f"{JOBIRL_TEST_URL}/techpourtoutes/api/user_register",
+        status_code=200,
+        json={"response": "success", "datas": {"id": 1, "token": "t"}},
+    )
+
+    RegisterUserOnJobirl(user=pro, is_pro=True)
+
+    assert ("nom_structure=Inria" in httpx_mock.get_request().content.decode()) is sends_structure

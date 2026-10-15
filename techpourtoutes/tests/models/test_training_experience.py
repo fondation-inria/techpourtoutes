@@ -1,11 +1,14 @@
+from datetime import date
+
 import pytest
 from django.core.exceptions import ValidationError
+
+from techpourtoutes.models import Level, TrainingExperience
+from techpourtoutes.utils.school_year import current_school_year_start_date
 
 
 @pytest.mark.django_db
 def test_training_experience_links_pro_and_school(pro, higher_ed_school):
-    from techpourtoutes.models import TrainingExperience
-
     experience = TrainingExperience(
         user=pro, school=higher_ed_school, out_of_scope_formation_name="Master Informatique"
     )
@@ -17,9 +20,6 @@ def test_training_experience_links_pro_and_school(pro, higher_ed_school):
 
 @pytest.mark.django_db
 def test_training_experience_links_beneficiary_and_school(beneficiary, school):
-    from datetime import date
-
-    from techpourtoutes.models import Level, TrainingExperience
 
     experience = TrainingExperience(
         user=beneficiary,
@@ -37,8 +37,6 @@ def test_training_experience_links_beneficiary_and_school(beneficiary, school):
 
 @pytest.mark.django_db
 def test_training_experience_labels_come_from_the_linked_records(beneficiary, school, formation):
-    from techpourtoutes.models import TrainingExperience
-
     experience = TrainingExperience(user=beneficiary, school=school, formation=formation)
 
     assert experience.school_label == school.display_label
@@ -46,8 +44,6 @@ def test_training_experience_labels_come_from_the_linked_records(beneficiary, sc
 
 
 def test_training_experience_labels_fall_back_to_the_out_of_scope_names():
-    from techpourtoutes.models import TrainingExperience
-
     experience = TrainingExperience(
         out_of_scope_school_name="Lycée hors catalogue",
         out_of_scope_formation_name="Bac pro maréchalerie",
@@ -61,8 +57,6 @@ def test_training_experience_labels_fall_back_to_the_out_of_scope_names():
 def test_training_experience_str_names_the_beneficiary_and_both_labels(
     beneficiary, school, formation
 ):
-    from techpourtoutes.models import TrainingExperience
-
     experience = TrainingExperience(user=beneficiary, school=school, formation=formation)
 
     assert str(experience) == (
@@ -72,8 +66,6 @@ def test_training_experience_str_names_the_beneficiary_and_both_labels(
 
 @pytest.mark.django_db
 def test_training_experience_needs_a_school_or_its_name(beneficiary, formation):
-    from techpourtoutes.models import TrainingExperience
-
     experience = TrainingExperience(user=beneficiary, formation=formation)
 
     with pytest.raises(ValidationError):
@@ -82,8 +74,6 @@ def test_training_experience_needs_a_school_or_its_name(beneficiary, formation):
 
 @pytest.mark.django_db
 def test_training_experience_refuses_a_school_and_its_name_at_once(beneficiary, school, formation):
-    from techpourtoutes.models import TrainingExperience
-
     experience = TrainingExperience(
         user=beneficiary,
         school=school,
@@ -97,8 +87,6 @@ def test_training_experience_refuses_a_school_and_its_name_at_once(beneficiary, 
 
 @pytest.mark.django_db
 def test_training_experience_needs_a_formation_or_its_name(beneficiary, school):
-    from techpourtoutes.models import TrainingExperience
-
     experience = TrainingExperience(user=beneficiary, school=school)
 
     with pytest.raises(ValidationError):
@@ -109,8 +97,6 @@ def test_training_experience_needs_a_formation_or_its_name(beneficiary, school):
 def test_training_experience_refuses_a_formation_and_its_name_at_once(
     beneficiary, school, formation
 ):
-    from techpourtoutes.models import TrainingExperience
-
     experience = TrainingExperience(
         user=beneficiary,
         school=school,
@@ -124,9 +110,6 @@ def test_training_experience_refuses_a_formation_and_its_name_at_once(
 
 @pytest.mark.django_db
 def test_training_experiences_are_ordered_reverse_chronologically(beneficiary, school):
-    from datetime import date
-
-    from techpourtoutes.models import Level, TrainingExperience
 
     TrainingExperience.objects.create(
         user=beneficiary,
@@ -161,9 +144,6 @@ def test_training_experiences_are_ordered_reverse_chronologically(beneficiary, s
 def test_training_experience_rejects_duplicate_period_label_for_same_beneficiary(
     beneficiary, school
 ):
-    from datetime import date
-
-    from techpourtoutes.models import Level, TrainingExperience
 
     TrainingExperience.objects.create(
         user=beneficiary,
@@ -187,10 +167,6 @@ def test_training_experience_rejects_duplicate_period_label_for_same_beneficiary
 
 
 def test_training_experience_is_current_school_year():
-    from datetime import date
-
-    from techpourtoutes.models import TrainingExperience
-    from techpourtoutes.utils.school_year import current_school_year_start_date
 
     current = TrainingExperience(start_date=current_school_year_start_date())
     past = TrainingExperience(start_date=date(2000, 9, 1))
@@ -205,7 +181,6 @@ def test_training_experience_secondary_and_higher_ed_levels_partition_the_offere
     The shared enum is wider than that — it also grades the imported formations — so the
     partition is over `LEVELS`, not over the whole `Level`.
     """
-    from techpourtoutes.models import Level, TrainingExperience
 
     covered_levels = set(TrainingExperience.SECONDARY_LEVELS) | set(
         TrainingExperience.HIGHER_ED_LEVELS

@@ -7,10 +7,6 @@ from techpourtoutes.utils.text import strip_accents
 
 from .base import BaseModel, BaseQuerySet
 
-# Written by migration 0036, which folded HigherEdSchool into School before the Onisep rows
-# existed. These placeholders only live until the first import has been remapped.
-LEGACY_PREFIX = "legacy-"
-
 
 class SchoolQuerySet(BaseQuerySet):
     def secondary(self):
@@ -21,13 +17,6 @@ class SchoolQuerySet(BaseQuerySet):
 
     def training_ambassador(self):
         return self.filter(training_ambassador_eligible=True)
-
-    def legacy(self):
-        """The placeholders the school merge left behind, not yet repointed onto Onisep."""
-        return self.filter(onisep_id__startswith=LEGACY_PREFIX)
-
-    def imported(self):
-        return self.exclude(onisep_id__startswith=LEGACY_PREFIX)
 
     def search(self, query, *, match_postal_code=False):
         """Narrow down on every token, accent-insensitively."""

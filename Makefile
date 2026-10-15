@@ -1,4 +1,4 @@
-.PHONY: help install sync run test lint format pre-commit icons seed js
+.PHONY: help install sync run test test-fast lint format pre-commit icons seed js
 
 DB_NAME = techpourtoutes
 
@@ -8,6 +8,7 @@ help:
 	@echo "  sync         Install or update dependencies and run migrations"
 	@echo "  run          Start dev server with Tailwind watcher"
 	@echo "  test         Run tests"
+	@echo "  test-fast    Run tests without the browser ones nor coverage"
 	@echo "  lint         Lint with ruff"
 	@echo "  format       Format with ruff"
 	@echo "  pre-commit   Manually run all pre-commit hooks"
@@ -40,6 +41,9 @@ run:
 
 test:
 	uv run pytest
+
+test-fast:
+	uv run pytest --no-cov --ignore=techpourtoutes/tests/e2e
 
 verbose-test:
 	uv run pytest -vv

@@ -1,7 +1,7 @@
 from unittest.mock import MagicMock, patch
 
 import pytest
-from django.test import override_settings
+from django.core import mail
 
 from techpourtoutes.tasks._retry import TransientError
 from techpourtoutes.tasks.create_mentor import create_mentor_task
@@ -23,10 +23,8 @@ def test_task_registers_the_pro_and_saves_her_credentials(pro):
     assert pro.jobirl_user_token == "tpt_abc"
 
 
-@override_settings(EMAIL_BACKEND="django.core.mail.backends.locmem.EmailBackend")
 def test_the_catch_up_replays_nothing_the_first_pass_already_did(pro):
     """The pro was saved and notified before the task was ever enqueued."""
-    from django.core import mail
 
     engagements = list(pro.engagements)
     registered = MagicMock(failure=False, errors=[], user_id=287565, token="tpt_abc")

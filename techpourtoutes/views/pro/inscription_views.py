@@ -4,7 +4,6 @@ from django.http import HttpResponse
 from django.shortcuts import redirect, render
 from django.urls import reverse
 from django.utils.http import urlencode
-from waffle.decorators import waffle_switch
 
 from ...forms import (
     ProAdditionalInformationForm,
@@ -22,12 +21,9 @@ from ...ratelimit import rate_limit
 from ...services.pro.create_pro import CreatePro
 from ...utils.funnel import FunnelSession, FunnelSteps
 
-_SWITCH = "new_pro_features"
-
 
 # Every way in from elsewhere on the site starts over, while the URL it redirects to resumes:
 # reloading it keeps the answers.
-@waffle_switch(_SWITCH)
 def new_pro_inscription_funnel(request):
     if request.user.is_authenticated:
         return redirect(reverse("show_account"))
@@ -37,7 +33,6 @@ def new_pro_inscription_funnel(request):
     return redirect(reverse("pro_inscription_funnel"))
 
 
-@waffle_switch(_SWITCH)
 def pro_inscription_funnel(request):
     if request.user.is_authenticated:
         return redirect(reverse("show_account"))

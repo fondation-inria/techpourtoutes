@@ -2,11 +2,11 @@ from datetime import date
 
 import pytest
 
+from techpourtoutes.forms import BeneficiaryEditUserForm
+
 
 @pytest.mark.django_db
 def test_form_prefills_from_beneficiary(beneficiary):
-    from techpourtoutes.forms import BeneficiaryEditUserForm
-
     form = BeneficiaryEditUserForm(beneficiary=beneficiary)
     assert form.initial["first_name"] == "Jade"
     assert form.initial["last_name"] == "Petit"
@@ -17,24 +17,18 @@ def test_form_prefills_from_beneficiary(beneficiary):
 
 @pytest.mark.django_db
 def test_form_email_field_is_disabled(beneficiary):
-    from techpourtoutes.forms import BeneficiaryEditUserForm
-
     form = BeneficiaryEditUserForm(beneficiary=beneficiary)
     assert form.fields["email"].disabled
 
 
 @pytest.mark.django_db
 def test_form_birth_date_field_is_disabled(beneficiary):
-    from techpourtoutes.forms import BeneficiaryEditUserForm
-
     form = BeneficiaryEditUserForm(beneficiary=beneficiary)
     assert form.fields["birth_date"].disabled
 
 
 @pytest.mark.django_db
 def test_form_save_updates_beneficiary(beneficiary):
-    from techpourtoutes.forms import BeneficiaryEditUserForm
-
     form = BeneficiaryEditUserForm(
         beneficiary=beneficiary,
         data={
@@ -56,8 +50,6 @@ def test_form_save_updates_beneficiary(beneficiary):
 
 @pytest.mark.django_db
 def test_form_rejects_invalid_postal_code():
-    from techpourtoutes.forms import BeneficiaryEditUserForm
-
     form = BeneficiaryEditUserForm(
         data={
             "first_name": "Léa",

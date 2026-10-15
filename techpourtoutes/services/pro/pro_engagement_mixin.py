@@ -17,11 +17,6 @@ _NOTIFIED_ENGAGEMENTS = (
     OTHER,
 )
 
-_SITUATIONS = {
-    Pro.StructureType.RETIRED: Pro.ProfessionalSituation.RETIRED,
-    Pro.StructureType.JOBLESS: Pro.ProfessionalSituation.JOBLESS,
-}
-
 
 class ProEngagementMixin:
     """What taking on engagements does to `self.pro`, whether she signs up with them or adds one
@@ -38,7 +33,8 @@ class ProEngagementMixin:
         self.training_ambassador_form = training_ambassador_form
         self.workshop_request_form = workshop_request_form
         if training_ambassador_form:
-            self.pro.professional_situation = Pro.ProfessionalSituation.STUDENT
+            self.pro.structure_type = Pro.StructureType.HIGHER_ED
+            self.pro.structure_name = training_ambassador_form.school.name
             if training_ambassador_form.cleaned_data["phone"]:
                 self.pro.phone = training_ambassador_form.cleaned_data["phone"]
         if workshop_request_form:
@@ -87,16 +83,12 @@ class ProEngagementMixin:
     # she gave hers only when the list named it.
     def _apply_workshop_request(self, form):
         if form.works_at_school:
-            self.pro.professional_situation = Pro.ProfessionalSituation.WORKING
             self.pro.structure_type = Pro.StructureType.SCHOOL
             self.pro.structure_name = form.cleaned_data["school_label"]
             if form.cleaned_data["job_title"] != OTHER_SCHOOL_MISSION:
                 self.pro.job_title = form.cleaned_data["job_title"]
 
     def _apply_additional_information(self, answers):
-        self.pro.professional_situation = _SITUATIONS.get(
-            answers["structure_type"], Pro.ProfessionalSituation.WORKING
-        )
         for field in ("structure_type", "structure_name", "job_title", "phone", "postal_code"):
             setattr(self.pro, field, answers[field])
 

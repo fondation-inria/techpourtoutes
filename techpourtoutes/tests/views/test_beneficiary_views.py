@@ -1,10 +1,17 @@
-from datetime import timedelta
+import re
+from datetime import time, timedelta
 from unittest.mock import patch
 
 import pytest
+from django.db import connection
 from django.test import override_settings
+from django.test.utils import CaptureQueriesContext
 from django.urls import reverse
 from django.utils import timezone
+
+from techpourtoutes.models import Event, Pro, SavedEvent, User
+
+from ..models.test_event import build_event
 
 NEW_UPCOMING_FEATURE_NOTIFICATION_URL = "/bientot-disponible/"
 CREATE_UPCOMING_FEATURE_NOTIFICATION_URL = "/bientot-disponible/inscription/"
@@ -170,16 +177,12 @@ INDEX_EVENTS_URL = "/evenements/"
 
 
 def approved_event(pro, **overrides):
-    from techpourtoutes.models import Event
-
-    from ..models.test_event import build_event
 
     return build_event(pro, **{"status": Event.Status.APPROVED, **overrides})
 
 
 def other_pro(valid_pro_model_data):
     """A pro who is not the author of the fixture events."""
-    from techpourtoutes.models import Pro
 
     pro = Pro(**{**valid_pro_model_data, "username": "bea@example.com"})
     pro.save()
@@ -211,8 +214,6 @@ def test_index_events_hides_events_awaiting_validation(client, event):
 
 @pytest.mark.django_db
 def test_index_events_hides_rejected_events(client, pro):
-    from techpourtoutes.models import Event
-
     approved_event(pro, title="Forum annulé", status=Event.Status.REJECTED).save()
 
     assert b"Forum annul" not in client.get(INDEX_EVENTS_URL).content
@@ -260,8 +261,6 @@ def test_index_events_cards_link_to_the_event_detail_page(client, salon):
 
 @pytest.mark.django_db
 def test_index_events_marks_the_events_a_beneficiary_already_saved(client, beneficiary, salon):
-    from techpourtoutes.models import SavedEvent
-
     SavedEvent.objects.toggle(event=salon, beneficiary=beneficiary)
     client.force_login(beneficiary)
 
@@ -284,8 +283,6 @@ def test_index_events_leaves_an_unsaved_event_unmarked(client, beneficiary, salo
 @pytest.mark.django_db
 def test_index_events_saved_flag_costs_no_query_per_event(client, beneficiary, pro):
     """Four events must cost what one costs: the flag is annotated, never fetched per row."""
-    from django.db import connection
-    from django.test.utils import CaptureQueriesContext
 
     approved_event(pro, title="Événement 0").save()
     client.force_login(beneficiary)
@@ -384,8 +381,6 @@ def test_index_events_falls_back_to_the_first_page_on_a_bogus_number(client, sal
 
 @pytest.mark.django_db
 def test_update_saved_event_saves_the_event_for_the_beneficiary(client, beneficiary, salon):
-    from techpourtoutes.models import SavedEvent
-
     client.force_login(beneficiary)
 
     response = client.post(reverse("update_saved_event", args=[salon.pk]))
@@ -398,8 +393,6 @@ def test_update_saved_event_saves_the_event_for_the_beneficiary(client, benefici
 
 @pytest.mark.django_db
 def test_update_saved_event_twice_takes_the_event_back_out(client, beneficiary, salon):
-    from techpourtoutes.models import SavedEvent
-
     client.force_login(beneficiary)
     url = reverse("update_saved_event", args=[salon.pk])
     client.post(url)
@@ -440,8 +433,6 @@ def test_update_saved_event_requires_a_login(client, salon):
 
 @pytest.mark.django_db
 def test_update_saved_event_is_closed_to_pros(client, pro, salon):
-    from techpourtoutes.models import SavedEvent
-
     client.force_login(pro)
 
     response = client.post(reverse("update_saved_event", args=[salon.pk]))
@@ -452,8 +443,6 @@ def test_update_saved_event_is_closed_to_pros(client, pro, salon):
 
 @pytest.mark.django_db
 def test_update_saved_event_ignores_an_event_awaiting_validation(client, beneficiary, event):
-    from techpourtoutes.models import SavedEvent
-
     client.force_login(beneficiary)
 
     response = client.post(reverse("update_saved_event", args=[event.pk]))
@@ -514,8 +503,6 @@ def test_show_event_falls_back_to_the_default_image_of_its_category(client, salo
 
 
 def _image_box_classes(content, placement):
-    import re
-
     return re.search(rf'data-event-image="{placement}" class="([^"]*)"', content)[1]
 
 
@@ -583,8 +570,6 @@ def test_show_event_makes_the_links_in_the_description_clickable(client, pro):
 
 @pytest.mark.django_db
 def test_show_event_shows_the_minutes_of_the_opening_hours(client, pro):
-    from datetime import time
-
     event = approved_event(pro, start_time=time(9, 30), end_time=time(17, 45))
     event.save()
 
@@ -602,8 +587,6 @@ def test_show_event_hides_events_awaiting_validation(client, event):
 
 @pytest.mark.django_db
 def test_show_event_shows_the_city_tag_and_address_for_a_physical_event(client, pro):
-    from techpourtoutes.models import Event
-
     physical = approved_event(
         pro,
         location_type=Event.LocationType.PHYSICAL,
@@ -624,8 +607,6 @@ def test_show_event_shows_the_city_tag_and_address_for_a_physical_event(client, 
 
 @pytest.mark.django_db
 def test_show_event_hides_the_city_tag_and_shows_online_for_an_online_event(client, pro):
-    from techpourtoutes.models import Event
-
     online = approved_event(
         pro,
         location_type=Event.LocationType.ONLINE,
@@ -643,8 +624,6 @@ def test_show_event_hides_the_city_tag_and_shows_online_for_an_online_event(clie
 
 @pytest.mark.django_db
 def test_show_event_shows_no_cta_for_an_open_event(client, pro):
-    from techpourtoutes.models import Event
-
     open_event = approved_event(pro, access_type=Event.AccessType.OPEN)
     open_event.save()
 
@@ -655,8 +634,6 @@ def test_show_event_shows_no_cta_for_an_open_event(client, pro):
 
 @pytest.mark.django_db
 def test_show_event_shows_a_participate_cta_for_a_registration_event(client, pro):
-    from techpourtoutes.models import Event
-
     registration = approved_event(pro, access_type=Event.AccessType.REGISTRATION)
     registration.save()
 
@@ -668,8 +645,6 @@ def test_show_event_shows_a_participate_cta_for_a_registration_event(client, pro
 
 @pytest.mark.django_db
 def test_show_event_shows_a_candidacy_cta_for_a_candidacy_event(client, pro):
-    from techpourtoutes.models import Event
-
     candidacy = approved_event(pro, access_type=Event.AccessType.CANDIDACY)
     candidacy.save()
 
@@ -683,8 +658,6 @@ def test_show_event_shows_a_candidacy_cta_for_a_candidacy_event(client, pro):
 def test_show_event_shows_the_participation_cta_to_a_connected_pro(
     client, pro, valid_pro_model_data
 ):
-    from techpourtoutes.models import Event
-
     registration = approved_event(pro, access_type=Event.AccessType.REGISTRATION)
     registration.save()
     client.force_login(other_pro(valid_pro_model_data))
@@ -724,8 +697,6 @@ def test_show_event_hides_an_event_awaiting_validation_from_a_beneficiary(
 
 @pytest.mark.django_db
 def test_show_event_lets_a_staff_member_open_an_event_awaiting_validation(client, event):
-    from techpourtoutes.models import User
-
     staff = User.objects.create_user(
         username="staff@example.com",
         email="staff@example.com",
@@ -740,8 +711,6 @@ def test_show_event_lets_a_staff_member_open_an_event_awaiting_validation(client
 
 @pytest.mark.django_db
 def test_show_event_offers_the_author_a_link_to_edit_instead_of_participating(client, pro):
-    from techpourtoutes.models import Event
-
     registration = approved_event(pro, access_type=Event.AccessType.REGISTRATION)
     registration.save()
     client.force_login(pro)
@@ -756,7 +725,6 @@ def test_show_event_offers_the_author_a_link_to_edit_instead_of_participating(cl
 @pytest.mark.django_db
 def test_show_event_offers_the_author_a_link_to_edit_an_event_open_to_all(client, pro):
     """The edit CTA does not hang off the registration link: an open event carries it too."""
-    from techpourtoutes.models import Event
 
     open_event = approved_event(pro, access_type=Event.AccessType.OPEN)
     open_event.save()
@@ -769,9 +737,6 @@ def test_show_event_offers_the_author_a_link_to_edit_an_event_open_to_all(client
 
 @pytest.mark.django_db
 def test_show_event_hides_every_cta_once_the_event_has_ended(client, beneficiary, pro):
-    from datetime import time
-
-    from techpourtoutes.models import Event
 
     client.force_login(beneficiary)
     yesterday = timezone.localdate() - timedelta(days=1)
@@ -809,8 +774,6 @@ def test_show_event_anonymous_bookmark_opens_the_signup_modal(client, salon):
 
 @pytest.mark.django_db
 def test_show_event_marks_an_already_saved_event(client, beneficiary, salon):
-    from techpourtoutes.models import SavedEvent
-
     SavedEvent.objects.toggle(event=salon, beneficiary=beneficiary)
     client.force_login(beneficiary)
 
@@ -864,8 +827,6 @@ def test_update_saved_event_removing_a_labeled_bookmark_shows_the_removed_confir
 
 @pytest.mark.django_db
 def test_show_participation_modal_offers_the_external_link_for_registration(client, pro):
-    from techpourtoutes.models import Event
-
     registration = approved_event(
         pro,
         access_type=Event.AccessType.REGISTRATION,
@@ -882,8 +843,6 @@ def test_show_participation_modal_offers_the_external_link_for_registration(clie
 
 @pytest.mark.django_db
 def test_show_participation_modal_offers_the_external_link_for_candidacy(client, pro):
-    from techpourtoutes.models import Event
-
     candidacy = approved_event(
         pro,
         access_type=Event.AccessType.CANDIDACY,
@@ -901,8 +860,6 @@ def test_show_participation_modal_offers_the_external_link_for_candidacy(client,
 def test_show_participation_modal_offers_saving_the_event_to_a_connected_beneficiary(
     client, beneficiary, pro
 ):
-    from techpourtoutes.models import Event
-
     registration = approved_event(pro, access_type=Event.AccessType.REGISTRATION)
     registration.save()
     client.force_login(beneficiary)
@@ -914,8 +871,6 @@ def test_show_participation_modal_offers_saving_the_event_to_a_connected_benefic
 
 @pytest.mark.django_db
 def test_show_participation_modal_hides_saving_from_an_anonymous_visitor(client, pro):
-    from techpourtoutes.models import Event
-
     registration = approved_event(pro, access_type=Event.AccessType.REGISTRATION)
     registration.save()
 
@@ -926,8 +881,6 @@ def test_show_participation_modal_hides_saving_from_an_anonymous_visitor(client,
 
 @pytest.mark.django_db
 def test_show_participation_modal_hides_saving_from_a_connected_pro(client, pro):
-    from techpourtoutes.models import Event
-
     registration = approved_event(pro, access_type=Event.AccessType.REGISTRATION)
     registration.save()
     client.force_login(pro)

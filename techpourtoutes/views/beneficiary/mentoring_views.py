@@ -6,7 +6,6 @@ from django.urls import reverse
 from ...decorators import beneficiary_required
 from ...forms import BeneficiaryMentoringSignUpForm, BeneficiaryStudyStatusForm
 from ...services.beneficiary.upsert_beneficiary import UpsertBeneficiary
-from ...utils.dates import adult_birth_date
 from ...utils.missing_record import report_missing_record
 from ..beneficiary_views import (
     TRAINING_EXPERIENCE_FORMS,
@@ -63,10 +62,8 @@ def _submit_training_experience(request, beneficiary):
 
 
 def _submit_mentoring_signup(request, beneficiary):
-    form = BeneficiaryMentoringSignUpForm(
-        data=request.POST, needs_birth_date=beneficiary.birth_date is None
-    )
-    require_legal_representative(form, is_minor(_beneficiary_birth_date(beneficiary, form)))
+    form = BeneficiaryMentoringSignUpForm(data=request.POST)
+    require_legal_representative(form, is_minor(beneficiary.birth_date))
     if form.is_valid() and _sign_up_for_mentoring(request, beneficiary, form):
         return HttpResponse(headers={"HX-Redirect": reverse("show_account")})
     return _mentoring_signup_step(request, beneficiary, form)
@@ -90,17 +87,6 @@ def _sign_up_for_mentoring(request, beneficiary, form):
     return True
 
 
-def _beneficiary_birth_date(beneficiary, form):
-    """Until the account carries a birth date, only the one just submitted settles minority."""
-    if beneficiary.birth_date is not None:
-        return beneficiary.birth_date
-    if not form.is_bound:
-        return None
-    # Fills cleaned_data, which keeps the birth date even once other fields are rejected.
-    form.is_valid()
-    return form.cleaned_data.get("birth_date")
-
-
 def _training_experience_step(request, study_status, form=None):
     return _render_mentoring_step(
         request,
@@ -110,14 +96,11 @@ def _training_experience_step(request, study_status, form=None):
 
 
 def _mentoring_signup_step(request, beneficiary, form=None):
-    needs_birth_date = beneficiary.birth_date is None
-    form = form or BeneficiaryMentoringSignUpForm(needs_birth_date=needs_birth_date)
     return _render_mentoring_step(
         request,
         "mentoring_signup",
-        form=form,
-        is_minor=is_minor(_beneficiary_birth_date(beneficiary, form)),
-        needs_birth_date=needs_birth_date,
+        form=form or BeneficiaryMentoringSignUpForm(),
+        is_minor=is_minor(beneficiary.birth_date),
     )
 
 
@@ -130,7 +113,6 @@ def _render_mentoring_step(request, step, **context):
         {
             "step": step,
             "step_template": step_template,
-            "adult_birth_date": adult_birth_date().isoformat(),
             **context,
         },
     )

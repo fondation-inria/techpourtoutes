@@ -1,16 +1,17 @@
-from datetime import date, timedelta
+from datetime import timedelta
 from types import SimpleNamespace
 from unittest.mock import MagicMock, patch
 from urllib.parse import quote
 
 import pytest
 from django.core import mail
-from django.test import override_settings
 from django.urls import reverse
 from django.utils import timezone
 
-from techpourtoutes.models import Beneficiary, Level, User
+from techpourtoutes.models import Beneficiary, Event, Level, User
 from techpourtoutes.services.base import ErrorKind
+from techpourtoutes.tests.birth_dates import birth_date_for_age
+from techpourtoutes.tests.models.test_event import build_event
 from techpourtoutes.utils.funnel import FunnelSession
 from techpourtoutes.utils.school_year import (
     current_school_year_label,
@@ -66,15 +67,7 @@ def _post_step(client, step, data=None):
 
 
 def _identity_for_age(age):
-    return {**_IDENTITY, "birth_date": _birth_date_for_age(age).isoformat()}
-
-
-def _birth_date_for_age(age):
-    today = date.today()
-    try:
-        return today.replace(year=today.year - age)
-    except ValueError:  # 29 February
-        return today.replace(year=today.year - age, day=28)
+    return {**_IDENTITY, "birth_date": birth_date_for_age(age).isoformat()}
 
 
 def _higher_education_training(higher_ed_school, higher_ed_formation, **overrides):
@@ -448,7 +441,7 @@ def test_identity_step_shows_too_old_screen_above_25(client):
 @pytest.mark.django_db
 def test_identity_step_keeps_birth_date_when_form_is_invalid(client):
     # <input type="date"> only accepts YYYY-MM-DD, so the re-rendered field must keep that format.
-    birth_date = _birth_date_for_age(20)
+    birth_date = birth_date_for_age(20)
     _seed_funnel(client, current="identity", email=_EMAIL)
 
     response = _post_step(client, "identity", {**_identity_for_age(20), "terms_accepted": ""})
@@ -581,7 +574,6 @@ def test_training_experience_step_does_not_create_without_an_establishment(
 
 
 @pytest.mark.django_db
-@override_settings(EMAIL_BACKEND="django.core.mail.backends.locmem.EmailBackend")
 def test_a_missing_school_still_creates_the_account_and_reports_it(client, school, formation):
     _seed_until_training(client, "high_school")
 
@@ -607,7 +599,6 @@ def test_a_missing_school_still_creates_the_account_and_reports_it(client, schoo
 
 
 @pytest.mark.django_db
-@override_settings(EMAIL_BACKEND="django.core.mail.backends.locmem.EmailBackend")
 def test_training_experience_step_sends_login_code_and_welcome_emails(
     client, higher_ed_school, higher_ed_formation
 ):
@@ -631,7 +622,6 @@ def test_training_experience_step_sends_login_code_and_welcome_emails(
 
 
 @pytest.mark.django_db
-@override_settings(EMAIL_BACKEND="django.core.mail.backends.locmem.EmailBackend")
 def test_skipping_the_mentoring_screen_creates_beneficiary_without_mentoring_signup(
     client, higher_ed_school, higher_ed_formation
 ):
@@ -739,7 +729,6 @@ def test_training_experience_step_leads_to_the_training_ambassador_request_when_
 
 
 @pytest.mark.django_db
-@override_settings(EMAIL_BACKEND="django.core.mail.backends.locmem.EmailBackend")
 def test_training_ambassador_request_step_creates_beneficiary_and_mails_the_topic(
     client, higher_ed_school, higher_ed_formation
 ):
@@ -950,9 +939,6 @@ def test_code_step_with_valid_code_logs_in_and_redirects(client):
 
 @pytest.fixture
 def approved_salon(pro):
-    from techpourtoutes.models import Event
-    from techpourtoutes.tests.models.test_event import build_event
-
     salon = build_event(pro, status=Event.Status.APPROVED)
     salon.save()
     return salon
@@ -968,7 +954,6 @@ def test_beneficiary_inscription_funnel_carries_the_bookmarked_event_through_eve
 
 
 @pytest.mark.django_db
-@override_settings(EMAIL_BACKEND="django.core.mail.backends.locmem.EmailBackend")
 def test_account_creation_step_carries_the_bookmarked_event_onto_the_code_screen(
     client, higher_ed_school, higher_ed_formation, approved_salon
 ):
@@ -1105,7 +1090,6 @@ def test_code_step_with_invalid_code_shows_error(client):
 
 
 @pytest.mark.django_db
-@override_settings(EMAIL_BACKEND="django.core.mail.backends.locmem.EmailBackend")
 def test_resend_step_mails_a_new_code_and_stays_on_the_code_screen(client):
     beneficiary = Beneficiary.objects.create(
         username="oceane@example.com",
@@ -1128,7 +1112,6 @@ def test_resend_step_mails_a_new_code_and_stays_on_the_code_screen(client):
 
 
 @pytest.mark.django_db
-@override_settings(EMAIL_BACKEND="django.core.mail.backends.locmem.EmailBackend")
 def test_resend_step_with_unknown_email_sends_nothing(client):
     response = client.post(FUNNEL_URL, {"action": "resend", "email": "inconnue@example.com"})
 
@@ -1211,4 +1194,4 @@ def test_back_step_returns_previous_step_prefilled(client):
 
     assert b'name="action" value="identity"' in response.content
     assert "Océane".encode() in response.content
-    assert f'value="{_birth_date_for_age(20).isoformat()}"'.encode() in response.content
+    assert f'value="{birth_date_for_age(20).isoformat()}"'.encode() in response.content
