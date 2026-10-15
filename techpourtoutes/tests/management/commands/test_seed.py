@@ -4,6 +4,7 @@ from django.core.management.base import CommandError
 from django.test import override_settings
 
 from techpourtoutes.models import Beneficiary, Pro, TrainingExperience
+from techpourtoutes.utils.dates import compute_age
 
 
 @pytest.mark.django_db
@@ -57,6 +58,51 @@ def test_seed_beneficiary_is_idempotent():
     assert (
         TrainingExperience.objects.filter(user__email="beneficiary@techpourtoutes.io").count() == 1
     )
+
+
+@pytest.mark.django_db
+def test_seed_creates_an_adult_student_a_minor_pupil_and_an_admin_pro_per_team_email():
+    with override_settings(
+        SEED_ENABLED=True,
+        SEED_ADMIN_PASSWORD="s3cret-review-pass",
+        SEED_TEAM_EMAILS=["manon@example.com", "quentin@example.com"],
+    ):
+        call_command("seed")
+
+    for name in ("manon", "quentin"):
+        student = Beneficiary.objects.get(email=f"{name}+etudiante@example.com")
+        assert compute_age(student.birth_date) >= 18
+        assert student.training_experiences.get().formation.higher_ed
+
+        pupil = Beneficiary.objects.get(email=f"{name}+lyceene@example.com")
+        assert compute_age(pupil.birth_date) < 18
+        assert pupil.training_experiences.get().formation.secondary
+
+        pro = Pro.objects.get(email=f"{name}+pro@example.com")
+        assert pro.is_superuser
+        assert pro.check_password("s3cret-review-pass")
+
+
+@pytest.mark.django_db
+def test_seed_team_accounts_are_idempotent():
+    with override_settings(SEED_ENABLED=True, SEED_TEAM_EMAILS=["manon@example.com"]):
+        call_command("seed")
+        call_command("seed")
+
+    assert Beneficiary.objects.filter(email__startswith="manon+").count() == 2
+    assert Pro.objects.filter(email__startswith="manon+").count() == 1
+
+
+@pytest.mark.django_db
+def test_seed_team_accounts_replace_the_default_ones():
+    from techpourtoutes.models import Event
+
+    with override_settings(SEED_ENABLED=True, SEED_TEAM_EMAILS=["manon@example.com"]):
+        call_command("seed")
+
+    assert not Pro.objects.filter(email="admin@techpourtoutes.io").exists()
+    assert not Beneficiary.objects.filter(email="beneficiary@techpourtoutes.io").exists()
+    assert Event.objects.filter(created_by__email="manon+pro@example.com").exists()
 
 
 @pytest.mark.django_db

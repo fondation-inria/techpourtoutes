@@ -3,6 +3,7 @@ import uuid
 from datetime import timedelta
 
 import pytest
+from django.test import override_settings
 from django.utils import timezone
 
 
@@ -150,6 +151,12 @@ def test_issue_login_code_stores_hash_and_resets_attempts(pro):
     assert pro.login_code_hash != code
     assert pro.login_code_attempts == 0
     assert pro.login_code_expires_at > timezone.now()
+
+
+@pytest.mark.django_db
+def test_issue_login_code_is_the_fixed_one_when_configured(pro):
+    with override_settings(FIXED_VERIFICATION_CODE="111111"):
+        assert pro.issue_login_code() == "111111"
 
 
 @pytest.mark.django_db

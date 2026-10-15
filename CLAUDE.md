@@ -95,7 +95,7 @@ make icons    # rebuild SVG sprite
 make seed     # seed DB with minimal dev data (idempotent)
 ```
 
-Seed creates: one `Pro` with superuser role — `admin@techpourtoutes.io` / `admin` — one `Beneficiary` with a `TrainingExperience` — `beneficiary@techpourtoutes.io` / `beneficiary` — and 16 approved upcoming `Event`s covering every subcategory but `OTHER`, so every card colour and the pagination show up. It also imports the Onisep samples committed under `data/onisep/` (~100 coherent rows per file) rather than downloading the full datasets.
+Seed creates: one `Pro` with superuser role — `admin@techpourtoutes.io` / `admin` — one `Beneficiary` with a `TrainingExperience` — `beneficiary@techpourtoutes.io` / `beneficiary` — and 16 approved upcoming `Event`s covering every subcategory but `OTHER`, so every card colour and the pagination show up. When `SEED_TEAM_EMAILS` is set (review apps), it replaces those two accounts with, for each address, an adult student, a minor pupil and an admin pro as `+etudiante` / `+lyceene` / `+pro` aliases, the pro sharing `SEED_ADMIN_PASSWORD`; the events then belong to the first of these pros. Every login or email-change code is `FIXED_VERIFICATION_CODE` when set (`111111` in `.env.example`) — honoured only under `DEBUG`. It also imports the Onisep samples committed under `data/onisep/` (~100 coherent rows per file) rather than downloading the full datasets.
 
 ## Architecture
 
