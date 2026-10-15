@@ -1,15 +1,21 @@
+import threading
 from datetime import date, time, timedelta
 from decimal import Decimal
 from unittest.mock import patch
 
 import pytest
+from django.contrib.auth.models import AnonymousUser
+from django.contrib.staticfiles import finders
 from django.core.exceptions import ValidationError
+from django.db import connection
+from django.db.models.signals import pre_save
 from django.utils import timezone
+
+from techpourtoutes.models import Event, User
+from techpourtoutes.tests.services.event.test_create_event import valid_forms
 
 
 def build_event(pro, **overrides):
-    from techpourtoutes.models import Event
-
     start = timezone.localdate() + timedelta(days=30)
     fields = {
         "title": "Portes ouvertes",
@@ -28,8 +34,6 @@ def build_event(pro, **overrides):
 
 @pytest.mark.django_db
 def test_event_waits_for_validation_when_created(pro):
-    from techpourtoutes.models import Event
-
     event = build_event(pro)
     event.save()
 
@@ -41,8 +45,6 @@ def test_event_waits_for_validation_when_created(pro):
 
 @pytest.mark.django_db
 def test_event_subcategory_label_falls_back_to_the_free_text(pro):
-    from techpourtoutes.models import Event
-
     listed = build_event(pro, subcategory=Event.Subcategory.HACKATHON)
     free = build_event(pro, subcategory="Rencontre d'anciennes")
 
@@ -51,8 +53,6 @@ def test_event_subcategory_label_falls_back_to_the_free_text(pro):
 
 
 def test_every_subcategory_belongs_to_exactly_one_category():
-    from techpourtoutes.models import Event
-
     listed = [sub for subs in Event.SUBCATEGORIES.values() for sub in subs]
 
     assert sorted(listed) == sorted(Event.Subcategory.values)
@@ -60,8 +60,6 @@ def test_every_subcategory_belongs_to_exactly_one_category():
 
 @pytest.mark.django_db
 def test_event_category_is_derived_from_its_subcategory(pro):
-    from techpourtoutes.models import Event
-
     event = build_event(pro, subcategory=Event.Subcategory.JOB_DATING)
 
     assert event.category == Event.Category.EMPLOYMENT
@@ -70,8 +68,6 @@ def test_event_category_is_derived_from_its_subcategory(pro):
 
 @pytest.mark.django_db
 def test_a_free_text_subcategory_lands_in_the_category_holding_other(pro):
-    from techpourtoutes.models import Event
-
     event = build_event(pro, subcategory="Rencontre d'anciennes")
 
     assert event.category == Event.Category.SOCIAL
@@ -79,8 +75,6 @@ def test_a_free_text_subcategory_lands_in_the_category_holding_other(pro):
 
 @pytest.mark.django_db
 def test_in_subcategory_brings_the_free_text_back_under_other(pro):
-    from techpourtoutes.models import Event
-
     free = build_event(pro, subcategory="Rencontre d'anciennes")
     free.save()
     other = build_event(pro, subcategory=Event.Subcategory.OTHER)
@@ -92,8 +86,6 @@ def test_in_subcategory_brings_the_free_text_back_under_other(pro):
 
 @pytest.mark.django_db
 def test_in_category_returns_the_events_of_all_its_subcategories(pro):
-    from techpourtoutes.models import Event
-
     conference = build_event(pro, subcategory=Event.Subcategory.CONFERENCE)
     conference.save()
     round_table = build_event(pro, subcategory=Event.Subcategory.ROUND_TABLE)
@@ -105,8 +97,6 @@ def test_in_category_returns_the_events_of_all_its_subcategories(pro):
 
 @pytest.mark.django_db
 def test_in_category_includes_the_free_text_where_other_sits(pro):
-    from techpourtoutes.models import Event
-
     free = build_event(pro, subcategory="Rencontre d'anciennes")
     free.save()
     afterwork = build_event(pro, subcategory=Event.Subcategory.AFTERWORK)
@@ -118,8 +108,6 @@ def test_in_category_includes_the_free_text_where_other_sits(pro):
 
 @pytest.mark.django_db
 def test_event_category_color_follows_its_category(pro):
-    from techpourtoutes.models import Event
-
     colors = {
         Event.Subcategory.CONFERENCE: "orange",
         Event.Subcategory.JOB_DATING: "yellow",
@@ -154,9 +142,6 @@ def test_image_url_of_a_free_text_subcategory_falls_back_to_the_one_of_other(pro
 
 
 def test_every_subcategory_has_a_default_image():
-    from django.contrib.staticfiles import finders
-
-    from techpourtoutes.models import Event
 
     for category, subcategories in Event.SUBCATEGORIES.items():
         for subcategory in subcategories:
@@ -226,7 +211,6 @@ def test_event_rejects_an_end_time_before_its_start_time_on_a_single_day(pro):
 @pytest.mark.django_db
 def test_event_keeps_an_address_the_geocoding_api_never_resolved(pro):
     """The API only feeds the autocomplete: what the user typed is enough to save."""
-    from techpourtoutes.models import Event
 
     event = build_event(
         pro,
@@ -244,7 +228,6 @@ def test_event_keeps_an_address_the_geocoding_api_never_resolved(pro):
 @pytest.mark.django_db
 def test_event_keeps_a_venue_with_no_street_address(pro):
     """A POI carries a name and a commune, never a street: the address columns stay empty."""
-    from techpourtoutes.models import Event
 
     event = build_event(
         pro,
@@ -263,8 +246,6 @@ def test_event_keeps_a_venue_with_no_street_address(pro):
 
 @pytest.mark.django_db
 def test_location_label_prefers_the_venue_over_the_address(pro):
-    from techpourtoutes.models import Event
-
     venue = build_event(
         pro,
         location_type=Event.LocationType.PHYSICAL,
@@ -289,7 +270,6 @@ def test_past_and_upcoming_split_events_on_their_end_date(pro):
     is still to come. Where the two fall on the same day, the end time decides — that is the
     next test's business, and the clock the suite runs on must not decide it here, hence the
     fixed hours: an end time read off the real clock would fall before midday all morning."""
-    from techpourtoutes.models import Event
 
     today = timezone.localdate()
     midday = timezone.localtime().replace(hour=12, minute=0, second=0, microsecond=0)
@@ -313,7 +293,6 @@ def test_past_and_upcoming_split_events_on_their_end_date(pro):
 def test_past_and_upcoming_split_same_day_events_on_their_end_time(pro):
     """Read at midday again, against fixed hours: times read off the real clock would wrap
     around midnight, where "a minute ago" is yesterday."""
-    from techpourtoutes.models import Event
 
     today = timezone.localdate()
     midday = timezone.localtime().replace(hour=12, minute=0, second=0, microsecond=0)
@@ -333,8 +312,6 @@ def test_past_and_upcoming_split_same_day_events_on_their_end_time(pro):
 
 @pytest.mark.django_db
 def test_approved_returns_only_the_validated_events(pro):
-    from techpourtoutes.models import Event
-
     approved = build_event(pro, status=Event.Status.APPROVED)
     approved.save()
     build_event(pro, status=Event.Status.REJECTED).save()
@@ -346,7 +323,6 @@ def test_approved_returns_only_the_validated_events(pro):
 @pytest.mark.django_db
 def test_an_ungeocoded_physical_event_cannot_be_approved(pro):
     """Nothing may go live on a map without coordinates: the admin has to geocode it first."""
-    from techpourtoutes.models import Event
 
     event = build_event(
         pro,
@@ -362,7 +338,6 @@ def test_an_ungeocoded_physical_event_cannot_be_approved(pro):
 @pytest.mark.django_db
 def test_a_physical_event_naming_neither_address_nor_venue_cannot_be_approved(pro):
     """Coordinates alone put a pin on a map with nothing to read next to it."""
-    from techpourtoutes.models import Event
 
     event = build_event(
         pro,
@@ -378,8 +353,6 @@ def test_a_physical_event_naming_neither_address_nor_venue_cannot_be_approved(pr
 
 @pytest.mark.django_db
 def test_a_geocoded_venue_can_be_approved_without_a_street_address(pro):
-    from techpourtoutes.models import Event
-
     event = build_event(
         pro,
         location_type=Event.LocationType.PHYSICAL,
@@ -397,8 +370,6 @@ def test_a_geocoded_venue_can_be_approved_without_a_street_address(pro):
 
 @pytest.mark.django_db
 def test_a_geocoded_physical_event_can_be_approved(event):
-    from techpourtoutes.models import Event
-
     event.status = Event.Status.APPROVED
     event.save()
 
@@ -407,8 +378,6 @@ def test_a_geocoded_physical_event_can_be_approved(event):
 
 @pytest.mark.django_db
 def test_an_online_event_can_be_approved_without_coordinates(pro):
-    from techpourtoutes.models import Event
-
     event = build_event(pro, status=Event.Status.APPROVED)
     event.save()
 
@@ -451,8 +420,6 @@ def test_has_ended_checks_the_time_when_the_event_ends_today(pro):
 
 @pytest.mark.django_db
 def test_is_approved_is_true_only_once_the_event_is_validated(pro):
-    from techpourtoutes.models import Event
-
     assert build_event(pro, status=Event.Status.APPROVED).is_approved is True
     assert build_event(pro, status=Event.Status.PENDING).is_approved is False
     assert build_event(pro, status=Event.Status.REJECTED).is_approved is False
@@ -460,8 +427,6 @@ def test_is_approved_is_true_only_once_the_event_is_validated(pro):
 
 @pytest.mark.django_db
 def test_event_history_records_the_validation(event):
-    from techpourtoutes.models import Event
-
     event.status = Event.Status.APPROVED
     event.save()
 
@@ -512,12 +477,6 @@ def test_event_slug_falls_back_when_the_title_slugifies_to_nothing(pro):
 def test_event_slug_steps_aside_when_a_concurrent_creation_wins_the_insert(pro):
     """A twin lands after this event's validation, so nothing but the unique index can catch
     it. It is committed by another connection, which is what a real race looks like."""
-    import threading
-
-    from django.db import connection
-    from django.db.models.signals import pre_save
-
-    from techpourtoutes.models import Event
 
     def create_the_twin_elsewhere(sender, instance, **kwargs):
         pre_save.disconnect(create_the_twin_elsewhere, sender=Event)
@@ -543,8 +502,6 @@ def test_event_slug_steps_aside_when_a_concurrent_creation_wins_the_insert(pro):
 
 @pytest.mark.django_db
 def test_pending_returns_only_the_events_awaiting_validation(pro):
-    from techpourtoutes.models import Event
-
     waiting = build_event(pro)
     waiting.save()
     build_event(pro, status=Event.Status.APPROVED).save()
@@ -557,9 +514,6 @@ def test_pending_returns_only_the_events_awaiting_validation(pro):
 def test_visible_to_hides_an_event_awaiting_validation_from_everyone_but_its_author(
     pro, beneficiary
 ):
-    from django.contrib.auth.models import AnonymousUser
-
-    from techpourtoutes.models import Event, User
 
     waiting = build_event(pro)
     waiting.save()
@@ -579,9 +533,6 @@ def test_visible_to_hides_an_event_awaiting_validation_from_everyone_but_its_aut
 
 @pytest.mark.django_db
 def test_visible_to_shows_an_approved_event_to_anyone(pro):
-    from django.contrib.auth.models import AnonymousUser
-
-    from techpourtoutes.models import Event
 
     approved = build_event(pro, status=Event.Status.APPROVED)
     approved.save()
@@ -592,7 +543,6 @@ def test_visible_to_shows_an_approved_event_to_anyone(pro):
 @pytest.mark.django_db
 def test_visible_to_hides_a_rejected_event_from_its_author(pro):
     """Only the moderation team sees what it turned down."""
-    from techpourtoutes.models import Event
 
     build_event(pro, status=Event.Status.REJECTED).save()
 
@@ -602,7 +552,6 @@ def test_visible_to_hides_a_rejected_event_from_its_author(pro):
 @pytest.mark.django_db
 def test_visible_to_asks_the_database_once(pro, django_assert_num_queries):
     """Nobody is fetched to find out whether the visitor is a pro: her own id is the key."""
-    from techpourtoutes.models import Event
 
     build_event(pro, status=Event.Status.APPROVED).save()
 
@@ -612,8 +561,6 @@ def test_visible_to_asks_the_database_once(pro, django_assert_num_queries):
 
 @pytest.mark.django_db
 def test_is_organized_by_recognises_the_pro_who_submitted_the_event(pro, beneficiary):
-    from django.contrib.auth.models import AnonymousUser
-
     event = build_event(pro)
     event.save()
 
@@ -624,9 +571,6 @@ def test_is_organized_by_recognises_the_pro_who_submitted_the_event(pro, benefic
 
 @pytest.mark.django_db
 def test_fill_from_writes_the_funnel_answers_onto_the_columns(pro):
-    from techpourtoutes.models import Event
-    from techpourtoutes.tests.services.event.test_create_event import valid_forms
-
     event = Event(created_by=pro)
     event.fill_from(valid_forms())
 
@@ -640,8 +584,6 @@ def test_fill_from_writes_the_funnel_answers_onto_the_columns(pro):
 def test_fill_from_leaves_out_the_answers_that_are_not_columns(pro):
     """`pricing` is the branch she answered and `address_api_down` how the address was
     obtained: neither is a field on the event."""
-    from techpourtoutes.models import Event
-    from techpourtoutes.tests.services.event.test_create_event import valid_forms
 
     event = Event(created_by=pro)
     event.fill_from(valid_forms())
@@ -653,7 +595,6 @@ def test_fill_from_leaves_out_the_answers_that_are_not_columns(pro):
 def test_subcategory_sorted_choices_are_alphabetical_with_other_last():
     """Accents do not decide the order — "Cérémonie" comes before "Conférence" — and "Autre"
     closes the list wherever the alphabet would have put it."""
-    from techpourtoutes.models import Event
 
     assert [str(label) for _, label in Event.Subcategory.sorted_choices()] == [
         "Afterwork",

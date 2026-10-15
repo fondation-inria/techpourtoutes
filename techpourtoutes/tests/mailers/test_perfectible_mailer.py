@@ -1,14 +1,10 @@
 import pytest
 from django.core import mail
-from django.test import override_settings
 
 from techpourtoutes.mailers import PerfectibleMailer
 
-locmem = override_settings(EMAIL_BACKEND="django.core.mail.backends.locmem.EmailBackend")
-
 
 @pytest.mark.django_db
-@locmem
 def test_missing_record_reports_both_free_text_names(beneficiary):
     PerfectibleMailer.missing_record(
         user=beneficiary,
@@ -29,7 +25,6 @@ def test_missing_record_reports_both_free_text_names(beneficiary):
 
 
 @pytest.mark.django_db
-@locmem
 def test_missing_record_names_the_record_that_did_resolve(beneficiary, school):
     PerfectibleMailer.missing_record(
         user=beneficiary,
@@ -47,7 +42,6 @@ def test_missing_record_names_the_record_that_did_resolve(beneficiary, school):
 
 
 @pytest.mark.django_db
-@locmem
 def test_missing_record_attaches_its_brevo_tags(beneficiary):
     PerfectibleMailer.missing_record(
         user=beneficiary,

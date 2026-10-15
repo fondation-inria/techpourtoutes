@@ -30,9 +30,7 @@ class Command(BaseCommand):
         )
 
     def handle(self, *args, **options):
-        # The merge placeholders left by migration 0036 do not count as an import: skipping on
-        # them would leave the very first import undone, with nothing for the remap to point at.
-        if options["if_empty"] and School.objects.imported().exists():
+        if options["if_empty"] and School.objects.exists():
             self.stdout.write("  Établissements déjà importés, import ignoré.")
             return
 

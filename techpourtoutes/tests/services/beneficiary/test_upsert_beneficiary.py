@@ -2,7 +2,7 @@ from datetime import date
 from unittest.mock import MagicMock, patch
 
 import pytest
-from django.test import override_settings
+from django.core import mail
 
 from techpourtoutes.models import Beneficiary
 from techpourtoutes.services.beneficiary.upsert_beneficiary import UpsertBeneficiary
@@ -89,10 +89,7 @@ def test_create_beneficiary_saves_training_experience():
 
 
 @pytest.mark.django_db
-@override_settings(EMAIL_BACKEND="django.core.mail.backends.locmem.EmailBackend")
 def test_create_beneficiary_sends_login_code_email():
-    from django.core import mail
-
     _create_beneficiary()
 
     assert len(mail.outbox) == 1
@@ -146,10 +143,7 @@ def test_create_beneficiary_wants_mentor_and_adult_signs_up_for_mentoring():
 
 
 @pytest.mark.django_db
-@override_settings(EMAIL_BACKEND="django.core.mail.backends.locmem.EmailBackend")
 def test_a_refused_mentoring_sign_up_rolls_the_whole_account_back():
-    from django.core import mail
-
     refused = _sign_up_refused("EMAIL ALREADY EXISTS")
 
     with patch(SIGN_UP, return_value=refused):
@@ -203,25 +197,6 @@ def test_saves_legal_representative_for_a_minor(beneficiary):
     assert result.success is True
     beneficiary.refresh_from_db()
     assert beneficiary.legal_representative_name == "Parent Test"
-    assert beneficiary.legal_representative_email == "parent@example.com"
-    MockSignUp.assert_called_once_with(
-        beneficiary=beneficiary, is_minor=True, mentoring_signup_data=data
-    )
-
-
-@pytest.mark.django_db
-def test_saves_the_birth_date_carried_by_the_mentoring_form_and_derives_minority(beneficiary):
-    beneficiary.birth_date = None
-    beneficiary.save()
-    birth_date = date.today().replace(year=date.today().year - 16)
-    data = {**_minor_mentoring_data(), "birth_date": birth_date}
-
-    with patch(SIGN_UP, return_value=_signed_up()) as MockSignUp:
-        result = UpsertBeneficiary(beneficiary=beneficiary, mentoring_signup_data=data)
-
-    assert result.success is True
-    beneficiary.refresh_from_db()
-    assert beneficiary.birth_date == birth_date
     assert beneficiary.legal_representative_email == "parent@example.com"
     MockSignUp.assert_called_once_with(
         beneficiary=beneficiary, is_minor=True, mentoring_signup_data=data

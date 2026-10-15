@@ -40,6 +40,10 @@ class ProTrainingAmbassadorForm(TrainingExperienceFormMixin, forms.Form):
         self.validate_free_text()
         return cleaned_data
 
+    @property
+    def school(self):
+        return self._school
+
     def save(self, pro):
         return TrainingExperience.objects.create(
             user=pro,

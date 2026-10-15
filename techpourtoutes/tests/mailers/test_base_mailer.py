@@ -7,7 +7,6 @@ from techpourtoutes.mailers import AuthMailer
 
 @pytest.mark.django_db
 @override_settings(
-    EMAIL_BACKEND="django.core.mail.backends.locmem.EmailBackend",
     EMAIL_SUBJECT_PREFIX="[staging] ",
 )
 def test_send_mail_prefixes_the_subject_outside_production(pro):
@@ -18,7 +17,6 @@ def test_send_mail_prefixes_the_subject_outside_production(pro):
 
 @pytest.mark.django_db
 @override_settings(
-    EMAIL_BACKEND="django.core.mail.backends.locmem.EmailBackend",
     EMAIL_SUBJECT_PREFIX="",
 )
 def test_send_mail_leaves_the_subject_untouched_in_production(pro):

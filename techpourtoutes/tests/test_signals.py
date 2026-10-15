@@ -4,6 +4,8 @@ import pytest
 from django.db import transaction
 from django.test import override_settings
 
+from techpourtoutes.models import Pro
+
 
 @pytest.fixture
 def mock_tasks():
@@ -18,7 +20,6 @@ def mock_tasks():
 @override_settings(BREVO_API_KEY="test")
 def test_post_save_signal_dispatches_upsert_task_after_commit(valid_pro_model_data, mock_tasks):
     upsert_task, _delete_task = mock_tasks
-    from techpourtoutes.models import Pro
 
     with transaction.atomic():
         pro = Pro(
@@ -52,7 +53,6 @@ def test_pre_delete_signal_dispatches_delete_task_after_commit(pro, mock_tasks):
 @override_settings(BREVO_API_KEY="test")
 def test_signal_skipped_when_brevo_sync_disabled(valid_pro_model_data, mock_tasks):
     upsert_task, _ = mock_tasks
-    from techpourtoutes.models import Pro
 
     pro = Pro(
         username=valid_pro_model_data["email"],
@@ -68,7 +68,6 @@ def test_signal_skipped_when_brevo_sync_disabled(valid_pro_model_data, mock_task
 @override_settings(BREVO_API_KEY="test", BREVO_SYNC_ENABLED=False)
 def test_signal_skipped_when_brevo_sync_globally_disabled(valid_pro_model_data, mock_tasks):
     upsert_task, _ = mock_tasks
-    from techpourtoutes.models import Pro
 
     with transaction.atomic():
         Pro(username=valid_pro_model_data["email"], **valid_pro_model_data).save()
@@ -92,7 +91,6 @@ def test_delete_signal_skipped_when_brevo_sync_globally_disabled(pro, mock_tasks
 @override_settings(BREVO_API_KEY="test", BREVO_PRO_LIST_ID=42)
 def test_opt_out_transition_dispatches_delete(pro, mock_tasks):
     upsert_task, delete_task = mock_tasks
-    from techpourtoutes.models import Pro
 
     reloaded = Pro.objects.get(pk=pro.pk)
     upsert_task.delay.reset_mock()
@@ -110,7 +108,6 @@ def test_opt_out_transition_dispatches_delete(pro, mock_tasks):
 @override_settings(BREVO_API_KEY="test", BREVO_PRO_LIST_ID=42)
 def test_opt_out_delete_dispatched_only_once_across_saves(pro, mock_tasks):
     _upsert_task, delete_task = mock_tasks
-    from techpourtoutes.models import Pro
 
     reloaded = Pro.objects.get(pk=pro.pk)
     delete_task.delay.reset_mock()
@@ -127,7 +124,6 @@ def test_opt_out_delete_dispatched_only_once_across_saves(pro, mock_tasks):
 @override_settings(BREVO_API_KEY="test", BREVO_PRO_LIST_ID=42)
 def test_new_unsynced_pro_does_not_dispatch_delete(valid_pro_model_data, mock_tasks):
     upsert_task, delete_task = mock_tasks
-    from techpourtoutes.models import Pro
 
     with transaction.atomic():
         Pro(
@@ -144,7 +140,6 @@ def test_new_unsynced_pro_does_not_dispatch_delete(valid_pro_model_data, mock_ta
 @override_settings(BREVO_API_KEY="test")
 def test_signal_does_not_dispatch_on_rolled_back_transaction(valid_pro_model_data, mock_tasks):
     upsert_task, _ = mock_tasks
-    from techpourtoutes.models import Pro
 
     class Boom(Exception):
         pass

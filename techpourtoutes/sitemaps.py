@@ -17,7 +17,7 @@ COALITION_PAGE_NAMES = [
     "new_work_ambassador",
     "new_training_ambassador",
     "new_internship",
-    "new_sponsor",
+    "new_structure_engagement",
     "new_workshop_request",
     "new_manifeste_signature",
 ]

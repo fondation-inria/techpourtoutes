@@ -2,8 +2,20 @@ from django import forms
 from django.utils.translation import gettext_lazy as _
 
 from ...models import WorkshopRequest
-from ..engagement.workshop_request_form import FONCTION_CHOICES
 from ..mixins import MissingRecordMixin
+
+FONCTION_CHOICES = [
+    ("", _("Sélectionner une option")),
+    ("Enseignante", _("Enseignante")),
+    ("Documentaliste", _("Documentaliste")),
+    ("CPE", _("CPE")),
+    ("Responsable établissement", _("Responsable établissement")),
+    ("Référente mission EDD", _("Référente mission EDD")),
+    ("DRANE / DAN / IAN", _("DRANE / DAN / IAN")),
+    ("Autre mission au sein d'un établissement", _("Autre mission au sein d'un établissement")),
+    ("parent d'élèves", _("Parent d'élève")),
+    ("je ne travaille pas dans un établissement", _("Je ne travaille pas dans un établissement")),
+]
 
 # Those who answer one of these ask for a workshop in a school they do not work at.
 OUTSIDE_SCHOOL_JOBS = (

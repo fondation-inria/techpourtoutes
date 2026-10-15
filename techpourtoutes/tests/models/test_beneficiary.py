@@ -1,3 +1,5 @@
+from datetime import date
+
 import pytest
 from django.core.exceptions import ValidationError
 from django.test import override_settings
@@ -59,9 +61,6 @@ def test_beneficiary_syncs_to_its_own_brevo_list():
 
 @pytest.mark.django_db
 def test_beneficiary_creation_saves_all_fields():
-    from datetime import date
-
-    from techpourtoutes.models import Beneficiary
 
     beneficiary = Beneficiary(
         username="jade@example.com",
@@ -81,9 +80,6 @@ def test_beneficiary_creation_saves_all_fields():
 
 @pytest.mark.django_db
 def test_beneficiary_rejects_invalid_postal_code():
-    from datetime import date
-
-    from techpourtoutes.models import Beneficiary
 
     beneficiary = Beneficiary(
         username="jade@example.com",
@@ -99,8 +95,6 @@ def test_beneficiary_rejects_invalid_postal_code():
 
 @pytest.mark.django_db
 def test_soft_delete_anonymizes_expected_fields_for_beneficiary(beneficiary):
-    from techpourtoutes.models import Beneficiary
-
     original_pk = beneficiary.pk
     original_postal_code = beneficiary.postal_code
     beneficiary.legal_representative_name = "Parent Test"

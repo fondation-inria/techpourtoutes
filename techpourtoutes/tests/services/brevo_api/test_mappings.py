@@ -4,6 +4,7 @@ import pytest
 from django.test import override_settings
 from phonenumber_field.phonenumber import PhoneNumber
 
+from techpourtoutes.models import Beneficiary, Pro, User
 from techpourtoutes.services.brevo_api.mappings import (
     _serialize,
     brevo_attributes_for,
@@ -13,6 +14,8 @@ from techpourtoutes.services.brevo_api.mappings import (
 
 @pytest.mark.django_db
 def test_brevo_attributes_for_pro_returns_mapped_attributes(pro):
+    pro.structure_type = "company"
+
     assert brevo_attributes_for(pro) == {
         "EMAIL": "alice@example.com",
         "PRENOM": "Alice",
@@ -21,7 +24,7 @@ def test_brevo_attributes_for_pro_returns_mapped_attributes(pro):
         "TELEPHONE_RAW_NUMBER": "0033612345678",
         "CIVILITE": ["Madame"],
         "JOB_TITLE": "Chercheuse",
-        "SITUATION_PRO": ["En emploi"],
+        "STRUCTURE_TYPE": ["Entreprise"],
         "NOM_DE_LA_STRUCTURE": "Inria",
         "CODE_POSTAL": "75001",
         "ENGAGEMENTS": [],
@@ -30,9 +33,12 @@ def test_brevo_attributes_for_pro_returns_mapped_attributes(pro):
 
 
 @pytest.mark.django_db
-def test_brevo_attributes_for_bare_user_returns_none(db):
-    from techpourtoutes.models import User
+def test_brevo_attributes_for_pro_without_a_structure_type_sends_an_empty_choice(pro):
+    assert brevo_attributes_for(pro)["STRUCTURE_TYPE"] == []
 
+
+@pytest.mark.django_db
+def test_brevo_attributes_for_bare_user_returns_none(db):
     user = User.objects.create_user(
         username="bare@example.com",
         email="bare@example.com",
@@ -51,8 +57,6 @@ def test_brevo_list_id_for_pro_returns_pro_list_id(pro):
 
 @pytest.mark.django_db
 def test_brevo_list_id_for_bare_user_returns_none(db):
-    from techpourtoutes.models import User
-
     user = User.objects.create_user(
         username="bare@example.com",
         email="bare@example.com",
@@ -65,8 +69,6 @@ def test_brevo_list_id_for_bare_user_returns_none(db):
 
 @pytest.mark.django_db
 def test_brevo_attributes_for_beneficiary_includes_phone_numbers():
-    from techpourtoutes.models import Beneficiary
-
     beneficiary = Beneficiary(
         username="lea@example.com",
         email="lea@example.com",
@@ -84,8 +86,6 @@ def test_brevo_attributes_for_beneficiary_includes_phone_numbers():
 
 @pytest.mark.django_db
 def test_brevo_attributes_omits_phone_numbers_when_phone_is_blank():
-    from techpourtoutes.models import Beneficiary
-
     beneficiary = Beneficiary(
         username="lea@example.com",
         email="lea@example.com",
@@ -102,8 +102,6 @@ def test_brevo_attributes_omits_phone_numbers_when_phone_is_blank():
 
 @pytest.mark.django_db
 def test_brevo_attributes_engagements_are_translated_to_labels(pro):
-    from techpourtoutes.models import Pro
-
     pro.engagements = [Pro.Engagement.MENTOR, Pro.Engagement.WORKSHOPS]
     pro.save()
 

@@ -1,14 +1,12 @@
 import pytest
 from django.core import mail
-from django.test import override_settings
 
 from techpourtoutes.mailers import ProMailer
 
 
 @pytest.mark.django_db
-@override_settings(EMAIL_BACKEND="django.core.mail.backends.locmem.EmailBackend")
 def test_welcome_sends_email_to_pro(pro):
-    ProMailer.welcome(pro=pro, token="tok-abc")
+    ProMailer.welcome(pro=pro, code="123456")
 
     assert len(mail.outbox) == 1
     message = mail.outbox[0]
@@ -18,28 +16,15 @@ def test_welcome_sends_email_to_pro(pro):
 
 
 @pytest.mark.django_db
-@override_settings(EMAIL_BACKEND="django.core.mail.backends.locmem.EmailBackend")
-def test_welcome_includes_account_login_url(pro):
-    ProMailer.welcome(pro=pro, token="tok-abc")
-
-    assert "/se-connecter/token/tok-abc" in mail.outbox[0].body
-
-
-@pytest.mark.django_db
-@override_settings(EMAIL_BACKEND="django.core.mail.backends.locmem.EmailBackend")
-def test_welcome_with_a_code_gives_the_code_instead_of_the_login_url(pro):
+def test_welcome_gives_the_login_code(pro):
     ProMailer.welcome(pro=pro, code="123456")
 
     message = mail.outbox[0]
-    html = message.alternatives[0][0]
     assert "123456" in message.body
-    assert "123456" in html
-    assert "/se-connecter/token/" not in message.body
-    assert "Accéder à mon compte" not in html
+    assert "123456" in message.alternatives[0][0]
 
 
 @pytest.mark.django_db
-@override_settings(EMAIL_BACKEND="django.core.mail.backends.locmem.EmailBackend")
 def test_engagement_added_sends_email_to_pro(pro):
     ProMailer.engagement_added(pro=pro)
 
@@ -51,15 +36,13 @@ def test_engagement_added_sends_email_to_pro(pro):
 
 
 @pytest.mark.django_db
-@override_settings(EMAIL_BACKEND="django.core.mail.backends.locmem.EmailBackend")
 def test_welcome_attaches_its_brevo_tags(pro):
-    ProMailer.welcome(pro=pro, token="tok-abc")
+    ProMailer.welcome(pro=pro, code="123456")
 
     assert mail.outbox[0].tags == ["utilisateur", "coalition", "mail de bienvenue"]
 
 
 @pytest.mark.django_db
-@override_settings(EMAIL_BACKEND="django.core.mail.backends.locmem.EmailBackend")
 def test_event_submitted_confirms_the_event_is_awaiting_validation(event):
     ProMailer.event_submitted(event=event)
 
@@ -72,7 +55,6 @@ def test_event_submitted_confirms_the_event_is_awaiting_validation(event):
 
 
 @pytest.mark.django_db
-@override_settings(EMAIL_BACKEND="django.core.mail.backends.locmem.EmailBackend")
 def test_event_approved_notifies_its_author(event):
     ProMailer.event_approved(event=event, comment="Bravo !")
 
@@ -86,7 +68,6 @@ def test_event_approved_notifies_its_author(event):
 
 
 @pytest.mark.django_db
-@override_settings(EMAIL_BACKEND="django.core.mail.backends.locmem.EmailBackend")
 def test_event_approved_comment_is_optional(event):
     ProMailer.event_approved(event=event)
 
@@ -94,7 +75,6 @@ def test_event_approved_comment_is_optional(event):
 
 
 @pytest.mark.django_db
-@override_settings(EMAIL_BACKEND="django.core.mail.backends.locmem.EmailBackend")
 def test_event_rejected_notifies_its_author(event):
     ProMailer.event_rejected(event=event, comment="Adresse incomplète.")
 
@@ -108,7 +88,6 @@ def test_event_rejected_notifies_its_author(event):
 
 
 @pytest.mark.django_db
-@override_settings(EMAIL_BACKEND="django.core.mail.backends.locmem.EmailBackend")
 def test_event_modification_requested_notifies_its_author(event):
     ProMailer.event_modification_requested(event=event, message="Précisez l'adresse.")
 
@@ -121,7 +100,6 @@ def test_event_modification_requested_notifies_its_author(event):
 
 
 @pytest.mark.django_db
-@override_settings(EMAIL_BACKEND="django.core.mail.backends.locmem.EmailBackend")
 def test_event_modification_requested_links_to_the_edit_funnel(event):
     ProMailer.event_modification_requested(event=event, message="Précisez l'adresse.")
 

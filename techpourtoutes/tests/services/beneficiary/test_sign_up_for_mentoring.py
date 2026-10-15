@@ -1,7 +1,7 @@
 from unittest.mock import MagicMock, patch
 
 import pytest
-from django.test import override_settings
+from django.core import mail
 
 from techpourtoutes.services.base import ErrorKind
 from techpourtoutes.services.beneficiary.sign_up_for_mentoring import SignUpForMentoring
@@ -37,10 +37,7 @@ def _sign_up(beneficiary, *, is_minor=False):
 
 
 @pytest.mark.django_db
-@override_settings(EMAIL_BACKEND="django.core.mail.backends.locmem.EmailBackend")
 def test_a_minor_is_handed_over_to_the_consortium_instead_of_jobirl(beneficiary):
-    from django.core import mail
-
     with patch(CREATE_MENTOREE) as MockCreateMentoree:
         result = _sign_up(beneficiary, is_minor=True)
 

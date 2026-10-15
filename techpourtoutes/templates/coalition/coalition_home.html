@@ -1,4 +1,4 @@
-{% load static waffle_tags %}
+{% load static %}
 
 <c-layout.base title="TechPourToutes – la coalition pour une tech inclusive" description="TechPourToutes est un programme national pour attirer et soutenir les femmes dans la tech. Rejoignez la coalition en devenant mentor, ambassadrice ou mécène.">
     <c-slot name="banner">
@@ -58,7 +58,7 @@
             Venez présenter votre métier à des lycéennes ou des étudiantes qui ont besoin de vous pour ouvrir leurs imaginaires.
         </c-components.card-link>
 
-        <c-components.card-link color="yellow" title="Mécénat" button="Découvrir le mécénat" href="{% switch "new_pro_features" %}{% url "new_structure_engagement" %}{% else %}{% url "new_sponsor" %}{% endswitch %}">
+        <c-components.card-link color="yellow" title="Mécénat" button="Découvrir le mécénat" href="{% url "new_structure_engagement" %}">
             Agissez à nos côtés au service de la féminisation des métiers du numérique, via des bourses, des dons de matériel ou du mécénat de compétence.
         </c-components.card-link>
     </div>
