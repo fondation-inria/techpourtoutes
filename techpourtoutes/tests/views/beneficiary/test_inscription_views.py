@@ -404,6 +404,18 @@ def test_existing_beneficiary_email_who_already_requested_a_training_ambassador_
 
 
 @pytest.mark.django_db
+def test_existing_beneficiary_email_with_requests_makeuse_project_logs_in_to_the_request(
+    client, beneficiary
+):
+    client.get(f"{NEW_FUNNEL_URL}?requests_makeuse_project=1")
+
+    response = _post_step(client, "email", {"email": beneficiary.email})
+
+    next_url = reverse("new_makeuse_project_request")
+    assert f"next={quote(next_url, safe='')}" in response["HX-Redirect"]
+
+
+@pytest.mark.django_db
 def test_existing_beneficiary_email_without_wants_mentor_redirects_to_home_back(
     client, beneficiary
 ):
@@ -763,6 +775,39 @@ def test_training_ambassador_request_step_creates_beneficiary_and_mails_the_topi
         if message.subject == "Nouvelle demande pour parler à une ambassadrice"
     ]
     assert "Parcoursup et la vie sur le campus" in request_mail.body
+
+
+@pytest.mark.django_db
+@override_settings(EMAIL_BACKEND="django.core.mail.backends.locmem.EmailBackend")
+def test_makeuse_project_request_step_creates_beneficiary_and_mails_the_project(
+    client, higher_ed_school, higher_ed_formation
+):
+    _seed_after_training(
+        client,
+        higher_ed_school,
+        higher_ed_formation,
+        current="makeuse_project_request",
+        values={"requests_makeuse_project": True},
+    )
+
+    response = _post_step(
+        client,
+        "makeuse_project_request",
+        {
+            "project_name": "Robot trieur",
+            "project_link": "https://example.com/robot",
+            "project_description": "Un robot qui trie les déchets",
+        },
+    )
+
+    assert b"Saisis le code" in response.content
+    assert Beneficiary.objects.filter(email="oceane@example.com").exists()
+    [request_mail] = [
+        message
+        for message in mail.outbox
+        if message.subject == "Nouvelle demande de projet Makeuse : Robot trieur"
+    ]
+    assert "https://example.com/robot" in request_mail.body
 
 
 @pytest.mark.django_db

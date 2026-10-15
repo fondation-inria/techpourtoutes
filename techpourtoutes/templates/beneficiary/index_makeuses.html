@@ -1,0 +1,39 @@
+<c-layout.base title="Rejoindre les makeuses - TechPourToutes" description="" >
+    <c-components.title title="Rejoindre les makeuses" title_bg="yellow" class="md:whitespace-nowrap" />
+    <c-components.card>
+        <p>TechPourToutes met en valeur les réalisations d'une nouvelle génération de makeuses. Montrons que les filles savent faire et qu'il faut faire maintenant avec les filles&nbsp;!</p>
+        <p class="mt-3">Propose ton projet et valorise ton travail auprès de la communauté.</p>
+    </c-components.card>
+    <c-components.card header="Quelles sont les modalités pour participer&nbsp;?" header_color="bg-blue-500">
+        <c-components.icon_list_item icon="profil-projet-makeuse">
+            Toutes personnes pouvant s'inscrire au programme TechPourToutes peut proposer un projet. Il faut donc <strong>avoir entre 15 et 25 ans et être une fille.</strong> 
+        </c-components.icon_list_item>
+        <br>
+        <c-components.icon_list_item icon="valeurs-projet-makeuse">
+            Les propositions doivent être cohérentes avec les enjeux portés par le programme. 
+        </c-components.icon_list_item>
+        <br>
+        <c-components.icon_list_item icon="exemple-projet-makeuse">
+            <strong>Exemples de projets</strong>&nbsp;: application mobile, robot, site internet, cyberdeck, jeu vidéo, IA conversationnelle, etc.
+        </c-components.icon_list_item>
+        <br>
+        <c-components.icon_list_item icon="recommande-projet-makeuse">
+            <strong>Recommandé</strong> (mais pas obligatoire)&nbsp;: un projet opensource pour mieux présenter ton travail, une démarche écoresponsable et accessible. Tu peux aussi nous demander la charte graphique de TechPourToutes pour te l'approprier si tu le souhaites.
+        </c-components.icon_list_item>
+    </c-components.card>
+    <c-components.card header="Comment participer&nbsp;?" header_color="bg-green-500">
+        <ul class="steps steps-vertical">
+            <li class="step step-success text-left">Propose ton projet via le site</li>
+            <li class="step step-success text-left">L'équipe TechPourToutes étudie ton projet et sa compatibilité avec le programme</li>
+            <li class="step step-success text-left">Dans tous les cas, l'équipe te recontacte. Si ton projet est retenu, nous te demanderons quelques informations supplémentaires pour construire ensemble ta page de présentation.</li>
+            <li class="step step-success text-left">Ton projet est en ligne. Partage-le sur ton CV ou ton portefolio&nbsp;!</li>
+        </ul>
+    </c-components.card>
+     {% if cta_href %}
+        <div class="flex justify-center w-full">
+            <c-components.button href="{{ cta_href }}" label="Proposer un projet"/>
+        </div>
+    {% endif %}
+    <c-components.card title="Découvre les projets des makeuses TechPourToutes" title_bg="black">
+    </c-components.card>
+</c-layout.base>

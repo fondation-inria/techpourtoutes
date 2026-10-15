@@ -102,6 +102,22 @@ class ConsortiumMailer(BaseMailer):
             tags=["interne", "bénéficiaire", "nouvelle demande de mentorat"],
         )
 
+    @classmethod
+    def makeuse_project_requested(
+        cls, *, beneficiary, project_name, project_link, project_description
+    ):
+        cls.send_mail(
+            subject=f"Nouvelle demande de projet Makeuse : {project_name}",
+            recipient_list=settings.MAKEUSE_PROJECT_REQUEST_RECIPIENTS,
+            context={
+                "beneficiary": beneficiary,
+                "project_name": project_name,
+                "project_link": project_link,
+                "project_description": project_description,
+            },
+            tags=["interne", "coalition", "nouvelle demande de projet Makeuse"],
+        )
+
     @staticmethod
     def _event_admin_url(event):
         """Moderators sign in through the user login, never the admin's: the link goes through

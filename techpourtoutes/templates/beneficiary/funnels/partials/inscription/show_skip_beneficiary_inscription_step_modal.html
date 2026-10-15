@@ -1,7 +1,11 @@
 <c-components.modal title="Es-tu sûre de vouloir passer cette étape ?">
     <br>
     <p class="text-center text-sm">
+        {% if step == "makeuse_project_request" %}
+        Pour pouvoir proposer ton projet, nous avons besoin que tu nous transmettes ces informations.
+        {% else %}
         Pour te mettre en relation avec une {% if step == "mentoring_signup" %}mentor{% else %}ambassadrice{% endif %}, nous avons besoin que tu nous transmettes ces informations.
+        {% endif %}
         <br><br>
         Si tu passes cette étape, tu pourras toujours compléter le formulaire plus tard dans ton espace personnel.
     </p>

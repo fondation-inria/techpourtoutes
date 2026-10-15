@@ -96,6 +96,20 @@ def new_training_ambassador_beneficiary(request):
     )
 
 
+def index_makeuses(request):
+    beneficiary = getattr(request.user, "beneficiary", None)
+    cta_href = None
+    if not request.user.is_authenticated:
+        cta_href = f"{reverse('new_beneficiary_inscription_funnel')}?requests_makeuse_project=1"
+    if beneficiary is not None:
+        cta_href = reverse("new_makeuse_project_request")
+    return render(
+        request,
+        "beneficiary/index_makeuses.html",
+        {"cta_href": cta_href},
+    )
+
+
 def index_events(request):
     return render(
         request,

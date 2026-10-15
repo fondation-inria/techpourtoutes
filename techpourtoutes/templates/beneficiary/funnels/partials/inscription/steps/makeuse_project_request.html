@@ -1,0 +1,8 @@
+<c-patterns.funnel_step post_url="{% url 'beneficiary_inscription_funnel' %}" action="makeuse_project_request" title="Rejoins le club, {{ first_name }}" submit_label="Proposer le projet">
+    <c-slot name="header">
+        <c-patterns.funnel_progress post_url="{% url 'beneficiary_inscription_funnel' %}" progress="{{ progress }}" skip_url="{% url 'show_skip_beneficiary_inscription_step_modal' 'makeuse_project_request' %}" />
+    </c-slot>
+    <p>Dis-nous en plus sur le projet que tu souhaites publier.</p>
+    <p class="text-xs text-neutral-500">Tous les champs sont obligatoires</p>
+    {% include "beneficiary/funnels/partials/fields/makeuse_project_request.html" %}
+</c-patterns.funnel_step>

@@ -49,6 +49,17 @@ urlpatterns = [
         views.create_upcoming_feature_notification,
         name="create_upcoming_feature_notification",
     ),
+    path("rejoindre-les-makeuses/", views.index_makeuses, name="index_makeuses"),
+    path(
+        "rejoindre-les-makeuses/demande/",
+        views.new_makeuse_project_request,
+        name="new_makeuse_project_request",
+    ),
+    path(
+        "rejoindre-les-makeuses/demande/envoyer/",
+        views.create_makeuse_project_request,
+        name="create_makeuse_project_request",
+    ),
     path("evenements/", views.index_events, name="index_events"),
     path("mes-evenements/", views.index_beneficiary_events, name="index_beneficiary_events"),
     path(
