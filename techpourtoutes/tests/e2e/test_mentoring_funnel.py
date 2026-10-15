@@ -3,12 +3,8 @@ import re
 import pytest
 from playwright.sync_api import expect
 
-from techpourtoutes.models import Beneficiary, Level, TrainingExperience
-from techpourtoutes.utils.dates import adult_birth_date
-from techpourtoutes.utils.school_year import (
-    current_school_year_end_date,
-    current_school_year_start_date,
-)
+from techpourtoutes.models import Beneficiary
+from techpourtoutes.tests.birth_dates import birth_date_for_age
 
 from .helpers import (
     HIGH_SCHOOL_FORMATION_LABEL,
@@ -20,8 +16,8 @@ from .helpers import (
 )
 
 # These tests drive a real browser to cover what the view tests cannot: an account imported from
-# Faveod carries neither a birth date nor a parcours, and both gaps are only resolved client-side
-# — minority as she picks a date, the parcours questions as she picks a study status.
+# Faveod carries no parcours, and the gap is only resolved client-side — the parcours questions
+# as she picks a study status.
 
 _LEGAL_REPRESENTATIVE_NAME = 'input[name="legal_representative_name"]'
 _LEGAL_REPRESENTATIVE_EMAIL = 'input[name="legal_representative_email"]'
@@ -33,6 +29,7 @@ def _beneficiary():
         first_name="Océane",
         last_name="Martin",
         email="oceane@example.com",
+        birth_date=birth_date_for_age(16),
     )
     beneficiary.save()
     return beneficiary
@@ -45,86 +42,10 @@ def _sign_in(live_server, page, beneficiary):
 
 
 @pytest.fixture
-def page_without_birth_date(live_server, page, db):
-    """Only the birth date is missing: the parcours is already on file."""
-    beneficiary = _beneficiary()
-    school, formation = voltaire_teaching("Bac général")
-    TrainingExperience.objects.create(
-        user=beneficiary,
-        school=school,
-        formation=formation,
-        level=Level.TERMINALE,
-        start_date=current_school_year_start_date(),
-        end_date=current_school_year_end_date(),
-    )
-    return _sign_in(live_server, page, beneficiary)
-
-
-@pytest.fixture
 def page_without_parcours(live_server, page, db):
-    """The full Faveod gap: neither birth date nor parcours."""
+    """The Faveod gap: no parcours."""
     voltaire_teaching("Bac général")
     return _sign_in(live_server, page, _beneficiary())
-
-
-def _birth_date_for_age(age):
-    cutoff = adult_birth_date()
-    return cutoff.replace(year=cutoff.year + 18 - age).isoformat()
-
-
-# ------------------- the birth date gap -------------------
-
-
-def test_the_legal_representative_fields_stay_hidden_until_a_birth_date_is_picked(
-    page_without_birth_date,
-):
-    expect(page_without_birth_date.locator(_LEGAL_REPRESENTATIVE_EMAIL)).to_be_hidden()
-    expect(page_without_birth_date.get_by_text("Comme tu es mineure")).to_be_hidden()
-
-
-def test_picking_a_minor_birth_date_reveals_the_legal_representative_fields(
-    page_without_birth_date,
-):
-    page_without_birth_date.fill('input[name="birth_date"]', _birth_date_for_age(16))
-
-    expect(page_without_birth_date.locator(_LEGAL_REPRESENTATIVE_NAME)).to_be_visible()
-    expect(page_without_birth_date.locator(_LEGAL_REPRESENTATIVE_EMAIL)).to_be_visible()
-    expect(page_without_birth_date.get_by_text("Comme tu es mineure")).to_be_visible()
-
-
-def test_picking_an_adult_birth_date_keeps_the_legal_representative_fields_hidden(
-    page_without_birth_date,
-):
-    page_without_birth_date.fill('input[name="birth_date"]', _birth_date_for_age(20))
-
-    expect(page_without_birth_date.locator(_LEGAL_REPRESENTATIVE_EMAIL)).to_be_hidden()
-    expect(
-        page_without_birth_date.get_by_text("nous avons besoin de ta date de naissance")
-    ).to_be_visible()
-
-
-def test_correcting_a_minor_birth_date_to_an_adult_one_hides_the_fields_again(
-    page_without_birth_date,
-):
-    page_without_birth_date.fill('input[name="birth_date"]', _birth_date_for_age(16))
-    expect(page_without_birth_date.locator(_LEGAL_REPRESENTATIVE_EMAIL)).to_be_visible()
-
-    page_without_birth_date.fill('input[name="birth_date"]', _birth_date_for_age(20))
-
-    expect(page_without_birth_date.locator(_LEGAL_REPRESENTATIVE_EMAIL)).to_be_hidden()
-
-
-def test_a_minor_signs_up_in_a_single_submit(page_without_birth_date):
-    page_without_birth_date.fill('input[name="birth_date"]', _birth_date_for_age(16))
-    page_without_birth_date.fill('input[name="phone"]', "0612345678")
-    page_without_birth_date.fill(_LEGAL_REPRESENTATIVE_NAME, "Hedy Lamarr")
-    page_without_birth_date.fill(_LEGAL_REPRESENTATIVE_EMAIL, "hedy@example.com")
-
-    page_without_birth_date.get_by_role("button", name="Rejoindre le mentorat").click()
-
-    expect(page_without_birth_date).to_have_url(re.compile(r"/mon-compte/$"))
-    beneficiary = Beneficiary.objects.get(email="oceane@example.com")
-    assert beneficiary.legal_representative_email == "hedy@example.com"
 
 
 # ------------------- the parcours gap -------------------
@@ -177,7 +98,6 @@ def test_a_faveod_account_walks_the_three_steps_to_the_end(page_without_parcours
     pick(page_without_parcours, HIGH_SCHOOL_FORMATION_LABEL, "bac", "Bac général")
     page_without_parcours.get_by_role("button", name="Continuer").click()
 
-    page_without_parcours.fill('input[name="birth_date"]', _birth_date_for_age(16))
     page_without_parcours.fill('input[name="phone"]', "0612345678")
     page_without_parcours.fill(_LEGAL_REPRESENTATIVE_NAME, "Hedy Lamarr")
     page_without_parcours.fill(_LEGAL_REPRESENTATIVE_EMAIL, "hedy@example.com")

@@ -1,6 +1,5 @@
 import pytest
 from django.core import mail
-from django.test import override_settings
 from django.urls import reverse
 
 NEW_URL = "/echanger-avec-une-etudiante/demande/"
@@ -19,7 +18,6 @@ def test_new_training_ambassador_request_labels_the_topic_with_its_question(clie
 
 
 @pytest.mark.django_db
-@override_settings(EMAIL_BACKEND="django.core.mail.backends.locmem.EmailBackend")
 def test_create_training_ambassador_request_records_it_and_mails_the_topic(client, beneficiary):
     client.force_login(beneficiary)
 
@@ -34,7 +32,6 @@ def test_create_training_ambassador_request_records_it_and_mails_the_topic(clien
 
 
 @pytest.mark.django_db
-@override_settings(EMAIL_BACKEND="django.core.mail.backends.locmem.EmailBackend")
 def test_create_training_ambassador_request_without_a_topic_records_nothing(client, beneficiary):
     client.force_login(beneficiary)
 
@@ -47,7 +44,6 @@ def test_create_training_ambassador_request_without_a_topic_records_nothing(clie
 
 
 @pytest.mark.django_db
-@override_settings(EMAIL_BACKEND="django.core.mail.backends.locmem.EmailBackend")
 @pytest.mark.parametrize(("method", "url"), [("get", NEW_URL), ("post", CREATE_URL)])
 def test_a_second_training_ambassador_request_goes_back_to_the_account(
     client, beneficiary, method, url

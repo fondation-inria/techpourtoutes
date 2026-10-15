@@ -1,10 +1,11 @@
 import pytest
 
+from techpourtoutes.forms import ProTrainingExperienceForm
+from techpourtoutes.models import Formation, Level, TrainingExperience
+
 
 @pytest.mark.django_db
 def test_form_prefills_from_experience(experience, higher_ed_school, higher_ed_formation):
-    from techpourtoutes.forms import ProTrainingExperienceForm
-
     form = ProTrainingExperienceForm(experience=experience)
     assert form.initial["school_id"] == str(higher_ed_school.id)
     assert form.initial["school_label"] == higher_ed_school.display_label
@@ -14,9 +15,6 @@ def test_form_prefills_from_experience(experience, higher_ed_school, higher_ed_f
 
 @pytest.mark.django_db
 def test_form_prefills_an_out_of_scope_experience_with_its_typed_names(pro):
-    from techpourtoutes.forms import ProTrainingExperienceForm
-    from techpourtoutes.models import Level, TrainingExperience
-
     experience = TrainingExperience.objects.create(
         user=pro,
         level=Level.BAC_5,
@@ -35,8 +33,6 @@ def test_form_prefills_an_out_of_scope_experience_with_its_typed_names(pro):
 
 @pytest.mark.django_db
 def test_form_save_updates_experience(experience, higher_ed_school, higher_ed_formation):
-    from techpourtoutes.forms import ProTrainingExperienceForm
-
     form = ProTrainingExperienceForm(
         data={
             "school_id": str(higher_ed_school.id),
@@ -54,8 +50,6 @@ def test_form_save_updates_experience(experience, higher_ed_school, higher_ed_fo
 
 @pytest.mark.django_db
 def test_form_rejects_unknown_school(higher_ed_formation):
-    from techpourtoutes.forms import ProTrainingExperienceForm
-
     form = ProTrainingExperienceForm(
         data={"school_id": "not-a-real-id", "formation_id": str(higher_ed_formation.pk)}
     )
@@ -65,9 +59,6 @@ def test_form_rejects_unknown_school(higher_ed_formation):
 
 @pytest.mark.django_db
 def test_form_rejects_a_formation_the_school_does_not_teach(higher_ed_school, higher_ed_formation):
-    from techpourtoutes.forms import ProTrainingExperienceForm
-    from techpourtoutes.models import Formation
-
     elsewhere = Formation(onisep_id="9999", name="Diplôme d'ingénieur")
     elsewhere.save()
 
@@ -85,8 +76,6 @@ def test_form_rejects_a_formation_the_school_does_not_teach(higher_ed_school, hi
 
 @pytest.mark.django_db
 def test_form_still_requires_a_school_without_the_fallback(higher_ed_formation):
-    from techpourtoutes.forms import ProTrainingExperienceForm
-
     form = ProTrainingExperienceForm(
         data={"school_id": "", "level": "bac_5", "formation_id": str(higher_ed_formation.pk)}
     )
@@ -97,8 +86,6 @@ def test_form_still_requires_a_school_without_the_fallback(higher_ed_formation):
 
 @pytest.mark.django_db
 def test_a_missing_school_saves_the_experience_without_one(experience, higher_ed_formation):
-    from techpourtoutes.forms import ProTrainingExperienceForm
-
     form = ProTrainingExperienceForm(
         data={
             "school_id": "",
@@ -119,9 +106,6 @@ def test_a_missing_school_saves_the_experience_without_one(experience, higher_ed
 
 @pytest.mark.django_db
 def test_a_missing_school_falls_back_to_the_higher_ed_catalogue(db):
-    from techpourtoutes.forms import ProTrainingExperienceForm
-    from techpourtoutes.models import Formation
-
     bac_pro = Formation(onisep_id="9999", name="Bac professionnel", secondary=True)
     bac_pro.save()
 

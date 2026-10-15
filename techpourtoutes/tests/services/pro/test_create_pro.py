@@ -16,8 +16,7 @@ pytestmark = pytest.mark.django_db
 
 
 @pytest.fixture(autouse=True)
-def locmem_email(settings):
-    settings.EMAIL_BACKEND = "django.core.mail.backends.locmem.EmailBackend"
+def mail_recipients(settings):
     settings.COALITION_MOBILIZE_STRUCTURE_RECIPIENTS = ["structure@example.com"]
     settings.COALITION_OTHER_ENGAGEMENT_RECIPIENTS = ["agir@example.com"]
     settings.COALITION_TRAINING_AMBASSADOR_RECIPIENTS = ["training@example.com"]
@@ -98,7 +97,6 @@ def test_create_pro_saves_her_identity_and_information():
     assert pro.job_title == "Chercheuse"
     assert pro.postal_code == "75011"
     assert pro.phone == "+33612345678"
-    assert pro.professional_situation == "working"
     assert not pro.has_usable_password()
 
 
@@ -106,29 +104,6 @@ def test_create_pro_stores_neither_events_nor_other_as_engagements():
     _create("sponsor", "events", "other", additional_information=_additional_information())
 
     assert Pro.objects.get(email="hedy@example.com").engagements == ["sponsor"]
-
-
-@pytest.mark.parametrize("structure_type", ["retired", "jobless"])
-def test_create_pro_derives_her_situation_from_her_structure_type(structure_type):
-    _create(
-        "sponsor",
-        additional_information=_additional_information(
-            structure_type=structure_type, structure_name=""
-        ),
-    )
-
-    assert Pro.objects.get(email="hedy@example.com").professional_situation == structure_type
-
-
-def test_create_pro_considers_a_lone_training_ambassador_a_student(
-    higher_ed_school, higher_ed_formation
-):
-    _create(
-        "training_ambassador",
-        training_ambassador_form=_training_ambassador_form(higher_ed_school, higher_ed_formation),
-    )
-
-    assert Pro.objects.get(email="hedy@example.com").professional_situation == "student"
 
 
 # ------------------- training ambassador -------------------
@@ -148,6 +123,18 @@ def test_create_pro_saves_the_training_of_a_training_ambassador(
     assert pro.engagements == ["training_ambassador"]
     assert pro.phone == "+33612345678"
     assert pro.training_experiences.get().school == higher_ed_school
+
+
+def test_create_pro_takes_the_school_of_a_training_ambassador_for_her_structure(
+    higher_ed_school, higher_ed_formation
+):
+    _create(
+        "training_ambassador",
+        training_ambassador_form=_training_ambassador_form(higher_ed_school, higher_ed_formation),
+    )
+
+    pro = Pro.objects.get(email="hedy@example.com")
+    assert (pro.structure_type, pro.structure_name) == ("higher_ed", "Université Paris-Saclay")
 
 
 def test_create_pro_tells_the_team_and_the_training_ambassador(
@@ -179,7 +166,6 @@ def test_create_pro_records_one_workshop_request_per_workshop():
     assert pro.structure_name == "Lycée Voltaire"
     assert pro.job_title == "Enseignante"
     assert pro.postal_code == ""
-    assert pro.professional_situation == "working"
     assert sorted(pro.workshop_requests.values_list("type", flat=True)) == [
         "future_of_ia",
         "future_of_tech",
@@ -214,7 +200,6 @@ def test_create_pro_does_not_take_the_workshop_school_for_hers_when_she_works_el
         "",
         "",
     )
-    assert pro.professional_situation == "working"
     assert pro.workshop_requests.count() == 2
     assert notify.delay.call_args.kwargs["structure_uai"] == "0750001A"
 

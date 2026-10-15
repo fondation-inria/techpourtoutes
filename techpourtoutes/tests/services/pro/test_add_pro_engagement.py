@@ -19,8 +19,7 @@ pytestmark = pytest.mark.django_db
 
 
 @pytest.fixture(autouse=True)
-def locmem_email(settings):
-    settings.EMAIL_BACKEND = "django.core.mail.backends.locmem.EmailBackend"
+def mail_recipients(settings):
     settings.COALITION_SPONSOR_RECIPIENTS = ["sponsor@example.com"]
     settings.COALITION_TRAINING_AMBASSADOR_RECIPIENTS = ["training@example.com"]
 

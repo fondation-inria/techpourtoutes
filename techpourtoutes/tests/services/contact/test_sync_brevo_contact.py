@@ -4,6 +4,7 @@ import pytest
 from brevo.core.api_error import ApiError
 from django.test import override_settings
 
+from techpourtoutes.models import User
 from techpourtoutes.services.base import ErrorKind
 from techpourtoutes.services.contact.sync_brevo_contact import SyncBrevoContact
 
@@ -30,8 +31,6 @@ def test_sync_brevo_contact_calls_client_upsert(pro, mock_brevo_client):
 @pytest.mark.django_db
 @override_settings(BREVO_API_KEY="test")
 def test_sync_brevo_contact_skips_when_no_mapping(db, mock_brevo_client):
-    from techpourtoutes.models import User
-
     user = User.objects.create_user(
         username="bare@x.fr", email="bare@x.fr", first_name="Bare", last_name="User"
     )

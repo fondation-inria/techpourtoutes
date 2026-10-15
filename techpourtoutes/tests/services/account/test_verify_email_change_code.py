@@ -1,6 +1,7 @@
 import pytest
 from django.urls import reverse
 
+from techpourtoutes.models.user import VERIFICATION_CODE_MAX_ATTEMPTS
 from techpourtoutes.services.account.verify_email_change_code import VerifyEmailChangeCode
 
 
@@ -17,8 +18,6 @@ def test_verify_wrong_code_fails(pro, mailoutbox):
 
 @pytest.mark.django_db
 def test_verify_locks_after_max_attempts(pro, mailoutbox):
-    from techpourtoutes.models.user import VERIFICATION_CODE_MAX_ATTEMPTS
-
     code = pro.set_email_change_code()
     pro.email_change_attempts = VERIFICATION_CODE_MAX_ATTEMPTS - 1
     pro.save()

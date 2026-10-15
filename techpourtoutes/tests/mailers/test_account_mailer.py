@@ -6,7 +6,6 @@ from techpourtoutes.mailers import AccountMailer
 
 
 @pytest.mark.django_db
-@override_settings(EMAIL_BACKEND="django.core.mail.backends.locmem.EmailBackend")
 def test_delete_account_sends_confirmation_email_with_vous_form_to_pro(pro):
     AccountMailer.deletion_confirmation(user=pro)
 
@@ -19,7 +18,6 @@ def test_delete_account_sends_confirmation_email_with_vous_form_to_pro(pro):
 
 
 @pytest.mark.django_db
-@override_settings(EMAIL_BACKEND="django.core.mail.backends.locmem.EmailBackend")
 def test_delete_account_sends_confirmation_email_with_tu_form_to_beneficiary(beneficiary):
     AccountMailer.deletion_confirmation(user=beneficiary)
 
@@ -32,7 +30,6 @@ def test_delete_account_sends_confirmation_email_with_tu_form_to_beneficiary(ben
 
 
 @pytest.mark.django_db
-@override_settings(EMAIL_BACKEND="django.core.mail.backends.locmem.EmailBackend")
 def test_delete_account_confirmation_sent_from_agir_address_for_pro(pro):
     AccountMailer.deletion_confirmation(user=pro)
 
@@ -40,7 +37,6 @@ def test_delete_account_confirmation_sent_from_agir_address_for_pro(pro):
 
 
 @pytest.mark.django_db
-@override_settings(EMAIL_BACKEND="django.core.mail.backends.locmem.EmailBackend")
 def test_delete_account_confirmation_sent_from_bonjour_address_for_beneficiary(beneficiary):
     AccountMailer.deletion_confirmation(user=beneficiary)
 
@@ -48,7 +44,6 @@ def test_delete_account_confirmation_sent_from_bonjour_address_for_beneficiary(b
 
 
 @pytest.mark.django_db
-@override_settings(EMAIL_BACKEND="django.core.mail.backends.locmem.EmailBackend")
 def test_delete_account_email_includes_jobirl_information_for_pro_with_jobirl_account(pro):
     pro.jobirl_user_id = 12345
     pro.save()
@@ -62,7 +57,6 @@ def test_delete_account_email_includes_jobirl_information_for_pro_with_jobirl_ac
 
 
 @pytest.mark.django_db
-@override_settings(EMAIL_BACKEND="django.core.mail.backends.locmem.EmailBackend")
 def test_delete_account_email_omits_jobirl_information_for_pro_without_jobirl_account(pro):
     AccountMailer.deletion_confirmation(user=pro)
 
@@ -73,7 +67,6 @@ def test_delete_account_email_omits_jobirl_information_for_pro_without_jobirl_ac
 
 
 @pytest.mark.django_db
-@override_settings(EMAIL_BACKEND="django.core.mail.backends.locmem.EmailBackend")
 def test_delete_account_email_includes_jobirl_information_for_beneficiary_with_jobirl_account(
     beneficiary,
 ):
@@ -89,7 +82,6 @@ def test_delete_account_email_includes_jobirl_information_for_beneficiary_with_j
 
 
 @pytest.mark.django_db
-@override_settings(EMAIL_BACKEND="django.core.mail.backends.locmem.EmailBackend")
 def test_delete_account_email_omits_jobirl_information_for_beneficiary_without_jobirl_account(
     beneficiary,
 ):
@@ -102,7 +94,6 @@ def test_delete_account_email_omits_jobirl_information_for_beneficiary_without_j
 
 
 @pytest.mark.django_db
-@override_settings(EMAIL_BACKEND="django.core.mail.backends.locmem.EmailBackend")
 def test_delete_account_confirmation_attaches_its_brevo_tags(pro):
     AccountMailer.deletion_confirmation(user=pro)
 
@@ -114,7 +105,6 @@ def test_delete_account_confirmation_attaches_its_brevo_tags(pro):
 
 @pytest.mark.django_db
 @override_settings(
-    EMAIL_BACKEND="django.core.mail.backends.locmem.EmailBackend",
     JOBIRL_ACCOUNT_DELETION_RECIPIENTS=["dpo@example.com"],
 )
 def test_delete_jobirl_account_request_sends_email_to_configured_recipients(pro):
@@ -137,7 +127,6 @@ def test_delete_jobirl_account_request_sends_email_to_configured_recipients(pro)
 
 @pytest.mark.django_db
 @override_settings(
-    EMAIL_BACKEND="django.core.mail.backends.locmem.EmailBackend",
     JOBIRL_ACCOUNT_DELETION_RECIPIENTS=["dpo@example.com"],
 )
 def test_delete_jobirl_account_request_attaches_its_brevo_tags(pro):
@@ -151,7 +140,6 @@ def test_delete_jobirl_account_request_attaches_its_brevo_tags(pro):
 
 @pytest.mark.django_db
 @override_settings(
-    EMAIL_BACKEND="django.core.mail.backends.locmem.EmailBackend",
     LATITUDE_ACCOUNT_DELETION_RECIPIENTS=["latitudes@example.com"],
 )
 def test_delete_latitudes_account_request_sends_email_to_configured_recipients(pro):
@@ -170,7 +158,6 @@ def test_delete_latitudes_account_request_sends_email_to_configured_recipients(p
 
 @pytest.mark.django_db
 @override_settings(
-    EMAIL_BACKEND="django.core.mail.backends.locmem.EmailBackend",
     LATITUDE_ACCOUNT_DELETION_RECIPIENTS=["latitudes@example.com"],
 )
 def test_delete_latitudes_account_request_attaches_its_brevo_tags(pro):

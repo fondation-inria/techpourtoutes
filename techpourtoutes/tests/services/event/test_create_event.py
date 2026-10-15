@@ -9,8 +9,7 @@ from techpourtoutes.forms.event import EventDetailsForm, EventLocationForm, Even
 from techpourtoutes.models import Event
 from techpourtoutes.services.event.create_event import CreateEvent
 
-locmem = override_settings(
-    EMAIL_BACKEND="django.core.mail.backends.locmem.EmailBackend",
+new_event_recipients = override_settings(
     NEW_EVENT_RECIPIENTS=["agir@techpourtoutes.io"],
 )
 
@@ -49,7 +48,7 @@ def valid_forms(location_overrides=None, **overrides):
 
 
 @pytest.mark.django_db
-@locmem
+@new_event_recipients
 def test_the_event_is_created_awaiting_validation(pro):
     result = CreateEvent(pro=pro, forms=valid_forms())
 
@@ -63,7 +62,7 @@ def test_the_event_is_created_awaiting_validation(pro):
 
 
 @pytest.mark.django_db
-@locmem
+@new_event_recipients
 def test_the_free_text_subcategory_is_what_gets_stored(pro):
     forms = valid_forms(
         subcategory=Event.Subcategory.OTHER, subcategory_other="Rencontre d'anciennes"
@@ -75,7 +74,7 @@ def test_the_free_text_subcategory_is_what_gets_stored(pro):
 
 
 @pytest.mark.django_db
-@locmem
+@new_event_recipients
 def test_both_the_author_and_the_team_are_notified(pro):
     CreateEvent(pro=pro, forms=valid_forms())
 
@@ -87,7 +86,7 @@ def test_both_the_author_and_the_team_are_notified(pro):
 
 
 @pytest.mark.django_db
-@locmem
+@new_event_recipients
 def test_a_moderators_event_is_published_straight_away(moderator_pro):
     CreateEvent(pro=moderator_pro, forms=valid_forms())
 
@@ -95,7 +94,7 @@ def test_a_moderators_event_is_published_straight_away(moderator_pro):
 
 
 @pytest.mark.django_db
-@locmem
+@new_event_recipients
 def test_a_superusers_event_is_published_straight_away(pro):
     pro.is_superuser = True
     pro.save()
@@ -106,7 +105,7 @@ def test_a_superusers_event_is_published_straight_away(pro):
 
 
 @pytest.mark.django_db
-@locmem
+@new_event_recipients
 def test_a_published_event_only_tells_its_author_it_is_online(moderator_pro):
     CreateEvent(pro=moderator_pro, forms=valid_forms())
 
@@ -116,7 +115,7 @@ def test_a_published_event_only_tells_its_author_it_is_online(moderator_pro):
 
 
 @pytest.mark.django_db
-@locmem
+@new_event_recipients
 def test_a_moderators_ungeocoded_event_still_awaits_validation(moderator_pro):
     """The address autocomplete was down: an approved event in presentiel has to be geocoded."""
     forms = valid_forms(

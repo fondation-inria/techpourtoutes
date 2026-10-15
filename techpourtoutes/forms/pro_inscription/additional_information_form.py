@@ -7,9 +7,6 @@ from ...models import Pro
 from ..fields import PhoneNumberField
 from .workshop_request_form import OTHER_SCHOOL_MISSION, OUTSIDE_SCHOOL_JOBS
 
-# Those who answer one of these work in no structure to name.
-WITHOUT_STRUCTURE = (Pro.StructureType.RETIRED, Pro.StructureType.JOBLESS)
-
 
 class ProAdditionalInformationForm(forms.Form):
     structure_type = forms.ChoiceField(
@@ -61,7 +58,7 @@ class ProAdditionalInformationForm(forms.Form):
         cleaned_data = super().clean()
         cleaned_data.update(self.known)
         structure_type = cleaned_data.get("structure_type")
-        if structure_type in WITHOUT_STRUCTURE:
+        if structure_type in Pro.WITHOUT_STRUCTURE:
             cleaned_data["structure_name"] = ""
         elif structure_type and not cleaned_data.get("structure_name"):
             self.add_error("structure_name", _("Ce champ est obligatoire."))
@@ -69,7 +66,7 @@ class ProAdditionalInformationForm(forms.Form):
 
     def _given_by(self, pro):
         given = {name: getattr(pro, name) for name in self.fields if getattr(pro, name)}
-        if pro.structure_type in WITHOUT_STRUCTURE:
+        if pro.structure_type in Pro.WITHOUT_STRUCTURE:
             given["structure_name"] = ""
         return given
 

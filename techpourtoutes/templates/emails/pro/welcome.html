@@ -7,32 +7,17 @@
     Nous prendrons contact avec vous sous 48 heures pour vous accompagner dans le programme.
   </p>
   <br>
-  {% if code %}
-    <p style="font-size:15px;color:#374151;">
-      Vous disposez dès à présent d'un compte. Pour vous y connecter, voici votre code de vérification&nbsp;:
-    </p>
-    <p style="text-align:center;margin:24px 0;font-size:28px;font-weight:700;letter-spacing:6px;color:#0E6DC7;">{{ code }}</p>
-    <p style="font-size:15px;color:#374151;">
-      Ce code est valable pendant 15 minutes. Il est à usage unique.
-    </p>
-  {% else %}
-    <p style="font-size:15px;color:#374151;">
-      Vous disposez dès à présent d'un compte auquel vous pouvez vous connecter en cliquant sur le bouton ci-dessous&nbsp;:
-    </p>
-    <p style="text-align:center;margin:24px 0;">
-      <a href="{{ login_url }}" style="display:inline-block;padding:12px 24px;background:#fad207;color:#0b1020;text-decoration:none;border-radius:4px;font-weight:600;">Accéder à mon compte</a>
-    </p>
-    <p style="font-size:15px;color:#374151;">
-      Ce lien est valable pendant 1 heure. Il est à usage unique.
-    </p>
-  {% endif %}
+  <p style="font-size:15px;color:#374151;">
+    Vous disposez dès à présent d'un compte. Pour vous y connecter, voici votre code de vérification&nbsp;:
+  </p>
+  <p style="text-align:center;margin:24px 0;font-size:28px;font-weight:700;letter-spacing:6px;color:#0E6DC7;">{{ code }}</p>
+  <p style="font-size:15px;color:#374151;">
+    Ce code est valable pendant 15 minutes. Il est à usage unique.
+  </p>
   <br>
   <p style="font-size:15px;color:#374151;">
     Bonne journée
   </p>
   <hr style="border:none;border-top:1px solid #e5e7eb;margin:24px 0;">
   <p style="font-size:13px;color:#6b7280;">Si vous n'avez pas demandé à vous connecter à votre compte TechPourToutes, il est possible que quelqu'un d'autre cherche à le faire. Nous vous recommandons de changer le mot de passe de votre boîte mail rapidement.</p>
-  {% if not code %}
-    <p style="font-size:13px;color:#6b7280;">Si vous avez des difficultés pour vous connecter avec le bouton, vous pouvez cliquer sur ce lien ou le copier-coller dans un navigateur&nbsp;: <u><a href="{{ login_url }}">{{ login_url }}</a></u></p>
-  {% endif %}
 </c-layout.email>

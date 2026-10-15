@@ -39,11 +39,6 @@ _WORKSHOP_REQUEST = {
 pytestmark = pytest.mark.django_db
 
 
-@pytest.fixture(autouse=True)
-def locmem_email(settings):
-    settings.EMAIL_BACKEND = "django.core.mail.backends.locmem.EmailBackend"
-
-
 # Celery runs eagerly: a pro created with a workshop request would otherwise call n8n for real.
 @pytest.fixture(autouse=True)
 def notify_workshop_request():

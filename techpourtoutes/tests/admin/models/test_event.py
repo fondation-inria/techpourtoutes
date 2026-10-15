@@ -2,15 +2,15 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 from django.core import mail
-from django.test import override_settings
 from django.urls import reverse
 
-from techpourtoutes.models import Event
+from techpourtoutes.admin.models.saved_event import EventSavedByInline
+from techpourtoutes.models import Event, SavedEvent
+from techpourtoutes.tests.models.test_event import build_event
 
 CHANGELIST = "admin:techpourtoutes_event_changelist"
 SEARCH_ADDRESSES = "admin:event_search_addresses"
 
-locmem = override_settings(EMAIL_BACKEND="django.core.mail.backends.locmem.EmailBackend")
 
 AMIENS_HIT = {
     "label": "8 Boulevard du Port 80000 Amiens",
@@ -116,7 +116,6 @@ def test_pending_events_are_listed_above_the_decided_ones(verified_admin_client,
     """The bottom list is the real, searchable/filterable changelist — pending events never
     belong there, they still await a decision."""
     decided = _decided(event, Event.Status.APPROVED)
-    from techpourtoutes.tests.models.test_event import build_event
 
     pending = build_event(decided.created_by, title="En attente")
     pending.save()
@@ -164,7 +163,6 @@ def test_moderation_buttons_submit_the_change_form_and_show_only_while_pending(
 
 
 @pytest.mark.django_db
-@locmem
 def test_publishing_runs_the_same_checks_as_a_save(verified_admin_client, event):
     """A decision is a save: the geocoding constraint is reported on the form, not after it."""
     data = _change_form_data(event, longitude="", latitude="", _publish="")
@@ -181,7 +179,6 @@ def test_publishing_runs_the_same_checks_as_a_save(verified_admin_client, event)
 
 
 @pytest.mark.django_db
-@locmem
 def test_publishing_reports_a_field_error_instead_of_deciding(verified_admin_client, event):
     data = _change_form_data(event, end_date=event.start_date.strftime("%Y-%m-%d"), _publish="")
     data["end_time"] = "08:00"
@@ -196,7 +193,6 @@ def test_publishing_reports_a_field_error_instead_of_deciding(verified_admin_cli
 
 
 @pytest.mark.django_db
-@locmem
 def test_publishing_saves_the_edits_it_travels_with(verified_admin_client, event):
     """The geocoding a moderator completed is part of the very submit that publishes."""
     data = _change_form_data(event, address="12 rue Neuve", _publish="", comment="Bravo !")
@@ -212,7 +208,6 @@ def test_publishing_saves_the_edits_it_travels_with(verified_admin_client, event
 
 
 @pytest.mark.django_db
-@locmem
 def test_publishing_a_named_place_without_a_street_address(verified_admin_client, event):
     """A POI hit carries no street: `poi_name` stands in for it, so the form has to offer it."""
     data = _change_form_data(event, address="", poi_name="Station F", _publish="")
@@ -226,7 +221,6 @@ def test_publishing_a_named_place_without_a_street_address(verified_admin_client
 
 
 @pytest.mark.django_db
-@locmem
 def test_rejecting_passes_the_comment_along(verified_admin_client, event):
     data = _change_form_data(event, _reject="", comment="Adresse incomplète.")
 
@@ -238,7 +232,6 @@ def test_rejecting_passes_the_comment_along(verified_admin_client, event):
 
 
 @pytest.mark.django_db
-@locmem
 def test_the_comment_is_optional(verified_admin_client, event):
     verified_admin_client.post(_change_url(event), _change_form_data(event, _publish=""))
 
@@ -248,7 +241,6 @@ def test_the_comment_is_optional(verified_admin_client, event):
 
 
 @pytest.mark.django_db
-@locmem
 def test_a_plain_save_decides_nothing(verified_admin_client, event):
     verified_admin_client.post(_change_url(event), _change_form_data(event, title="Nouveau titre"))
 
@@ -345,8 +337,6 @@ def test_a_listed_subcategory_offers_its_label_selected(verified_admin_client, e
 def test_event_page_lists_the_beneficiaries_who_saved_it(
     verified_admin_client, event, beneficiary
 ):
-    from techpourtoutes.models import SavedEvent
-
     SavedEvent.objects.toggle(event=event, beneficiary=beneficiary)
 
     url = reverse("admin:techpourtoutes_event_change", args=[event.pk])
@@ -438,7 +428,6 @@ def test_the_general_admin_keeps_the_whole_form(verified_admin_client, event):
 
 
 @pytest.mark.django_db
-@locmem
 def test_a_moderators_attempt_to_edit_a_locked_field_is_ignored(verified_moderator_client, event):
     data = _change_form_data(event, title="Titre modifié", _publish="")
 
@@ -461,7 +450,6 @@ def test_the_request_modification_button_shows_only_while_pending(verified_admin
 
 
 @pytest.mark.django_db
-@locmem
 def test_requesting_a_modification_notifies_the_organizer_without_deciding(
     verified_moderator_client, event
 ):
@@ -479,7 +467,6 @@ def test_requesting_a_modification_notifies_the_organizer_without_deciding(
 
 
 @pytest.mark.django_db
-@locmem
 def test_requesting_a_modification_requires_a_message(verified_admin_client, event):
     data = _change_form_data(event, _request_modification="", comment="")
 
@@ -494,7 +481,6 @@ def test_requesting_a_modification_requires_a_message(verified_admin_client, eve
 @pytest.mark.django_db
 def test_a_save_is_never_created_by_hand_from_the_event_page(verified_admin_client, event):
     """A save belongs to the beneficiary who clicked: the admin only ever reads it."""
-    from techpourtoutes.admin.models.saved_event import EventSavedByInline
 
     url = reverse("admin:techpourtoutes_event_change", args=[event.pk])
     inline = next(

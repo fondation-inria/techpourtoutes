@@ -4,6 +4,7 @@ import httpx
 import pytest
 from django.test import override_settings
 
+from techpourtoutes.models import Pro
 from techpourtoutes.services.base import ErrorKind
 from techpourtoutes.services.n8n_api.notify_workshop_request import NotifyWorkshopRequest
 
@@ -19,15 +20,12 @@ def _response(status_code):
 
 @pytest.fixture
 def pro(db):
-    from techpourtoutes.models import Pro
-
     pro = Pro(
         username="manon@example.com",
         civility=Pro.Civility.MADAME,
         first_name="Manon",
         last_name="Desbordes",
         email="manon@example.com",
-        professional_situation=Pro.ProfessionalSituation.WORKING,
         job_title="Enseignante",
         structure_name="Lycée Voltaire",
         postal_code="75011",

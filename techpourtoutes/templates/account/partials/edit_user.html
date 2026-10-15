@@ -16,9 +16,16 @@
             {% endif %}
             <c-components.form_fields.input field=form.postal_code />
             {% if is_pro %}
-                <c-components.form_fields.select field=form.professional_situation />
-                <c-components.form_fields.input field=form.job_title />
-                <c-components.form_fields.input field=form.structure_name />
+                {# Retired and jobless pros work in no structure to name, as in the inscription funnel. #}
+                <div x-data="{ structureType: '{{ form.structure_type.value|default:''|escapejs }}' }"
+                     @select-change="structureType = $event.detail.value"
+                     class="flex flex-col gap-y-4">
+                    <c-components.form_fields.select field=form.structure_type :watchable=True />
+                    <c-components.form_fields.input field=form.job_title />
+                    <div x-show="structureType && !['retired', 'jobless'].includes(structureType)" x-cloak>
+                        <c-components.form_fields.input field=form.structure_name />
+                    </div>
+                </div>
             {% endif %}
             <div class="flex justify-end gap-2">
                 <c-components.button label="Annuler" variant="secondary" type="button"

@@ -2,11 +2,16 @@ from datetime import date
 
 import pytest
 
+from techpourtoutes.forms import BeneficiaryTrainingExperienceForm
+from techpourtoutes.models import Formation, Level, TrainingExperience
+from techpourtoutes.utils.school_year import (
+    current_school_year_label,
+    current_school_year_start_date,
+)
+
 
 @pytest.mark.django_db
 def test_form_prefills_from_experience_with_school(beneficiary_experience, school, formation):
-    from techpourtoutes.forms import BeneficiaryTrainingExperienceForm
-
     form = BeneficiaryTrainingExperienceForm(experience=beneficiary_experience)
     assert form.initial["level"] == "terminale"
     assert form.initial["period_label"] == "2023-2024"
@@ -21,9 +26,6 @@ def test_form_prefills_from_experience_with_school(beneficiary_experience, schoo
 def test_form_prefills_from_experience_with_higher_ed_school(
     beneficiary, higher_ed_school, higher_ed_formation
 ):
-    from techpourtoutes.forms import BeneficiaryTrainingExperienceForm
-    from techpourtoutes.models import Level, TrainingExperience
-
     experience = TrainingExperience.objects.create(
         user=beneficiary,
         school=higher_ed_school,
@@ -42,10 +44,6 @@ def test_form_prefills_from_experience_with_higher_ed_school(
 def test_form_locks_period_label_for_current_school_year_experience(
     beneficiary, school, formation
 ):
-    from techpourtoutes.forms import BeneficiaryTrainingExperienceForm
-    from techpourtoutes.models import Level, TrainingExperience
-    from techpourtoutes.utils.school_year import current_school_year_start_date
-
     current = TrainingExperience.objects.create(
         user=beneficiary,
         school=school,
@@ -76,9 +74,6 @@ def test_form_locks_period_label_for_current_school_year_experience(
 
 @pytest.mark.django_db
 def test_form_rejects_duplicate_period_label_for_same_beneficiary(beneficiary, school, formation):
-    from techpourtoutes.forms import BeneficiaryTrainingExperienceForm
-    from techpourtoutes.models import Level, TrainingExperience
-
     TrainingExperience.objects.create(
         user=beneficiary,
         school=school,
@@ -105,9 +100,6 @@ def test_form_rejects_duplicate_period_label_for_same_beneficiary(beneficiary, s
 
 @pytest.mark.django_db
 def test_form_allows_keeping_own_period_label_when_editing(beneficiary, school, formation):
-    from techpourtoutes.forms import BeneficiaryTrainingExperienceForm
-    from techpourtoutes.models import Level, TrainingExperience
-
     experience = TrainingExperience.objects.create(
         user=beneficiary,
         school=school,
@@ -135,8 +127,6 @@ def test_form_allows_keeping_own_period_label_when_editing(beneficiary, school, 
 def test_form_valid_when_not_enrolled_for_current_year_without_level_formation_or_school(
     beneficiary,
 ):
-    from techpourtoutes.forms import BeneficiaryTrainingExperienceForm
-
     form = BeneficiaryTrainingExperienceForm(
         beneficiary=beneficiary,
         current_year=True,
@@ -149,7 +139,6 @@ def test_form_valid_when_not_enrolled_for_current_year_without_level_formation_o
 @pytest.mark.django_db
 def test_form_still_requires_a_level_when_not_not_enrolled():
     """Without a level there is no perimeter, so neither school nor formation resolves."""
-    from techpourtoutes.forms import BeneficiaryTrainingExperienceForm
 
     form = BeneficiaryTrainingExperienceForm(data={"period_label": "2024-2025"})
 
@@ -159,8 +148,6 @@ def test_form_still_requires_a_level_when_not_not_enrolled():
 
 @pytest.mark.django_db
 def test_form_requires_a_formation_once_the_school_is_known(school, formation):
-    from techpourtoutes.forms import BeneficiaryTrainingExperienceForm
-
     form = BeneficiaryTrainingExperienceForm(
         data={
             "period_label": "2024-2025",
@@ -176,9 +163,6 @@ def test_form_requires_a_formation_once_the_school_is_known(school, formation):
 
 @pytest.mark.django_db
 def test_form_rejects_a_formation_the_school_does_not_teach(school, formation):
-    from techpourtoutes.forms import BeneficiaryTrainingExperienceForm
-    from techpourtoutes.models import Formation
-
     elsewhere = Formation(onisep_id="9999", name="Diplôme d'ingénieur")
     elsewhere.save()
 
@@ -198,8 +182,6 @@ def test_form_rejects_a_formation_the_school_does_not_teach(school, formation):
 
 @pytest.mark.django_db
 def test_form_reports_the_school_before_the_formation(school, formation):
-    from techpourtoutes.forms import BeneficiaryTrainingExperienceForm
-
     form = BeneficiaryTrainingExperienceForm(
         data={
             "period_label": "2024-2025",
@@ -215,9 +197,6 @@ def test_form_reports_the_school_before_the_formation(school, formation):
 
 @pytest.mark.django_db
 def test_a_missing_formation_keeps_the_school_and_saves_nothing_else(beneficiary, school):
-    from techpourtoutes.forms import BeneficiaryTrainingExperienceForm
-    from techpourtoutes.models import TrainingExperience
-
     form = BeneficiaryTrainingExperienceForm(
         data={
             "period_label": "2024-2025",
@@ -241,9 +220,6 @@ def test_a_missing_formation_keeps_the_school_and_saves_nothing_else(beneficiary
 
 @pytest.mark.django_db
 def test_form_prefills_an_out_of_scope_experience_with_its_typed_names(beneficiary):
-    from techpourtoutes.forms import BeneficiaryTrainingExperienceForm
-    from techpourtoutes.models import Level, TrainingExperience
-
     experience = TrainingExperience.objects.create(
         user=beneficiary,
         level=Level.TERMINALE,
@@ -263,9 +239,6 @@ def test_form_prefills_an_out_of_scope_experience_with_its_typed_names(beneficia
 
 @pytest.mark.django_db
 def test_finding_the_school_again_erases_its_typed_name(beneficiary, school, formation):
-    from techpourtoutes.forms import BeneficiaryTrainingExperienceForm
-    from techpourtoutes.models import Level, TrainingExperience
-
     experience = TrainingExperience.objects.create(
         user=beneficiary,
         level=Level.TERMINALE,
@@ -298,8 +271,6 @@ def test_finding_the_school_again_erases_its_typed_name(beneficiary, school, for
 
 @pytest.mark.django_db
 def test_form_has_no_not_enrolled_field_when_not_current_year(beneficiary):
-    from techpourtoutes.forms import BeneficiaryTrainingExperienceForm
-
     form = BeneficiaryTrainingExperienceForm(beneficiary=beneficiary)
 
     assert "not_enrolled" not in form.fields
@@ -309,9 +280,6 @@ def test_form_has_no_not_enrolled_field_when_not_current_year(beneficiary):
 def test_form_period_label_choices_exclude_current_school_year_when_not_current_year(
     beneficiary,
 ):
-    from techpourtoutes.forms import BeneficiaryTrainingExperienceForm
-    from techpourtoutes.utils.school_year import current_school_year_label
-
     form = BeneficiaryTrainingExperienceForm(beneficiary=beneficiary)
 
     values = [value for value, _ in form.fields["period_label"].choices]
@@ -322,9 +290,6 @@ def test_form_period_label_choices_exclude_current_school_year_when_not_current_
 def test_form_for_current_year_without_experience_locks_period_label_and_defaults_checked(
     beneficiary,
 ):
-    from techpourtoutes.forms import BeneficiaryTrainingExperienceForm
-    from techpourtoutes.utils.school_year import current_school_year_label
-
     form = BeneficiaryTrainingExperienceForm(beneficiary=beneficiary, current_year=True)
 
     assert form.fields["period_label"].disabled
@@ -336,10 +301,6 @@ def test_form_for_current_year_without_experience_locks_period_label_and_default
 def test_form_for_current_year_creates_experience_when_not_enrolled_is_unchecked(
     beneficiary, school, formation
 ):
-    from techpourtoutes.forms import BeneficiaryTrainingExperienceForm
-    from techpourtoutes.models import TrainingExperience
-    from techpourtoutes.utils.school_year import current_school_year_start_date
-
     form = BeneficiaryTrainingExperienceForm(
         beneficiary=beneficiary,
         current_year=True,
@@ -360,8 +321,6 @@ def test_form_for_current_year_creates_experience_when_not_enrolled_is_unchecked
 
 @pytest.mark.django_db
 def test_form_rejects_secondary_level_without_school():
-    from techpourtoutes.forms import BeneficiaryTrainingExperienceForm
-
     form = BeneficiaryTrainingExperienceForm(
         data={"period_label": "2024-2025", "level": "terminale"}
     )
@@ -371,8 +330,6 @@ def test_form_rejects_secondary_level_without_school():
 
 @pytest.mark.django_db
 def test_form_rejects_bac_plus_level_without_higher_ed_school():
-    from techpourtoutes.forms import BeneficiaryTrainingExperienceForm
-
     form = BeneficiaryTrainingExperienceForm(data={"period_label": "2024-2025", "level": "bac_1"})
     assert not form.is_valid()
     assert "school_id" in form.errors
@@ -380,8 +337,6 @@ def test_form_rejects_bac_plus_level_without_higher_ed_school():
 
 @pytest.mark.django_db
 def test_form_rejects_unknown_school_identifier():
-    from techpourtoutes.forms import BeneficiaryTrainingExperienceForm
-
     form = BeneficiaryTrainingExperienceForm(
         data={
             "period_label": "2024-2025",

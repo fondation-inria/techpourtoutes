@@ -1,11 +1,11 @@
 import pytest
 from django.core.exceptions import ValidationError
 
+from techpourtoutes.models import Beneficiary, SavedEvent
+
 
 @pytest.mark.django_db
 def test_a_beneficiary_saves_an_event_only_once(event, beneficiary):
-    from techpourtoutes.models import SavedEvent
-
     SavedEvent(event=event, beneficiary=beneficiary).save()
 
     with pytest.raises(ValidationError):
@@ -14,8 +14,6 @@ def test_a_beneficiary_saves_an_event_only_once(event, beneficiary):
 
 @pytest.mark.django_db
 def test_a_saved_event_is_reachable_from_both_sides(event, beneficiary):
-    from techpourtoutes.models import SavedEvent
-
     save = SavedEvent(event=event, beneficiary=beneficiary)
     save.save()
 
@@ -27,8 +25,6 @@ def test_a_saved_event_is_reachable_from_both_sides(event, beneficiary):
 
 @pytest.mark.django_db
 def test_toggle_puts_an_event_aside_then_takes_it_back_out(event, beneficiary):
-    from techpourtoutes.models import SavedEvent
-
     assert SavedEvent.objects.toggle(event=event, beneficiary=beneficiary) is True
     assert list(beneficiary.saved_events.all()) == [event]
 
@@ -38,8 +34,6 @@ def test_toggle_puts_an_event_aside_then_takes_it_back_out(event, beneficiary):
 
 @pytest.mark.django_db
 def test_toggle_leaves_another_beneficiarys_save_alone(event, beneficiary):
-    from techpourtoutes.models import Beneficiary, SavedEvent
-
     other = Beneficiary(
         username="lou@example.com", email="lou@example.com", first_name="Lou", last_name="Bernard"
     )

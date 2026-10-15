@@ -4,6 +4,8 @@ import pytest
 from django.test import override_settings
 from django.urls import reverse
 
+from techpourtoutes.models import User
+
 
 @pytest.mark.django_db
 def test_new_mentor_get(client):
@@ -154,8 +156,6 @@ def test_new_manifeste_signature_get(client):
 @pytest.mark.django_db
 @override_settings(BREVO_SYNC_ENABLED=True)
 def test_create_manifeste_signature_valid_pushes_brevo_contact_and_redirects(client):
-    from techpourtoutes.models import User
-
     with patch(
         "techpourtoutes.views.coalition_views.upsert_manifeste_signatory_task"
     ) as mock_task:

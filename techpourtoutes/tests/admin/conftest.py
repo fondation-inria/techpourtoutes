@@ -1,4 +1,6 @@
 import pytest
+from django_otp import DEVICE_ID_SESSION_KEY
+from django_otp.plugins.otp_totp.models import TOTPDevice
 
 from techpourtoutes.models import Beneficiary, Pro
 
@@ -14,9 +16,6 @@ def admin_pro(pro):
 
 
 def _verified_client(client, user):
-    from django_otp import DEVICE_ID_SESSION_KEY
-    from django_otp.plugins.otp_totp.models import TOTPDevice
-
     device = TOTPDevice.objects.create(user=user, name="default", confirmed=True)
     client.force_login(user)
     session = client.session
@@ -45,7 +44,6 @@ def _make_pro_with_engagements(email, first_name, last_name, engagements):
         first_name=first_name,
         last_name=last_name,
         email=email,
-        professional_situation=Pro.ProfessionalSituation.WORKING,
         engagements=engagements,
     )
     pro.save()

@@ -11,11 +11,6 @@ REGISTER = "techpourtoutes.services.pro.create_mentor.RegisterUserOnJobirl"
 pytestmark = pytest.mark.django_db
 
 
-@pytest.fixture(autouse=True)
-def locmem_email(settings):
-    settings.EMAIL_BACKEND = "django.core.mail.backends.locmem.EmailBackend"
-
-
 @pytest.fixture
 def complete_pro(pro):
     pro.structure_type = Pro.StructureType.COMPANY

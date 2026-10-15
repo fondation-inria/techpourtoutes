@@ -5,7 +5,7 @@ from phonenumber_field.phonenumber import PhoneNumber
 
 from techpourtoutes.models import Beneficiary, Pro
 
-BREVO_MULTIPLE_CHOICE_FIELDS = {"civility", "professional_situation", "engagements"}
+BREVO_MULTIPLE_CHOICE_FIELDS = {"civility", "structure_type", "engagements"}
 
 BREVO_PRO_CONSTANT_ATTRIBUTES = {
     "TYPES_DE_CONTACT": ["Coalition TPT"],
@@ -22,7 +22,7 @@ FIELD_TO_BREVO_ATTR = {
     "phone": "SMS",
     "civility": "CIVILITE",
     "job_title": "JOB_TITLE",
-    "professional_situation": "SITUATION_PRO",
+    "structure_type": "STRUCTURE_TYPE",
     "structure_name": "NOM_DE_LA_STRUCTURE",
     "postal_code": "CODE_POSTAL",
     "engagements": "ENGAGEMENTS",
@@ -34,7 +34,7 @@ USER_FIELDS = ["email", "first_name", "last_name"]
 PRO_FIELDS = USER_FIELDS + [
     "civility",
     "job_title",
-    "professional_situation",
+    "structure_type",
     "structure_name",
     "postal_code",
     "engagements",
@@ -97,15 +97,6 @@ def _phone_attributes(instance) -> dict:
     }
 
 
-def _phone_attributes(instance) -> dict:
-    if not instance.phone:
-        return {}
-    return {
-        FIELD_TO_BREVO_ATTR["phone"]: instance.phone.as_e164,
-        "TELEPHONE_RAW_NUMBER": instance.phone.as_e164.replace("+", "00"),
-    }
-
-
 def _attributes_from(instance, fields: list[str]) -> dict:
     result = {}
     for field in fields:
@@ -113,7 +104,8 @@ def _attributes_from(instance, fields: list[str]) -> dict:
         if field in BREVO_MULTIPLE_CHOICE_FIELDS:
             field_meta = instance._meta.get_field(field)
             choices = dict(getattr(field_meta, "base_field", field_meta).choices)
-            value = [str(choices[v]) for v in (value if isinstance(value, list) else [value])]
+            values = value if isinstance(value, list) else [value]
+            value = [str(choices[v]) for v in values if v]
         attribute = FIELD_TO_BREVO_ATTR[field]
         if isinstance(attribute, list):
             for attr_name in attribute:

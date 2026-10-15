@@ -3,7 +3,7 @@ from django.core.management import call_command
 from django.core.management.base import CommandError
 from django.test import override_settings
 
-from techpourtoutes.models import Beneficiary, Pro, TrainingExperience
+from techpourtoutes.models import Beneficiary, Event, Pro, TrainingExperience
 
 
 @pytest.mark.django_db
@@ -61,8 +61,6 @@ def test_seed_beneficiary_is_idempotent():
 
 @pytest.mark.django_db
 def test_seed_creates_one_approved_upcoming_event_per_category():
-    from techpourtoutes.models import Event
-
     with override_settings(SEED_ENABLED=True):
         call_command("seed")
 
@@ -72,8 +70,6 @@ def test_seed_creates_one_approved_upcoming_event_per_category():
 
 @pytest.mark.django_db
 def test_seed_events_have_multiline_descriptions():
-    from techpourtoutes.models import Event
-
     with override_settings(SEED_ENABLED=True):
         call_command("seed")
 
@@ -86,7 +82,6 @@ def test_seed_events_have_multiline_descriptions():
 @pytest.mark.django_db
 def test_seed_includes_events_that_require_registration_or_candidacy():
     """A few seeded events carry a real registration link, so the participation CTA is testable."""
-    from techpourtoutes.models import Event
 
     with override_settings(SEED_ENABLED=True):
         call_command("seed")
