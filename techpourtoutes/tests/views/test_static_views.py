@@ -14,6 +14,12 @@ LEGAL_URL_NAMES = [
     "schema_pluriannuel",
 ]
 
+INFORMATIONS_LEGALES_URL_NAMES = [
+    "mentions_legales",
+    "conditions_generales",
+    "donnees_personnelles",
+]
+
 A_PROPOS_URL_NAMES = [
     "notre_manifeste",
     "qui_sommes_nous",
@@ -49,6 +55,29 @@ def test_a_propos_redirects_to_notre_manifeste(client):
     response = client.get(reverse("a_propos"))
     assert response.status_code == 302
     assert response.url == reverse("notre_manifeste")
+
+
+@pytest.mark.django_db
+def test_informations_legales_redirects_to_mentions_legales(client):
+    response = client.get(reverse("informations_legales"))
+    assert response.status_code == 302
+    assert response.url == reverse("mentions_legales")
+
+
+@pytest.mark.django_db
+@pytest.mark.parametrize("url_name", INFORMATIONS_LEGALES_URL_NAMES)
+def test_informations_legales_page_links_every_tab(client, url_name):
+    content = client.get(reverse(url_name)).content.decode()
+    for tab in INFORMATIONS_LEGALES_URL_NAMES:
+        assert f'href="{reverse(tab)}" role="tab"' in content
+
+
+@pytest.mark.django_db
+def test_footer_links_to_informations_legales_instead_of_each_legal_page(client):
+    footer = client.get(reverse("home")).content.decode().split("<footer", 1)[1]
+    assert f'href="{reverse("informations_legales")}"' in footer
+    for url_name in INFORMATIONS_LEGALES_URL_NAMES:
+        assert f'href="{reverse(url_name)}"' not in footer
 
 
 @pytest.mark.django_db

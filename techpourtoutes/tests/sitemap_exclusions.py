@@ -58,6 +58,7 @@ NEVER_LISTED_URL_NAMES = {
     "show_manifeste_signature",
     # Redirects
     "a_propos",
+    "informations_legales",
     # 404 until the new_pro_features switch is on
     "new_structure_engagement",
 }

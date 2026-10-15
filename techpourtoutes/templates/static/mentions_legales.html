@@ -1,9 +1,8 @@
 {% load static %}
 
-<c-layout.base title="Mentions légales – TechPourToutes">
-    <c-components.title title="Mentions légales" variant="h1" title_bg="yellow" />
+<c-layout.informations_legales title="Mentions légales – TechPourToutes">
 
-    <c-components.card title="Informations légales">
+    <c-components.title title="Informations légales" variant="h2" title_bg="black" />
             <br>
             Fondation Inria
             <br>
@@ -21,9 +20,8 @@
             Rédacteur en chef : Henri Verdier, directeur général de la Fondation Inria
             <br><br>
             La Fondation Inria est une fondation partenariale dont la création a été autorisée par le recteur de l’académie de Versailles le 6 février 2017, ainsi que publiée au bulletin officiel de l’enseignement supérieur et de la recherche en date du 30 mars 2017.
-    </c-components.card>
 
-    <c-components.card title="Hébergement">
+    <c-components.title title="Hébergement" variant="h2" title_bg="black" class="mt-5" />
             <br>
             Le site <c-components.inline-link label="TechPourToutes" href="{{ SITE_URL }}"/> est hébergé par Scalingo sur des serveurs géographiquement localisés en France.
             <br><br>
@@ -32,25 +30,21 @@
             13, rue Jacques Peirot, 67000 Strasbourg 1
             <br>
             <c-components.inline-link label="https://scalingo.com/fr/" href="https://scalingo.com/fr/" icon="external-link" target="_blank" />
-    </c-components.card>
-    <c-components.card title="Conception et développement">
+    <c-components.title title="Conception et développement" variant="h2" title_bg="black" class="mt-5" />
             <br>
             Le site est conçu et développé par les équipes internes de la Fondation Inria. Son design s'appuie sur la charte graphique développée par
             <c-components.inline-link label="Chut!" href="https://chut.media/chut-studio/" icon="external-link" target="_blank" />
-    </c-components.card>
 
-    <c-components.card title="Protection des données à caractère personnel">
+    <c-components.title title="Protection des données à caractère personnel" variant="h2" title_bg="black" class="mt-5" />
             <br>
             La Fondation Inria est engagée dans une démarche de protection des données à caractère personnel qu’elle traite. Pour plus d’informations, vous pouvez consulter notre politique de gestion des données personnelles ou nous contacter : <c-components.inline-link label="dpo@fondation-inria.fr" href="mailto:dpo@fondation-inria.fr"/>.
-    </c-components.card>
-    <c-components.card title="Propriété intellectuelle">
+    <c-components.title title="Propriété intellectuelle" variant="h2" title_bg="black" class="mt-5" />
         <c-components.text>
             Le contenu du présent site, incluant, de façon non limitative, les graphismes, images, textes, vidéos, animations, sons, logos, gifs et icônes ainsi que leur mise en forme, est la propriété exclusive de la Fondation Inria à l’exception des marques, logos ou contenus appartenant à d’autres sociétés partenaires ou auteurs.
 
             Toute reproduction, distribution, modification, adaptation, retransmission ou publication, même partielle, de ces différents éléments est strictement interdite sans l’accord exprès par écrit de leur ayant-droit. La représentation ou reproduction, par quelque procédé que ce soit, constitue une contrefaçon sanctionnée par les articles L.3335-2 et suivants du Code de la propriété intellectuelle. Le non-respect de cette interdiction constitue une contrefaçon pouvant engager la responsabilité civile et pénale du contrefacteur. En outre, les propriétaires des contenus copiés pourraient intenter une action en justice à votre encontre.
         </c-components.text>
-    </c-components.card>
-    <c-components.card title="Contenu du site">
+    <c-components.title title="Contenu du site" variant="h2" title_bg="black" class="mt-5" />
             <br>
             La Fondation Inria s’efforce d’assurer au mieux de ses possibilités l’exactitude et la mise à jour des informations diffusées au moment de leur mise en ligne sur le site. En particulier, la liste des formations et des établissements fournie à différents endroits du site a été réalisée grâce aux données de <c-components.inline-link label="l'Onisep" href="https://www.onisep.fr/" icon="external-link" target="_blank"/> et du <c-components.inline-link label="Carif-Oref" href="https://www.intercariforef.org/referencer-son-offre-de-formation" icon="external-link" target="_blank"/>.
 
@@ -60,18 +54,15 @@
             </div>
 
             Cependant, la Fondation Inria ne garantit en aucune façon l’exactitude, la précision ou l’exhaustivité des informations mises à disposition sur le site. Les informations présentes sur le site sont non-contractuelles et peuvent être modifiées à tout moment. Si des informations vous semblent inexactes, n'hésitez pas à nous écrire à <c-components.inline-link label="perfectible@techpourtoutes.io" href="mailto:perfectible@techpourtoutes.io"/>.
-    </c-components.card>
-    <c-components.card title="Liens hypertextes">
+    <c-components.title title="Liens hypertextes" variant="h2" title_bg="black" class="mt-5" />
         <c-components.text>
             Le présent site peut offrir des liens vers d’autres sites web ou d’autres ressources disponibles sur Internet. La Fondation Inria ne dispose d’aucun moyen pour contrôler les sites en connexion avec celui-ci.
 
             La Fondation Inria ne répond pas de la disponibilité de tels sites et sources externes, ni ne la garantit. Elle ne peut être tenue pour responsable de tout dommage, de quelque nature que ce soit, résultant du contenu de ces sites ou sources externes, et notamment des informations, produits ou services qu’ils proposent, ou de tout usage qui peut être fait de ces éléments. Les risques liés à cette utilisation incombent pleinement à l’internaute, qui doit se conformer à leurs conditions d’utilisation.
         </c-components.text>
-    </c-components.card>
-    <c-components.card title="Crédits iconographiques">
+    <c-components.title title="Crédits iconographiques" variant="h2" title_bg="black" class="mt-5" />
         <c-components.text>
             Certaines images ou vidéos présentes sur le site peuvent provenir de la photothèque ou de la vidéothèque d’Inria. Aucune reproduction, totale ou partielle, de ces photos ou vidéos ne peut se faire sans l’autorisation préalable et écrite d’Inria.
             Les illustrations des pages ont été réalisées par Océane Deneuville et librement inspirées par l'artiste Guy Billout.
         </c-components.text>
-    </c-components.card>
-</c-layout.base>
+</c-layout.informations_legales>

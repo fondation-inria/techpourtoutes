@@ -107,6 +107,7 @@ urlpatterns = [
     path("recherche-formations/", views.search_formations, name="search_formations"),
     path("recherche-adresses/", views.search_addresses, name="search_addresses"),
     # Static
+    path("informations-legales/", views.informations_legales, name="informations_legales"),
     path("donnees-personnelles/", views.donnees_personnelles, name="donnees_personnelles"),
     path("conditions-generales/", views.conditions_generales, name="conditions_generales"),
     path("mentions-legales/", views.mentions_legales, name="mentions_legales"),
