@@ -38,6 +38,17 @@ def test_create_makeuse_project_request_without_a_name_sends_nothing(client, ben
 
 @pytest.mark.django_db
 @override_settings(EMAIL_BACKEND="django.core.mail.backends.locmem.EmailBackend")
+def test_create_makeuse_project_request_with_an_invalid_link_sends_nothing(client, beneficiary):
+    client.force_login(beneficiary)
+
+    response = client.post(CREATE_URL, PROJECT | {"project_link": "mon drive"})
+
+    assert response.status_code == 200
+    assert mail.outbox == []
+
+
+@pytest.mark.django_db
+@override_settings(EMAIL_BACKEND="django.core.mail.backends.locmem.EmailBackend")
 def test_create_makeuse_project_request_accepts_a_second_project(client, beneficiary):
     client.force_login(beneficiary)
     client.post(CREATE_URL, PROJECT)
