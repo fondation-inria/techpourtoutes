@@ -767,7 +767,6 @@ def test_training_ambassador_request_step_creates_beneficiary_and_mails_the_topi
 
 
 @pytest.mark.django_db
-@override_settings(EMAIL_BACKEND="django.core.mail.backends.locmem.EmailBackend")
 def test_makeuse_project_request_step_creates_beneficiary_and_mails_the_project(
     client, higher_ed_school, higher_ed_formation
 ):
