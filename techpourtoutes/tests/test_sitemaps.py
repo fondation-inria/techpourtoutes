@@ -31,16 +31,10 @@ XML_SITEMAP_EXCLUDED_URL_NAMES = {
     "index_pro_events",
     "index_beneficiary_events",
     # Form submission endpoints (their GET page is what gets indexed)
-    "create_mentor",
-    "create_work_ambassador",
-    "create_training_ambassador",
-    "create_sponsor",
-    "create_workshop_request",
     "create_manifeste_signature",
     "create_upcoming_feature_notification",
     # Funnel steps (not landing pages)
     "show_manifeste_signature",
-    "coalition_welcome",
     "beneficiary_inscription_funnel",
     "new_event",
     "create_event",

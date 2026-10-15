@@ -3,7 +3,6 @@ import re
 import pytest
 from django.core import mail
 from playwright.sync_api import expect
-from waffle.models import Switch
 
 from techpourtoutes.models import Pro
 
@@ -17,7 +16,6 @@ from .helpers import select_option
 @pytest.fixture
 def new_funnel_url(live_server, settings):
     settings.EMAIL_BACKEND = "django.core.mail.backends.locmem.EmailBackend"
-    Switch.objects.update_or_create(name="new_pro_features", defaults={"active": True})
     return f"{live_server.url}/coalition/inscription/new/"
 
 

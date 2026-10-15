@@ -14,7 +14,6 @@ from techpourtoutes.tasks import (
 # Order matters: the actions need both of their ends in place, the ambassadrice flag and the
 # recommendation flag both need the schools and formations, and the Carif-Oref catalogue hangs onto
 # the établissements Onisep has just given us.
-# The remapping closes the merge for the databases that predate it.
 STEPS = [
     "import_onisep_schools",
     "import_onisep_formations",
@@ -36,7 +35,7 @@ STEPS_WITHOUT_SAMPLE = {
 
 
 class Command(BaseCommand):
-    help = "Run every Onisep import in order, then remap the parcours left by the school merge"
+    help = "Run every Onisep import in order"
 
     def add_arguments(self, parser):
         parser.add_argument(
@@ -69,8 +68,6 @@ class Command(BaseCommand):
         for step in self._steps(sample=options["sample"]):
             self.stdout.write(f"{step}…")
             call_command(step, **self._options_for(step, options))
-        self.stdout.write("remap_training_experience_schools…")
-        call_command("remap_training_experience_schools")
 
     def _enqueue(self, *, sample):
         """A chain, not a group: every step needs the previous one, and retrying one step

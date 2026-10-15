@@ -1,4 +1,5 @@
 from django.urls import path
+from django.views.generic import RedirectView
 
 from . import views
 
@@ -17,37 +18,23 @@ urlpatterns = [
         name="create_pro_engagement",
     ),
     path("mentorer/", views.new_mentor, name="new_mentor"),
-    path("mentorer/inscription/", views.create_mentor, name="create_mentor"),
     path("pitcher-mon-metier/", views.new_work_ambassador, name="new_work_ambassador"),
-    path(
-        "pitcher-mon-metier/inscription/",
-        views.create_work_ambassador,
-        name="create_work_ambassador",
-    ),
     path(
         "devenir-ambassadrice-etudiante/",
         views.new_training_ambassador,
         name="new_training_ambassador",
     ),
-    path(
-        "devenir-ambassadrice-etudiante/inscription/",
-        views.create_training_ambassador,
-        name="create_training_ambassador",
-    ),
     path("accueillir-une-stagiaire/", views.new_internship, name="new_internship"),
-    path("devenir-mecene/", views.new_sponsor, name="new_sponsor"),
-    path("devenir-mecene/inscription/", views.create_sponsor, name="create_sponsor"),
+    path(
+        "devenir-mecene/",
+        RedirectView.as_view(pattern_name="new_structure_engagement", permanent=True),
+    ),
     path(
         "engager-ma-structure/",
         views.new_structure_engagement,
         name="new_structure_engagement",
     ),
     path("organiser-un-atelier/", views.new_workshop_request, name="new_workshop_request"),
-    path(
-        "organiser-un-atelier/demande/",
-        views.create_workshop_request,
-        name="create_workshop_request",
-    ),
     path("proposer-un-evenement/", views.new_event, name="new_event"),
     path("evenements/<uuid:pk>/modifier/", views.edit_event, name="edit_event"),
     path("evenements/creer/", views.create_event, name="create_event"),
@@ -58,7 +45,6 @@ urlpatterns = [
     ),
     path("evenements/enregistrer/", views.update_event, name="update_event"),
     path("mes-evenements/", views.index_pro_events, name="index_pro_events"),
-    path("bienvenue-dans-la-coalition/", views.coalition_welcome, name="coalition_welcome"),
     path("signer-le-manifeste/", views.new_manifeste_signature, name="new_manifeste_signature"),
     path(
         "signer-le-manifeste/signature/",

@@ -1,5 +1,3 @@
-from unittest.mock import MagicMock, patch
-
 import boto3
 import httpx
 import pytest
@@ -333,16 +331,6 @@ def carif_oref_record():
 
 
 @pytest.fixture
-def mock_create_mentor():
-    instance = MagicMock(success=True, failure=False, errors=[])
-    with patch(
-        "techpourtoutes.views.coalition_views.CreateMentor",
-        return_value=instance,
-    ) as mock:
-        yield mock
-
-
-@pytest.fixture
 def valid_pro_model_data():
     return {
         "civility": "Madame",
@@ -355,11 +343,6 @@ def valid_pro_model_data():
         "job_title": "Développeuse backend",
         "structure_name": "Grande entreprise",
     }
-
-
-@pytest.fixture
-def valid_pro_data(valid_pro_model_data):
-    return {**valid_pro_model_data, "terms_accepted": True, "manifeste_accepted": True}
 
 
 @pytest.fixture

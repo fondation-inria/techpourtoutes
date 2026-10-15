@@ -1,4 +1,3 @@
-{% load waffle_tags %}
 <c-layout.base title="Organiser un atelier – TechPourToutes" description="Vous êtes professeur? Prenez le temps d'aborder le numérique autrement à l'école et faites découvrir les enjeux et métiers de la tech à vos élèves grâce aux ateliers gratuits TechPourToutes.">
     <c-components.title title="Organiser un atelier" title_bg="yellow" />
     <div class="flex flex-wrap gap-2 md:gap-4">
@@ -27,11 +26,9 @@
 
             <c-components.card-workshop title="Future of Cyber" variant="bg-blue-500" text_color="text-neutral-0" icon_name="atelier-latitudes-future-of-cyber" description="Découvrir l'univers de la cybersécurité et ses enjeux." />
         </div>
-        {% switch "new_pro_features" %}
-            <div class="flex w-full items-center justify-center mt-5">
-                <c-patterns.pro_engagement_button engagement="workshops" label="Je demande un atelier Latitudes" />
-            </div>
-        {% endswitch %}
+        <div class="flex w-full items-center justify-center mt-5">
+            <c-patterns.pro_engagement_button engagement="workshops" label="Je demande un atelier Latitudes" />
+        </div>
     </c-components.card>
 
     <c-components.accordion title="Cette action est menée par" class="mb-5">
@@ -48,13 +45,11 @@
 
             Pendant une heure, une scientifique du numérique se déplace dans une classe pour présenter son métier, son parcours, son quotidien et répondre aux questions des élèves. Les objectifs ? Leur faire découvrir le monde de la recherche et de l'ingénierie, bousculer les stéréotypes et susciter des vocations !
         </c-components.text>
-        {% switch "new_pro_features" %}
-            {% if not request.user.pro.is_training_ambassador %}
-                <div class="flex w-full items-center justify-center">
-                    <c-components.button label="Organiser un atelier Chiche !" icon="external-link" href="https://connexion-chiche.inria.fr/" class="my-5" target="_blank" />
-                </div>
-            {% endif %}
-        {% endswitch %}
+        {% if not request.user.pro.is_training_ambassador %}
+            <div class="flex w-full items-center justify-center">
+                <c-components.button label="Organiser un atelier Chiche !" icon="external-link" href="https://connexion-chiche.inria.fr/" class="my-5" target="_blank" />
+            </div>
+        {% endif %}
     </c-components.card>
 
     <c-components.accordion title="Cette action est menée par">
@@ -68,63 +63,4 @@
     <c-slot name="decorations">
         <c-components.codex-letter letter="E" row="6" col="24" class="text-orange-500" />
     </c-slot>
-
-    {% switch "new_pro_features" %}
-    {% else %}
-    <c-slot name="right">
-        <div class="flex flex-col items-center px-4 md:mt-[100px] md:self-start"
-             x-data="{ showForm: {{ form.is_bound|yesno:'true,false' }} }"
-             :class="{ 'md:sticky md:top-14 xl:top-8': !showForm }">
-            <c-components.starburst-title title="Demandez un atelier&nbsp;!" class="mb-8" />
-
-            <div id="latitudes-form">
-                <div x-show="!showForm" @click.prevent="showForm = true; $nextTick(() => { $refs.formCard.scrollIntoView({ behavior: 'smooth', block: 'start' }) })" class="cursor-pointer">
-                    <div class="flex justify-center">
-                        <c-components.button id="latitudes-cta" href="" label="Organiser un atelier Latitudes" />
-                    </div>
-                </div>
-                <div x-ref="formCard" x-show="showForm" x-cloak
-                    x-transition:enter="transition ease-out duration-300 origin-top"
-                    x-transition:enter-start="scale-y-20"
-                    x-transition:enter-end="scale-y-100"
-                />
-                    <c-components.card-shadow id="latitudes-form-card" class="w-[320px] my-5 p-5 relative">
-                        <c-patterns.form url="{% url 'create_workshop_request' %}">
-                            <c-components.title title="Organiser un atelier Latitudes" variant="h3" />
-                            <p class="description-text-xxs">Les champs suivis d'un astérisque (*) sont obligatoires.</p>
-                            <c-components.form_fields.radio field=form.civility />
-                            <c-components.form_fields.input field=form.first_name autocomplete="given-name" />
-                            <c-components.form_fields.input field=form.last_name autocomplete="family-name" />
-                            <c-components.form_fields.input field=form.email autocomplete="email" variant="{% if pro %}disabled{% endif %}" />
-                            <c-components.form_fields.select field=form.job_title />
-                            <c-components.form_fields.school_search
-                                name_field=form.school_label
-                                id_field=form.structure_uai
-                                not_found_field=form.school_not_found
-                                postal_field=form.postal_code
-                                scope="workshop"
-                                key="uai"
-                                description="Recherchez par nom et/ou code postal"
-                            />
-                            <c-components.form_fields.checkbox_group field=form.ateliers description="Vous pouvez choisir plusieurs ateliers" />
-                            <c-components.form_fields.textarea field=form.remark />
-                            {% if not pro %}
-                                <c-components.form_fields.checkbox field=form.terms_accepted />
-                                <c-components.form_fields.checkbox field=form.manifeste_accepted />
-                            {% endif %}
-                            {% if form.newsletter_consent %}
-                                <c-components.form_fields.checkbox field=form.newsletter_consent />
-                            {% endif %}
-                            <div class="flex justify-center">
-                                <c-components.button type="submit" label="Je demande un atelier Latitudes" class="justify-center" />
-                            </div>
-                        </c-patterns.form>
-                    </c-components.card-shadow>
-                </div>
-            </div>
-
-            <c-components.button label="Organiser un atelier Chiche !" icon="external-link" href="https://connexion-chiche.inria.fr/" class="my-5" target="_blank" />
-        </div>
-    </c-slot>
-    {% endswitch %}
 </c-layout.base>

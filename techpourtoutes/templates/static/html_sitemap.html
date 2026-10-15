@@ -1,4 +1,3 @@
-{% load waffle_tags %}
 <c-layout.base title="Plan du site – TechPourToutes">
     <c-components.title title="Plan du site" variant="h1" title_bg="yellow" />
 
@@ -35,11 +34,7 @@
         <c-components.title variant="intertitre" class="mt-5" title="Soutenir la coalition" />
         <ul class="list-disc pl-6 flex flex-col gap-2 mt-2">
             <li><c-components.inline-link label="Devenir ambassadrice étudiante" href="{% url "new_training_ambassador" %}" /></li>
-            {% switch "new_pro_features" %}
-                <li><c-components.inline-link label="Engager ma structure" href="{% url "new_structure_engagement" %}" /></li>
-            {% else %}
-                <li><c-components.inline-link label="Devenir mécène" href="{% url "new_sponsor" %}" /></li>
-            {% endswitch %}
+            <li><c-components.inline-link label="Engager ma structure" href="{% url "new_structure_engagement" %}" /></li>
         </ul>
         <c-components.title variant="intertitre" class="mt-5" title="Motiver mes élèves" />
         <ul class="list-disc pl-6 flex flex-col gap-2 mt-2">

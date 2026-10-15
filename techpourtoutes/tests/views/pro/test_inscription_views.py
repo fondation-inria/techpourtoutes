@@ -6,7 +6,6 @@ from urllib.parse import quote
 import pytest
 from django.core import mail
 from django.urls import reverse
-from waffle.testutils import override_switch
 
 from techpourtoutes.models import Pro
 from techpourtoutes.utils.funnel import FunnelSession
@@ -38,12 +37,6 @@ _WORKSHOP_REQUEST = {
 }
 
 pytestmark = pytest.mark.django_db
-
-
-@pytest.fixture(autouse=True)
-def new_pro_features():
-    with override_switch("new_pro_features", active=True):
-        yield
 
 
 @pytest.fixture(autouse=True)
@@ -92,15 +85,6 @@ def _post_step(client, step, data=None):
 
 def _checked_engagements(response):
     return re.findall(r'value="(\w+)"[^>]*\bchecked\b', response.content.decode())
-
-
-# ------------------- feature switch -------------------
-
-
-@pytest.mark.parametrize("url", [FUNNEL_URL, NEW_FUNNEL_URL])
-def test_the_funnel_does_not_exist_while_the_switch_is_off(client, url):
-    with override_switch("new_pro_features", active=False):
-        assert client.get(url).status_code == 404
 
 
 # ------------------- entering -------------------

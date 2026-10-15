@@ -2,7 +2,6 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 from django.urls import reverse
-from waffle.testutils import override_switch
 
 from techpourtoutes.models import Pro
 from techpourtoutes.services.base import ErrorKind
@@ -10,12 +9,6 @@ from techpourtoutes.services.base import ErrorKind
 REGISTER = "techpourtoutes.services.pro.create_mentor.RegisterUserOnJobirl"
 
 pytestmark = pytest.mark.django_db
-
-
-@pytest.fixture(autouse=True)
-def new_pro_features():
-    with override_switch("new_pro_features", active=True):
-        yield
 
 
 @pytest.fixture(autouse=True)
@@ -44,13 +37,6 @@ def _with_engagements(pro, *engagements):
 
 
 # ------------------- new_pro_engagement -------------------
-
-
-def test_new_pro_engagement_does_not_exist_while_the_switch_is_off(client, pro):
-    client.force_login(pro)
-    with override_switch("new_pro_features", active=False):
-        assert client.get(_new("sponsor")).status_code == 404
-        assert client.post(_create("sponsor")).status_code == 404
 
 
 def test_new_pro_engagement_knows_no_other_engagement(client, pro):
