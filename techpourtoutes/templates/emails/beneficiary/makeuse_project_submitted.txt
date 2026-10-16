@@ -1,0 +1,5 @@
+Bonjour {{ beneficiary.first_name }},
+
+Nous avons hâte de découvrir ton projet. Nous allons prendre le temps de l'étudier et nous reviendrons vers toi dans les prochains jours pour en discuter avec toi.
+
+A bientôt

@@ -1,0 +1,18 @@
+<c-layout.email>
+  <p style="font-size:15px;color:#374151;">Bonjour,</p>
+  <p style="font-size:15px;color:#374151;">
+    <strong>{{ beneficiary.first_name }} {{ beneficiary.last_name }}</strong> a transmis une proposition de projet Makeuse&nbsp;:
+  </p>
+  <p style="font-size:15px;color:#374151;">
+    Nom du projet : {{ project_name }}
+    <br><br>
+    Lien vers le projet : {{ project_link }}
+    <br><br>
+    Description du projet : {{ project_description }}
+  </p>
+  <p style="font-size:15px;color:#374151;">
+    Tu peux la contacter à cette adresse mail&nbsp;: <c-components.inline-link label="{{ beneficiary.email }}" href="mailto:{{ beneficiary.email }}" />.
+    <br>
+    Merci  
+  </p>
+</c-layout.email>

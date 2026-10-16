@@ -29,6 +29,10 @@ from .beneficiary.inscription_views import (
     new_beneficiary_inscription_funnel,
     show_skip_beneficiary_inscription_step_modal,
 )
+from .beneficiary.makeuse_project_submission_views import (
+    create_makeuse_project_submission,
+    new_makeuse_project_submission,
+)
 from .beneficiary.mentoring_views import mentoring_funnel
 from .beneficiary.training_ambassador_request_views import (
     create_training_ambassador_request,
@@ -39,6 +43,7 @@ from .beneficiary_views import (
     create_saved_event_modal,
     create_upcoming_feature_notification,
     index_events,
+    index_makeuses,
     new_mentoree,
     new_training_ambassador_beneficiary,
     new_upcoming_feature_notification,
@@ -112,6 +117,7 @@ __all__ = [
     "create_manifeste_signature",
     "create_saved_event_modal",
     "create_training_ambassador_request",
+    "create_makeuse_project_submission",
     "create_upcoming_feature_notification",
     "destroy_user",
     "destroy_user_modal",
@@ -125,6 +131,7 @@ __all__ = [
     "edit_beneficiary_training_experience",
     "edit_pro_training_experience",
     "index_events",
+    "index_makeuses",
     "new_internship",
     "beneficiary_inscription_funnel",
     "new_beneficiary_inscription_funnel",
@@ -141,6 +148,7 @@ __all__ = [
     "new_training_ambassador",
     "new_training_ambassador_beneficiary",
     "new_training_ambassador_request",
+    "new_makeuse_project_submission",
     "new_upcoming_feature_notification",
     "create_pro_engagement",
     "new_pro_engagement",
