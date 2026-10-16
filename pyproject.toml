@@ -9,40 +9,40 @@ classifiers = [
   "Programming Language :: Python :: 3.14",
 ]
 dependencies = [
-  "brevo-python>=4.0.10",
+  "brevo-python>=5.1",
   "celery>=5.6.3",
-  "django>=6.0.4",
-  "django-anymail[brevo]>=15",
+  "django>=6.1.2",
+  "django-anymail[brevo]>=15.2",
   "django-axes>=8.3.1",
-  "django-cotton>=2.6.2",
-  "django-environ>=0.13",
+  "django-cotton>=2.8",
+  "django-environ>=0.14",
   "django-extensions>=4.1",
-  "django-otp>=1.7",
-  "django-phonenumber-field>=8.4",
-  "django-simple-history>=3.11",
+  "django-otp>=1.7.4",
+  "django-phonenumber-field>=8.5",
+  "django-simple-history>=3.13",
   "django-storages[s3]>=1.14.6",
-  "django-tailwind-cli>=4.6",
+  "django-tailwind-cli>=4.8.1",
   "django-waffle>=5",
-  "gunicorn>=25.3",
+  "gunicorn>=26.2",
   "httpx>=0.28.1",
-  "ipython>=9.12",
-  "phonenumberslite>=9.0.29",
-  "psycopg2>=2.9.12",
-  "redis>=7.4",
-  "sentry-sdk[celery,django]>=2.60",
+  "ipython>=9.17.1",
+  "phonenumberslite>=9.0.41",
+  "psycopg2>=2.9.12,<2.9.13",        # 2.9.13 ships no wheel: building it needs pg_config
+  "redis>=7.4,<8",                   # redis-py 8 speaks RESP3, kombu (Celery broker) only accepts it from 5.7
+  "sentry-sdk[celery,django]>=2.72",
   "whitenoise[brotli]>=6.12",
 ]
 
 [dependency-groups]
 dev = [
-  "moto[s3]>=5.2.3",
-  "pre-commit>=4.6",
-  "pytest>=9.0.3",
+  "moto[s3]>=5.2.4",
+  "pre-commit>=4.7",
+  "pytest>=9.1.1",
   "pytest-cov>=7.1",
-  "pytest-django>=4.12",
+  "pytest-django>=4.14",
   "pytest-httpx>=0.36.2",
-  "pytest-playwright>=0.8",
-  "ruff>=0.15.11",
+  "pytest-playwright>=0.10",
+  "ruff>=0.17.1",
 ]
 
 [tool.ruff]
@@ -63,12 +63,15 @@ lint.select = [ "DJ", "E", "F", "I", "W" ]
 lint.ignore = []
 lint.isort.known-first-party = [ "conf", "techpourtoutes", "ui" ]
 
+[tool.pyproject-fmt]
+max_supported_python = "3.14"
+
 [tool.pytest]
-ini_options.DJANGO_SETTINGS_MODULE = "conf.settings"
 ini_options.testpaths = [ "techpourtoutes", "ui" ]
 ini_options.python_files = [ "test_*.py" ]
 ini_options.addopts = "--cov=techpourtoutes --cov-report=term-missing"
 ini_options.filterwarnings = [ "ignore::UserWarning:django.core.handlers.base" ]
+ini_options.DJANGO_SETTINGS_MODULE = "conf.settings"
 
 [tool.coverage]
 run.omit = [
