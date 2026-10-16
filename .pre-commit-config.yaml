@@ -3,17 +3,17 @@ exclude: "migrations"
 repos:
   # Modernisation syntaxe Python
   - repo: https://github.com/asottile/pyupgrade
-    rev: v3.21.2
+    rev: v3.22.0
     hooks:
       - id: pyupgrade
         args: ["--py314-plus"]  # adapte à ta version Python
 
   # Modernisation syntaxe Django
   - repo: https://github.com/adamchainz/django-upgrade
-    rev: 1.30.0
+    rev: 1.33.0
     hooks:
       - id: django-upgrade
-        args: [--target-version, "6.0"]  # adapte à ta version Django
+        args: [--target-version, "6.1"]  # adapte à ta version Django
 
   # Vérifications générales
   - repo: https://github.com/pre-commit/pre-commit-hooks
@@ -26,15 +26,15 @@ repos:
 
   # Linter + formateur (remplace flake8 + isort)
   - repo: https://github.com/astral-sh/ruff-pre-commit
-    rev: v0.15.11
+    rev: v0.17.1
     hooks:
-      - id: ruff
+      - id: ruff-check
         args: [--fix]
       - id: ruff-format
 
   # pyproject.toml
   - repo: https://github.com/tox-dev/pyproject-fmt
-    rev: v2.21.1
+    rev: v2.30.3
     hooks:
       - id: pyproject-fmt
 
@@ -50,6 +50,13 @@ repos:
         entry: uv run python manage.py tailwind build --force
         language: system
         files: \.(css|html)$
+        pass_filenames: false
+      # `latest` downloads every new Tailwind release next to the previous ones: keep the newest
+      - id: delete-old-tailwind-binaries
+        name: Delete old Tailwind binaries
+        entry: sh -c 'ls -t .django_tailwind_cli/tailwindcss-* 2>/dev/null | tail -n +2 | xargs rm -f'
+        language: system
+        always_run: true
         pass_filenames: false
       - id: build-svg-sprite
         name: Build SVG sprite
