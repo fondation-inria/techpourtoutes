@@ -18,11 +18,12 @@ from ..forms import (
     StudyStatus,
     UpcomingFeatureNotificationForm,
 )
-from ..models import Event, SavedEvent
+from ..models import Event, MakeuseProject, SavedEvent
 from ..tasks import create_upcoming_feature_notification_task
 from ..utils.dates import compute_age
 
 EVENTS_PER_PAGE = 18
+MAKEUSE_PROJECTS_PER_PAGE = 18
 
 # ------------------- pages -------------------
 
@@ -106,7 +107,20 @@ def index_makeuses(request):
     return render(
         request,
         "beneficiary/index_makeuses.html",
-        {"cta_href": cta_href},
+        {
+            "cta_href": cta_href,
+            "makeuse_projects": Paginator(
+                MakeuseProject.objects.order_by("-created_at"), MAKEUSE_PROJECTS_PER_PAGE
+            ).get_page(request.GET.get("page")),
+        },
+    )
+
+
+def show_makeuse_project(request, slug):
+    return render(
+        request,
+        "beneficiary/show_makeuse_project.html",
+        {"project": get_object_or_404(MakeuseProject, slug=slug)},
     )
 
 

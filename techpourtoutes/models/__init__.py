@@ -3,6 +3,7 @@ from .event import Event
 from .formation import Formation
 from .formation_action import FormationAction
 from .level import Level
+from .makeuse_project import MakeuseProject
 from .pro import Pro
 from .saved_event import SavedEvent
 from .school import School
@@ -16,6 +17,7 @@ __all__ = [
     "Formation",
     "FormationAction",
     "Level",
+    "MakeuseProject",
     "Pro",
     "SavedEvent",
     "School",

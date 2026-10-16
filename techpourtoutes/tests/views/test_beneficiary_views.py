@@ -12,6 +12,7 @@ from django.utils import timezone
 from techpourtoutes.models import Event, Pro, SavedEvent, User
 
 from ..models.test_event import build_event
+from ..models.test_makeuse_project import build_makeuse_project
 
 NEW_UPCOMING_FEATURE_NOTIFICATION_URL = "/bientot-disponible/"
 CREATE_UPCOMING_FEATURE_NOTIFICATION_URL = "/bientot-disponible/inscription/"
@@ -964,3 +965,105 @@ def test_update_saved_event_swaps_every_bookmark_of_the_event(client, beneficiar
     content = client.post(reverse("update_saved_event", args=[salon.pk])).content.decode()
 
     assert f"hx-swap-oob='outerHTML:[data-bookmark=\"{salon.pk}\"]'" in content
+
+
+@pytest.mark.django_db
+def test_index_makeuses_shows_a_card_per_project(client):
+    project = build_makeuse_project()
+    project.image.name = "makeuse_projects/visuel.webp"
+    project.save()
+
+    content = client.get(reverse("index_makeuses")).content.decode()
+
+    assert "Une appli pour trouver un stage" in content
+    assert "Application mobile" in content
+    assert "Hedy Lamarr" in content
+    assert project.image.url in content
+
+
+@pytest.mark.django_db
+def test_index_makeuses_card_without_image_shows_none(client):
+    build_makeuse_project().save()
+
+    content = client.get(reverse("index_makeuses")).content.decode()
+
+    assert "Hedy Lamarr" in content
+    assert "data-makeuse-project-image" not in content
+
+
+@pytest.mark.django_db
+def test_index_makeuses_lists_the_latest_project_first(client):
+    build_makeuse_project(title="Le premier projet").save()
+    build_makeuse_project(title="Le dernier projet").save()
+
+    content = client.get(reverse("index_makeuses")).content.decode()
+
+    assert content.index("Le dernier projet") < content.index("Le premier projet")
+
+
+@pytest.mark.django_db
+def test_index_makeuses_shows_eighteen_projects_and_a_link_to_the_next_page(client):
+    for index in range(20):
+        build_makeuse_project(title=f"Projet {index:02d}").save()
+
+    response = client.get(reverse("index_makeuses"))
+
+    assert len(response.context["makeuse_projects"].object_list) == 18
+    assert b'href="?page=2"' in response.content
+
+
+@pytest.mark.django_db
+def test_index_makeuses_serves_the_page_asked_for(client):
+    for index in range(20):
+        build_makeuse_project(title=f"Projet {index:02d}").save()
+
+    response = client.get(reverse("index_makeuses"), {"page": 2})
+
+    assert response.context["makeuse_projects"].number == 2
+    assert len(response.context["makeuse_projects"].object_list) == 2
+
+
+@pytest.mark.django_db
+def test_index_makeuses_cards_link_to_the_project_detail_page(client):
+    project = build_makeuse_project()
+    project.save()
+
+    content = client.get(reverse("index_makeuses")).content.decode()
+
+    assert f'href="{reverse("show_makeuse_project", args=[project.slug])}"' in content
+
+
+@pytest.mark.django_db
+def test_show_makeuse_project_shows_the_whole_project(client):
+    project = build_makeuse_project(demo_url="https://example.com/demo")
+    project.save()
+
+    content = client.get(reverse("show_makeuse_project", args=[project.slug])).content.decode()
+
+    assert "Une appli pour trouver un stage" in content
+    assert "Application mobile" in content
+    assert "Hedy Lamarr" in content
+    assert 'href="mailto:hedy@example.com"' in content
+    assert 'href="https://example.com/demo"' in content
+    assert "Rapprocher les lycéennes des entreprises du quartier." in content
+    assert "Terminale STI2D à Amiens." in content
+    assert "Des entretiens, puis un prototype Figma." in content
+    assert "Le volley et le dessin." in content
+
+
+@pytest.mark.django_db
+def test_show_makeuse_project_without_demo_shows_no_demo_link(client):
+    project = build_makeuse_project()
+    project.save()
+
+    content = client.get(reverse("show_makeuse_project", args=[project.slug])).content.decode()
+
+    assert "Hedy Lamarr" in content
+    assert "Voir la démo" not in content
+
+
+@pytest.mark.django_db
+def test_show_makeuse_project_unknown_slug_returns_404(client):
+    response = client.get(reverse("show_makeuse_project", args=["projet-inconnu"]))
+
+    assert response.status_code == 404

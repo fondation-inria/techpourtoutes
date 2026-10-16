@@ -1,0 +1,24 @@
+<c-vars project="" />
+
+<div class="relative flex flex-col bg-neutral-0 border border-black shadow-box">
+    <div class="flex flex-col gap-4 p-4 text-black">
+        {% if project.image %}
+            <div data-makeuse-project-image class="relative self-center w-50 h-50">
+                <img src="{{ project.image.url }}" alt="" width="200" height="200" loading="lazy"
+                     class="w-full h-full object-contain border border-black">
+            </div>
+        {% endif %}
+        <div class="flex justify-center">
+            <c-components.badge label="{{ project.project_type }}" background_color="bg-purple-500" />
+        </div>
+        <c-components.title title="{{ project.title }}" variant="h2" style="serif" />
+    </div>
+
+    <div class="flex flex-col flex-1 gap-4 p-4 text-sm">
+        <p class="flex items-center gap-2">
+            <c-components.icon name="creatrice-projet-makeuse" class="w-6 h-6 shrink-0" />{{ project.creator_name }}
+        </p>
+        <c-components.button href="{% url "show_makeuse_project" project.slug %}" label="Découvrir le projet" variant="secondary"
+                             class="w-full mt-auto after:absolute after:inset-0" />
+    </div>
+</div>

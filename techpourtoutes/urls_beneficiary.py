@@ -60,6 +60,11 @@ urlpatterns = [
         views.create_makeuse_project_request,
         name="create_makeuse_project_request",
     ),
+    path(
+        "rejoindre-les-makeuses/projets/<slug:slug>/",
+        views.show_makeuse_project,
+        name="show_makeuse_project",
+    ),
     path("evenements/", views.index_events, name="index_events"),
     path("mes-evenements/", views.index_beneficiary_events, name="index_beneficiary_events"),
     path(

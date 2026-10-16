@@ -48,6 +48,7 @@ from .beneficiary_views import (
     new_training_ambassador_beneficiary,
     new_upcoming_feature_notification,
     show_event,
+    show_makeuse_project,
     show_participation_modal,
     update_saved_event,
 )
@@ -172,6 +173,7 @@ __all__ = [
     "search_schools",
     "show_account",
     "show_event",
+    "show_makeuse_project",
     "show_user",
     "show_user_email",
     "show_user_email_verification",
