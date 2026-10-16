@@ -97,7 +97,7 @@ def test_leaving_the_funnel_asks_for_confirmation(funnel):
     ("link_name", "destination"),
     [
         ("Accueil TechPourToutes Coalition", "/coalition/"),
-        ("Mentions légales", "/mentions-legales/"),
+        ("Informations légales", "/mentions-legales/"),
     ],
 )
 def test_leaving_through_the_logo_or_the_footer_asks_for_confirmation_too(

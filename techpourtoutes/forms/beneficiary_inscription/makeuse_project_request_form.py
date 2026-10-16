@@ -9,6 +9,9 @@ class BeneficiaryMakeuseProjectRequestForm(forms.Form):
     project_link = forms.URLField(
         max_length=1000,
         label="Lien vers le projet ou vers une présentation de celui-ci*",
+        error_messages={
+            "invalid": "Saisis un lien valide. Exemple d'url valide : www.techpourtoutes.io",
+        },
     )
     project_description = forms.CharField(
         max_length=1000,

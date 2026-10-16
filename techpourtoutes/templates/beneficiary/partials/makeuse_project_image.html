@@ -4,6 +4,8 @@
             <img src="{{ project.image.url }}" alt="" class="h-auto max-h-70 w-auto max-w-full border border-black">
         </div>
     {% else %}
-        <img data-makeuse-project-image="side" src="{{ project.image.url }}" alt="" class="w-full h-auto border border-black">
+        <div data-makeuse-project-image="side" class="w-full aspect-square bg-purple-500">
+            <img src="{{ project.image.url }}" alt="" class="w-full h-full object-contain border border-black">
+        </div>
     {% endif %}
 </figure>
