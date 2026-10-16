@@ -10,7 +10,7 @@ from django.utils.http import urlencode
 from ...forms import (
     BeneficiaryEmailForm,
     BeneficiaryIdentityForm,
-    BeneficiaryMakeuseProjectRequestForm,
+    BeneficiaryMakeuseProjectSubmissionForm,
     BeneficiaryMentoringSignUpForm,
     BeneficiaryStudyStatusForm,
     BeneficiaryTrainingAmbassadorRequestForm,
@@ -43,7 +43,7 @@ def new_beneficiary_inscription_funnel(request):
         wants_mentor=request.GET.get("wants_mentor") == "1",
         wants_training_ambassador=request.GET.get("wants_training_ambassador") == "1",
         saved_event=request.GET.get("saved_event", ""),
-        requests_makeuse_project=request.GET.get("requests_makeuse_project") == "1",
+        submits_makeuse_project=request.GET.get("submits_makeuse_project") == "1",
     )
     return redirect(reverse("beneficiary_inscription_funnel"))
 
@@ -147,7 +147,7 @@ def _create_beneficiary(request):
         training_experience_form=validated["training_experience"],
         mentoring_signup_data=validated.get("mentoring_signup"),
         training_ambassador_request_data=validated.get("training_ambassador_request"),
-        makeuse_project_request_data=validated.get("makeuse_project_request"),
+        makeuse_project_submission_data=validated.get("makeuse_project_submission"),
     )
     if result.failure:
         relay_errors(request, result)
@@ -274,10 +274,10 @@ def _validate_training_ambassador_request(request, answers):
     return form.cleaned_data
 
 
-def _validate_makeuse_project_request(request, answers):
-    form = BeneficiaryMakeuseProjectRequestForm(data=answers)
+def _validate_makeuse_project_submission(request, answers):
+    form = BeneficiaryMakeuseProjectSubmissionForm(data=answers)
     if not form.is_valid():
-        raise _StepInterrupt(_render_step(request, "makeuse_project_request", form=form))
+        raise _StepInterrupt(_render_step(request, "makeuse_project_submission", form=form))
     return form.cleaned_data
 
 
@@ -311,8 +311,8 @@ def _destination_view_for_existing_user(user, data):
             if user.beneficiary.has_requested_training_ambassador
             else "new_training_ambassador_request"
         )
-    if _requests_makeuse_project(data) and hasattr(user, "beneficiary"):
-        return "new_makeuse_project_request"
+    if _submits_makeuse_project(data) and hasattr(user, "beneficiary"):
+        return "new_makeuse_project_submission"
     return "home"
 
 
@@ -323,7 +323,7 @@ _STEP_VALIDATORS = {
     "training_experience": _validate_training_experience,
     "mentoring_signup": _validate_mentoring_signup,
     "training_ambassador_request": _validate_training_ambassador_request,
-    "makeuse_project_request": _validate_makeuse_project_request,
+    "makeuse_project_submission": _validate_makeuse_project_submission,
 }
 
 
@@ -338,8 +338,8 @@ def _wants_training_ambassador(data):
     return data.get("wants_training_ambassador", False)
 
 
-def _requests_makeuse_project(data):
-    return data.get("requests_makeuse_project", False)
+def _submits_makeuse_project(data):
+    return data.get("submits_makeuse_project", False)
 
 
 def _birth_date(data):
@@ -358,12 +358,12 @@ _FUNNEL = FunnelSteps(
         "training_experience",
         "mentoring_signup",
         "training_ambassador_request",
-        "makeuse_project_request",
+        "makeuse_project_submission",
     ),
     optional={
         "mentoring_signup": "wants_mentor",
         "training_ambassador_request": "wants_training_ambassador",
-        "makeuse_project_request": "requests_makeuse_project",
+        "makeuse_project_submission": "submits_makeuse_project",
     },
 )
 
@@ -377,7 +377,7 @@ _STEP_FORMS = {
     "study_status": BeneficiaryStudyStatusForm,
     "mentoring_signup": BeneficiaryMentoringSignUpForm,
     "training_ambassador_request": BeneficiaryTrainingAmbassadorRequestForm,
-    "makeuse_project_request": BeneficiaryMakeuseProjectRequestForm,
+    "makeuse_project_submission": BeneficiaryMakeuseProjectSubmissionForm,
 }
 
 
@@ -403,9 +403,7 @@ def _step_context(request, step, form=None, **extra):
         "progress": _FUNNEL.progress(step, data),
         "first_name": data.get("first_name"),
         "is_minor": is_minor(_birth_date(data)),
-        "wants_mentor": _wants_mentor(data),
-        "wants_training_ambassador": _wants_training_ambassador(data),
-        "requests_makeuse_project": _requests_makeuse_project(data),
+        "submit_label": _submit_label(step, data),
         **extra,
     }
     if step in _STEP_FORMS:
@@ -414,3 +412,9 @@ def _step_context(request, step, form=None, **extra):
         # `initial` is rewritten by the form, so it needs a mutable copy of the answers.
         context.update(training_experience_context(data.get("study_status"), form, initial=data))
     return context
+
+
+def _submit_label(step, data):
+    if step in _FUNNEL.steps and step == _FUNNEL.last(data):
+        return "Rejoindre le club"
+    return "Continuer"

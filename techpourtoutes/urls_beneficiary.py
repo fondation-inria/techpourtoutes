@@ -51,14 +51,14 @@ urlpatterns = [
     ),
     path("rejoindre-les-makeuses/", views.index_makeuses, name="index_makeuses"),
     path(
-        "rejoindre-les-makeuses/demande/",
-        views.new_makeuse_project_request,
-        name="new_makeuse_project_request",
+        "rejoindre-les-makeuses/proposition/",
+        views.new_makeuse_project_submission,
+        name="new_makeuse_project_submission",
     ),
     path(
-        "rejoindre-les-makeuses/demande/envoyer/",
-        views.create_makeuse_project_request,
-        name="create_makeuse_project_request",
+        "rejoindre-les-makeuses/proposition/envoyer/",
+        views.create_makeuse_project_submission,
+        name="create_makeuse_project_submission",
     ),
     path(
         "rejoindre-les-makeuses/projets/<slug:slug>/",

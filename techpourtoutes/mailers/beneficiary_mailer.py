@@ -34,10 +34,10 @@ class BeneficiaryMailer(BaseMailer):
         )
 
     @classmethod
-    def makeuse_project_requested(cls, *, beneficiary):
+    def makeuse_project_submitted(cls, *, beneficiary):
         cls.send_mail(
             subject="Merci pour ta proposition de projet Makeuse !",
             recipient_list=[beneficiary.email],
             context={"beneficiary": beneficiary},
-            tags=["utilisateur", "beneficiaire", "nouvelle demande de projet Makeuse"],
+            tags=["utilisateur", "beneficiaire", "nouvelle proposition de projet Makeuse"],
         )

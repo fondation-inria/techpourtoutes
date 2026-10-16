@@ -261,8 +261,8 @@ NEW_MENTORING_SIGNUP_RECIPIENTS = env.list(
 
 NEW_EVENT_RECIPIENTS = env.list("NEW_EVENT_RECIPIENTS", default=["agir@techpourtoutes.io"])
 
-MAKEUSE_PROJECT_REQUEST_RECIPIENTS = env.list(
-    "MAKEUSE_PROJECT_REQUEST_RECIPIENTS", default=["bonjour@techpourtoutes.io"]
+MAKEUSE_PROJECT_SUBMISSION_RECIPIENTS = env.list(
+    "MAKEUSE_PROJECT_SUBMISSION_RECIPIENTS", default=["bonjour@techpourtoutes.io"]
 )
 
 # Celery
