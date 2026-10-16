@@ -36,4 +36,10 @@
     {% endif %}
     <c-components.card title="Découvre les projets des makeuses TechPourToutes" title_bg="black">
     </c-components.card>
+    <div class="mt-4 w-full grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+        {% for project in makeuse_projects %}
+            <c-components.makeuse-project-card :project="project" />
+        {% endfor %}
+    </div>
+    <c-components.pagination :page="makeuse_projects" class="mt-(--grid-cell) self-center" />
 </c-layout.base>
