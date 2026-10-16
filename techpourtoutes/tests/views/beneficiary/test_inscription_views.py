@@ -372,7 +372,7 @@ def test_existing_unregistered_beneficiary_email_with_wants_mentor_logs_in_to_me
 
 
 @pytest.mark.django_db
-def test_existing_beneficiary_email_with_wants_training_ambassador_logs_in_to_the_request(
+def test_existing_beneficiary_email_with_wants_training_ambassador_logs_in_to_the_submission(
     client, beneficiary
 ):
     client.get(f"{NEW_FUNNEL_URL}?wants_training_ambassador=1")
@@ -397,14 +397,14 @@ def test_existing_beneficiary_email_who_already_requested_a_training_ambassador_
 
 
 @pytest.mark.django_db
-def test_existing_beneficiary_email_with_requests_makeuse_project_logs_in_to_the_request(
+def test_existing_beneficiary_email_with_submits_makeuse_project_logs_in_to_the_submission(
     client, beneficiary
 ):
-    client.get(f"{NEW_FUNNEL_URL}?requests_makeuse_project=1")
+    client.get(f"{NEW_FUNNEL_URL}?submits_makeuse_project=1")
 
     response = _post_step(client, "email", {"email": beneficiary.email})
 
-    next_url = reverse("new_makeuse_project_request")
+    next_url = reverse("new_makeuse_project_submission")
     assert f"next={quote(next_url, safe='')}" in response["HX-Redirect"]
 
 
@@ -767,20 +767,20 @@ def test_training_ambassador_request_step_creates_beneficiary_and_mails_the_topi
 
 
 @pytest.mark.django_db
-def test_makeuse_project_request_step_creates_beneficiary_and_mails_the_project(
+def test_makeuse_project_submission_step_creates_beneficiary_and_mails_the_project(
     client, higher_ed_school, higher_ed_formation
 ):
     _seed_after_training(
         client,
         higher_ed_school,
         higher_ed_formation,
-        current="makeuse_project_request",
-        values={"requests_makeuse_project": True},
+        current="makeuse_project_submission",
+        values={"submits_makeuse_project": True},
     )
 
     response = _post_step(
         client,
-        "makeuse_project_request",
+        "makeuse_project_submission",
         {
             "project_name": "Robot trieur",
             "project_link": "https://example.com/robot",
@@ -793,7 +793,7 @@ def test_makeuse_project_request_step_creates_beneficiary_and_mails_the_project(
     [request_mail] = [
         message
         for message in mail.outbox
-        if message.subject == "Nouvelle demande de projet Makeuse : Robot trieur"
+        if message.subject == "Nouvelle proposition de projet Makeuse : Robot trieur"
     ]
     assert "https://example.com/robot" in request_mail.body
 

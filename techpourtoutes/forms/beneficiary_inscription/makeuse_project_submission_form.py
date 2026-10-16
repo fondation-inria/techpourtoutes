@@ -1,7 +1,7 @@
 from django import forms
 
 
-class BeneficiaryMakeuseProjectRequestForm(forms.Form):
+class BeneficiaryMakeuseProjectSubmissionForm(forms.Form):
     project_name = forms.CharField(
         max_length=1000,
         label="Nom du projet*",
@@ -14,7 +14,7 @@ class BeneficiaryMakeuseProjectRequestForm(forms.Form):
         },
     )
     project_description = forms.CharField(
-        max_length=1000,
+        max_length=3000,
         label="Description succincte du projet*",
         widget=forms.Textarea(),
     )

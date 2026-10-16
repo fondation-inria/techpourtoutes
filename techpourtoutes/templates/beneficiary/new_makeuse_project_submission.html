@@ -5,11 +5,11 @@
     back="{% url 'index_makeuses' %}"
     hero>
     <c-components.card nobg=True>
-        <c-patterns.form url="{% url 'create_makeuse_project_request' %}">
+        <c-patterns.form url="{% url 'create_makeuse_project_submission' %}">
             <c-components.title title="Rejoindre les makeuses" variant="h1" />
             <p>Dis-nous en plus sur le projet que tu souhaites publier.</p>
             <p class="text-xs text-neutral-500">Tous les champs sont obligatoires</p>
-            {% include "beneficiary/funnels/partials/fields/makeuse_project_request.html" %}
+            {% include "beneficiary/funnels/partials/fields/makeuse_project_submission.html" %}
             <div class="flex justify-center">
                 <c-components.button type="submit" label="Envoyer ma demande" />
             </div>

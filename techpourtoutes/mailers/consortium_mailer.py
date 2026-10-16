@@ -103,19 +103,19 @@ class ConsortiumMailer(BaseMailer):
         )
 
     @classmethod
-    def makeuse_project_requested(
+    def makeuse_project_submitted(
         cls, *, beneficiary, project_name, project_link, project_description
     ):
         cls.send_mail(
-            subject=f"Nouvelle demande de projet Makeuse : {project_name}",
-            recipient_list=settings.MAKEUSE_PROJECT_REQUEST_RECIPIENTS,
+            subject=f"Nouvelle proposition de projet Makeuse : {project_name}",
+            recipient_list=settings.MAKEUSE_PROJECT_SUBMISSION_RECIPIENTS,
             context={
                 "beneficiary": beneficiary,
                 "project_name": project_name,
                 "project_link": project_link,
                 "project_description": project_description,
             },
-            tags=["interne", "coalition", "nouvelle demande de projet Makeuse"],
+            tags=["interne", "coalition", "nouvelle proposition de projet Makeuse"],
         )
 
     @staticmethod

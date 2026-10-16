@@ -7,7 +7,7 @@ from .identity_form import BeneficiaryIdentityForm
 from .last_diploma_training_experience_form import (
     BeneficiaryLastDiplomaTrainingExperienceForm,
 )
-from .makeuse_project_request_form import BeneficiaryMakeuseProjectRequestForm
+from .makeuse_project_submission_form import BeneficiaryMakeuseProjectSubmissionForm
 from .mentoring_signup_form import BeneficiaryMentoringSignUpForm
 from .study_status_form import BeneficiaryStudyStatusForm, StudyStatus
 from .training_ambassador_request_form import BeneficiaryTrainingAmbassadorRequestForm
@@ -18,7 +18,7 @@ __all__ = [
     "BeneficiaryHighSchoolTrainingExperienceForm",
     "BeneficiaryIdentityForm",
     "BeneficiaryLastDiplomaTrainingExperienceForm",
-    "BeneficiaryMakeuseProjectRequestForm",
+    "BeneficiaryMakeuseProjectSubmissionForm",
     "BeneficiaryMentoringSignUpForm",
     "BeneficiaryStudyStatusForm",
     "BeneficiaryTrainingAmbassadorRequestForm",
