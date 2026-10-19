@@ -3,7 +3,10 @@ from django.core.management import call_command
 from django.core.management.base import CommandError
 from django.test import override_settings
 
-from techpourtoutes.models import Beneficiary, Event, Pro, TrainingExperience
+from techpourtoutes.models import Beneficiary, Event, MakeuseProject, Pro, TrainingExperience
+
+# The seed saves an image: keep it off the local media folder.
+pytestmark = pytest.mark.usefixtures("s3_storages")
 
 
 @pytest.mark.django_db
@@ -89,3 +92,25 @@ def test_seed_includes_events_that_require_registration_or_candidacy():
     non_open = Event.objects.exclude(access_type=Event.AccessType.OPEN)
     assert non_open.exists()
     assert all(event.registration_url for event in non_open)
+
+
+@pytest.mark.django_db
+def test_seed_creates_makeuse_projects_with_an_image_and_a_demo():
+    with override_settings(SEED_ENABLED=True):
+        call_command("seed")
+
+    projects = MakeuseProject.objects.all()
+    assert projects.count() == 8
+    assert projects.filter(slug="laventure-tech").exists()
+    for project in projects:
+        assert project.image.read()
+        assert project.demo_url
+
+
+@pytest.mark.django_db
+def test_seed_makeuse_projects_are_idempotent():
+    with override_settings(SEED_ENABLED=True):
+        call_command("seed")
+        call_command("seed")
+
+    assert MakeuseProject.objects.count() == 8

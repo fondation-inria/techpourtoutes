@@ -79,7 +79,7 @@ make seed       # seed DB with minimal dev data (idempotent)
 
 One file or one test: `uv run pytest <path>[::<test>] -q --no-cov` — coverage is in `addopts`, so drop it with `--no-cov` when iterating.
 
-Seed creates one `Pro` with superuser role — `admin@techpourtoutes.io` / `admin` — one `Beneficiary` with a `TrainingExperience` — `beneficiary@techpourtoutes.io` / `beneficiary` — and approved upcoming `Event`s covering every subcategory but `OTHER`, so every card colour and the pagination show up. It imports the Onisep samples committed under `data/onisep/` (~100 coherent rows per file) rather than downloading the full datasets.
+Seed creates one `Pro` with superuser role — `admin@techpourtoutes.io` / `admin` — one `Beneficiary` with a `TrainingExperience` — `beneficiary@techpourtoutes.io` / `beneficiary` — and approved upcoming `Event`s covering every subcategory but `OTHER`, so every card colour and the pagination show up — and eight `MakeuseProject`s, enough for a second page, each with a demo link and an image committed under `data/seed/`. It imports the Onisep samples committed under `data/onisep/` (~100 coherent rows per file) rather than downloading the full datasets.
 
 ## Architecture
 

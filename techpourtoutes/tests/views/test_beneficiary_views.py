@@ -1002,19 +1002,19 @@ def test_index_makeuses_lists_the_latest_project_first(client):
 
 
 @pytest.mark.django_db
-def test_index_makeuses_shows_eighteen_projects_and_a_link_to_the_next_page(client):
-    for index in range(20):
+def test_index_makeuses_shows_six_projects_and_a_link_to_the_next_page(client):
+    for index in range(8):
         build_makeuse_project(title=f"Projet {index:02d}").save()
 
     response = client.get(reverse("index_makeuses"))
 
-    assert len(response.context["makeuse_projects"].object_list) == 18
+    assert len(response.context["makeuse_projects"].object_list) == 6
     assert b'href="?page=2"' in response.content
 
 
 @pytest.mark.django_db
 def test_index_makeuses_serves_the_page_asked_for(client):
-    for index in range(20):
+    for index in range(8):
         build_makeuse_project(title=f"Projet {index:02d}").save()
 
     response = client.get(reverse("index_makeuses"), {"page": 2})
