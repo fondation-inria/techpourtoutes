@@ -18,7 +18,8 @@ def test_create_makeuse_project_submission_mails_the_team_and_her(client, benefi
 
     assert response["Location"] == reverse("show_account")
     team_mail, beneficiary_mail = mail.outbox
-    assert team_mail.subject == "Nouvelle proposition de projet Makeuse : Robot trieur"
+    assert team_mail.subject == "Nouvelle proposition de projet Makeuse"
+    assert "Robot trieur" in team_mail.body
     assert "https://example.com/robot" in team_mail.body
     assert beneficiary_mail.to == [beneficiary.email]
 

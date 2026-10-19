@@ -793,7 +793,7 @@ def test_makeuse_project_submission_step_creates_beneficiary_and_mails_the_proje
     [request_mail] = [
         message
         for message in mail.outbox
-        if message.subject == "Nouvelle proposition de projet Makeuse : Robot trieur"
+        if message.subject == "Nouvelle proposition de projet Makeuse"
     ]
     assert "https://example.com/robot" in request_mail.body
 
