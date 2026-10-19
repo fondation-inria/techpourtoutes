@@ -149,10 +149,12 @@ class Command(BaseCommand):
                 self.stdout.write(f"  Makeuse project {title} already exists, skipping.")
                 continue
             fields = dict(fields)
-            image_name = fields.pop("image", "default_projet_makeuse.webp")
+            image_path = settings.BASE_DIR / fields.pop(
+                "image", "ui/static/images/events/social/afterwork.webp"
+            )
             project = MakeuseProject(**fields)
-            with open(settings.BASE_DIR / "data/seed" / image_name, "rb") as image:
-                project.image.save(image_name, File(image))
+            with open(image_path, "rb") as image:
+                project.image.save(image_path.name, File(image))
             self.stdout.write(self.style.SUCCESS(f"  Makeuse project created: {title}"))
 
 
@@ -293,7 +295,7 @@ MAKEUSE_PROJECT_SEEDS = [
         "creator_name": "Océane Deneuville",
         "contact_email": "o.deneuville@myskolae.fr",
         "demo_url": "https://ocednv.itch.io/tpt",
-        "image": "laventure_tech.webp",
+        "image": "data/seed/laventure_tech.webp",
         "idea": (
             "L'idée est simple : un jeu pédagogique pour montrer aux filles que se lancer dans la "
             "tech c'est possible. Concrètement, il y a 3 parcours différents selon le profil : "
