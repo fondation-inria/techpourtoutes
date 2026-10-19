@@ -128,7 +128,137 @@ class Command(BaseCommand):
 
 MAKEUSE_PROJECT_SEEDS = [
     {
+        "title": "Stage Finder",
+        "category": MakeuseProject.Category.APPS_AND_WEB,
+        "project_type": "Application mobile",
+        "creator_name": "Inès Benali",
+        "contact_email": "ines.benali@example.org",
+        "demo_url": "https://example.org/stage-finder",
+        "idea": (
+            "Une appli qui rapproche les lycéennes des entreprises de leur quartier pour "
+            "trouver un stage de seconde.\n\n"
+            "On filtre par métier, par distance et par durée, et on contacte l'entreprise "
+            "directement depuis l'appli."
+        ),
+        "background": (
+            "Terminale STI2D à Amiens. J'ai galéré à trouver mon propre stage, c'est ce qui "
+            "m'a donné l'idée."
+        ),
+        "methodology": (
+            "Des entretiens avec une dizaine de lycéennes, une maquette sur Figma, puis "
+            "l'application développée avec Flutter."
+        ),
+        "hobbies": "Le volley, le dessin et les escape games.",
+    },
+    {
+        "title": "Cyber Quiz",
+        "category": MakeuseProject.Category.APPS_AND_WEB,
+        "project_type": "Site web",
+        "creator_name": "Léa Martin",
+        "contact_email": "lea.martin@example.org",
+        "demo_url": "https://example.org/cyber-quiz",
+        "idea": (
+            "Un quiz pour apprendre les bons réflexes de cybersécurité en dix minutes : mots de "
+            "passe, hameçonnage, réseaux publics.\n\n"
+            "Chaque réponse est suivie d'une courte explication pour retenir l'essentiel."
+        ),
+        "background": "BUT informatique à Lannion, option cybersécurité.",
+        "methodology": (
+            "Développé avec Django et HTMX, puis testé auprès de ma famille et de mes amies, "
+            "qui n'y connaissaient rien."
+        ),
+        "hobbies": "Les CTF, la randonnée et les romans policiers.",
+    },
+    {
+        "title": "Mentora",
+        "category": MakeuseProject.Category.APPS_AND_WEB,
+        "project_type": "Plateforme",
+        "creator_name": "Aminata Diallo",
+        "contact_email": "aminata.diallo@example.org",
+        "demo_url": "https://example.org/mentora",
+        "idea": (
+            "Une plateforme pour trouver une mentore dans la tech quand on ne connaît "
+            "personne dans le milieu.\n\n"
+            "On décrit son projet en quelques lignes, et la plateforme propose trois mentores "
+            "dont le parcours y ressemble."
+        ),
+        "background": (
+            "BTS SIO à Lyon. Pendant mes deux années, j'ai vu beaucoup de camarades abandonner "
+            "faute de savoir vers qui se tourner."
+        ),
+        "methodology": (
+            "Au départ un simple tableur partagé, puis un site statique, et enfin une vraie "
+            "application avec des comptes. Les retours des premières utilisatrices ont changé "
+            "presque toutes mes idées de départ."
+        ),
+        "hobbies": "La danse, la photo argentique et les podcasts sur l'histoire des sciences.",
+    },
+    {
+        "title": "Data Vélo",
+        "category": MakeuseProject.Category.DATA_AND_AI,
+        "project_type": "Data visualisation",
+        "creator_name": "Chloé Nguyen",
+        "contact_email": "chloe.nguyen@example.org",
+        "demo_url": "https://example.org/data-velo",
+        "idea": (
+            "Visualiser les trajets en vélo partagé de ma ville pour repérer où il manque des "
+            "stations."
+        ),
+        "background": "Reconversion après huit ans comme comptable, formation data analyst.",
+        "methodology": "L'open data de la métropole, Python, pandas et une carte Leaflet.",
+        "hobbies": "Le vélo, évidemment, et la pâtisserie.",
+    },
+    {
+        "title": "Robot trieur",
+        "category": MakeuseProject.Category.OBJECTS_AND_ROBOTICS,
+        "project_type": "Objet connecté",
+        "creator_name": "Sarah Cohen",
+        "contact_email": "sarah.cohen@example.org",
+        "demo_url": "https://example.org/robot-trieur",
+        "idea": "Un petit robot qui trie les déchets de la cantine grâce à une caméra.",
+        "background": "Première générale, spécialités NSI et physique-chimie.",
+        "methodology": (
+            "Une carte Arduino, un modèle de reconnaissance d'images entraîné sur nos propres "
+            "photos, et beaucoup de carton."
+        ),
+        "hobbies": "La robotique et le théâtre.",
+    },
+    {
+        "title": "Chatbot orientation",
+        "category": MakeuseProject.Category.DATA_AND_AI,
+        "project_type": "Intelligence artificielle",
+        "creator_name": "Emma Petit",
+        "contact_email": "emma.petit@example.org",
+        "demo_url": "https://example.org/chatbot-orientation",
+        "idea": (
+            "Un chatbot qui répond aux questions des lycéennes sur les formations du "
+            "numérique, à partir des fiches de l'Onisep."
+        ),
+        "background": "Licence de mathématiques à Grenoble, puis master en science des données.",
+        "methodology": (
+            "Une base de fiches formations, un moteur de recherche sémantique et une interface "
+            "web toute simple."
+        ),
+        "hobbies": "L'escalade et les échecs.",
+    },
+    {
+        "title": "Pixel Garden",
+        "category": MakeuseProject.Category.GAMES,
+        "project_type": "Jeu vidéo",
+        "creator_name": "Manon Lefèvre",
+        "contact_email": "manon.lefevre@example.org",
+        "demo_url": "https://example.org/pixel-garden",
+        "idea": (
+            "Un jeu de jardinage en pixel art pour apprendre les bases de la programmation : "
+            "on arrose et on plante en écrivant de petites instructions."
+        ),
+        "background": "Bac pro, puis BTS en alternance dans une PME de développement web.",
+        "methodology": "Godot, des sprites dessinés à la main et des tests en classe de collège.",
+        "hobbies": "Le jardinage, pour de vrai, et les jeux indépendants.",
+    },
+    {
         "title": "L'aventure Tech",
+        "category": MakeuseProject.Category.GAMES,
         "project_type": "Jeu vidéo",
         "creator_name": "Océane Deneuville",
         "contact_email": "o.deneuville@myskolae.fr",
@@ -184,128 +314,6 @@ MAKEUSE_PROJECT_SEEDS = [
             "verres avec mes amis, et niveau musique j'adore jouer de la guitare, j'ai même un "
             "tatouage de la guitare de Jimmy Hendrix."
         ),
-    },
-    {
-        "title": "Stage Finder",
-        "project_type": "Application mobile",
-        "creator_name": "Inès Benali",
-        "contact_email": "ines.benali@example.org",
-        "demo_url": "https://example.org/stage-finder",
-        "idea": (
-            "Une appli qui rapproche les lycéennes des entreprises de leur quartier pour "
-            "trouver un stage de seconde.\n\n"
-            "On filtre par métier, par distance et par durée, et on contacte l'entreprise "
-            "directement depuis l'appli."
-        ),
-        "background": (
-            "Terminale STI2D à Amiens. J'ai galéré à trouver mon propre stage, c'est ce qui "
-            "m'a donné l'idée."
-        ),
-        "methodology": (
-            "Des entretiens avec une dizaine de lycéennes, une maquette sur Figma, puis "
-            "l'application développée avec Flutter."
-        ),
-        "hobbies": "Le volley, le dessin et les escape games.",
-    },
-    {
-        "title": "Cyber Quiz",
-        "project_type": "Site web",
-        "creator_name": "Léa Martin",
-        "contact_email": "lea.martin@example.org",
-        "demo_url": "https://example.org/cyber-quiz",
-        "idea": (
-            "Un quiz pour apprendre les bons réflexes de cybersécurité en dix minutes : mots de "
-            "passe, hameçonnage, réseaux publics.\n\n"
-            "Chaque réponse est suivie d'une courte explication pour retenir l'essentiel."
-        ),
-        "background": "BUT informatique à Lannion, option cybersécurité.",
-        "methodology": (
-            "Développé avec Django et HTMX, puis testé auprès de ma famille et de mes amies, "
-            "qui n'y connaissaient rien."
-        ),
-        "hobbies": "Les CTF, la randonnée et les romans policiers.",
-    },
-    {
-        "title": "Mentora",
-        "project_type": "Plateforme",
-        "creator_name": "Aminata Diallo",
-        "contact_email": "aminata.diallo@example.org",
-        "demo_url": "https://example.org/mentora",
-        "idea": (
-            "Une plateforme pour trouver une mentore dans la tech quand on ne connaît "
-            "personne dans le milieu.\n\n"
-            "On décrit son projet en quelques lignes, et la plateforme propose trois mentores "
-            "dont le parcours y ressemble."
-        ),
-        "background": (
-            "BTS SIO à Lyon. Pendant mes deux années, j'ai vu beaucoup de camarades abandonner "
-            "faute de savoir vers qui se tourner."
-        ),
-        "methodology": (
-            "Au départ un simple tableur partagé, puis un site statique, et enfin une vraie "
-            "application avec des comptes. Les retours des premières utilisatrices ont changé "
-            "presque toutes mes idées de départ."
-        ),
-        "hobbies": "La danse, la photo argentique et les podcasts sur l'histoire des sciences.",
-    },
-    {
-        "title": "Data Vélo",
-        "project_type": "Data visualisation",
-        "creator_name": "Chloé Nguyen",
-        "contact_email": "chloe.nguyen@example.org",
-        "demo_url": "https://example.org/data-velo",
-        "idea": (
-            "Visualiser les trajets en vélo partagé de ma ville pour repérer où il manque des "
-            "stations."
-        ),
-        "background": "Reconversion après huit ans comme comptable, formation data analyst.",
-        "methodology": "L'open data de la métropole, Python, pandas et une carte Leaflet.",
-        "hobbies": "Le vélo, évidemment, et la pâtisserie.",
-    },
-    {
-        "title": "Robot trieur",
-        "project_type": "Objet connecté",
-        "creator_name": "Sarah Cohen",
-        "contact_email": "sarah.cohen@example.org",
-        "demo_url": "https://example.org/robot-trieur",
-        "idea": "Un petit robot qui trie les déchets de la cantine grâce à une caméra.",
-        "background": "Première générale, spécialités NSI et physique-chimie.",
-        "methodology": (
-            "Une carte Arduino, un modèle de reconnaissance d'images entraîné sur nos propres "
-            "photos, et beaucoup de carton."
-        ),
-        "hobbies": "La robotique et le théâtre.",
-    },
-    {
-        "title": "Chatbot orientation",
-        "project_type": "Intelligence artificielle",
-        "creator_name": "Emma Petit",
-        "contact_email": "emma.petit@example.org",
-        "demo_url": "https://example.org/chatbot-orientation",
-        "idea": (
-            "Un chatbot qui répond aux questions des lycéennes sur les formations du "
-            "numérique, à partir des fiches de l'Onisep."
-        ),
-        "background": "Licence de mathématiques à Grenoble, puis master en science des données.",
-        "methodology": (
-            "Une base de fiches formations, un moteur de recherche sémantique et une interface "
-            "web toute simple."
-        ),
-        "hobbies": "L'escalade et les échecs.",
-    },
-    {
-        "title": "Pixel Garden",
-        "project_type": "Jeu vidéo",
-        "creator_name": "Manon Lefèvre",
-        "contact_email": "manon.lefevre@example.org",
-        "demo_url": "https://example.org/pixel-garden",
-        "idea": (
-            "Un jeu de jardinage en pixel art pour apprendre les bases de la programmation : "
-            "on arrose et on plante en écrivant de petites instructions."
-        ),
-        "background": "Bac pro, puis BTS en alternance dans une PME de développement web.",
-        "methodology": "Godot, des sprites dessinés à la main et des tests en classe de collège.",
-        "hobbies": "Le jardinage, pour de vrai, et les jeux indépendants.",
     },
 ]
 

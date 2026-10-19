@@ -113,6 +113,7 @@ The same app serves two audiences. The beneficiaries' site lives at `/` (`urls_b
 - `WorkshopRequest` — one row per workshop type requested by a `Pro`, with an optional shared remark.
 - `Event` — one event submitted by a `Pro`, moderated in the admin (`status` pending / approved / rejected, tracked by `HistoricalRecords`). `subcategory` holds either a `Subcategory` value or the free text typed when none fits, so `category` is not a column: it is derived through the `SUBCATEGORIES` map — free text lands where `OTHER` does — and drives `category_color`, the colour of the card. A `CheckConstraint` enforces that an event ends after it starts. `EventQuerySet` composes `approved()`, `upcoming()` (one that has started but not ended is still to come), `past()`, `in_category()` / `in_subcategory()`.
 - `SavedEvent` — one event a `Beneficiary` put aside, unique per pair. `SavedEvent.objects.toggle(event=…, beneficiary=…)` deletes the row or creates it, and returns whether the event is now saved.
+- `MakeuseProject` — one project showcased on `index_makeuses`, entered by the team in the admin. Its `category` is a closed choice that drives `category_color`, the colour of its card and detail page; `project_type` is free text, only the label of its badge. Its slug, like `Event`'s, comes from `SlugFromTitleMixin` (`models/mixins/`): derived from the title on the first save, then never moved. `show_makeuse_project` and `show_event` share `_back_to_listing`, which keeps the listing page the visitor came from.
 
 **Relationships:**
 

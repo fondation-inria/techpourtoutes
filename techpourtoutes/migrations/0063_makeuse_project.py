@@ -21,6 +21,7 @@ class Migration(migrations.Migration):
                 ('updated_at', models.DateTimeField(auto_now=True, help_text='date and time at which a record was last updated', verbose_name='mis à jour le')),
                 ('title', models.CharField(max_length=255, verbose_name='titre')),
                 ('slug', models.SlugField(max_length=255, unique=True, verbose_name='slug')),
+                ('category', models.CharField(choices=[('apps_and_web', 'Applis et web'), ('games', 'Jeux'), ('data_and_ai', 'Data et IA'), ('objects_and_robotics', 'Objets et robotique')], max_length=255, verbose_name='catégorie')),
                 ('project_type', models.CharField(max_length=255, verbose_name='type')),
                 ('creator_name', models.CharField(max_length=255, verbose_name='nom de la créatrice')),
                 ('contact_email', models.EmailField(max_length=254, verbose_name='adresse mail de contact')),

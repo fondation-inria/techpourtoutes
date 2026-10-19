@@ -1,11 +1,11 @@
 <figure class="relative {{ class }}">
     {% if placement == "top" %}
-        <div data-makeuse-project-image="top" class="bg-purple-500 flex justify-center">
-            <img src="{{ project.image.url }}" alt="" class="h-auto max-h-70 w-auto max-w-full border border-black">
+        <div data-makeuse-project-image="top" class="bg-{{ project.category_color }}-500 flex justify-center">
+            <img src="{{ project.image.url }}" alt="{{ project.title }}" class="h-auto max-h-70 w-auto max-w-full border border-black">
         </div>
     {% else %}
-        <div data-makeuse-project-image="side" class="w-full aspect-square bg-purple-500">
-            <img src="{{ project.image.url }}" alt="" class="w-full h-full object-contain border border-black">
+        <div data-makeuse-project-image="side" class="w-full aspect-square bg-{{ project.category_color }}-500">
+            <img src="{{ project.image.url }}" alt="{{ project.title }}" class="w-full h-full object-contain border border-black">
         </div>
     {% endif %}
 </figure>

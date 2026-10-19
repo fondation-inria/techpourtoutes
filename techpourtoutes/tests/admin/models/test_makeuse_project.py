@@ -27,6 +27,7 @@ def test_makeuse_project_add_form_uploads_the_image_to_the_public_bucket(
         reverse(ADD),
         {
             "title": "Une appli pour trouver un stage",
+            "category": MakeuseProject.Category.APPS_AND_WEB,
             "project_type": "Application mobile",
             "creator_name": "Hedy Lamarr",
             "contact_email": "hedy@example.com",

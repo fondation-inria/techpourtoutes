@@ -18,8 +18,24 @@ def image_key(instance, filename):
 class MakeuseProject(SlugFromTitleMixin, BaseModel):
     SLUG_FALLBACK = "projet"
 
+    class Category(models.TextChoices):
+        APPS_AND_WEB = "apps_and_web", _("Applis et web")
+        GAMES = "games", _("Jeux")
+        DATA_AND_AI = "data_and_ai", _("Data et IA")
+        OBJECTS_AND_ROBOTICS = "objects_and_robotics", _("Objets et robotique")
+
+    CATEGORY_COLORS = {
+        Category.APPS_AND_WEB: "yellow",
+        Category.GAMES: "purple",
+        Category.DATA_AND_AI: "green",
+        Category.OBJECTS_AND_ROBOTICS: "orange",
+    }
+
     title = models.CharField(max_length=255, verbose_name=_("titre"))
     slug = models.SlugField(max_length=255, unique=True, verbose_name=_("slug"))
+    category = models.CharField(
+        max_length=255, choices=Category.choices, verbose_name=_("catégorie")
+    )
     project_type = models.CharField(max_length=255, verbose_name=_("type"))
     creator_name = models.CharField(max_length=255, verbose_name=_("nom de la créatrice"))
     contact_email = models.EmailField(verbose_name=_("adresse mail de contact"))
@@ -42,3 +58,7 @@ class MakeuseProject(SlugFromTitleMixin, BaseModel):
 
     def __str__(self):
         return self.title
+
+    @property
+    def category_color(self):
+        return self.CATEGORY_COLORS[self.category]

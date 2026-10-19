@@ -9,7 +9,7 @@ from django.test.utils import CaptureQueriesContext
 from django.urls import reverse
 from django.utils import timezone
 
-from techpourtoutes.models import Event, Pro, SavedEvent, User
+from techpourtoutes.models import Event, MakeuseProject, Pro, SavedEvent, User
 
 from ..models.test_event import build_event
 from ..models.test_makeuse_project import build_makeuse_project
@@ -982,6 +982,18 @@ def test_index_makeuses_shows_a_card_per_project(client):
 
 
 @pytest.mark.django_db
+def test_index_makeuses_cards_take_the_color_of_their_category(client):
+    project = build_makeuse_project(category=MakeuseProject.Category.DATA_AND_AI)
+    project.image.name = "makeuse_projects/visuel.webp"
+    project.save()
+
+    content = client.get(reverse("index_makeuses")).content.decode()
+
+    assert "bg-green-500" in content
+    assert "bg-purple-500" not in content
+
+
+@pytest.mark.django_db
 def test_index_makeuses_card_without_image_shows_none(client):
     build_makeuse_project().save()
 
@@ -1049,6 +1061,18 @@ def test_show_makeuse_project_shows_the_whole_project(client):
     assert "Terminale STI2D à Amiens." in content
     assert "Des entretiens, puis un prototype Figma." in content
     assert "Le volley et le dessin." in content
+
+
+@pytest.mark.django_db
+def test_show_makeuse_project_takes_the_color_of_its_category(client):
+    project = build_makeuse_project(category=MakeuseProject.Category.DATA_AND_AI)
+    project.image.name = "makeuse_projects/visuel.webp"
+    project.save()
+
+    content = client.get(reverse("show_makeuse_project", args=[project.slug])).content.decode()
+
+    assert "bg-green-500" in content
+    assert "bg-purple-500" not in content
 
 
 @pytest.mark.django_db

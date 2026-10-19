@@ -9,6 +9,7 @@ def build_makeuse_project(**overrides):
     return MakeuseProject(
         **{
             "title": "Une appli pour trouver un stage",
+            "category": MakeuseProject.Category.APPS_AND_WEB,
             "project_type": "Application mobile",
             "creator_name": "Hedy Lamarr",
             "contact_email": "hedy@example.com",
@@ -49,6 +50,7 @@ def test_makeuse_project_images_of_the_same_name_get_their_own_key(s3_storages):
     "field",
     [
         "title",
+        "category",
         "project_type",
         "creator_name",
         "contact_email",
@@ -109,3 +111,16 @@ def test_makeuse_project_slug_falls_back_when_the_title_slugifies_to_nothing():
     project.save()
 
     assert project.slug == "projet"
+
+
+@pytest.mark.parametrize(
+    ("category", "color"),
+    [
+        (MakeuseProject.Category.APPS_AND_WEB, "yellow"),
+        (MakeuseProject.Category.GAMES, "purple"),
+        (MakeuseProject.Category.DATA_AND_AI, "green"),
+        (MakeuseProject.Category.OBJECTS_AND_ROBOTICS, "orange"),
+    ],
+)
+def test_makeuse_project_category_color_follows_its_category(category, color):
+    assert build_makeuse_project(category=category).category_color == color
