@@ -1067,3 +1067,39 @@ def test_show_makeuse_project_unknown_slug_returns_404(client):
     response = client.get(reverse("show_makeuse_project", args=["projet-inconnu"]))
 
     assert response.status_code == 404
+
+
+@pytest.mark.django_db
+def test_show_makeuse_project_back_link_keeps_the_listing_page(client):
+    project = build_makeuse_project()
+    project.save()
+
+    response = client.get(
+        reverse("show_makeuse_project", args=[project.slug]),
+        HTTP_REFERER=f"http://testserver{reverse('index_makeuses')}?page=2",
+    )
+
+    assert response.context["back_url"] == f"{reverse('index_makeuses')}?page=2"
+
+
+@pytest.mark.django_db
+def test_show_makeuse_project_back_link_falls_back_to_the_bare_listing(client):
+    project = build_makeuse_project()
+    project.save()
+
+    response = client.get(reverse("show_makeuse_project", args=[project.slug]))
+
+    assert response.context["back_url"] == reverse("index_makeuses")
+
+
+@pytest.mark.django_db
+def test_show_makeuse_project_back_link_ignores_a_referer_from_anywhere_else(client):
+    project = build_makeuse_project()
+    project.save()
+
+    response = client.get(
+        reverse("show_makeuse_project", args=[project.slug]),
+        HTTP_REFERER=f"http://testserver{INDEX_EVENTS_URL}?page=3",
+    )
+
+    assert response.context["back_url"] == reverse("index_makeuses")
