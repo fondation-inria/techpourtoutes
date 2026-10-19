@@ -1,4 +1,4 @@
-from datetime import time, timedelta
+from datetime import date, time, timedelta
 from decimal import Decimal
 
 from django.conf import settings
@@ -32,23 +32,53 @@ class Command(BaseCommand):
                 "to run unless SEED_ENABLED is set."
             )
         self._import_onisep_samples()
-        self._create_admin_pro()
-        self._create_beneficiary()
+        if settings.SEED_TEAM_EMAILS:
+            self._create_team_accounts()
+        else:
+            self._create_default_accounts()
         self._create_events()
         self._create_makeuse_projects()
 
     def _import_onisep_samples(self):
         call_command("import_schools_and_formations", sample=True, if_empty=True)
 
-    def _create_admin_pro(self):
-        email = settings.SEED_ADMIN_EMAIL
+    def _create_default_accounts(self):
+        self._create_admin_pro(settings.SEED_ADMIN_EMAIL, first_name="Admin")
+        self._create_beneficiary(
+            settings.SEED_BENEFICIARY_EMAIL,
+            first_name="Beneficiary",
+            birth_date=None,
+            level=Level.TERMINALE,
+            formations=Formation.objects.secondary(),
+        )
+
+    def _create_team_accounts(self):
+        today = timezone.localdate()
+        for email in settings.SEED_TEAM_EMAILS:
+            self._create_beneficiary(
+                _alias(email, "etudiante"),
+                first_name="Étudiante",
+                birth_date=date(today.year - 20, 1, 1),
+                level=Level.BAC_2,
+                formations=Formation.objects.higher_ed(),
+            )
+            self._create_beneficiary(
+                _alias(email, "lyceenne"),
+                first_name="Lycéenne",
+                birth_date=date(today.year - 16, 1, 1),
+                level=Level.PREMIERE,
+                formations=Formation.objects.secondary(),
+            )
+            self._create_admin_pro(_alias(email, "pro"), first_name="Pro")
+
+    def _create_admin_pro(self, email, *, first_name):
         if Pro.objects.filter(email=email).exists():
             self.stdout.write(f"  Admin pro {email} already exists, skipping.")
             return
         pro = Pro(
             username=email,
             email=email,
-            first_name="Admin",
+            first_name=first_name,
             last_name="TechPourToutes",
             civility=Pro.Civility.MADAME,
             phone="+33600000000",
@@ -66,29 +96,29 @@ class Command(BaseCommand):
             self.style.SUCCESS(f"  Admin pro created: {email} / {settings.SEED_ADMIN_PASSWORD}")
         )
 
-    def _create_beneficiary(self):
-        email = settings.SEED_BENEFICIARY_EMAIL
+    def _create_beneficiary(self, email, *, first_name, birth_date, level, formations):
         if Beneficiary.objects.filter(email=email).exists():
             self.stdout.write(f"  Beneficiary {email} already exists, skipping.")
             return
         beneficiary = Beneficiary(
             username=email,
             email=email,
-            first_name="Beneficiary",
+            first_name=first_name,
             last_name="TechPourToutes",
             civility=Beneficiary.Civility.MADAME,
+            birth_date=birth_date,
             phone="+33600000000",
             postal_code="75001",
         )
         beneficiary.save()
         beneficiary.save(update_fields=["password"])
 
-        formation = Formation.objects.secondary().order_by("name").first()
+        formation = formations.order_by("name").first()
         TrainingExperience.objects.create(
             user=beneficiary,
             school=formation.schools.order_by("name").first(),
             formation=formation,
-            level=Level.TERMINALE,
+            level=level,
             start_date=current_school_year_start_date(),
             end_date=current_school_year_end_date(),
         )
@@ -96,7 +126,7 @@ class Command(BaseCommand):
 
     def _create_events(self):
         """Approved and upcoming, one a week: enough of them to scroll past the first page."""
-        pro = Pro.objects.get(email=settings.SEED_ADMIN_EMAIL)
+        pro = Pro.objects.filter(is_superuser=True).earliest("created_at")
         today = timezone.localdate()
         for week, (lasts, fields) in enumerate(EVENT_SEEDS, start=1):
             start = today + timedelta(weeks=week)
@@ -316,6 +346,12 @@ MAKEUSE_PROJECT_SEEDS = [
         ),
     },
 ]
+
+
+def _alias(email, tag):
+    """`test@example.com` tagged `pro` is `test+pro@example.com`, delivered to the same inbox."""
+    local, domain = email.split("@")
+    return f"{local}+{tag}@{domain}"
 
 
 # One per subcategory but `OTHER`, so the five card colours show up and the list spans more than
