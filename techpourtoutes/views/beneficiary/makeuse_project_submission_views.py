@@ -4,7 +4,9 @@ from django.views.decorators.http import require_POST
 
 from ...decorators import beneficiary_required
 from ...forms import BeneficiaryMakeuseProjectSubmissionForm
-from ...services.beneficiary.submit_makeuse_project import SubmitMakeuseProject
+from ...services.beneficiary.notify_makeuse_project_submission import (
+    NotifyMakeuseProjectSubmission,
+)
 
 
 @beneficiary_required
@@ -20,7 +22,7 @@ def create_makeuse_project_submission(request):
     form = BeneficiaryMakeuseProjectSubmissionForm(data=request.POST)
     if not form.is_valid():
         return _render_makeuse_project_submission_form(request, form)
-    SubmitMakeuseProject(beneficiary=request.user.beneficiary, **form.cleaned_data)
+    NotifyMakeuseProjectSubmission(beneficiary=request.user.beneficiary, **form.cleaned_data)
     messages.success(
         request,
         "La présentation de ton projet a bien été transmise à notre équipe, "

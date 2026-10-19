@@ -6,8 +6,8 @@ from ...tasks import send_beneficiary_welcome_email_task
 from ...utils.dates import compute_age
 from ...utils.missing_record import report_missing_record
 from ..base import BaseService
+from .notify_makeuse_project_submission import NotifyMakeuseProjectSubmission
 from .sign_up_for_mentoring import SignUpForMentoring
-from .submit_makeuse_project import SubmitMakeuseProject
 
 # Delay before the welcome email is sent, so it doesn't land before the login code.
 _WELCOME_EMAIL_DELAY_SECONDS = 5 * 60
@@ -47,7 +47,9 @@ class UpsertBeneficiary(BaseService):
                 beneficiary=self.beneficiary, topic=training_ambassador_request_data["topic"]
             )
         if makeuse_project_submission_data:
-            SubmitMakeuseProject(beneficiary=self.beneficiary, **makeuse_project_submission_data)
+            NotifyMakeuseProjectSubmission(
+                beneficiary=self.beneficiary, **makeuse_project_submission_data
+            )
         if training_experience_form:
             report_missing_record(
                 training_experience_form, self.beneficiary, "Funnel d'inscription"
