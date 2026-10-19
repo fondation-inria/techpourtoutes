@@ -74,7 +74,7 @@ def test_seed_creates_an_adult_student_a_minor_pupil_and_an_admin_pro_per_team_e
         assert compute_age(student.birth_date) >= 18
         assert student.training_experiences.get().formation.higher_ed
 
-        pupil = Beneficiary.objects.get(email=f"{name}+lyceene@example.com")
+        pupil = Beneficiary.objects.get(email=f"{name}+lyceenne@example.com")
         assert compute_age(pupil.birth_date) < 18
         assert pupil.training_experiences.get().formation.secondary
 

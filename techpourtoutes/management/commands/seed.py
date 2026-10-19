@@ -54,7 +54,7 @@ class Command(BaseCommand):
                 formations=Formation.objects.higher_ed(),
             )
             self._create_beneficiary(
-                _alias(email, "lyceene"),
+                _alias(email, "lyceenne"),
                 first_name="Lycéenne",
                 birth_date=date(today.year - 16, 1, 1),
                 level=Level.PREMIERE,
