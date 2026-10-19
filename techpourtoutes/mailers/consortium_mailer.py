@@ -107,7 +107,7 @@ class ConsortiumMailer(BaseMailer):
         cls, *, beneficiary, project_name, project_link, project_description
     ):
         cls.send_mail(
-            subject=f"Nouvelle proposition de projet Makeuse : {project_name}",
+            subject="Nouvelle proposition de projet Makeuse",
             recipient_list=settings.MAKEUSE_PROJECT_SUBMISSION_RECIPIENTS,
             context={
                 "beneficiary": beneficiary,
