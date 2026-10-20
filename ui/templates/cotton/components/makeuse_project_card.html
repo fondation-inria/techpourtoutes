@@ -21,7 +21,7 @@
 
     <div class="flex flex-col flex-1 gap-4 p-4 text-sm">
         <p class="flex items-center gap-2">
-            <c-components.icon name="creatrice-projet-makeuse" class="w-6 h-6 shrink-0" />{{ project.creator_name }}
+            <c-components.icon name="creatrice-projet-makeuse" class="w-6 h-6 shrink-0" />{{ project.creator_label }}
         </p>
         <c-components.button href="{% url "show_makeuse_project" project.slug %}" label="Découvrir le projet" variant="secondary"
                              class="w-full mt-auto after:absolute after:inset-0" />

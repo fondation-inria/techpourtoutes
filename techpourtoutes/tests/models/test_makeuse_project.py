@@ -1,6 +1,5 @@
 import pytest
 from django.core.exceptions import ValidationError
-from django.core.files.base import ContentFile
 
 from techpourtoutes.models import MakeuseProject
 
@@ -33,27 +32,12 @@ def test_makeuse_project_saves_without_image_nor_demo():
 
 
 @pytest.mark.django_db
-def test_makeuse_project_images_of_the_same_name_get_their_own_key(s3_storages):
-    first, second = build_makeuse_project(), build_makeuse_project()
-    first.image.save("visuel.webp", ContentFile(b"first"))
-    second.image.save("visuel.webp", ContentFile(b"second"))
-
-    assert first.image.name != second.image.name
-    assert first.image.name.startswith("makeuse_projects/")
-    assert first.image.name.endswith(".webp")
-    assert "visuel" not in first.image.name
-    assert first.image.read() == b"first"
-
-
-@pytest.mark.django_db
 @pytest.mark.parametrize(
     "field",
     [
         "title",
         "category",
         "project_type",
-        "creator_name",
-        "contact_email",
         "idea",
         "background",
         "methodology",
@@ -124,3 +108,38 @@ def test_makeuse_project_slug_falls_back_when_the_title_slugifies_to_nothing():
 )
 def test_makeuse_project_category_color_follows_its_category(category, color):
     assert build_makeuse_project(category=category).category_color == color
+
+
+@pytest.mark.django_db
+def test_makeuse_project_labels_fall_back_on_its_beneficiary(beneficiary):
+    project = build_makeuse_project(beneficiary=beneficiary, creator_name="", contact_email="")
+    project.save()
+
+    assert project.creator_label == "Jade Petit"
+    assert project.contact_label == "jade@example.com"
+
+
+@pytest.mark.django_db
+def test_makeuse_project_labels_prefer_what_the_team_typed(beneficiary):
+    project = build_makeuse_project(beneficiary=beneficiary)
+    project.save()
+
+    assert project.creator_label == "Hedy Lamarr"
+    assert project.contact_label == "hedy@example.com"
+
+
+@pytest.mark.django_db
+@pytest.mark.parametrize("field", ["creator_name", "contact_email"])
+def test_makeuse_project_without_beneficiary_requires_what_it_displays(field):
+    with pytest.raises(ValidationError) as error:
+        build_makeuse_project(**{field: ""}).save()
+    assert field in error.value.message_dict
+
+
+@pytest.mark.django_db
+def test_makeuse_project_goes_with_its_beneficiary(beneficiary):
+    build_makeuse_project(beneficiary=beneficiary).save()
+
+    beneficiary.delete()
+
+    assert not MakeuseProject.objects.exists()

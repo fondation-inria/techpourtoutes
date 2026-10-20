@@ -1,0 +1,7 @@
+<div>
+    <input type="hidden" name="{{ widget.name }}" value="{{ widget.value|default:'' }}"{% include "django/forms/widgets/attrs.html" %}>
+    <img data-image-preview src="{{ widget.preview_url }}" alt="" style="display: block; max-height: 300px; margin-bottom: 8px;"{% if not widget.preview_url %} hidden{% endif %}>
+    <input type="file" data-image-file accept="{{ widget.accept }}">
+    <button type="button" data-image-remove class="button"{% if not widget.value %} hidden{% endif %}>Supprimer le visuel</button>
+    <p data-image-status class="help" hidden></p>
+</div>

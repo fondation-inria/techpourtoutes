@@ -110,7 +110,8 @@ def index_makeuses(request):
         {
             "cta_href": cta_href,
             "makeuse_projects": Paginator(
-                MakeuseProject.objects.order_by("-created_at"), MAKEUSE_PROJECTS_PER_PAGE
+                MakeuseProject.objects.select_related("beneficiary").order_by("-created_at"),
+                MAKEUSE_PROJECTS_PER_PAGE,
             ).get_page(request.GET.get("page")),
         },
     )

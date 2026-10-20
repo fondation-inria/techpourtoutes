@@ -1064,6 +1064,41 @@ def test_show_makeuse_project_shows_the_whole_project(client):
 
 
 @pytest.mark.django_db
+def test_show_makeuse_project_reads_the_creator_from_her_account(client, beneficiary):
+    project = build_makeuse_project(beneficiary=beneficiary, creator_name="", contact_email="")
+    project.save()
+
+    content = client.get(reverse("show_makeuse_project", args=[project.slug])).content.decode()
+
+    assert "Jade Petit" in content
+    assert 'href="mailto:jade@example.com"' in content
+
+
+@pytest.mark.django_db
+def test_index_makeuses_cards_read_the_creator_from_her_account(client, beneficiary):
+    build_makeuse_project(beneficiary=beneficiary, creator_name="", contact_email="").save()
+
+    content = client.get(reverse("index_makeuses")).content.decode()
+
+    assert "Jade Petit" in content
+
+
+@pytest.mark.django_db
+def test_index_makeuses_reads_the_creators_without_a_query_per_card(client, beneficiary):
+    linked = {"beneficiary": beneficiary, "creator_name": "", "contact_email": ""}
+    build_makeuse_project(title="Projet 0", **linked).save()
+    with CaptureQueriesContext(connection) as one_project:
+        client.get(reverse("index_makeuses"))
+
+    for index in range(1, 4):
+        build_makeuse_project(title=f"Projet {index}", **linked).save()
+    with CaptureQueriesContext(connection) as four_projects:
+        client.get(reverse("index_makeuses"))
+
+    assert len(four_projects.captured_queries) == len(one_project.captured_queries)
+
+
+@pytest.mark.django_db
 def test_show_makeuse_project_takes_the_color_of_its_category(client):
     project = build_makeuse_project(category=MakeuseProject.Category.DATA_AND_AI)
     project.image.name = "makeuse_projects/visuel.webp"

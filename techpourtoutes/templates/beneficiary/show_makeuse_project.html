@@ -42,14 +42,14 @@
                         <c-components.icon name="creatrice-projet-makeuse" class="w-6 h-6 shrink-0" />
                         <div class="min-w-0">
                             <p class="font-bold text-lg">Créatrice</p>
-                            <p>{{ project.creator_name }}</p>
+                            <p>{{ project.creator_label }}</p>
                         </div>
                     </div>
                     <div class="flex gap-3">
                         <c-components.icon name="contact-projet-makeuse" class="w-6 h-6 shrink-0" />
                         <div class="min-w-0">
                             <p class="font-bold text-lg">Contact</p>
-                            <c-components.inline-link href="mailto:{{ project.contact_email }}" label="{{ project.contact_email }}" class="break-all" />
+                            <c-components.inline-link href="mailto:{{ project.contact_label }}" label="{{ project.contact_label }}" class="break-all" />
                         </div>
                     </div>
                 </div>

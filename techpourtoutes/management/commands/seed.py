@@ -1,5 +1,6 @@
 from datetime import date, time, timedelta
 from decimal import Decimal
+from uuid import uuid4
 
 from django.conf import settings
 from django.core.files import File
@@ -16,6 +17,7 @@ from techpourtoutes.models import (
     TrainingExperience,
 )
 from techpourtoutes.models.beneficiary import Beneficiary
+from techpourtoutes.models.makeuse_project import IMAGE_PREFIX
 from techpourtoutes.utils.school_year import (
     current_school_year_end_date,
     current_school_year_start_date,
@@ -154,7 +156,7 @@ class Command(BaseCommand):
             )
             project = MakeuseProject(**fields)
             with open(image_path, "rb") as image:
-                project.image.save(image_path.name, File(image))
+                project.image.save(f"{IMAGE_PREFIX}/{uuid4().hex}{image_path.suffix}", File(image))
             self.stdout.write(self.style.SUCCESS(f"  Makeuse project created: {title}"))
 
 

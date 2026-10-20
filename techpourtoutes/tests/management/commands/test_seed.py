@@ -3,7 +3,9 @@ from django.core.management import call_command
 from django.core.management.base import CommandError
 from django.test import override_settings
 
+from techpourtoutes.forms.fields import UploadedImageKeyField
 from techpourtoutes.models import Beneficiary, Event, MakeuseProject, Pro, TrainingExperience
+from techpourtoutes.models.makeuse_project import IMAGE_PREFIX
 from techpourtoutes.utils.dates import compute_age
 
 # The seed saves an image: keep it off the local media folder.
@@ -150,6 +152,7 @@ def test_seed_creates_makeuse_projects_with_an_image_and_a_demo():
     assert projects.filter(slug="laventure-tech").exists()
     for project in projects:
         assert project.image.read()
+        assert UploadedImageKeyField(prefix=IMAGE_PREFIX).clean(project.image.name)
         assert project.demo_url
 
 
