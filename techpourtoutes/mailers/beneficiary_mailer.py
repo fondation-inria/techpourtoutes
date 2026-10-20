@@ -41,3 +41,27 @@ class BeneficiaryMailer(BaseMailer):
             context={"beneficiary": beneficiary},
             tags=["utilisateur", "beneficiaire", "nouvelle proposition de projet Makeuse"],
         )
+
+    @classmethod
+    def legal_representative_authorization_signed(cls, *, authorization):
+        cls.send_mail(
+            subject=(
+                f"{authorization.legal_representative_name} a signé l'autorisation pour que tu "
+                "puisses bénéficier du programme TechPourToutes"
+            ),
+            recipient_list=[authorization.beneficiary.email],
+            context={"authorization": authorization, "beneficiary": authorization.beneficiary},
+            tags=["utilisateur", "beneficiaire", "autorisation signée"],
+        )
+
+    @classmethod
+    def legal_representative_authorization_reminder(cls, *, authorization):
+        cls.send_mail(
+            subject=(
+                f"{authorization.legal_representative_name} n'a pas encore signé l'autorisation "
+                "pour que tu puisses bénéficier du programme TechPourToutes"
+            ),
+            recipient_list=[authorization.beneficiary.email],
+            context={"authorization": authorization, "beneficiary": authorization.beneficiary},
+            tags=["utilisateur", "beneficiaire", "relance autorisation"],
+        )

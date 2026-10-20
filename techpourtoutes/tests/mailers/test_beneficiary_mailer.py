@@ -46,3 +46,34 @@ def test_event_updated_links_to_the_event(event, beneficiary):
     message = mail.outbox[0]
     assert expected_url in message.body
     assert expected_url in message.alternatives[0][0]
+
+
+@pytest.mark.django_db
+def test_legal_representative_authorization_signed_names_the_signatory(authorization):
+    authorization.legal_representative_name = "Marie Dupont"
+
+    BeneficiaryMailer.legal_representative_authorization_signed(authorization=authorization)
+
+    message = mail.outbox[0]
+    assert message.to == ["oceane@example.com"]
+    assert message.from_email == "TechPourToutes <bonjour@techpourtoutes.io>"
+    assert message.subject == (
+        "Marie Dupont a signé l'autorisation pour que tu puisses bénéficier du programme "
+        "TechPourToutes"
+    )
+    assert "Bonjour Océane," in message.body
+
+
+@pytest.mark.django_db
+def test_legal_representative_authorization_reminder_names_the_legal_representative(
+    authorization,
+):
+    BeneficiaryMailer.legal_representative_authorization_reminder(authorization=authorization)
+
+    message = mail.outbox[0]
+    assert message.to == ["oceane@example.com"]
+    assert message.subject == (
+        "Marie Petit n'a pas encore signé l'autorisation pour que tu puisses bénéficier du "
+        "programme TechPourToutes"
+    )
+    assert "Peux-tu en reparler avec Marie Petit" in message.body

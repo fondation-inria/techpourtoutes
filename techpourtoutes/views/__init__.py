@@ -72,6 +72,11 @@ from .event_views import (
     new_event,
     update_event,
 )
+from .legal_representative_authorization_views import (
+    edit_legal_representative_authorization,
+    show_legal_representative_authorization,
+    update_legal_representative_authorization,
+)
 from .local_upload_views import create_local_upload
 from .pro.engagement_views import create_pro_engagement, new_pro_engagement
 from .pro.inscription_views import new_pro_inscription_funnel, pro_inscription_funnel
@@ -190,4 +195,7 @@ __all__ = [
     "update_user_email",
     "update_beneficiary_training_experience",
     "update_pro_training_experience",
+    "edit_legal_representative_authorization",
+    "show_legal_representative_authorization",
+    "update_legal_representative_authorization",
 ]

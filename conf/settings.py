@@ -229,6 +229,7 @@ BREVO_PRO_LIST_ID = env.int("BREVO_PRO_LIST_ID", default=0)
 BREVO_BENEFICIARY_LIST_ID = env.int("BREVO_BENEFICIARY_LIST_ID", default=0)
 BREVO_MANIFESTE_LIST_ID = env.int("BREVO_MANIFESTE_LIST_ID", default=0)
 BREVO_EMAIL_NOTIFICATION_LIST_ID = env.int("BREVO_EMAIL_NOTIFICATION_LIST_ID", default=0)
+BREVO_LEGAL_REPRESENTATIVE_LIST_ID = env.int("BREVO_LEGAL_REPRESENTATIVE_LIST_ID", default=0)
 BREVO_SYNC_ENABLED = env.bool("BREVO_SYNC_ENABLED", default=False)
 
 # Coalition engagement notification recipients
@@ -257,10 +258,6 @@ JOBIRL_ACCOUNT_DELETION_RECIPIENTS = env.list(
 )
 LATITUDE_ACCOUNT_DELETION_RECIPIENTS = env.list(
     "LATITUDE_ACCOUNT_DELETION_RECIPIENTS", default=["bonjour@techpourtoutes.io"]
-)
-
-NEW_MENTORING_SIGNUP_RECIPIENTS = env.list(
-    "NEW_MENTORING_SIGNUP_RECIPIENTS", default=["bonjour@techpourtoutes.io"]
 )
 
 NEW_EVENT_RECIPIENTS = env.list("NEW_EVENT_RECIPIENTS", default=["agir@techpourtoutes.io"])

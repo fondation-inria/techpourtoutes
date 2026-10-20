@@ -13,7 +13,8 @@ class BaseMailer:
     A subclass exposes `@classmethod`s that call
     `cls.send_mail(subject=..., recipient_list=..., context=..., tags=...)`. It may set
     `from_email` (otherwise Django falls back to `DEFAULT_FROM_EMAIL`), and `send_mail` accepts
-    a `from_email` override per call. No other attribute is required:
+    a `from_email` override per call, and `attachments` as `(filename, content, mimetype)`.
+    No other attribute is required:
     - the template name is the calling method's name;
     - the folder is derived from the class name (`Mailer` suffix dropped, CamelCase split).
 
@@ -27,7 +28,16 @@ class BaseMailer:
     from_email = None
 
     @classmethod
-    def send_mail(cls, *, subject, recipient_list, context=None, tags=None, from_email=None):
+    def send_mail(
+        cls,
+        *,
+        subject,
+        recipient_list,
+        context=None,
+        tags=None,
+        from_email=None,
+        attachments=None,
+    ):
         template = sys._getframe(1).f_code.co_name  # retrieves the calling method name
         full_context = cls._base_context() | (context or {})
         message = EmailMultiAlternatives(
@@ -35,6 +45,7 @@ class BaseMailer:
             body=render_to_string(cls._template_path(template, "txt"), full_context),
             from_email=from_email or cls.from_email,
             to=recipient_list,
+            attachments=attachments,
         )
         message.attach_alternative(
             render_to_string(cls._template_path(template, "html"), full_context), "text/html"

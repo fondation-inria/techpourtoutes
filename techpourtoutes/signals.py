@@ -1,10 +1,16 @@
 from django.conf import settings
 from django.db import transaction
 from django.db.models.signals import m2m_changed, post_save, pre_delete
+from django.dispatch import Signal
 
 from techpourtoutes.services.brevo_api.mappings import brevo_list_id_for
+from techpourtoutes.tasks.create_mentoree import create_mentoree_task
 from techpourtoutes.tasks.delete_brevo_contact import delete_brevo_contact_task
 from techpourtoutes.tasks.upsert_brevo_contact import upsert_brevo_contact_task
+
+# Sent once a legal representative's signature is committed, with the `authorization`: what it
+# unlocks follows from here, without the authorization knowing about it.
+legal_representative_authorization_signed = Signal()
 
 
 def _on_user_saved(sender, instance, **kwargs):
@@ -62,6 +68,11 @@ def _on_user_groups_changed(instance, action, reverse, **kwargs):
     type(instance).all_objects.filter(pk=instance.pk).update(is_staff=instance.is_staff)
 
 
+def _register_mentoree(sender, authorization, **kwargs):
+    """A minor's mentoring was only waiting for her legal representative's signature."""
+    create_mentoree_task.delay(beneficiary_pk=str(authorization.beneficiary.pk))
+
+
 def connect_staff_flag_sync(model_cls):
     """Connect the m2m_changed handler keeping `is_staff` in step with the user's groups."""
     m2m_changed.connect(_on_user_groups_changed, sender=model_cls.groups.through, weak=False)
@@ -74,3 +85,8 @@ def connect_brevo_sync(model_cls):
     """
     post_save.connect(_on_user_saved, sender=model_cls, weak=False)
     pre_delete.connect(_on_user_deleted, sender=model_cls, weak=False)
+
+
+def connect_mentoring_to_legal_representative_authorization():
+    """Register the mentoree on Jobirl once her legal representative signs."""
+    legal_representative_authorization_signed.connect(_register_mentoree, weak=False)

@@ -6,6 +6,9 @@
     },
     {
       "command": "0 4 * * * python manage.py purge_orphan_event_images"
+    },
+    {
+      "command": "0 9 * * * python manage.py send_legal_representative_authorization_reminders"
     }
   ]
 }
