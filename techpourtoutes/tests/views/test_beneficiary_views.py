@@ -1021,7 +1021,25 @@ def test_index_makeuses_shows_six_projects_and_a_link_to_the_next_page(client):
     response = client.get(reverse("index_makeuses"))
 
     assert len(response.context["makeuse_projects"].object_list) == 6
-    assert b'href="?page=2"' in response.content
+    assert b'href="?page=2#projets"' in response.content
+
+
+@pytest.mark.django_db
+def test_index_makeuses_pagination_stays_on_the_projects(client):
+    """Paging swaps the projects alone, back at the top of their list; without JavaScript,
+    the link's anchor still lands there."""
+    for index in range(8):
+        build_makeuse_project(title=f"Projet {index:02d}").save()
+
+    content = client.get(reverse("index_makeuses")).content.decode()
+
+    assert 'id="projets"' in content
+    assert 'href="?page=2#projets"' in content
+    assert 'hx-get="?page=2"' in content
+    assert 'hx-select="#projets"' in content
+    assert 'hx-target="#projets"' in content
+    assert 'hx-swap="outerHTML show:#projets:top"' in content
+    assert 'hx-push-url="true"' in content
 
 
 @pytest.mark.django_db
@@ -1043,6 +1061,7 @@ def test_index_makeuses_cards_link_to_the_project_detail_page(client):
     content = client.get(reverse("index_makeuses")).content.decode()
 
     assert f'href="{reverse("show_makeuse_project", args=[project.slug])}"' in content
+    assert 'aria-label="Voir le projet Une appli pour trouver un stage"' in content
 
 
 @pytest.mark.django_db
@@ -1138,7 +1157,7 @@ def test_show_makeuse_project_back_link_keeps_the_listing_page(client):
         HTTP_REFERER=f"http://testserver{reverse('index_makeuses')}?page=2",
     )
 
-    assert response.context["back_url"] == f"{reverse('index_makeuses')}?page=2"
+    assert response.context["back_url"] == f"{reverse('index_makeuses')}?page=2#projets"
 
 
 @pytest.mark.django_db

@@ -123,7 +123,7 @@ def show_makeuse_project(request, slug):
         "beneficiary/show_makeuse_project.html",
         {
             "project": get_object_or_404(MakeuseProject, slug=slug),
-            "back_url": _back_to_listing(request, "index_makeuses"),
+            "back_url": _back_to_listing(request, "index_makeuses", anchor="projets"),
         },
     )
 
@@ -237,12 +237,14 @@ def _events_page(beneficiary, page):
     return Paginator(upcoming, EVENTS_PER_PAGE).get_page(page)
 
 
-def _back_to_listing(request, *listings):
-    """The first listing is the fallback."""
+def _back_to_listing(request, *listings, anchor=""):
+    """The first listing is the fallback. `anchor` only follows a visitor who came from the
+    listing: she goes back to where she was, whereas one who landed here from elsewhere starts
+    at the top of the listing."""
     for candidate in (request.GET.get("back", ""), request.headers.get("referer", "")):
         back_url = _authorized_back_url(request, candidate, listings)
         if back_url:
-            return back_url
+            return f"{back_url}#{anchor}" if anchor else back_url
     return reverse(listings[0])
 
 
