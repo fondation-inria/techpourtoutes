@@ -1,3 +1,4 @@
+import re
 from datetime import timedelta
 from unittest.mock import patch
 from urllib.parse import parse_qs, urlparse
@@ -138,7 +139,7 @@ def test_show_account_invites_the_beneficiary_to_browse_when_she_saved_none(
     content = client.get(reverse("show_account")).content.decode()
 
     assert "Retrouve tes événements enregistrés" in content
-    assert "Tu as " not in content
+    assert not re.search(r"Tu as \d", content)
 
 
 @pytest.mark.django_db

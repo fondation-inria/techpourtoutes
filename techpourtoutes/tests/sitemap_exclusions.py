@@ -37,6 +37,8 @@ NEVER_LISTED_URL_NAMES = {
     "new_event",
     "new_training_ambassador_request",
     "create_training_ambassador_request",
+    "new_makeuse_project_submission",
+    "create_makeuse_project_submission",
     # Form submission endpoints (their GET page is the one listed)
     "create_manifeste_signature",
     "create_upcoming_feature_notification",

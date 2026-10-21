@@ -47,6 +47,10 @@ SEED_ENABLED = env.bool("SEED_ENABLED", default=DEBUG)
 SEED_ADMIN_EMAIL = env("SEED_ADMIN_EMAIL", default="admin@techpourtoutes.io")
 SEED_ADMIN_PASSWORD = env("SEED_ADMIN_PASSWORD", default="admin")
 SEED_BENEFICIARY_EMAIL = env("SEED_BENEFICIARY_EMAIL", default="beneficiary@techpourtoutes.io")
+SEED_TEAM_EMAILS = env.list("SEED_TEAM_EMAILS", default=[])
+# Every login or email-change code is this one, so local dev never needs a trip to Mailpit.
+# Ignored outside DEBUG: set by mistake on a deployed app, it would open every account.
+FIXED_VERIFICATION_CODE = env("FIXED_VERIFICATION_CODE", default="") if DEBUG else ""
 DATABASES = {
     "default": {
         **env.db("DATABASE_URL"),
@@ -263,6 +267,10 @@ NEW_MENTORING_SIGNUP_RECIPIENTS = env.list(
 )
 
 NEW_EVENT_RECIPIENTS = env.list("NEW_EVENT_RECIPIENTS", default=["agir@techpourtoutes.io"])
+
+MAKEUSE_PROJECT_SUBMISSION_RECIPIENTS = env.list(
+    "MAKEUSE_PROJECT_SUBMISSION_RECIPIENTS", default=["bonjour@techpourtoutes.io"]
+)
 
 # Celery
 CELERY_BROKER_URL = env("REDIS_URL", default="redis://localhost:6379/0")

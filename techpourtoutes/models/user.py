@@ -3,6 +3,7 @@ import secrets
 from datetime import timedelta
 from urllib.parse import urlencode
 
+from django.conf import settings
 from django.contrib.auth.models import AbstractUser, UserManager
 from django.core import signing
 from django.core.validators import EmailValidator
@@ -276,4 +277,4 @@ def _hash_token(plaintext: str) -> str:
 
 
 def generate_numeric_code() -> str:
-    return f"{secrets.randbelow(1_000_000):06d}"
+    return settings.FIXED_VERIFICATION_CODE or f"{secrets.randbelow(1_000_000):06d}"

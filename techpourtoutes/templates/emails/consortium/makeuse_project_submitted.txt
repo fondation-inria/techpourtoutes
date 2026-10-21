@@ -1,0 +1,10 @@
+Bonjour,
+
+{{ beneficiary.first_name }} {{ beneficiary.last_name }} a transmis une proposition de projet Makeuse :
+
+Nom du projet : {{ project_name }}
+Lien vers le projet : {{ project_link }}
+Description du projet : {{ project_description }}
+
+Tu peux la contacter à cette adresse mail : {{ beneficiary.email }}
+Merci
