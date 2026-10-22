@@ -38,4 +38,9 @@ class UploadedImageKeyField(CharField):
     def validate(self, value):
         super().validate(value)
         if value and not (self.key_pattern.fullmatch(value) and storages["public"].exists(value)):
-            raise ValidationError(_("Ce visuel est introuvable, importez-le à nouveau."))
+            raise ValidationError(
+                _(
+                    "Un problème a eu lieu pour l'importation du visuel, "
+                    "merci d'essayer de l'importer à nouveau."
+                )
+            )
