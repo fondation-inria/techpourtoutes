@@ -42,6 +42,45 @@ def test_show_account_shows_forum_link_when_engaged_as_training_ambassador(clien
 
 
 @pytest.mark.django_db
+def test_show_account_shows_only_profile_events_and_training_ambassador_to_a_training_ambassador(
+    client, pro
+):
+    pro.engagements = [Pro.Engagement.TRAINING_AMBASSADOR]
+    pro.save()
+    client.force_login(pro)
+
+    content = client.get(reverse("show_account")).content.decode()
+
+    for title in ("Profil", "Événements", "Ambassadorat étudiant"):
+        assert f"{title}<" in content
+    for title in ("Mentorat", "Ambassadorat métier", "Stages &amp; alternances", "Ateliers"):
+        assert title not in content
+
+
+@pytest.mark.django_db
+def test_show_account_offers_the_training_ambassador_to_a_pro_with_no_engagement(client, pro):
+    client.force_login(pro)
+
+    response = client.get(reverse("show_account"))
+
+    assert "Découvrir l&#x27;ambassadorat étudiant" in response.content.decode()
+
+
+@pytest.mark.django_db
+def test_show_account_hides_the_training_ambassador_from_a_pro_with_another_engagement(
+    client, pro
+):
+    pro.engagements = [Pro.Engagement.MENTOR]
+    pro.save()
+    client.force_login(pro)
+
+    content = client.get(reverse("show_account")).content.decode()
+
+    assert "Ambassadorat étudiant" not in content
+    assert "Ambassadorat métier" in content
+
+
+@pytest.mark.django_db
 def test_show_account_offers_proposing_an_event_when_the_pro_has_none(client, pro):
     client.force_login(pro)
 

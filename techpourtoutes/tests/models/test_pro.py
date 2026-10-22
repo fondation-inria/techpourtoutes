@@ -155,3 +155,16 @@ def test_pro_may_mobilize_her_structure(pro):
     pro.add_engagement(Pro.Engagement.MOBILIZE_STRUCTURE)
     pro.save()
     assert Pro.objects.get(pk=pro.pk).engagements == ["mobilize_structure"]
+
+
+@pytest.mark.parametrize(
+    "engagements, expected",
+    [
+        ([], True),
+        ([Pro.Engagement.TRAINING_AMBASSADOR], True),
+        ([Pro.Engagement.MENTOR], False),
+        ([Pro.Engagement.TRAINING_AMBASSADOR, Pro.Engagement.WORKSHOPS], False),
+    ],
+)
+def test_may_be_training_ambassador_unless_another_engagement_was_taken(engagements, expected):
+    assert Pro(engagements=engagements).may_be_training_ambassador is expected
