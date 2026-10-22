@@ -28,7 +28,7 @@ class Migration(migrations.Migration):
         migrations.AlterField(
             model_name='pro',
             name='engagements',
-            field=django.contrib.postgres.fields.ArrayField(base_field=models.CharField(choices=[('mentor', 'mentorer'), ('internships', 'accueillir une stagiaire'), ('work_ambassador', 'pitcher son métier'), ('training_ambassador', 'devenir ambassadrice étudiante'), ('sponsor', 'devenir mécène'), ('workshops', 'organiser un atelier'), ('mobilize_structure', 'mobiliser sa structure')], max_length=30), blank=True, default=list, verbose_name='engagements'),
+            field=django.contrib.postgres.fields.ArrayField(base_field=models.CharField(choices=[('mentor', 'mentorer'), ('internships', 'accueillir une stagiaire'), ('work_ambassador', 'pitcher son métier'), ('training_ambassador', 'devenir ambassadrice étudiante'), ('sponsor', 'devenir mécène'), ('workshops', 'organiser un atelier'), ('mobilize_structure', 'engager sa structure')], max_length=30), blank=True, default=list, verbose_name='engagements'),
         ),
         migrations.RunPython(infer_structure_type, migrations.RunPython.noop),
     ]

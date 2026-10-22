@@ -2,11 +2,15 @@
 
 {% load pro_engagements %}
 {% pro_engagement_action request.user engagement as action %}
-{% if action == "add" %}
+{% if action.name == "add" %}
     {% url "create_pro_engagement" engagement as add_url %}
     <c-patterns.form hx-post="{{ add_url }}?next={{ request.get_full_path|urlencode }}">
         <c-components.button type="submit" label="{{ label }}" variant="{{ variant }}" />
     </c-patterns.form>
-{% elif action %}
+{% elif action.name == "mentoring_space" %}
+    <c-components.button href="{% url "login_to_jobirl" %}" label="Rejoindre mon espace mentorat" variant="{{ variant }}" target="_blank" />
+{% elif action.name == "disabled" %}
+    <c-patterns.disabled_button label="{{ label }}" variant="{{ variant }}" reason="{{ action.refusal_reason }}" />
+{% elif action.name %}
     <c-components.button href="{% url "new_pro_engagement" engagement %}" label="{{ label }}" variant="{{ variant }}" />
 {% endif %}

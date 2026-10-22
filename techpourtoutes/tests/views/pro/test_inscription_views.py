@@ -396,7 +396,7 @@ def test_the_last_screen_sends_the_welcome_mail_with_the_login_code(client):
 
 
 def test_the_message_of_another_engagement_reaches_the_team(client, settings):
-    settings.COALITION_OTHER_ENGAGEMENT_RECIPIENTS = ["agir@example.com"]
+    settings.COALITION_WORK_AMBASSADOR_RECIPIENTS = ["company@example.com"]
     _seed_funnel(
         client,
         current="additional_information",
@@ -407,7 +407,7 @@ def test_the_message_of_another_engagement_reaches_the_team(client, settings):
 
     _post_step(client, "additional_information", _ADDITIONAL_INFORMATION)
 
-    [relayed] = [m for m in mail.outbox if m.to == ["agir@example.com"]]
+    [relayed] = [m for m in mail.outbox if m.to == ["company@example.com"]]
     assert "Je veux aider autrement." in relayed.body
 
 

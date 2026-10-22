@@ -1,0 +1,7 @@
+<c-vars label="" variant="" reason="" />
+
+{# The reason stays in the page after the button, so screen readers read it too; it shows on hover or tap. #}
+<span class="group relative inline-block">
+    <c-components.button label="{{ label }}" variant="{{ variant }}" :disabled="True" />
+    <span class="pointer-events-none absolute left-1/2 top-full z-10 mt-1 w-72 max-w-[80vw] -translate-x-1/2 rounded bg-neutral-950 px-3 py-2 text-xs text-neutral-50 opacity-0 group-hover:opacity-100">{{ reason }}</span>
+</span>

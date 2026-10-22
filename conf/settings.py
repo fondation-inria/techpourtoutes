@@ -244,11 +244,14 @@ COALITION_TRAINING_AMBASSADOR_RECIPIENTS = env.list(
 COALITION_SPONSOR_RECIPIENTS = env.list(
     "COALITION_SPONSOR_RECIPIENTS", default=["bonjour@techpourtoutes.io"]
 )
-COALITION_MOBILIZE_STRUCTURE_RECIPIENTS = env.list(
-    "COALITION_MOBILIZE_STRUCTURE_RECIPIENTS", default=["agir@techpourtoutes.io"]
+COALITION_ASSOCIATION_RECIPIENTS = env.list(
+    "COALITION_ASSOCIATION_RECIPIENTS", default=["agir@techpourtoutes.io"]
 )
-COALITION_OTHER_ENGAGEMENT_RECIPIENTS = env.list(
-    "COALITION_OTHER_ENGAGEMENT_RECIPIENTS", default=["agir@techpourtoutes.io"]
+COALITION_SCHOOL_RECIPIENTS = env.list(
+    "COALITION_SCHOOL_RECIPIENTS", default=["agir@techpourtoutes.io"]
+)
+COALITION_PUBLIC_INSTITUTION_RECIPIENTS = env.list(
+    "COALITION_PUBLIC_INSTITUTION_RECIPIENTS", default=["agir@techpourtoutes.io"]
 )
 
 

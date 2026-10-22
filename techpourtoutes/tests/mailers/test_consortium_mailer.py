@@ -13,7 +13,6 @@ from techpourtoutes.models import Formation, Pro, TrainingExperience
     COALITION_WORK_AMBASSADOR_RECIPIENTS=["ambassador@example.com"],
     COALITION_TRAINING_AMBASSADOR_RECIPIENTS=["training@example.com"],
     COALITION_SPONSOR_RECIPIENTS=["sponsor@example.com"],
-    COALITION_MOBILIZE_STRUCTURE_RECIPIENTS=["structure@example.com"],
 )
 @pytest.mark.parametrize(
     "engagement,recipient",
@@ -21,7 +20,6 @@ from techpourtoutes.models import Formation, Pro, TrainingExperience
         (Pro.Engagement.INTERNSHIPS, "internships@example.com"),
         (Pro.Engagement.WORK_AMBASSADOR, "ambassador@example.com"),
         (Pro.Engagement.SPONSOR, "sponsor@example.com"),
-        (Pro.Engagement.MOBILIZE_STRUCTURE, "structure@example.com"),
     ],
 )
 def test_pro_signed_up_routes_to_engagement_recipient(pro, engagement, recipient):
@@ -35,13 +33,46 @@ def test_pro_signed_up_routes_to_engagement_recipient(pro, engagement, recipient
 
 @pytest.mark.django_db
 @override_settings(
-    COALITION_OTHER_ENGAGEMENT_RECIPIENTS=["agir@example.com"],
+    COALITION_ASSOCIATION_RECIPIENTS=["association@example.com"],
+    COALITION_TRAINING_AMBASSADOR_RECIPIENTS=["training@example.com"],
+    COALITION_SCHOOL_RECIPIENTS=["school@example.com"],
+    COALITION_WORK_AMBASSADOR_RECIPIENTS=["ambassador@example.com"],
+    COALITION_PUBLIC_INSTITUTION_RECIPIENTS=["public@example.com"],
+)
+@pytest.mark.parametrize("engagement", [Pro.Engagement.MOBILIZE_STRUCTURE, OTHER])
+@pytest.mark.parametrize(
+    "structure_type,recipient",
+    [
+        (Pro.StructureType.ASSOCIATION, "association@example.com"),
+        (Pro.StructureType.HIGHER_ED, "training@example.com"),
+        (Pro.StructureType.SCHOOL, "school@example.com"),
+        (Pro.StructureType.COMPANY, "ambassador@example.com"),
+        (Pro.StructureType.PUBLIC_INSTITUTION, "public@example.com"),
+        (Pro.StructureType.RETIRED, "training@example.com"),
+        (Pro.StructureType.JOBLESS, "training@example.com"),
+    ],
+)
+def test_pro_signed_up_routes_a_structure_engagement_to_her_structure_type_recipient(
+    pro, engagement, structure_type, recipient
+):
+    pro.structure_type = structure_type
+
+    ConsortiumMailer.pro_signed_up(pro=pro, engagement=engagement)
+
+    assert mail.outbox[0].to == [recipient]
+
+
+@pytest.mark.django_db
+@override_settings(
+    COALITION_WORK_AMBASSADOR_RECIPIENTS=["ambassador@example.com"],
 )
 def test_pro_signed_up_relays_the_message_of_another_engagement(pro):
+    pro.structure_type = Pro.StructureType.COMPANY
+
     ConsortiumMailer.pro_signed_up(pro=pro, engagement=OTHER, message="Je veux aider autrement.")
 
     message = mail.outbox[0]
-    assert message.to == ["agir@example.com"]
+    assert message.to == ["ambassador@example.com"]
     assert "s'engager autrement" in message.subject
     assert "Je veux aider autrement." in message.body
     assert "Je veux aider autrement." in message.alternatives[0][0]

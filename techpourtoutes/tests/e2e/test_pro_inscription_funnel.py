@@ -26,7 +26,7 @@ def _complete_email_and_identity(page):
     page.fill('input[name="email"]', "hedy@example.com")
     page.get_by_role("button", name="Continuer").click()
     expect(_current_step(page)).to_have_value("identity")
-    select_option(page, "Civilité*", "Madame")
+    page.locator('input[name="civility"][value="Madame"]').check(force=True)
     page.fill('input[name="first_name"]', "Hedy")
     page.fill('input[name="last_name"]', "Lamarr")
     page.locator('input[name="manifeste_accepted"]').check(force=True)
