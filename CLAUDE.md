@@ -112,6 +112,7 @@ The same app serves two audiences. The beneficiaries' site lives at `/` (`urls_b
 - `WorkshopRequest` — one row per workshop type requested by a `Pro`, with an optional shared remark.
 - `Event` — one event submitted by a `Pro`, moderated in the admin (`status` pending / approved / rejected, tracked by `HistoricalRecords`). `subcategory` holds either a `Subcategory` value or the free text typed when none fits, so `category` is not a column: it is derived through the `SUBCATEGORIES` map — free text lands where `OTHER` does — and drives `category_color`, the colour of the card. A `CheckConstraint` enforces that an event ends after it starts. `EventQuerySet` composes `approved()`, `upcoming()` (one that has started but not ended is still to come), `past()`, `in_category()` / `in_subcategory()`.
 - `SavedEvent` — one event a `Beneficiary` put aside, unique per pair. `SavedEvent.objects.toggle(event=…, beneficiary=…)` deletes the row or creates it, and returns whether the event is now saved.
+- `MakeuseProject` — one project showcased on `index_makeuses`, entered by the team in the admin. Its `category` is a closed choice that drives `category_color`, the colour of its card and detail page; `project_type` is free text, only the label of its badge. Its slug, like `Event`'s, comes from `SlugFromTitleMixin` (`models/mixins/`): derived from the title on the first save, then never moved. `show_makeuse_project` and `show_event` share `_back_to_listing`, which keeps the listing page the visitor came from. It may belong to a `Beneficiary` (`on_delete=CASCADE`, and `Beneficiary.soft_delete()` deletes her projects too: her name, parcours and hobbies are on show). `creator_name` / `contact_email` override what her account says; without a beneficiary, `clean()` requires them. Templates read `creator_label` / `contact_label`, never the columns. Its image is uploaded from the admin straight to the bucket, like the events': `ImageUploadWidget` (`admin/fields.py`) loads `ui/static/js/admin_image_upload.js` — the funnel component's shrink-and-send logic, rewritten without Alpine — and `MakeuseProjectAdmin.get_urls()` adds the signing view.
 
 **Relationships:**
 
@@ -188,6 +189,7 @@ Exceptions are rare — static pages (`static_views`, `home`…), `search_views`
 - Files never go through the app: `CreatePresignedUpload` (`services/storage/`) signs a PUT the browser sends straight to the bucket, whose signed headers (exact `Content-Length`, checked against a maximum before signing, `Content-Type`, ACL, `Cache-Control`) the bucket enforces. The key is a UUID under a prefix, never the client's filename.
 - Without `S3_PRIVATE_BUCKET` (local dev, tests) both storages fall back to the disk, and the same PUT is signed by Django (`utils/local_upload.py`) and received by `create_local_upload`, which enforces the same policy.
 - A private file is never linked by its presigned URL — it expires — but by an app route that checks permissions and redirects to a freshly signed one.
+- An upload no record ends up holding is deleted nightly by `purge_orphan_images` (`cron.json`), which reads each prefix against its model through `IMAGE_HOLDERS` (`services/storage/purge_orphan_images.py`): a new upload prefix goes there.
 - Tests use the `s3_storages` fixture (moto), which does **not** enforce signed headers: assert on the signed URL (`X-Amz-SignedHeaders`) instead.
 
 **Audit trail:** `django-simple-history` middleware is active — models that need history tracking use `HistoricalRecords`.
@@ -207,7 +209,7 @@ Exceptions are rare — static pages (`static_views`, `home`…), `search_views`
 - Mixins, custom Managers / QuerySets and utility modules isolate behaviour (Basecamp-style concerns); service objects hold procedural logic with success/failure states. Keep models and views lean.
 - Avoid unnecessary guard clauses and intermediate variables. Prefer native framework solutions over custom ones.
 - Comments only for code that is truly hard to understand.
-- Docstrings and comments are in English. Only what the user sees is in French: CLI output, argument `help`, validation messages, `verbose_name`, templates and emails.
+- Docstrings and comments are in English. Only what the user sees is in French: CLI output, validation messages, `verbose_name`, templates and emails.
 - User-facing French is written in the feminine (the site explains why on `pourquoi_nous_ecrivons_au_feminin`): « inscrite », « une mentore », « ta date de naissance ». Pros are addressed with « vous », beneficiaries with « tu ». In templates, French typography puts `&nbsp;` before `: ; ! ?`.
 - Do not reference AI tools (Claude, Cursor, etc.) in code, comments, or commits.
 

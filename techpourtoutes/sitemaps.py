@@ -1,7 +1,7 @@
 from django.contrib.sitemaps import Sitemap
 from django.urls import reverse
 
-from .models import Event
+from .models import Event, MakeuseProject
 
 COMMON_PAGE_NAMES = [
     "notre_manifeste",
@@ -54,3 +54,17 @@ class EventSitemap(Sitemap):
 
     def location(self, event):
         return reverse("show_event", args=[event.slug])
+
+
+class MakeuseProjectSitemap(Sitemap):
+    changefreq = "monthly"
+    priority = 0.6
+
+    def items(self):
+        return MakeuseProject.objects.order_by("created_at")
+
+    def lastmod(self, project):
+        return project.updated_at
+
+    def location(self, project):
+        return reverse("show_makeuse_project", args=[project.slug])
