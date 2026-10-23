@@ -173,7 +173,7 @@ def test_a_failed_submit_keeps_the_chosen_school_collapsed(page, funnel_url):
     pick(page, HIGH_SCHOOL_LABEL, "voltaire", "Lycée Voltaire (75011)")
     # The formation is left unpicked, so the step comes back with an error.
     page.get_by_role("button", name="Rejoindre le club").click()
-    expect(page.get_by_text("Sélectionnez une formation valide.")).to_be_visible()
+    expect(page.get_by_text("Sélectionner une formation valide.")).to_be_visible()
     # htmx only wipes what Alpine computed once its settle phase runs, so the screen has to be
     # judged after it — an immediate assertion would pass on a state that lasts milliseconds.
     page.wait_for_timeout(300)

@@ -59,7 +59,7 @@ class BeneficiaryTrainingExperienceForm(TrainingExperienceFormMixin, forms.Form)
         cleaned_data = super().clean()
         period_label = cleaned_data.get("period_label")
         if period_label and self._has_duplicate_period_label(period_label):
-            self.add_error("period_label", _("Vous avez déjà renseigné cette année."))
+            self.add_error("period_label", _("Tu as déjà renseigné cette année."))
         if not cleaned_data.get("not_enrolled"):
             self.resolve_school_for_level(cleaned_data.get("level"))
             self.resolve_formation()

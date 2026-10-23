@@ -581,7 +581,7 @@ def test_training_experience_step_does_not_create_without_an_establishment(
     )
 
     assert b'name="action" value="training_experience"' in response.content
-    assert "Sélectionnez un établissement valide.".encode() in response.content
+    assert "Sélectionner un établissement valide.".encode() in response.content
     assert not Beneficiary.objects.exists()
 
 
@@ -1205,7 +1205,7 @@ def test_a_school_removed_meanwhile_sends_her_back_to_the_training_screen(
     response = _post_step(client, "training_ambassador_request", {"topic": "Parcoursup"})
 
     assert b'name="action" value="training_experience"' in response.content
-    assert "Sélectionnez un établissement valide.".encode() in response.content
+    assert "Sélectionner un établissement valide.".encode() in response.content
     assert not Beneficiary.objects.exists()
 
 

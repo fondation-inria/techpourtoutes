@@ -115,7 +115,7 @@
                        id="{{ name_field.id_for_label }}"
                        x-model="structureName"
                        autocomplete="off"
-                       placeholder="Saisissez le nom de votre établissement"
+                       placeholder="Saisir le nom de l'établissement"
                        class="field-base {% if name_field.errors %}field-error{% else %}field-default{% endif %}" />
                 <c-components.form_fields.messages :field=name_field :errors=id_field.errors />
                 {% if not_found_postal_field %}
