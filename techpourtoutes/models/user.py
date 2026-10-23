@@ -117,10 +117,10 @@ class User(BaseModel, AbstractUser):
         swappable = "AUTH_USER_MODEL"
 
     @classmethod
-    def from_db(cls, db, field_names, values):
+    def from_db(cls, db, field_names, values, *, fetch_mode=None):
         # Remember the stored Brevo sync state so the post_save signal can tell a genuine
         # opt-out (True -> False) from a contact that was never synced.
-        instance = super().from_db(db, field_names, values)
+        instance = super().from_db(db, field_names, values, fetch_mode=fetch_mode)
         instance._loaded_brevo_sync_enabled = instance.brevo_sync_enabled
         return instance
 

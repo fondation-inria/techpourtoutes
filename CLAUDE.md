@@ -196,7 +196,7 @@ Exceptions are rare — static pages (`static_views`, `home`…), `search_views`
 
 ### Frontend
 
-**Stack:** Tailwind CSS via `django-tailwind-cli` + DaisyUI. Pre-commit rebuilds Tailwind on HTML/CSS changes. Alpine.js + HTMX for interactivity.
+**Stack:** Tailwind CSS via `django-tailwind-cli` + DaisyUI. Pre-commit rebuilds Tailwind on HTML/CSS changes, with the latest `tailwind-cli-extra` binary — it bundles both Tailwind and daisyUI, so the npm `daisyui` package plays no part — then deletes the older binaries left in `.django_tailwind_cli/`. Alpine.js + HTMX for interactivity.
 
 **Component system:** `django-cotton` components live in `ui/templates/cotton/`: layout components (base, email, partials) in `layout/`, UI primitives (button, card, badge, icon…) in `components/`, larger compositional patterns in `patterns/`. A file `foo_bar.html` is used as `<c-components.foo-bar>` or `<c-components.foo_bar>`.
 
@@ -234,7 +234,7 @@ A few tests have no single source file and stay at the root of `tests/`: `test_s
 
 - `techpourtoutes/tests/conftest.py` — available everywhere: `pro`, `beneficiary`, `school`, `higher_ed_school`, `formation`, `higher_ed_formation`, `experience`, `beneficiary_experience`, `event`, `moderator_pro` / `event_moderator_group`, `inactive_user`, `valid_pro_model_data`, `s3_storages`, `mock_geocoding`, plus `school_record` / `formation_record` / `formation_action_record` / `carif_oref_record`, builders returning one source row with its real keys.
 - Directory-level `conftest.py` for fixtures shared within one directory only (`tests/admin/conftest.py`, `tests/services/brevo_api/conftest.py`). Don't promote a fixture to the root `conftest.py` until a second directory needs it.
-- The root `conftest.py` (project root, not `tests/`) holds autouse fixtures for the whole suite: in-memory cache, simple static storage (no manifest), eager Celery, mocked Brevo SDK.
+- The root `conftest.py` (project root, not `tests/`) holds autouse fixtures for the whole suite: in-memory cache, simple static storage (no manifest), eager Celery, mocked Brevo SDK. It also sorts the transactional tests — e2e included — last again, after pytest's regrouping by browser.
 
 ### End-to-end tests
 

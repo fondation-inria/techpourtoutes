@@ -1,11 +1,20 @@
 import os
 
 import pytest
+from pytest_django.plugin import pytest_collection_modifyitems as sort_as_django_does
 
 # Playwright's sync API keeps an event loop running on the test thread, which trips Django's
 # async-safety guard on ordinary (synchronous) DB access. Allow it: the guard only fires under
 # a running loop, so this is a no-op for the non-browser tests.
 os.environ.setdefault("DJANGO_ALLOW_ASYNC_UNSAFE", "1")
+
+
+@pytest.hookimpl(trylast=True)
+def pytest_collection_modifyitems(items):
+    """pytest-django sorts the transactional tests last, as their flush wipes what the data
+    migrations created. pytest then regroups the tests sharing a session-scoped parameter —
+    pytest-playwright's browser — which may pull the e2e tests back in the middle: sort again."""
+    sort_as_django_does(items)
 
 
 @pytest.fixture(autouse=True)
