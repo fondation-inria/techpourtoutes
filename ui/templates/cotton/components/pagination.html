@@ -1,18 +1,21 @@
 {% load pagination %}
-<c-vars page="" class="" />
+<c-vars page="" anchor="" class="" />
 
 {% if page.paginator.num_pages > 1 %}
     <nav aria-label="Pagination"
+         {% if anchor %}hx-select="#{{ anchor }}" hx-target="#{{ anchor }}" hx-swap="outerHTML show:#{{ anchor }}:top" hx-push-url="true"{% endif %}
          class="join flex-wrap bg-white [&>*]:border-y-black [&>*]:border-x-neutral-300 [&>*:first-child]:border-s-black [&>*:last-child]:border-e-black {{ class }}">
         {% for number in page|elided_pages %}
             {% if number == page.paginator.ELLIPSIS %}
                 <span class="join-item btn btn-disabled border-x-0! bg-white font-normal text-black">{{ number }}</span>
             {% elif number == page.number %}
-                <a href="?page={{ number }}"
+                <a href="?page={{ number }}{% if anchor %}#{{ anchor }}{% endif %}"
+                   {% if anchor %}hx-get="?page={{ number }}"{% endif %}
                    aria-current="page"
                    class="join-item btn bg-yellow-500 font-medium text-neutral-950">{{ number }}</a>
             {% else %}
-                <a href="?page={{ number }}"
+                <a href="?page={{ number }}{% if anchor %}#{{ anchor }}{% endif %}"
+                   {% if anchor %}hx-get="?page={{ number }}"{% endif %}
                    class="join-item btn bg-neutral-0 font-normal text-black hover:bg-yellow-500/20">{{ number }}</a>
             {% endif %}
         {% endfor %}

@@ -1,4 +1,4 @@
-<c-layout.base title="Rejoindre les makeuses - TechPourToutes" description="" >
+<c-layout.base title="Rejoindre les makeuses - TechPourToutes" description="Découvre les projets tech d'une nouvelle génération de makeuses, et propose le tien pour valoriser ton travail auprès de la communauté." >
     <c-components.title title="Rejoindre les makeuses" title_bg="yellow" class="md:whitespace-nowrap" />
     <c-components.card>
         <p>TechPourToutes met en valeur les réalisations d'une nouvelle génération de makeuses. Montrons que les filles savent faire et qu'il faut faire maintenant avec les filles&nbsp;!</p>
@@ -34,6 +34,14 @@
             <c-components.button href="{{ cta_href }}" label="Proposer un projet"/>
         </div>
     {% endif %}
-    <c-components.card title="Découvre les projets des makeuses TechPourToutes" title_bg="black">
-    </c-components.card>
+    <div id="projets" class="w-full flex flex-col gap-y-4">
+        <c-components.card title="Découvre les projets des makeuses TechPourToutes" title_bg="black">
+        </c-components.card>
+        <div class="mt-4 w-full grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+            {% for project in makeuse_projects %}
+                <c-components.makeuse-project-card :project="project" />
+            {% endfor %}
+        </div>
+        <c-components.pagination :page="makeuse_projects" anchor="projets" class="mt-(--grid-cell) self-center" />
+    </div>
 </c-layout.base>

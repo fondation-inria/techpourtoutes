@@ -7,8 +7,8 @@ from django.utils import timezone
 
 from techpourtoutes.models import Beneficiary, LegalRepresentativeAuthorization
 
-BEFORE = [("techpourtoutes", "0063_legal_representative_authorization")]
-AFTER = [("techpourtoutes", "0064_move_legal_representative_to_authorization")]
+BEFORE = [("techpourtoutes", "0064_legal_representative_authorization")]
+AFTER = [("techpourtoutes", "0065_move_legal_representative_to_authorization")]
 
 
 @pytest.fixture

@@ -31,6 +31,7 @@ class Beneficiary(User):
     def soft_delete(self):
         self.birth_date = None
         self._forget_legal_representative()
+        self.makeuse_projects.all().delete()
         super().soft_delete()
 
     def _forget_legal_representative(self):

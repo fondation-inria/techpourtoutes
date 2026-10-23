@@ -29,7 +29,7 @@ def move_legal_representative_to_authorization(apps, schema_editor):
 
 class Migration(migrations.Migration):
     dependencies = [
-        ("techpourtoutes", "0063_legal_representative_authorization"),
+        ("techpourtoutes", "0064_legal_representative_authorization"),
     ]
 
     operations = [

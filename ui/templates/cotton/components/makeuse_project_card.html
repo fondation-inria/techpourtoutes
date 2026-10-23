@@ -1,0 +1,30 @@
+<c-vars project="" />
+
+<div class="relative flex flex-col bg-neutral-0 border border-black shadow-box">
+    <div class="flex flex-col gap-4 p-4 text-black bg-{{ project.category_color }}-500">
+        {% if project.image %}
+            <div data-makeuse-project-image class="relative self-center w-50 h-50">
+                <img src="{{ project.image.url }}" alt="" width="200" height="200" loading="lazy"
+                     class="w-full h-full object-contain border border-black">
+                <div class="absolute bottom-2 inset-x-2 flex justify-center">
+                    <c-components.badge label="{{ project.project_type }}" background_color="bg-{{ project.category_color }}-500" />
+                </div>
+            </div>
+        {% else %}
+            <div class="flex justify-center">
+                <c-components.badge label="{{ project.project_type }}" background_color="bg-{{ project.category_color }}-500" />
+            </div>
+        {% endif %}
+        <c-components.title title="{{ project.title }}" variant="h2" style="serif"
+                            class="[&>h2]:h-[3lh] [&>h2]:line-clamp-3" />
+    </div>
+
+    <div class="flex items-center gap-2 p-4 text-sm">
+        <c-components.icon name="creatrice-projet-makeuse" class="w-6 h-6 shrink-0" />
+        <span class="flex-1 min-w-0">{{ project.creator_label }}</span>
+        <c-components.icon name="arrow-right-circle" class="w-6 h-6 shrink-0" />
+    </div>
+    <a href="{% url "show_makeuse_project" project.slug %}"
+       aria-label="Voir le projet {{ project.title }}"
+       class="after:absolute after:inset-0 focus-visible:outline-none focus-visible:after:outline-2 focus-visible:after:outline-blue-500 focus-visible:after:outline-offset-2"></a>
+</div>

@@ -6,8 +6,14 @@ from django.core.exceptions import ValidationError
 from django.core.files.base import ContentFile
 from django.test import override_settings
 
-from techpourtoutes.models import Beneficiary, LegalRepresentativeAuthorization, User
+from techpourtoutes.models import (
+    Beneficiary,
+    LegalRepresentativeAuthorization,
+    MakeuseProject,
+    User,
+)
 from techpourtoutes.services.brevo_api.mappings import brevo_attributes_for, brevo_list_id_for
+from techpourtoutes.tests.models.test_makeuse_project import build_makeuse_project
 
 
 @pytest.mark.django_db
@@ -156,3 +162,13 @@ def test_is_registered_for_mentoring_true_for_a_minor_with_a_legal_representativ
     authorization, beneficiary
 ):
     assert beneficiary.is_registered_for_mentoring is True
+
+
+@pytest.mark.django_db
+def test_soft_delete_deletes_the_beneficiarys_makeuse_projects(beneficiary):
+    """Her name, parcours and hobbies are on show: leaving the club takes them offline."""
+    build_makeuse_project(beneficiary=beneficiary).save()
+
+    beneficiary.soft_delete()
+
+    assert not MakeuseProject.objects.exists()

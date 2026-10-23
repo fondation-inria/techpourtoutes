@@ -1,20 +1,18 @@
 from datetime import datetime
-from itertools import count
 
-from django.core.exceptions import ValidationError
 from django.core.validators import MinValueValidator
-from django.db import IntegrityError, models, transaction
+from django.db import models
 from django.template.defaultfilters import floatformat
 from django.templatetags.static import static
 from django.utils import timezone
 from django.utils.formats import date_format
-from django.utils.text import slugify
 from django.utils.translation import gettext_lazy as _
 from simple_history.models import HistoricalRecords
 
 from ..utils.object_storage import public_storage
 from ..utils.text import strip_accents
 from .base import BaseModel, BaseQuerySet
+from .mixins import SlugFromTitleMixin
 from .pro import Pro
 
 
@@ -64,7 +62,9 @@ class EventQuerySet(BaseQuerySet):
         return self.filter(match)
 
 
-class Event(BaseModel):
+class Event(SlugFromTitleMixin, BaseModel):
+    SLUG_FALLBACK = "evenement"
+
     class Category(models.TextChoices):
         INFORMATION = "information", _("Information")
         EMPLOYMENT = "employment", _("Emploi")
@@ -238,13 +238,6 @@ class Event(BaseModel):
             ),
         ]
 
-    def save(self, *args, **kwargs):
-        """The slug is written once: an indexed URL outlives a corrected title."""
-        if self.slug:
-            super().save(*args, **kwargs)
-            return
-        self._save_under_a_free_slug(*args, **kwargs)
-
     def __str__(self):
         return self.title
 
@@ -324,18 +317,6 @@ class Event(BaseModel):
         if self.subcategory in self.Subcategory.values:
             return self.subcategory
         return self.Subcategory.OTHER
-
-    def _save_under_a_free_slug(self, *args, **kwargs):
-        base = slugify(self.title)[:240] or "evenement"
-        for rank in count(1):
-            self.slug = base if rank == 1 else f"{base}-{rank}"
-            try:
-                with transaction.atomic():
-                    super().save(*args, **kwargs)
-                return
-            except IntegrityError, ValidationError:
-                if not Event.objects.filter(slug=self.slug).exists():
-                    raise
 
     @property
     def _range_start_format(self):

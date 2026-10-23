@@ -9,7 +9,7 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('techpourtoutes', '0062_remove_pro_professional_situation'),
+        ('techpourtoutes', '0063_makeuse_project'),
     ]
 
     operations = [

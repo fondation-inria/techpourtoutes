@@ -1,4 +1,5 @@
 from django import forms
+from django.core.files.storage import storages
 from django.urls import reverse_lazy
 from django.utils.translation import gettext_lazy as _
 
@@ -76,3 +77,35 @@ class SubcategoryField(forms.MultiValueField):
                 raise forms.ValidationError(_("Précisez le type d'événement."))
             return other
         return subcategory
+
+
+class ImageUploadWidget(forms.Widget):
+    """The admin's take on the funnel's `image_upload` component, without Alpine nor Tailwind:
+    the browser shrinks the picked image, has `upload_url` sign its upload, puts it straight into
+    the bucket, and only its key travels on in the hidden input.
+
+    Not a `HiddenInput`, although it renders one: the admin would hide its whole row."""
+
+    template_name = "admin/widgets/image_upload.html"
+
+    class Media:
+        js = ("js/admin_image_upload.js",)
+
+    def __init__(self, *, upload_url, accept, source_max_size, attrs=None):
+        super().__init__(
+            {
+                "data-image-upload": "",
+                "data-upload-url": upload_url,
+                "data-accept": ",".join(accept),
+                "data-source-max-size": source_max_size,
+                **(attrs or {}),
+            }
+        )
+
+    def get_context(self, name, value, attrs):
+        context = super().get_context(name, value, attrs)
+        context["widget"]["preview_url"] = (
+            storages["public"].url(context["widget"]["value"]) if value else ""
+        )
+        context["widget"]["accept"] = self.attrs["data-accept"]
+        return context
