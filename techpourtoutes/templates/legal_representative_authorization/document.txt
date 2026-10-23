@@ -1,0 +1,14 @@
+{% autoescape off %}Autorisation pour rejoindre le programme TechPourToutes
+
+{{ beneficiary.first_name }} {{ beneficiary.last_name }} souhaite rejoindre le programme TechPourToutes et a besoin de votre autorisation en tant que personne responsable légale pour bénéficier de tous les services de TechPourToutes, en particulier la possibilité d'être mentorée ou d'être mise en relation avec des membres de la coalition TechPourToutes pour demander des conseils à des étudiantes ou des spécialistes de la tech.
+
+TechPourToutes est un programme 100 % gratuit à destination des lycéennes et des étudiantes de 15 à 25 ans qui leur propose un accompagnement à la carte et sur mesure vers les métiers techniques du numérique. TechPourToutes est une initiative soutenue par l'État dans le cadre du développement des compétences et métiers d'avenir.
+
+Bénéficiaire : {{ beneficiary.first_name }} {{ beneficiary.last_name }} ({{ beneficiary.email }})
+Identité déclarée : {{ authorization.legal_representative_name }}
+Qualité : {{ authorization.get_relationship_display }}
+Email : {{ authorization.legal_representative_email }}
+
+[x] Je confirme donner mon autorisation en tant que personne responsable légale.
+[x] J'accepte la politique de gestion des données personnelles de TechPourToutes.
+[{% if authorization.newsletter_consent %}x{% else %} {% endif %}] Je souhaite recevoir les actus de TechPourToutes et découvrir ses prochaines initiatives.{% endautoescape %}

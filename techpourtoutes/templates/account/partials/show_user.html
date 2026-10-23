@@ -2,7 +2,7 @@
     <c-components.title title="Mon compte" title_bg="yellow" />
     {% include "account/partials/show_user_info.html" %}
 
-    {% if user.legal_representative_name %}
+    {% if user.legal_representative_authorization %}
         {% include "account/partials/show_beneficiary_legal_rep.html" %}
     {% endif %}
 

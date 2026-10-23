@@ -103,9 +103,9 @@ def test_new_mentoree_cta_for_connected_registered_beneficiary(client, beneficia
 
 
 @pytest.mark.django_db
-def test_new_mentoree_cta_disabled_for_registration_pending_jobirl_account(client, beneficiary):
-    beneficiary.legal_representative_email = "parent.durand@example.com"
-    beneficiary.save()
+def test_new_mentoree_cta_disabled_for_registration_pending_jobirl_account(
+    client, beneficiary, authorization
+):
     client.force_login(beneficiary)
 
     response = client.get(NEW_MENTOREE_URL)

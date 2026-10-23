@@ -2,7 +2,7 @@
     <c-components.card-link color="yellow" title="Mentorat" button="Rejoindre mon espace mentorat" href="{% url "login_to_jobirl" %}" target="_blank">
         Retrouve les échanges avec ta mentore et des conseils directement dans l'espace dédié.
     </c-components.card-link>
-{% elif user.legal_representative_email %}
+{% elif user.legal_representative_authorization %}
     <c-components.card-link color="yellow" title="Mentorat" button="Rejoindre mon espace mentorat" :disabled="True">
         Nous avons bien reçu ta demande. Nous sommes en attente de l'autorisation de la personne responsable légale.
     </c-components.card-link>

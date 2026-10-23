@@ -1,0 +1,7 @@
+{% autoescape off %}Bonjour {{ beneficiary.first_name }},
+
+{{ authorization.legal_representative_name }} vient de signer l'autorisation. Tu peux maintenant bénéficier de tous les services TechPourToutes et en particulier du mentorat.
+
+Merci,
+Bonne journée,
+L'équipe TechPourToutes{% endautoescape %}

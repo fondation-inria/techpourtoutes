@@ -69,6 +69,10 @@ def brevo_attributes_for_upcoming_feature_notification(*, email) -> dict:
     return {FIELD_TO_BREVO_ATTR["email"]: email}
 
 
+def brevo_attributes_for_legal_representative(*, email) -> dict:
+    return {FIELD_TO_BREVO_ATTR["email"]: email}
+
+
 def brevo_list_id_for(instance) -> int | None:
     if _is_pro(instance):
         return settings.BREVO_PRO_LIST_ID

@@ -13,6 +13,7 @@ from techpourtoutes.models import (
     Event,
     Formation,
     FormationAction,
+    LegalRepresentativeAuthorization,
     Level,
     Pro,
     School,
@@ -141,6 +142,18 @@ def beneficiary(db):
     )
     beneficiary.save()
     return beneficiary
+
+
+@pytest.fixture
+def authorization(beneficiary):
+    """A minor's pending request, as sent to the legal representative she named."""
+    authorization = LegalRepresentativeAuthorization(
+        beneficiary=beneficiary,
+        legal_representative_name="Marie Petit",
+        legal_representative_email="marie.petit@example.com",
+    )
+    authorization.save()
+    return authorization
 
 
 @pytest.fixture
