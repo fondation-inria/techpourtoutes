@@ -1,0 +1,23 @@
+{# Retired and jobless pros work in no structure to name: it is only asked once the type is known. #}
+{# What is already known — from the workshop request, or from her profile — is not asked again. #}
+<div x-data="{ structureType: '{{ form.structure_type_value|default:''|escapejs }}' }"
+     @select-change="structureType = $event.detail.value"
+     class="flex flex-col gap-y-4">
+    {% if "structure_type" in form.fields %}
+        <c-components.form_fields.select field=form.structure_type :watchable=True />
+    {% endif %}
+    {% if "structure_name" in form.fields %}
+        <div x-show="structureType && !['retired', 'jobless'].includes(structureType)" x-cloak>
+            <c-components.form_fields.input field=form.structure_name autocomplete="organization" />
+        </div>
+    {% endif %}
+    {% if "job_title" in form.fields %}
+        <c-components.form_fields.input field=form.job_title autocomplete="organization-title" />
+    {% endif %}
+    {% if "phone" in form.fields %}
+        <c-components.form_fields.input field=form.phone autocomplete="tel" />
+    {% endif %}
+    {% if "postal_code" in form.fields %}
+        <c-components.form_fields.input field=form.postal_code autocomplete="postal-code" />
+    {% endif %}
+</div>

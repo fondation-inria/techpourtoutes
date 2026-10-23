@@ -21,9 +21,6 @@ BENEFICIARY_REFUSAL_REASON = _(
     "que lycéenne ou étudiante."
 )
 
-# Taken on again at will, unlike the others.
-_REPEATABLE = (Pro.Engagement.SPONSOR, Pro.Engagement.WORKSHOPS)
-
 
 class EngagementAction(NamedTuple):
     name: str
@@ -64,7 +61,7 @@ def _pro_engagement_action(pro, engagement):
 def _already_taken_action(pro, engagement):
     if engagement == Pro.Engagement.MENTOR:
         return EngagementAction("mentoring_space")
-    if engagement in _REPEATABLE:
+    if engagement in Pro.REPEATABLE_ENGAGEMENTS:
         return _addition(pro, engagement)
     return _NO_BUTTON
 

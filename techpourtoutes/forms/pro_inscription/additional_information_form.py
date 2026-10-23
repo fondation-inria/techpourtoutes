@@ -65,7 +65,7 @@ class ProAdditionalInformationForm(forms.Form):
         return cleaned_data
 
     def _given_by(self, pro):
-        given = {name: getattr(pro, name) for name in self.fields if getattr(pro, name)}
+        given = {name: getattr(pro, name) for name in self.fields if getattr(pro, name, None)}
         if pro.structure_type in Pro.WITHOUT_STRUCTURE:
             given["structure_name"] = ""
         return given

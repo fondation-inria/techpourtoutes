@@ -26,6 +26,7 @@ class Pro(User):
         JOBLESS = "jobless", _("Je suis sans emploi")
 
     WITHOUT_STRUCTURE = (StructureType.RETIRED, StructureType.JOBLESS)
+    REPEATABLE_ENGAGEMENTS = (Engagement.SPONSOR, Engagement.WORKSHOPS)
 
     structure_type = models.CharField(
         max_length=30,

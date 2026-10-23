@@ -146,6 +146,20 @@ def test_new_mentor_lets_pro_with_nothing_left_to_give_add_the_engagement_at_onc
 
 
 @pytest.mark.django_db
+@pytest.mark.parametrize("engagements", [[], ["sponsor"]])
+def test_new_structure_engagement_always_links_pro_to_the_sponsor_screen(client, pro, engagements):
+    pro.structure_type = "company"
+    pro.engagements = engagements
+    pro.save()
+    client.force_login(pro)
+
+    html = client.get(reverse("new_structure_engagement")).content.decode()
+
+    assert f'href="{reverse("new_pro_engagement", args=["sponsor"])}"' in html
+    assert reverse("create_pro_engagement", args=["sponsor"]) not in html
+
+
+@pytest.mark.django_db
 def test_new_mentor_sends_mentor_to_her_mentoring_space(client, pro):
     pro.engagements = ["mentor"]
     pro.save()

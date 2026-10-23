@@ -70,11 +70,11 @@ def test_a_work_ambassador_gets_no_button_for_her_own_engagement(pro):
     assert pro_engagement_action(_signed_in(pro), "work_ambassador") == ("", "")
 
 
-@pytest.mark.parametrize(("engagement", "action"), [("sponsor", "add"), ("workshops", "complete")])
-def test_a_pro_may_take_on_again_a_sponsorship_or_a_workshop(pro, engagement, action):
+@pytest.mark.parametrize("engagement", ["sponsor", "workshops"])
+def test_a_pro_may_take_on_again_a_sponsorship_or_a_workshop(pro, engagement):
     pro.structure_type = Pro.StructureType.COMPANY
     pro.engagements = [engagement]
-    assert pro_engagement_action(_signed_in(pro), engagement) == (action, "")
+    assert pro_engagement_action(_signed_in(pro), engagement) == ("complete", "")
 
 
 @pytest.mark.parametrize("engagement", ["sponsor", "training_ambassador", "workshops"])
@@ -84,4 +84,4 @@ def test_a_pro_completes_what_the_engagement_still_needs(pro, engagement):
 
 def test_a_pro_adds_at_once_what_needs_nothing_more(pro):
     pro.structure_type = Pro.StructureType.COMPANY
-    assert pro_engagement_action(_signed_in(pro), "sponsor") == ("add", "")
+    assert pro_engagement_action(_signed_in(pro), "internships") == ("add", "")

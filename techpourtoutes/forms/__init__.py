@@ -28,6 +28,7 @@ from .pro_inscription import (
     ProEmailForm,
     ProEngagementsForm,
     ProIdentityForm,
+    ProSponsorForm,
     ProTrainingAmbassadorForm,
     ProWorkshopRequestForm,
 )
@@ -61,6 +62,7 @@ __all__ = [
     "ProEngagementsForm",
     "ProIdentityForm",
     "ProAdditionalInformationForm",
+    "ProSponsorForm",
     "ProTrainingAmbassadorForm",
     "ProWorkshopRequestForm",
     "ProTrainingExperienceForm",

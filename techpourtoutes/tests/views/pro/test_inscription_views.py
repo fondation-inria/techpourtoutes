@@ -124,6 +124,19 @@ def test_existing_email_redirects_to_login(client, pro):
     assert f"back={quote(reverse('coalition_home'), safe='')}" in response["HX-Redirect"]
 
 
+def test_existing_pro_come_to_support_us_finds_the_sponsor_screen_once_signed_in(client, pro):
+    client.get(f"{NEW_FUNNEL_URL}?engagement=sponsor")
+    response = _post_step(client, "email", {"email": pro.email})
+    sponsor_screen = reverse("new_pro_engagement", args=["sponsor"])
+    assert f"next={quote(sponsor_screen, safe='')}" in response["HX-Redirect"]
+
+
+def test_existing_beneficiary_come_to_support_us_lands_on_her_account(client, beneficiary):
+    client.get(f"{NEW_FUNNEL_URL}?engagement=sponsor")
+    response = _post_step(client, "email", {"email": beneficiary.email})
+    assert f"next={quote(reverse('show_account'), safe='')}" in response["HX-Redirect"]
+
+
 def test_identity_step_requires_the_manifeste(client):
     _seed_funnel(client, current="identity", email=_EMAIL)
     response = _post_step(client, "identity", {**_IDENTITY, "manifeste_accepted": ""})

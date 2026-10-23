@@ -5,6 +5,7 @@ from ..models import Pro
 _INDEPENDANT_SCREEN = {
     Pro.Engagement.TRAINING_AMBASSADOR: "training_ambassador",
     Pro.Engagement.WORKSHOPS: "workshop_request",
+    Pro.Engagement.SPONSOR: "sponsor",
 }
 
 
