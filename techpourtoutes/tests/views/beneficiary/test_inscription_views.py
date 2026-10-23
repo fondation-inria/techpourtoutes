@@ -598,6 +598,7 @@ def test_a_missing_school_still_creates_the_account_and_reports_it(client, schoo
             school_id="",
             school_label="Lycée du bout du monde",
             school_not_found="on",
+            postal_code="29200",
         ),
     )
 

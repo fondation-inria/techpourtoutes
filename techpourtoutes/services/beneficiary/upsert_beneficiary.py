@@ -80,6 +80,8 @@ class UpsertBeneficiary(BaseService):
 
     def _apply_mentoring_contact(self, mentoring_signup_data, is_minor):
         self.beneficiary.phone = mentoring_signup_data["phone"]
+        if mentoring_signup_data.get("postal_code"):
+            self.beneficiary.postal_code = mentoring_signup_data["postal_code"]
         # An adult never has a legal representative, even if the form data carried one.
         self.beneficiary.legal_representative_name = (
             mentoring_signup_data["legal_representative_name"] if is_minor else ""

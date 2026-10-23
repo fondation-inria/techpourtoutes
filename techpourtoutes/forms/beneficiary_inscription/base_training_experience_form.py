@@ -5,6 +5,7 @@ from django.utils.translation import gettext_lazy as _
 
 from ...models import TrainingExperience
 from ...utils.school_year import current_school_year_end_date, current_school_year_start_date
+from ...validators import POSTAL_CODE_VALIDATOR
 from ..mixins import TrainingExperienceFormMixin
 
 
@@ -24,6 +25,9 @@ class BaseTrainingExperienceForm(TrainingExperienceFormMixin, forms.Form):
 
     school_not_found = forms.BooleanField(widget=forms.HiddenInput, required=False)
     formation_not_found = forms.BooleanField(widget=forms.HiddenInput, required=False)
+    postal_code = forms.CharField(
+        required=False, label=_("Quel est ton code postal ?*"), validators=[POSTAL_CODE_VALIDATOR]
+    )
 
     def __init__(self, *args, **kwargs):
         self.dom_id = uuid4().hex
@@ -39,9 +43,18 @@ class BaseTrainingExperienceForm(TrainingExperienceFormMixin, forms.Form):
         self.resolve_school_for_level(cleaned_data.get("level"))
         self.resolve_formation()
         self.validate_free_text()
+        if (
+            self.school_not_found
+            and not cleaned_data.get("postal_code")
+            and not self.has_error("postal_code")
+        ):
+            self.add_error("postal_code", _("Indique ton code postal."))
         return cleaned_data
 
     def save(self, beneficiary):
+        if self.school_not_found:
+            beneficiary.postal_code = self.cleaned_data["postal_code"]
+            beneficiary.save()
         start_date, end_date = self.training_dates()
         return self.save_training(
             TrainingExperience(user=beneficiary, start_date=start_date, end_date=end_date)

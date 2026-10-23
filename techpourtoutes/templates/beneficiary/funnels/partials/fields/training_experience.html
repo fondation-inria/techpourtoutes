@@ -4,8 +4,9 @@
         name_field=form.school_label
         id_field=form.school_id
         not_found_field=form.school_not_found
+        not_found_postal_field=form.postal_code
         scope="secondary"
-        description="Recherche par nom et/ou code postal"
+        description="Saisis le nom et/ou code postal de l'établissement"
         group="{{ form.dom_id }}"
         unique_id="{{ form.dom_id }}" />
     <c-components.form_fields.formation_search
@@ -23,8 +24,9 @@
         name_field=form.school_label
         id_field=form.school_id
         not_found_field=form.school_not_found
+        not_found_postal_field=form.postal_code
         scope="higher_ed"
-        description="Recherche par nom"
+        description="Saisis le nom de l'établissement"
         group="{{ form.dom_id }}"
         unique_id="{{ form.dom_id }}" />
     <c-components.form_fields.formation_search
@@ -48,8 +50,9 @@
                     name_field=form.school_label
                     id_field=form.school_id
                     not_found_field=form.school_not_found
+                    not_found_postal_field=form.postal_code
                     scope="secondary"
-                    description="Recherche par nom et/ou code postal"
+                    description="Saisis le nom et/ou code postal de l'établissement"
                     group="{{ form.dom_id }}"
                     unique_id="{{ form.dom_id }}" />
                 <c-components.form_fields.formation_search
@@ -69,8 +72,9 @@
                     name_field=form.school_label
                     id_field=form.school_id
                     not_found_field=form.school_not_found
+                    not_found_postal_field=form.postal_code
                     scope="higher_ed"
-                    description="Recherche par nom"
+                    description="Saisis le nom de l'établissement"
                     group="{{ form.dom_id }}"
                     unique_id="{{ form.dom_id }}-sup" />
                 <c-components.form_fields.formation_search

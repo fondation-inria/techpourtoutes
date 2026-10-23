@@ -1,7 +1,10 @@
+from datetime import date
+
 import httpx
 import pytest
 from django.test import override_settings
 
+from techpourtoutes.models import Level, TrainingExperience
 from techpourtoutes.services.jobirl_api.register_user import RegisterUserOnJobirl
 
 JOBIRL_TEST_URL = "https://preprod.jobirl.com"
@@ -102,6 +105,50 @@ def test_register_mentor_on_jobirl_sends_beneficiary_data(
     assert "etablissement_code_uai_onisep=0750001A" in body
     assert "formation_code_onisep=7118" in body
     assert "email_tuteur" not in body
+
+
+@override_settings(JOBIRL_URL=JOBIRL_TEST_URL, JOBIRL_API_KEY=JOBIRL_TEST_API_KEY)
+def test_register_mentor_on_jobirl_locates_an_out_of_scope_school_by_her_postal_code(
+    httpx_mock, beneficiary, formation
+):
+    beneficiary.postal_code = "29200"
+    beneficiary.save()
+    TrainingExperience.objects.create(
+        user=beneficiary,
+        out_of_scope_school_name="Lycée du bout du monde",
+        formation=formation,
+        level=Level.TERMINALE,
+        start_date=date(2023, 9, 1),
+        end_date=date(2024, 8, 31),
+    )
+    httpx_mock.add_response(
+        url=f"{JOBIRL_TEST_URL}/techpourtoutes/api/user_register",
+        status_code=200,
+        json={"response": "success", "datas": {"id": 1, "token": "t"}},
+    )
+
+    RegisterUserOnJobirl(user=beneficiary, is_pro=False)
+
+    body = httpx_mock.get_request().content.decode()
+    assert "cp=29200" in body
+    assert "etablissement_code_uai_onisep" not in body
+
+
+@override_settings(JOBIRL_URL=JOBIRL_TEST_URL, JOBIRL_API_KEY=JOBIRL_TEST_API_KEY)
+def test_register_mentor_on_jobirl_leaves_out_the_uai_of_a_school_without_one(
+    httpx_mock, beneficiary, school, beneficiary_experience
+):
+    school.uai = ""
+    school.save()
+    httpx_mock.add_response(
+        url=f"{JOBIRL_TEST_URL}/techpourtoutes/api/user_register",
+        status_code=200,
+        json={"response": "success", "datas": {"id": 1, "token": "t"}},
+    )
+
+    RegisterUserOnJobirl(user=beneficiary, is_pro=False)
+
+    assert "etablissement_code_uai_onisep" not in httpx_mock.get_request().content.decode()
 
 
 @override_settings(JOBIRL_URL=JOBIRL_TEST_URL, JOBIRL_API_KEY=JOBIRL_TEST_API_KEY)

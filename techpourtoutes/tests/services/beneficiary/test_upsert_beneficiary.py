@@ -204,6 +204,36 @@ def test_saves_legal_representative_for_a_minor(beneficiary):
 
 
 @pytest.mark.django_db
+def test_saves_the_postal_code_she_gives_before_signing_up(beneficiary):
+    data = {**_minor_mentoring_data(), "postal_code": "29200"}
+    postal_code_at_sign_up = []
+
+    def sign_up(**kwargs):
+        postal_code_at_sign_up.append(kwargs["beneficiary"].postal_code)
+        return _signed_up()
+
+    with patch(SIGN_UP, side_effect=sign_up):
+        UpsertBeneficiary(beneficiary=beneficiary, mentoring_signup_data=data)
+
+    assert postal_code_at_sign_up == ["29200"]
+    beneficiary.refresh_from_db()
+    assert beneficiary.postal_code == "29200"
+
+
+@pytest.mark.django_db
+def test_keeps_her_postal_code_when_none_is_asked(beneficiary):
+    beneficiary.postal_code = "75011"
+    beneficiary.save()
+    data = {**_minor_mentoring_data(), "postal_code": ""}
+
+    with patch(SIGN_UP, return_value=_signed_up()):
+        UpsertBeneficiary(beneficiary=beneficiary, mentoring_signup_data=data)
+
+    beneficiary.refresh_from_db()
+    assert beneficiary.postal_code == "75011"
+
+
+@pytest.mark.django_db
 def test_relays_sign_up_failure(beneficiary):
     with patch(SIGN_UP, return_value=_sign_up_refused("Jobirl error")):
         result = UpsertBeneficiary(

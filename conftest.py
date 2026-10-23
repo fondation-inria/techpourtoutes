@@ -63,6 +63,12 @@ def disable_https_redirect(settings):
 
 
 @pytest.fixture(autouse=True)
+def random_verification_codes(settings):
+    # FIXED_VERIFICATION_CODE may be set in .env for local logins; tests need real codes.
+    settings.FIXED_VERIFICATION_CODE = ""
+
+
+@pytest.fixture(autouse=True)
 def celery_eager(settings):
     settings.CELERY_TASK_ALWAYS_EAGER = True
     settings.CELERY_TASK_EAGER_PROPAGATES = True

@@ -6,6 +6,7 @@
     scope="secondary"
     key="id"
     postal_field=""
+    not_found_postal_field=""
     group=""
     label=""
     description=""
@@ -13,7 +14,7 @@
     unique_id=""
 />
 
-<c-components.form-fields.base :field=name_field :errors=id_field.errors label=label description=description class=class>
+<c-components.form-fields.base :field=name_field :errors=id_field.errors :show_messages=False label=label description=description class=class>
     <div x-data="{
             open: false,
             notFound: '{{ not_found_field.value|default:""|escapejs }}' !== '',
@@ -65,7 +66,7 @@
                 });
             }
          }"
-         x-init="announce()"
+         x-init="$nextTick(() => announce())"
          @click.outside="open = false"
          @keydown.escape="open = false"
          class="relative">
@@ -74,7 +75,7 @@
         <input type="hidden" name="{{ not_found_field.html_name }}" :value="notFound ? 'on' : ''">
         {% if postal_field %}<input type="hidden" name="{{ postal_field.html_name }}" :value="postalCode">{% endif %}
         <template x-if="!notFound">
-            <div x-init="htmx.process($el)">
+            <div x-init="htmx.process($el)" class="flex flex-col gap-2">
                 <input type="text"
                        x-show="!selected"
                        x-cloak
@@ -105,16 +106,21 @@
                     id="school-results{% if unique_id %}-{{ unique_id }}{% endif %}"
                     class="absolute z-10 mt-1 w-full bg-neutral-50 rounded shadow-thin-bottom shadow-black max-h-60 overflow-y-auto"
                     role="listbox"></ul>
+                <c-components.form_fields.messages :field=name_field :errors=id_field.errors />
             </div>
         </template>
         <template x-if="notFound">
-            <div>
+            <div class="flex flex-col gap-2">
                 <input type="text"
                        id="{{ name_field.id_for_label }}"
                        x-model="structureName"
                        autocomplete="off"
                        placeholder="Saisissez le nom de votre établissement"
                        class="field-base {% if name_field.errors %}field-error{% else %}field-default{% endif %}" />
+                <c-components.form_fields.messages :field=name_field :errors=id_field.errors />
+                {% if not_found_postal_field %}
+                    <c-components.form_fields.input field=not_found_postal_field class="mt-2" />
+                {% endif %}
             </div>
         </template>
         <div class="mt-1">
