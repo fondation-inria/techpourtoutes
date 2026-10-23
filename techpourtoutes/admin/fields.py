@@ -104,6 +104,8 @@ class ImageUploadWidget(forms.Widget):
 
     def get_context(self, name, value, attrs):
         context = super().get_context(name, value, attrs)
-        context["widget"]["preview_url"] = storages["public"].url(value) if value else ""
+        context["widget"]["preview_url"] = (
+            storages["public"].url(context["widget"]["value"]) if value else ""
+        )
         context["widget"]["accept"] = self.attrs["data-accept"]
         return context
