@@ -1,9 +1,10 @@
+from datetime import date
 from unittest.mock import MagicMock, patch
 
 import pytest
 from django.urls import reverse
 
-from techpourtoutes.models import Level
+from techpourtoutes.models import Level, TrainingExperience
 from techpourtoutes.tests.birth_dates import birth_date_for_age
 
 ADD_MENTORING_URL = "/devenir-mentoree/"
@@ -50,6 +51,7 @@ def test_mentoring_funnel_get_renders_form_for_adult(client, beneficiary, benefi
     assert response.status_code == 200
     assert response.context["is_minor"] is False
     assert "responsable légale" not in response.content.decode()
+    assert "code postal" not in response.content.decode()
 
 
 @pytest.mark.django_db
@@ -101,6 +103,81 @@ def test_mentoring_funnel_post_missing_legal_representative_fields_for_minor(
     assert "Ce champ est obligatoire." in response.content.decode()
     beneficiary.refresh_from_db()
     assert beneficiary.legal_representative_name == ""
+
+
+@pytest.fixture
+def out_of_scope_experience(beneficiary, formation):
+    return TrainingExperience.objects.create(
+        user=beneficiary,
+        out_of_scope_school_name="Lycée du bout du monde",
+        formation=formation,
+        level=Level.TERMINALE,
+        start_date=date(2023, 9, 1),
+        end_date=date(2024, 8, 31),
+    )
+
+
+@pytest.mark.django_db
+def test_mentoring_funnel_asks_her_postal_code_when_her_school_is_not_in_the_catalogue(
+    client, beneficiary, out_of_scope_experience
+):
+    client.force_login(beneficiary)
+
+    response = client.get(ADD_MENTORING_URL)
+
+    assert "Ton code postal*" in response.content.decode()
+
+
+@pytest.mark.django_db
+def test_mentoring_funnel_does_not_ask_a_postal_code_she_already_gave(
+    client, beneficiary, out_of_scope_experience
+):
+    beneficiary.postal_code = "29200"
+    beneficiary.save()
+    client.force_login(beneficiary)
+
+    response = client.get(ADD_MENTORING_URL)
+
+    assert "code postal" not in response.content.decode()
+
+
+@pytest.mark.django_db
+def test_mentoring_funnel_post_without_the_postal_code_it_asks_stays_put(
+    client, beneficiary, out_of_scope_experience
+):
+    client.force_login(beneficiary)
+
+    with patch(
+        "techpourtoutes.services.beneficiary.sign_up_for_mentoring.CreateMentoree"
+    ) as create_mentoree:
+        response = client.post(
+            ADD_MENTORING_URL, {"action": "mentoring_signup", "phone": "0612345678"}
+        )
+
+    assert response.status_code == 200
+    assert "Indique ton code postal." in response.content.decode()
+    create_mentoree.assert_not_called()
+
+
+@pytest.mark.django_db
+def test_mentoring_funnel_post_saves_the_postal_code_it_asks(
+    client, beneficiary, out_of_scope_experience
+):
+    client.force_login(beneficiary)
+    instance = MagicMock(success=True, failure=False, errors=[])
+
+    with patch(
+        "techpourtoutes.services.beneficiary.sign_up_for_mentoring.CreateMentoree",
+        return_value=instance,
+    ):
+        response = client.post(
+            ADD_MENTORING_URL,
+            {"action": "mentoring_signup", "phone": "0612345678", "postal_code": "29200"},
+        )
+
+    assert response["HX-Redirect"] == reverse("show_account")
+    beneficiary.refresh_from_db()
+    assert beneficiary.postal_code == "29200"
 
 
 @pytest.mark.django_db

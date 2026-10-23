@@ -64,6 +64,7 @@ def _submit_training_experience(request, beneficiary):
 def _submit_mentoring_signup(request, beneficiary):
     form = BeneficiaryMentoringSignUpForm(data=request.POST)
     require_legal_representative(form, is_minor(beneficiary.birth_date))
+    _require_postal_code(form, _asks_postal_code(beneficiary))
     if form.is_valid() and _sign_up_for_mentoring(request, beneficiary, form):
         return HttpResponse(headers={"HX-Redirect": reverse("show_account")})
     return _mentoring_signup_step(request, beneficiary, form)
@@ -79,6 +80,7 @@ _MENTORING_SUBMITS = {
 def _sign_up_for_mentoring(request, beneficiary, form):
     result = UpsertBeneficiary(beneficiary=beneficiary, mentoring_signup_data=form.cleaned_data)
     if result.failure:
+        beneficiary.refresh_from_db()
         relay_errors(request, result)
         return False
     messages.success(
@@ -101,7 +103,17 @@ def _mentoring_signup_step(request, beneficiary, form=None):
         "mentoring_signup",
         form=form or BeneficiaryMentoringSignUpForm(),
         is_minor=is_minor(beneficiary.birth_date),
+        asks_postal_code=_asks_postal_code(beneficiary),
     )
+
+
+def _asks_postal_code(beneficiary):
+    return not beneficiary.postal_code and beneficiary.training_experiences.first().school is None
+
+
+def _require_postal_code(form, needed):
+    if form.is_valid() and needed and not form.cleaned_data["postal_code"]:
+        form.add_error("postal_code", "Indique ton code postal.")
 
 
 def _render_mentoring_step(request, step, **context):

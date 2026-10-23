@@ -40,9 +40,9 @@ class TrainingExperienceFormMixin(MissingRecordMixin):
     def validate_free_text(self):
         """A record declared absent from the catalogue must be named in its place."""
         if self.school_not_found and not self.cleaned_data.get("school_label"):
-            self.add_error("school_label", _("Indiquez le nom de votre établissement."))
+            self.add_error("school_label", _("Le nom de l'établissement est obligatoire."))
         if self.formation_not_found and not self.cleaned_data.get("formation_label"):
-            self.add_error("formation_label", _("Indiquez le nom de votre formation."))
+            self.add_error("formation_label", _("Le nom de la formation est obligatoire."))
 
     def save_training(self, experience):
         experience.level = self.cleaned_data["level"]
