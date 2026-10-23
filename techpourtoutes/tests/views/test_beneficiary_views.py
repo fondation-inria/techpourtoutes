@@ -9,9 +9,10 @@ from django.test.utils import CaptureQueriesContext
 from django.urls import reverse
 from django.utils import timezone
 
-from techpourtoutes.models import Event, Pro, SavedEvent, User
+from techpourtoutes.models import Event, MakeuseProject, Pro, SavedEvent, User
 
 from ..models.test_event import build_event
+from ..models.test_makeuse_project import build_makeuse_project
 
 NEW_UPCOMING_FEATURE_NOTIFICATION_URL = "/bientot-disponible/"
 CREATE_UPCOMING_FEATURE_NOTIFICATION_URL = "/bientot-disponible/inscription/"
@@ -964,3 +965,219 @@ def test_update_saved_event_swaps_every_bookmark_of_the_event(client, beneficiar
     content = client.post(reverse("update_saved_event", args=[salon.pk])).content.decode()
 
     assert f"hx-swap-oob='outerHTML:[data-bookmark=\"{salon.pk}\"]'" in content
+
+
+@pytest.mark.django_db
+def test_index_makeuses_shows_a_card_per_project(client):
+    project = build_makeuse_project()
+    project.image.name = "makeuse_projects/visuel.webp"
+    project.save()
+
+    content = client.get(reverse("index_makeuses")).content.decode()
+
+    assert "Une appli pour trouver un stage" in content
+    assert "Application mobile" in content
+    assert "Hedy Lamarr" in content
+    assert project.image.url in content
+
+
+@pytest.mark.django_db
+def test_index_makeuses_cards_take_the_color_of_their_category(client):
+    project = build_makeuse_project(category=MakeuseProject.Category.DATA_AND_AI)
+    project.image.name = "makeuse_projects/visuel.webp"
+    project.save()
+
+    content = client.get(reverse("index_makeuses")).content.decode()
+
+    assert "bg-green-500" in content
+    assert "bg-purple-500" not in content
+
+
+@pytest.mark.django_db
+def test_index_makeuses_card_without_image_shows_none(client):
+    build_makeuse_project().save()
+
+    content = client.get(reverse("index_makeuses")).content.decode()
+
+    assert "Hedy Lamarr" in content
+    assert "data-makeuse-project-image" not in content
+
+
+@pytest.mark.django_db
+def test_index_makeuses_lists_the_latest_project_first(client):
+    build_makeuse_project(title="Le premier projet").save()
+    build_makeuse_project(title="Le dernier projet").save()
+
+    content = client.get(reverse("index_makeuses")).content.decode()
+
+    assert content.index("Le dernier projet") < content.index("Le premier projet")
+
+
+@pytest.mark.django_db
+def test_index_makeuses_shows_six_projects_and_a_link_to_the_next_page(client):
+    for index in range(8):
+        build_makeuse_project(title=f"Projet {index:02d}").save()
+
+    response = client.get(reverse("index_makeuses"))
+
+    assert len(response.context["makeuse_projects"].object_list) == 6
+    assert b'href="?page=2#projets"' in response.content
+
+
+@pytest.mark.django_db
+def test_index_makeuses_pagination_stays_on_the_projects(client):
+    """Paging swaps the projects alone, back at the top of their list; without JavaScript,
+    the link's anchor still lands there."""
+    for index in range(8):
+        build_makeuse_project(title=f"Projet {index:02d}").save()
+
+    content = client.get(reverse("index_makeuses")).content.decode()
+
+    assert 'id="projets"' in content
+    assert 'href="?page=2#projets"' in content
+    assert 'hx-get="?page=2"' in content
+    assert 'hx-select="#projets"' in content
+    assert 'hx-target="#projets"' in content
+    assert 'hx-swap="outerHTML show:#projets:top"' in content
+    assert 'hx-push-url="true"' in content
+
+
+@pytest.mark.django_db
+def test_index_makeuses_serves_the_page_asked_for(client):
+    for index in range(8):
+        build_makeuse_project(title=f"Projet {index:02d}").save()
+
+    response = client.get(reverse("index_makeuses"), {"page": 2})
+
+    assert response.context["makeuse_projects"].number == 2
+    assert len(response.context["makeuse_projects"].object_list) == 2
+
+
+@pytest.mark.django_db
+def test_index_makeuses_cards_link_to_the_project_detail_page(client):
+    project = build_makeuse_project()
+    project.save()
+
+    content = client.get(reverse("index_makeuses")).content.decode()
+
+    assert f'href="{reverse("show_makeuse_project", args=[project.slug])}"' in content
+    assert 'aria-label="Voir le projet Une appli pour trouver un stage"' in content
+
+
+@pytest.mark.django_db
+def test_show_makeuse_project_shows_the_whole_project(client):
+    project = build_makeuse_project(demo_url="https://example.com/demo")
+    project.save()
+
+    content = client.get(reverse("show_makeuse_project", args=[project.slug])).content.decode()
+
+    assert "Une appli pour trouver un stage" in content
+    assert "Application mobile" in content
+    assert "Hedy Lamarr" in content
+    assert 'href="mailto:hedy@example.com"' in content
+    assert 'href="https://example.com/demo"' in content
+    assert "Rapprocher les lycéennes des entreprises du quartier." in content
+    assert "Terminale STI2D à Amiens." in content
+    assert "Des entretiens, puis un prototype Figma." in content
+    assert "Le volley et le dessin." in content
+
+
+@pytest.mark.django_db
+def test_show_makeuse_project_reads_the_creator_from_her_account(client, beneficiary):
+    project = build_makeuse_project(beneficiary=beneficiary, creator_name="", contact_email="")
+    project.save()
+
+    content = client.get(reverse("show_makeuse_project", args=[project.slug])).content.decode()
+
+    assert "Jade Petit" in content
+    assert 'href="mailto:jade@example.com"' in content
+
+
+@pytest.mark.django_db
+def test_index_makeuses_cards_read_the_creator_from_her_account(client, beneficiary):
+    build_makeuse_project(beneficiary=beneficiary, creator_name="", contact_email="").save()
+
+    content = client.get(reverse("index_makeuses")).content.decode()
+
+    assert "Jade Petit" in content
+
+
+@pytest.mark.django_db
+def test_index_makeuses_reads_the_creators_without_a_query_per_card(client, beneficiary):
+    linked = {"beneficiary": beneficiary, "creator_name": "", "contact_email": ""}
+    build_makeuse_project(title="Projet 0", **linked).save()
+    with CaptureQueriesContext(connection) as one_project:
+        client.get(reverse("index_makeuses"))
+
+    for index in range(1, 4):
+        build_makeuse_project(title=f"Projet {index}", **linked).save()
+    with CaptureQueriesContext(connection) as four_projects:
+        client.get(reverse("index_makeuses"))
+
+    assert len(four_projects.captured_queries) == len(one_project.captured_queries)
+
+
+@pytest.mark.django_db
+def test_show_makeuse_project_takes_the_color_of_its_category(client):
+    project = build_makeuse_project(category=MakeuseProject.Category.DATA_AND_AI)
+    project.image.name = "makeuse_projects/visuel.webp"
+    project.save()
+
+    content = client.get(reverse("show_makeuse_project", args=[project.slug])).content.decode()
+
+    assert "bg-green-500" in content
+    assert "bg-purple-500" not in content
+
+
+@pytest.mark.django_db
+def test_show_makeuse_project_without_demo_shows_no_demo_link(client):
+    project = build_makeuse_project()
+    project.save()
+
+    content = client.get(reverse("show_makeuse_project", args=[project.slug])).content.decode()
+
+    assert "Hedy Lamarr" in content
+    assert "Voir la démo" not in content
+
+
+@pytest.mark.django_db
+def test_show_makeuse_project_unknown_slug_returns_404(client):
+    response = client.get(reverse("show_makeuse_project", args=["projet-inconnu"]))
+
+    assert response.status_code == 404
+
+
+@pytest.mark.django_db
+def test_show_makeuse_project_back_link_keeps_the_listing_page(client):
+    project = build_makeuse_project()
+    project.save()
+
+    response = client.get(
+        reverse("show_makeuse_project", args=[project.slug]),
+        HTTP_REFERER=f"http://testserver{reverse('index_makeuses')}?page=2",
+    )
+
+    assert response.context["back_url"] == f"{reverse('index_makeuses')}?page=2#projets"
+
+
+@pytest.mark.django_db
+def test_show_makeuse_project_back_link_falls_back_to_the_bare_listing(client):
+    project = build_makeuse_project()
+    project.save()
+
+    response = client.get(reverse("show_makeuse_project", args=[project.slug]))
+
+    assert response.context["back_url"] == reverse("index_makeuses")
+
+
+@pytest.mark.django_db
+def test_show_makeuse_project_back_link_ignores_a_referer_from_anywhere_else(client):
+    project = build_makeuse_project()
+    project.save()
+
+    response = client.get(
+        reverse("show_makeuse_project", args=[project.slug]),
+        HTTP_REFERER=f"http://testserver{INDEX_EVENTS_URL}?page=3",
+    )
+
+    assert response.context["back_url"] == reverse("index_makeuses")

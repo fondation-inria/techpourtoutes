@@ -1,3 +1,4 @@
+{% load links %}
 <c-layout.base title="Organiser un atelier – TechPourToutes" description="Vous êtes professeur? Prenez le temps d'aborder le numérique autrement à l'école et faites découvrir les enjeux et métiers de la tech à vos élèves grâce aux ateliers gratuits TechPourToutes.">
     <c-components.title title="Organiser un atelier" title_bg="yellow" />
     <div class="flex flex-wrap gap-2 md:gap-4">
@@ -63,4 +64,29 @@
     <c-slot name="decorations">
         <c-components.codex-letter letter="E" row="6" col="24" class="text-orange-500" />
     </c-slot>
+
+
+     <c-components.card title="3. Des ressources clés en main à télécharger">
+        <div class="flex flex-col sm:flex-row gap-6 items-start">
+            <c-components.icon name="carte-emancipation" variant="image" class="h-50 w-50 mt-5 self-center sm:self-start" />
+            <div>
+                <p class="mt-3">
+                    TechPourToutes a développé en partenariat avec le média Chut! la <strong>carte de l'émancipation numérique</strong> pour mener un atelier d'une heure avec vos élèves. 
+                </p>
+                <p class="mt-3">
+                    Les objectifs&nbsp;: 
+                </p>
+                <c-components.list>
+                    Déconstruire les stéréotypes autour des professions du numérique
+                    Découvrir la panoplie des métiers de la tech
+                    Développer la connaissance de l’environnement numérique
+                </c-components.list>
+            </div>
+        </div>
+        <div class="flex flex-col items-end gap-4 mt-4">
+            <c-components.button label="Télécharger la carte" href="{% download_url 'carte-emancipation-chut-tpt-261019.pdf' %}" icon="download" icon_position="start" icon_size_class="w-4 h-4" variant="link" />
+            <c-components.button label="Télécharger la fiche pédagogique" href="{% download_url 'fiche-pedago-emancipation-tpt-v3.pdf' %}" icon="download" icon_position="start" icon_size_class="w-4 h-4" variant="link" />
+        </div>
+    </c-components.card>
+
 </c-layout.base>
