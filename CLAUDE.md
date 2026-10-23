@@ -189,6 +189,7 @@ Exceptions are rare — static pages (`static_views`, `home`…), `search_views`
 - Files never go through the app: `CreatePresignedUpload` (`services/storage/`) signs a PUT the browser sends straight to the bucket, whose signed headers (exact `Content-Length`, checked against a maximum before signing, `Content-Type`, ACL, `Cache-Control`) the bucket enforces. The key is a UUID under a prefix, never the client's filename.
 - Without `S3_PRIVATE_BUCKET` (local dev, tests) both storages fall back to the disk, and the same PUT is signed by Django (`utils/local_upload.py`) and received by `create_local_upload`, which enforces the same policy.
 - A private file is never linked by its presigned URL — it expires — but by an app route that checks permissions and redirects to a freshly signed one.
+- PDFs offered for download are not in the repo: they are dropped by hand under `downloads/` in both public buckets, and templates link them with `{% download_url '<key>' %}` (`templatetags/links.py`), prefixed by `DOWNLOADS_URL` — staging's bucket everywhere but production. Procedure in `infra/object_storage/README.md`.
 - An upload no record ends up holding is deleted nightly by `purge_orphan_images` (`cron.json`), which reads each prefix against its model through `IMAGE_HOLDERS` (`services/storage/purge_orphan_images.py`): a new upload prefix goes there.
 - Tests use the `s3_storages` fixture (moto), which does **not** enforce signed headers: assert on the signed URL (`X-Amz-SignedHeaders`) instead.
 

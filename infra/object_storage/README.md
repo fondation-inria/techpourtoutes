@@ -60,6 +60,53 @@ ligne.
    public), vérifie qu'un upload pré-signé trop lourd est refusé et qu'un upload conforme est
    accepté, puis nettoie.
 
+## Fichiers à télécharger
+
+Les PDF proposés au téléchargement ne sont ni dans le dépôt ni gérés
+par le code : ils sont déposés à la main dans les **deux** buckets publics, sous `downloads/`.
+Servis par le bucket, ils n'occupent jamais un worker web pendant le transfert.
+
+Le template les référence par leur clé, à travers le tag `download_url` (`templatetags/links.py`),
+qui la préfixe par `DOWNLOADS_URL` :
+
+```django
+{% load links %}
+<a href="{% download_url 'fiche-pedago-emancipation-tpt-v3.pdf' %}">Télécharger la fiche</a>
+```
+
+| Environnement               | `DOWNLOADS_URL`                                                    |
+|-----------------------------|--------------------------------------------------------------------|
+| Local, review apps, staging | aucune (défaut : `https://tpt-staging-public.s3.gra.io.cloud.ovh.net/downloads/`) |
+| Production                  | `https://tpt-prod-public.s3.gra.io.cloud.ovh.net/downloads/`       |
+
+En local, ces liens demandent donc une connexion internet.
+
+Pas d'attribut `download` sur le lien : le bucket est sur un autre domaine, le navigateur
+l'ignorerait. C'est l'en-tête `Content-Disposition`, posé au dépôt, qui déclenche le
+téléchargement et nomme le fichier.
+
+Déposer un fichier (profil AWS CLI configuré comme à l'étape 3) :
+
+```bash
+for env in staging prod; do
+  aws s3 cp mon-fichier.pdf s3://tpt-$env-public/downloads/ma-cle-v1.pdf --profile tpt-$env \
+    --acl public-read --content-type application/pdf \
+    --content-disposition 'attachment; filename="nom-du-fichier-telecharge.pdf"'
+done
+```
+
+Puis vérifier la lecture anonyme et les en-têtes :
+
+```bash
+curl -sI https://tpt-staging-public.s3.gra.io.cloud.ovh.net/downloads/ma-cle-v1.pdf
+```
+
+On doit obtenir `200`, `Content-Type: application/pdf` et le bon `Content-Disposition`. Un `403`
+veut dire que l'ACL `public-read` n'a pas été posée.
+
+Une nouvelle version se dépose sous une **nouvelle clé** (`-v4`…), et le template est mis à jour :
+aucun cache ne peut alors servir l'ancienne version sous l'ancienne URL.
+
 ## Changer de fournisseur
 
 - Recopier les objets (`rclone sync`), réappliquer le CORS, recréer les accès.
