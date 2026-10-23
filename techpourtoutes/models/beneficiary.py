@@ -34,4 +34,5 @@ class Beneficiary(User):
         self.birth_date = None
         self.legal_representative_name = ""
         self.legal_representative_email = ""
+        self.makeuse_projects.all().delete()
         super().soft_delete()

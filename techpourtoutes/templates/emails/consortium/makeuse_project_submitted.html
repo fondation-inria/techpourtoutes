@@ -4,11 +4,11 @@
     <strong>{{ beneficiary.first_name }} {{ beneficiary.last_name }}</strong> a transmis une proposition de projet Makeuse&nbsp;:
   </p>
   <p style="font-size:15px;color:#374151;">
-    Nom du projet : {{ project_name }}
+    Nom du projet&nbsp;: {{ project_name }}
     <br><br>
-    Lien vers le projet : {{ project_link }}
+    Lien vers le projet&nbsp;: {{ project_link }}
     <br><br>
-    Description du projet : {{ project_description }}
+    Description du projet&nbsp;: {{ project_description|linebreaksbr }}
   </p>
   <p style="font-size:15px;color:#374151;">
     Tu peux la contacter à cette adresse mail&nbsp;: <c-components.inline-link label="{{ beneficiary.email }}" href="mailto:{{ beneficiary.email }}" />.

@@ -1,4 +1,6 @@
 import pytest
+from django.template import Context, Template
+from django.test import override_settings
 
 from techpourtoutes.templatetags.links import linkify
 
@@ -91,3 +93,10 @@ def test_linkify_keeps_a_link_on_a_single_line():
     would come back as a <br> in the middle of the icon, and break it."""
     assert "\n" not in linkify("Infos sur https://techpourtoutes.io")
     assert "\n" not in linkify("Écris à contact@techpourtoutes.io")
+
+
+@override_settings(DOWNLOADS_URL="https://bucket.example/downloads/")
+def test_download_url_points_at_the_key_under_the_downloads_url():
+    html = Template("{% load links %}{% download_url 'fiche.pdf' %}").render(Context())
+
+    assert html == "https://bucket.example/downloads/fiche.pdf"
