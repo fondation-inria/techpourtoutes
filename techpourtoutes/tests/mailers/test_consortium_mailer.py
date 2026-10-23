@@ -48,8 +48,8 @@ def test_pro_signed_up_routes_to_engagement_recipient(pro, engagement, recipient
         (Pro.StructureType.SCHOOL, "school@example.com"),
         (Pro.StructureType.COMPANY, "ambassador@example.com"),
         (Pro.StructureType.PUBLIC_INSTITUTION, "public@example.com"),
-        (Pro.StructureType.RETIRED, "training@example.com"),
-        (Pro.StructureType.JOBLESS, "training@example.com"),
+        (Pro.StructureType.RETIRED, "ambassador@example.com"),
+        (Pro.StructureType.JOBLESS, "ambassador@example.com"),
     ],
 )
 def test_pro_signed_up_routes_a_structure_engagement_to_her_structure_type_recipient(

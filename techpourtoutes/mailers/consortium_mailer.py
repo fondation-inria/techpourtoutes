@@ -123,8 +123,8 @@ class ConsortiumMailer(BaseMailer):
                 Pro.StructureType.PUBLIC_INSTITUTION: (
                     settings.COALITION_PUBLIC_INSTITUTION_RECIPIENTS
                 ),
-                Pro.StructureType.RETIRED: settings.COALITION_TRAINING_AMBASSADOR_RECIPIENTS,
-                Pro.StructureType.JOBLESS: settings.COALITION_TRAINING_AMBASSADOR_RECIPIENTS,
+                Pro.StructureType.RETIRED: settings.COALITION_WORK_AMBASSADOR_RECIPIENTS,
+                Pro.StructureType.JOBLESS: settings.COALITION_WORK_AMBASSADOR_RECIPIENTS,
             }.get(pro.structure_type, [])
         return {
             Pro.Engagement.INTERNSHIPS: settings.COALITION_INTERNSHIPS_RECIPIENTS,
