@@ -53,6 +53,19 @@ def test_makeuse_project_add_form_shows_the_image_upload(verified_admin_client):
 
 
 @pytest.mark.django_db
+def test_makeuse_project_change_form_previews_the_stored_image(verified_admin_client, s3_storages):
+    project = build_makeuse_project(image=KEY)
+    project.save()
+
+    response = verified_admin_client.get(
+        reverse("admin:techpourtoutes_makeuseproject_change", args=[project.pk])
+    )
+
+    assert response.status_code == 200
+    assert storages["public"].url(KEY) in response.content.decode()
+
+
+@pytest.mark.django_db
 def test_makeuse_project_add_form_links_a_beneficiary_without_typing_her_details(
     verified_admin_client, beneficiary
 ):
