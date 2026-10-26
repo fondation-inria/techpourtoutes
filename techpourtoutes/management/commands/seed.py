@@ -130,6 +130,7 @@ class Command(BaseCommand):
         """Approved and upcoming, one a week: enough of them to scroll past the first page."""
         pro = Pro.objects.filter(is_superuser=True).earliest("created_at")
         today = timezone.localdate()
+        count_before = Event.objects.count()
         for week, (lasts, fields) in enumerate(EVENT_SEEDS, start=1):
             start = today + timedelta(weeks=week)
             defaults = {
@@ -142,9 +143,12 @@ class Command(BaseCommand):
                 "end_time": time(18, 0),
             }
             Event(**{**defaults, **fields}).save()
-        self.stdout.write(self.style.SUCCESS(f"  {len(EVENT_SEEDS)} events created."))
+        self.stdout.write(
+            self.style.SUCCESS(f"  {Event.objects.count() - count_before} events created.")
+        )
 
     def _create_makeuse_projects(self):
+        count_before = MakeuseProject.objects.count()
         for fields in MAKEUSE_PROJECT_SEEDS:
             title = fields["title"]
             if MakeuseProject.objects.filter(title=title).exists():
@@ -157,7 +161,11 @@ class Command(BaseCommand):
             project = MakeuseProject(**fields)
             with open(image_path, "rb") as image:
                 project.image.save(f"{IMAGE_PREFIX}/{uuid4().hex}{image_path.suffix}", File(image))
-            self.stdout.write(self.style.SUCCESS(f"  Makeuse project created: {title}"))
+        self.stdout.write(
+            self.style.SUCCESS(
+                f"  {MakeuseProject.objects.count() - count_before} makeuse projects created."
+            )
+        )
 
 
 MAKEUSE_PROJECT_SEEDS = [

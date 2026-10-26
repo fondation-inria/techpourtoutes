@@ -1,3 +1,4 @@
+{% load static %}
 <c-layout.base
     variant="funnel"
     title="Autorisation responsable légal – TechPourToutes"
@@ -35,6 +36,14 @@
                 </div>
             </c-patterns.form>
         </c-components.card>
+        </div>
+        <div class="flex items-center justify-between">
+            <img src="{% static 'svg/rf.svg' %}"
+                 alt="République Française"
+                 class="h-14 w-auto" />
+            <img src="{% static 'svg/france-2030.svg' %}"
+                 alt="France 2030 — Lauréat"
+                 class="h-14 w-auto" />
         </div>
     </div>
 </c-layout.base>

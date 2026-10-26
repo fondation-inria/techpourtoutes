@@ -10,5 +10,8 @@
         {% else %}
             <p>Ce lien n'est plus valide. Si une nouvelle demande vous a été envoyée, utilisez le lien du dernier mail reçu.</p>
         {% endif %}
+        <div class="flex justify-center">
+            <c-components.button label="Retour à l'accueil" href="{% url 'home' %}" />
+        </div>
     </div>
 </c-layout.base>
