@@ -200,6 +200,10 @@ def _render_upcoming_feature_notification_form(request, form):
     return render(request, "beneficiary/new_upcoming_feature_notification.html", {"form": form})
 
 
+def index_internships(request):
+    return render(request, "beneficiary/index_internships.html")
+
+
 # ------------------- events -------------------
 
 
