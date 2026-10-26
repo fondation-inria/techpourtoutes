@@ -246,6 +246,26 @@ def test_a_missing_school_keeps_the_formation_searchable_once_the_step_is_reject
     expect(search_field(page, HIGH_SCHOOL_FORMATION_LABEL)).to_be_enabled()
 
 
+def test_a_postal_code_typed_before_going_back_to_the_search_is_not_sent(page, funnel_url):
+    voltaire_teaching("Spécialité mathématiques")
+
+    page.goto(funnel_url)
+    _complete_email_step(page)
+    _complete_identity_step(page)
+    choose_study_status(page, "Je suis au collège ou au lycée")
+    select_option(page, "En quelle classe es-tu ?", "Terminale")
+
+    page.get_by_role("button", name="Je ne trouve pas mon établissement").click()
+    page.get_by_label("Quel est ton code postal ?").fill("2920")
+    page.get_by_role("button", name="Revenir à la recherche").click()
+    pick(page, HIGH_SCHOOL_LABEL, "voltaire", "Lycée Voltaire (75011)")
+    pick(page, HIGH_SCHOOL_FORMATION_LABEL, "specialite", "Spécialité mathématiques")
+    page.get_by_role("button", name="Rejoindre le club").click()
+
+    expect(page.get_by_text("Saisis le code")).to_be_visible()
+    assert Beneficiary.objects.get(email="oceane@example.com").postal_code == ""
+
+
 def test_both_records_missing_registers_on_free_text_alone(page, funnel_url):
     voltaire_teaching("Spécialité mathématiques")
 

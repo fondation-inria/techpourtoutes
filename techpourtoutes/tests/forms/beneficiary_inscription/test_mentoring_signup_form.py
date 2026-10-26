@@ -17,3 +17,10 @@ def test_mentoring_signup_form_rejects_an_invalid_postal_code():
 
     assert not form.is_valid()
     assert "postal_code" in form.errors
+
+
+def test_mentoring_signup_form_requires_the_postal_code_it_asks():
+    form = BeneficiaryMentoringSignUpForm(data={"phone": "0612345678"}, asks_postal_code=True)
+
+    assert not form.is_valid()
+    assert form.errors["postal_code"] == ["Indique ton code postal."]

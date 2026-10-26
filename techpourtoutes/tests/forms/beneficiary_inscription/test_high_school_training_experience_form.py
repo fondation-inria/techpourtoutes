@@ -226,7 +226,7 @@ def test_a_missing_school_rejects_an_invalid_postal_code(school, formation):
 
 
 @pytest.mark.django_db
-def test_a_missing_school_saves_her_postal_code(beneficiary, school, formation):
+def test_a_missing_school_exposes_her_postal_code(school, formation):
     form = BeneficiaryHighSchoolTrainingExperienceForm(
         data=_valid_data(
             school,
@@ -237,25 +237,19 @@ def test_a_missing_school_saves_her_postal_code(beneficiary, school, formation):
             postal_code="29200",
         )
     )
+
     assert form.is_valid(), form.errors
-
-    form.save(beneficiary)
-
-    beneficiary.refresh_from_db()
-    assert beneficiary.postal_code == "29200"
+    assert form.out_of_scope_postal_code == "29200"
 
 
 @pytest.mark.django_db
-def test_a_found_school_neither_asks_nor_saves_a_postal_code(beneficiary, school, formation):
+def test_a_found_school_neither_asks_nor_exposes_a_postal_code(school, formation):
     form = BeneficiaryHighSchoolTrainingExperienceForm(
         data=_valid_data(school, formation, postal_code="29200")
     )
+
     assert form.is_valid(), form.errors
-
-    form.save(beneficiary)
-
-    beneficiary.refresh_from_db()
-    assert beneficiary.postal_code == ""
+    assert form.out_of_scope_postal_code == ""
 
 
 @pytest.mark.django_db

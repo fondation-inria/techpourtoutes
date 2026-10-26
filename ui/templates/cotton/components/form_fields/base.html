@@ -8,7 +8,6 @@
     id=""
     class=""
     span_label=False
-    show_messages=True
 />
 
 <div class="flex flex-col gap-2 {{ class }}">
@@ -25,7 +24,5 @@
 
     {{ slot }}
 
-    {% if show_messages %}
-        <c-components.form_fields.messages :field=field :errors=errors :message=message message_class=message_class />
-    {% endif %}
+    <c-components.form_fields.messages :field=field :errors=errors :message=message message_class=message_class />
 </div>

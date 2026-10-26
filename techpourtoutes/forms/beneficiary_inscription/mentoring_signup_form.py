@@ -16,5 +16,12 @@ class BeneficiaryMentoringSignUpForm(forms.Form):
     )
     phone = PhoneNumberField(region="FR", label=_("Ton numéro de téléphone*"))
     postal_code = forms.CharField(
-        required=False, label=_("Ton code postal*"), validators=[POSTAL_CODE_VALIDATOR]
+        required=False,
+        label=_("Ton code postal*"),
+        validators=[POSTAL_CODE_VALIDATOR],
+        error_messages={"required": _("Indique ton code postal.")},
     )
+
+    def __init__(self, *args, asks_postal_code=False, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields["postal_code"].required = asks_postal_code

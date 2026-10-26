@@ -35,6 +35,7 @@ class UpsertBeneficiary(BaseService):
             self._save_beneficiary(
                 beneficiary_data=beneficiary_data,
                 is_minor=is_minor,
+                training_experience_form=training_experience_form,
                 mentoring_signup_data=mentoring_signup_data,
                 training_ambassador_request_data=training_ambassador_request_data,
             )
@@ -62,11 +63,14 @@ class UpsertBeneficiary(BaseService):
         *,
         beneficiary_data,
         is_minor,
+        training_experience_form,
         mentoring_signup_data,
         training_ambassador_request_data,
     ):
         if beneficiary_data:
             self._apply_identity(beneficiary_data)
+        if training_experience_form and training_experience_form.out_of_scope_postal_code:
+            self.beneficiary.postal_code = training_experience_form.out_of_scope_postal_code
         if mentoring_signup_data:
             self._apply_mentoring_contact(mentoring_signup_data, is_minor)
         if training_ambassador_request_data:
@@ -80,7 +84,7 @@ class UpsertBeneficiary(BaseService):
 
     def _apply_mentoring_contact(self, mentoring_signup_data, is_minor):
         self.beneficiary.phone = mentoring_signup_data["phone"]
-        if mentoring_signup_data.get("postal_code"):
+        if mentoring_signup_data["postal_code"]:
             self.beneficiary.postal_code = mentoring_signup_data["postal_code"]
         # An adult never has a legal representative, even if the form data carried one.
         self.beneficiary.legal_representative_name = (

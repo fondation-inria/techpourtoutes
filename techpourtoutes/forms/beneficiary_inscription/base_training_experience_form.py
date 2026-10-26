@@ -51,10 +51,11 @@ class BaseTrainingExperienceForm(TrainingExperienceFormMixin, forms.Form):
             self.add_error("postal_code", _("Indique ton code postal."))
         return cleaned_data
 
+    @property
+    def out_of_scope_postal_code(self):
+        return self.cleaned_data["postal_code"] if self.school_not_found else ""
+
     def save(self, beneficiary):
-        if self.school_not_found:
-            beneficiary.postal_code = self.cleaned_data["postal_code"]
-            beneficiary.save()
         start_date, end_date = self.training_dates()
         return self.save_training(
             TrainingExperience(user=beneficiary, start_date=start_date, end_date=end_date)

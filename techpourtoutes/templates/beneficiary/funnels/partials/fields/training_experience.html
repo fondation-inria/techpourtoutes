@@ -4,11 +4,11 @@
         name_field=form.school_label
         id_field=form.school_id
         not_found_field=form.school_not_found
-        not_found_postal_field=form.postal_code
         scope="secondary"
         description="Saisis le nom et/ou code postal de l'établissement"
         group="{{ form.dom_id }}"
         unique_id="{{ form.dom_id }}" />
+    {% include "beneficiary/funnels/partials/fields/out_of_scope_postal_code.html" %}
     <c-components.form_fields.formation_search
         name_field=form.formation_label
         id_field=form.formation_id
@@ -24,11 +24,11 @@
         name_field=form.school_label
         id_field=form.school_id
         not_found_field=form.school_not_found
-        not_found_postal_field=form.postal_code
         scope="higher_ed"
         description="Saisis le nom de l'établissement"
         group="{{ form.dom_id }}"
         unique_id="{{ form.dom_id }}" />
+    {% include "beneficiary/funnels/partials/fields/out_of_scope_postal_code.html" %}
     <c-components.form_fields.formation_search
         name_field=form.formation_label
         id_field=form.formation_id
@@ -50,11 +50,11 @@
                     name_field=form.school_label
                     id_field=form.school_id
                     not_found_field=form.school_not_found
-                    not_found_postal_field=form.postal_code
                     scope="secondary"
                     description="Saisis le nom et/ou code postal de l'établissement"
                     group="{{ form.dom_id }}"
                     unique_id="{{ form.dom_id }}" />
+                {% include "beneficiary/funnels/partials/fields/out_of_scope_postal_code.html" %}
                 <c-components.form_fields.formation_search
                     name_field=form.formation_label
                     id_field=form.formation_id
@@ -72,11 +72,11 @@
                     name_field=form.school_label
                     id_field=form.school_id
                     not_found_field=form.school_not_found
-                    not_found_postal_field=form.postal_code
                     scope="higher_ed"
                     description="Saisis le nom de l'établissement"
                     group="{{ form.dom_id }}"
                     unique_id="{{ form.dom_id }}-sup" />
+                {% include "beneficiary/funnels/partials/fields/out_of_scope_postal_code.html" %}
                 <c-components.form_fields.formation_search
                     name_field=form.formation_label
                     id_field=form.formation_id

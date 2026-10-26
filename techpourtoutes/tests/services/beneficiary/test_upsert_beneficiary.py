@@ -14,6 +14,7 @@ SIGN_UP = "techpourtoutes.services.beneficiary.upsert_beneficiary.SignUpForMento
 def _training_experience_form():
     form = MagicMock()
     form.has_missing_record = False
+    form.out_of_scope_postal_code = ""
     return form
 
 
@@ -22,6 +23,7 @@ def _minor_mentoring_data():
         "phone": "0612345678",
         "legal_representative_name": "Parent Test",
         "legal_representative_email": "parent@example.com",
+        "postal_code": "",
     }
 
 
@@ -86,6 +88,16 @@ def test_create_beneficiary_saves_training_experience():
     result = _create_beneficiary(training_experience_form=form)
 
     form.save.assert_called_once_with(result.beneficiary)
+
+
+@pytest.mark.django_db
+def test_create_beneficiary_saves_the_postal_code_of_her_parcours():
+    form = _training_experience_form()
+    form.out_of_scope_postal_code = "29200"
+
+    _create_beneficiary(training_experience_form=form)
+
+    assert Beneficiary.objects.get(email="lea@example.com").postal_code == "29200"
 
 
 @pytest.mark.django_db

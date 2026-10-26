@@ -296,6 +296,26 @@ def test_mentoring_funnel_parcours_step_saves_it_and_advances_to_the_signup(
 
 
 @pytest.mark.django_db
+def test_mentoring_funnel_parcours_step_saves_the_postal_code_of_a_missing_school(
+    client, beneficiary, school, formation
+):
+    client.force_login(beneficiary)
+    payload = {
+        **_parcours_post(school, formation),
+        "school_id": "",
+        "school_label": "Lycée du bout du monde",
+        "school_not_found": "on",
+        "postal_code": "29200",
+    }
+
+    response = client.post(ADD_MENTORING_URL, payload)
+
+    assert response.context["step"] == "mentoring_signup"
+    beneficiary.refresh_from_db()
+    assert beneficiary.postal_code == "29200"
+
+
+@pytest.mark.django_db
 def test_mentoring_funnel_parcours_step_with_a_forged_study_status_returns_to_the_question(
     client, beneficiary, school, formation
 ):

@@ -54,6 +54,9 @@ def _submit_training_experience(request, beneficiary):
     form = TRAINING_EXPERIENCE_FORMS[study_status](data=request.POST)
     if not form.is_valid():
         return _training_experience_step(request, study_status, form)
+    if form.out_of_scope_postal_code:
+        beneficiary.postal_code = form.out_of_scope_postal_code
+        beneficiary.save()
     # Saved on its own: the parcours belongs to her account whether or not she finishes the last
     # step, and nothing then has to be carried over to it.
     form.save(beneficiary)
@@ -62,9 +65,10 @@ def _submit_training_experience(request, beneficiary):
 
 
 def _submit_mentoring_signup(request, beneficiary):
-    form = BeneficiaryMentoringSignUpForm(data=request.POST)
+    form = BeneficiaryMentoringSignUpForm(
+        data=request.POST, asks_postal_code=_asks_postal_code(beneficiary)
+    )
     require_legal_representative(form, is_minor(beneficiary.birth_date))
-    _require_postal_code(form, _asks_postal_code(beneficiary))
     if form.is_valid() and _sign_up_for_mentoring(request, beneficiary, form):
         return HttpResponse(headers={"HX-Redirect": reverse("show_account")})
     return _mentoring_signup_step(request, beneficiary, form)
@@ -109,11 +113,6 @@ def _mentoring_signup_step(request, beneficiary, form=None):
 
 def _asks_postal_code(beneficiary):
     return not beneficiary.postal_code and beneficiary.training_experiences.first().school is None
-
-
-def _require_postal_code(form, needed):
-    if form.is_valid() and needed and not form.cleaned_data["postal_code"]:
-        form.add_error("postal_code", "Indique ton code postal.")
 
 
 def _render_mentoring_step(request, step, **context):
