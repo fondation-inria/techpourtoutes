@@ -15,25 +15,25 @@ class BeneficiaryLastDiplomaTrainingExperienceForm(BaseTrainingExperienceForm):
     """
 
     period_label = forms.ChoiceField(
-        label=_("En quelle année était-ce ?*"),
+        label=_("En quelle année était-ce ?"),
         choices=[("", _("Sélectionner une option")), *school_year_choices(years_forward=0)],
     )
     level = forms.ChoiceField(
-        label=_("Quelle est la dernière année d'études que tu as validée ?*"),
+        label=_("Quelle est la dernière année d'études que tu as validée ?"),
         choices=level_choices(TrainingExperience.LEVELS),
     )
     school_label = forms.CharField(
         widget=forms.HiddenInput,
         required=False,
         max_length=SCHOOL_LABEL_MAX_LENGTH,
-        label=_("Dans quel établissement étais-tu scolarisée ?*"),
+        label=_("Dans quel établissement étais-tu scolarisée ?"),
     )
     school_id = forms.CharField(widget=forms.HiddenInput, required=False)
     formation_label = forms.CharField(
         widget=forms.HiddenInput,
         required=False,
         max_length=FORMATION_LABEL_MAX_LENGTH,
-        label=_("De quelle formation s'agit-il ?*"),
+        label=_("De quelle formation s'agit-il ?"),
     )
     formation_id = forms.CharField(widget=forms.HiddenInput, required=False)
 

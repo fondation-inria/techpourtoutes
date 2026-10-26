@@ -251,7 +251,7 @@ def test_mentoring_funnel_study_status_step_advances_to_the_parcours(client, ben
     )
 
     assert response.context["step"] == "training_experience"
-    assert "En quelle classe es-tu ?*" in response.content.decode()
+    assert "En quelle classe es-tu ?" in response.content.decode()
 
 
 @pytest.mark.django_db

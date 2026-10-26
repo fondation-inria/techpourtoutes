@@ -24,8 +24,8 @@ from .helpers import (
 # sign-ups through HTMX, reload included.
 
 
-_DIPLOMA_SCHOOL_LABEL = "Dans quel établissement étais-tu scolarisée ?*"
-_DIPLOMA_FORMATION_LABEL = "De quelle formation s'agit-il ?*"
+_DIPLOMA_SCHOOL_LABEL = "Dans quel établissement étais-tu scolarisée ?"
+_DIPLOMA_FORMATION_LABEL = "De quelle formation s'agit-il ?"
 
 
 @pytest.fixture
@@ -61,7 +61,7 @@ def test_graduate_registers_with_her_last_diploma(page, funnel_url):
     select_option(page, "En quelle année", f"{diploma_year}-{diploma_year + 1}")
     # A diploma can come from either list, so no establishment is offered before the level.
     expect(search_field(page, _DIPLOMA_SCHOOL_LABEL)).to_have_count(0)
-    select_option(page, "Quelle est la dernière année d'études que tu as validée ?*", "Terminale")
+    select_option(page, "Quelle est la dernière année d'études que tu as validée ?", "Terminale")
 
     pick(page, _DIPLOMA_SCHOOL_LABEL, "voltaire", "Lycée Voltaire (75011)")
     pick(page, _DIPLOMA_FORMATION_LABEL, "bac", "Bac général")
@@ -84,7 +84,7 @@ def test_the_formation_field_waits_for_the_school(page, funnel_url):
     _complete_email_step(page)
     _complete_identity_step(page)
     choose_study_status(page, "Je suis au collège ou au lycée")
-    select_option(page, "En quelle classe es-tu ?*", "Terminale")
+    select_option(page, "En quelle classe es-tu ?", "Terminale")
 
     formation_field = search_field(page, HIGH_SCHOOL_FORMATION_LABEL)
     expect(formation_field).to_be_disabled()
@@ -101,7 +101,7 @@ def test_clearing_the_school_empties_and_disables_the_formation(page, funnel_url
     _complete_email_step(page)
     _complete_identity_step(page)
     choose_study_status(page, "Je suis au collège ou au lycée")
-    select_option(page, "En quelle classe es-tu ?*", "Terminale")
+    select_option(page, "En quelle classe es-tu ?", "Terminale")
     pick(page, HIGH_SCHOOL_LABEL, "voltaire", "Lycée Voltaire (75011)")
     pick(page, HIGH_SCHOOL_FORMATION_LABEL, "specialite", "Spécialité mathématiques")
 
@@ -121,11 +121,11 @@ def test_changing_the_diploma_level_swaps_the_establishment_list(page, funnel_ur
     # Each perimeter owns its own dropdown container, the higher-ed one suffixed "-sup".
     higher_ed_dropdown = page.locator('[id^="school-results-"][id$="-sup"]')
 
-    select_option(page, "Quelle est la dernière année d'études que tu as validée ?*", "Terminale")
+    select_option(page, "Quelle est la dernière année d'études que tu as validée ?", "Terminale")
     expect(page.get_by_text("Saisis le nom et/ou code postal de l'établissement")).to_be_visible()
     expect(higher_ed_dropdown).to_have_count(0)
 
-    select_option(page, "Quelle est la dernière année d'études que tu as validée ?*", "Bac +3")
+    select_option(page, "Quelle est la dernière année d'études que tu as validée ?", "Bac +3")
 
     expect(page.get_by_text("Saisis le nom et/ou code postal de l'établissement")).to_have_count(0)
     expect(higher_ed_dropdown).to_have_count(1)
@@ -141,7 +141,7 @@ def test_high_schooler_registers_with_her_school(page, funnel_url):
     _complete_identity_step(page)
     choose_study_status(page, "Je suis au collège ou au lycée")
 
-    select_option(page, "En quelle classe es-tu ?*", "Terminale")
+    select_option(page, "En quelle classe es-tu ?", "Terminale")
     pick(page, HIGH_SCHOOL_LABEL, "voltaire", "Lycée Voltaire (75011)")
     pick(page, HIGH_SCHOOL_FORMATION_LABEL, "specialite", "Spécialité mathématiques")
     page.get_by_role("button", name="Rejoindre le club").click()
@@ -169,7 +169,7 @@ def test_a_failed_submit_keeps_the_chosen_school_collapsed(page, funnel_url):
     _complete_email_step(page)
     _complete_identity_step(page)
     choose_study_status(page, "Je suis au collège ou au lycée")
-    select_option(page, "En quelle classe es-tu ?*", "Terminale")
+    select_option(page, "En quelle classe es-tu ?", "Terminale")
     pick(page, HIGH_SCHOOL_LABEL, "voltaire", "Lycée Voltaire (75011)")
     # The formation is left unpicked, so the step comes back with an error.
     page.get_by_role("button", name="Rejoindre le club").click()
@@ -206,11 +206,11 @@ def test_a_missing_school_frees_the_field_and_opens_the_whole_catalogue(page, fu
     _complete_email_step(page)
     _complete_identity_step(page)
     choose_study_status(page, "Je suis au collège ou au lycée")
-    select_option(page, "En quelle classe es-tu ?*", "Terminale")
+    select_option(page, "En quelle classe es-tu ?", "Terminale")
 
     page.get_by_role("button", name="Je ne trouve pas mon établissement").click()
     search_field(page, HIGH_SCHOOL_LABEL).fill("Lycée du bout du monde")
-    page.get_by_label("Quel est ton code postal ?*").fill("29200")
+    page.get_by_label("Quel est ton code postal ?").fill("29200")
 
     # No school to scope on: the formation stays usable and offers what no lycée teaches.
     pick(page, HIGH_SCHOOL_FORMATION_LABEL, "marechalerie", "Bac pro maréchalerie")
@@ -234,14 +234,14 @@ def test_a_missing_school_keeps_the_formation_searchable_once_the_step_is_reject
     _complete_email_step(page)
     _complete_identity_step(page)
     choose_study_status(page, "Je suis au collège ou au lycée")
-    select_option(page, "En quelle classe es-tu ?*", "Terminale")
+    select_option(page, "En quelle classe es-tu ?", "Terminale")
 
     page.get_by_role("button", name="Je ne trouve pas mon établissement").click()
     search_field(page, HIGH_SCHOOL_LABEL).fill("Lycée du bout du monde")
-    page.get_by_label("Quel est ton code postal ?*").fill("2920")
+    page.get_by_label("Quel est ton code postal ?").fill("2920")
     page.get_by_role("button", name="Rejoindre le club").click()
 
-    expect(page.get_by_text("Entrez un code postal valide à 5 chiffres.")).to_be_visible()
+    expect(page.get_by_text("Le code postal doit contenir 5 chiffres.")).to_be_visible()
     expect(search_field(page, HIGH_SCHOOL_LABEL)).to_have_value("Lycée du bout du monde")
     expect(search_field(page, HIGH_SCHOOL_FORMATION_LABEL)).to_be_enabled()
 
@@ -253,11 +253,11 @@ def test_both_records_missing_registers_on_free_text_alone(page, funnel_url):
     _complete_email_step(page)
     _complete_identity_step(page)
     choose_study_status(page, "Je suis au collège ou au lycée")
-    select_option(page, "En quelle classe es-tu ?*", "Terminale")
+    select_option(page, "En quelle classe es-tu ?", "Terminale")
 
     page.get_by_role("button", name="Je ne trouve pas mon établissement").click()
     search_field(page, HIGH_SCHOOL_LABEL).fill("Lycée du bout du monde")
-    page.get_by_label("Quel est ton code postal ?*").fill("29200")
+    page.get_by_label("Quel est ton code postal ?").fill("29200")
     page.get_by_role("button", name="Je ne trouve pas ma formation").click()
     search_field(page, HIGH_SCHOOL_FORMATION_LABEL).fill("Bac pro maréchalerie")
     page.get_by_role("button", name="Rejoindre le club").click()

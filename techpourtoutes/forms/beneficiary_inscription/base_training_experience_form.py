@@ -26,7 +26,7 @@ class BaseTrainingExperienceForm(TrainingExperienceFormMixin, forms.Form):
     school_not_found = forms.BooleanField(widget=forms.HiddenInput, required=False)
     formation_not_found = forms.BooleanField(widget=forms.HiddenInput, required=False)
     postal_code = forms.CharField(
-        required=False, label=_("Quel est ton code postal ?*"), validators=[POSTAL_CODE_VALIDATOR]
+        required=False, label=_("Quel est ton code postal ?"), validators=[POSTAL_CODE_VALIDATOR]
     )
 
     def __init__(self, *args, **kwargs):

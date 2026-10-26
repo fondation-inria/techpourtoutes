@@ -222,7 +222,7 @@ def test_a_missing_school_rejects_an_invalid_postal_code(school, formation):
     )
 
     assert not form.is_valid()
-    assert form.errors["postal_code"] == ["Entrez un code postal valide à 5 chiffres."]
+    assert form.errors["postal_code"] == ["Le code postal doit contenir 5 chiffres."]
 
 
 @pytest.mark.django_db
