@@ -109,7 +109,9 @@ def test_new_pro_engagement_asks_a_complete_profile_for_a_message_even_once_spon
 def test_create_pro_engagement_adds_it_and_goes_back_to_the_account(client, pro):
     client.force_login(pro)
 
-    response = client.post(_create("sponsor"), {"structure_type": "company"})
+    response = client.post(
+        _create("sponsor"), {"structure_type": "company", "message": "Un don de matériel"}
+    )
 
     assert response["HX-Redirect"] == reverse("show_account")
     pro.refresh_from_db()

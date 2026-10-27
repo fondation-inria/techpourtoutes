@@ -5,9 +5,6 @@ from .additional_information_form import ProAdditionalInformationForm
 
 
 class ProSponsorForm(ProAdditionalInformationForm):
-    """A pro supporting the programme: whatever her profile lacks, and a message for the team if
-    she wishes."""
+    """A pro supporting the programme: whatever her profile lacks, and a message for the team."""
 
-    message = forms.CharField(
-        label=_("Votre message"), max_length=1000, required=False, widget=forms.Textarea
-    )
+    message = forms.CharField(label=_("Votre message"), max_length=1000, widget=forms.Textarea)

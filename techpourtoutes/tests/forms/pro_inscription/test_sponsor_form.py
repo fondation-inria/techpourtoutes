@@ -15,7 +15,7 @@ def test_sponsor_form_requires_what_her_profile_lacks(pro):
     assert "structure_name" in form.errors
 
 
-def test_sponsor_form_needs_no_message(pro):
+def test_sponsor_form_requires_a_message(pro):
     form = ProSponsorForm(data={"structure_type": "company"}, pro=pro)
-    assert form.is_valid()
-    assert form.cleaned_data["message"] == ""
+    assert not form.is_valid()
+    assert "message" in form.errors
