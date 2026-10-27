@@ -2,6 +2,7 @@ from .additional_information_form import ProAdditionalInformationForm
 from .email_form import ProEmailForm
 from .engagements_form import ENGAGEMENT_CHOICES, EVENTS, OTHER, ProEngagementsForm
 from .identity_form import ProIdentityForm
+from .sponsor_form import ProSponsorForm
 from .training_ambassador_form import ProTrainingAmbassadorForm
 from .workshop_request_form import ProWorkshopRequestForm
 
@@ -13,6 +14,7 @@ __all__ = [
     "ProEmailForm",
     "ProEngagementsForm",
     "ProIdentityForm",
+    "ProSponsorForm",
     "ProTrainingAmbassadorForm",
     "ProWorkshopRequestForm",
 ]

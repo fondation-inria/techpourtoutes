@@ -6,7 +6,7 @@ from .pro_engagement_mixin import ProEngagementMixin
 
 class AddProEngagement(ProEngagementMixin, BaseService):
     """Adds one more engagement to a pro who already has an account, along with what she
-    told about it — unless she is not eligible for it."""
+    told about it and the `message` she wrote the team — unless she is not eligible for it."""
 
     origin = "Ajout d'engagement pro"
 
@@ -18,6 +18,7 @@ class AddProEngagement(ProEngagementMixin, BaseService):
         training_ambassador_form=None,
         workshop_request_form=None,
         additional_information=None,
+        message="",
     ):
         eligibility = CheckProEngagementEligibility(pro=pro, engagement=engagement)
         if eligibility.failure:
@@ -29,4 +30,4 @@ class AddProEngagement(ProEngagementMixin, BaseService):
         )
 
         ProMailer.engagement_added(pro=self.pro)
-        self._notify_about_engagements([engagement])
+        self._notify_about_engagements([engagement], {engagement: message})

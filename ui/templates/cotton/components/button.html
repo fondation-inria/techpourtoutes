@@ -57,7 +57,7 @@
         </a>
     {% else %}
         <button type="{{ type }}"
-                {% if disabled %}disabled{% endif %}
+                {% if disabled %}aria-disabled="true"{% endif %}
                 class="
                 {% if disabled %}
                     {% if variant == "secondary" %}
