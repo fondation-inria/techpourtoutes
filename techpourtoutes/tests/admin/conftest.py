@@ -30,7 +30,12 @@ def verified_admin_client(client, admin_pro):
 
 
 @pytest.fixture
-def verified_moderator_client(client, moderator_pro):
+def verified_moderator_client(client, moderator_pro, settings):
+    """She only moderates the events of the types of structure whose team she belongs to: she
+    is put in the one following `pro` — author of `event`, and herself."""
+    moderator_pro.structure_type = Pro.StructureType.ASSOCIATION
+    moderator_pro.save()
+    settings.COALITION_ASSOCIATION_RECIPIENTS = [moderator_pro.email]
     return _verified_client(client, moderator_pro)
 
 

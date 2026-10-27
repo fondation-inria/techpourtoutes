@@ -2,6 +2,7 @@ from django.contrib.postgres.fields import ArrayField
 from django.db import models
 from django.utils.translation import gettext_lazy as _
 
+from .structure_type import StructureType
 from .user import User
 
 
@@ -15,14 +16,7 @@ class Pro(User):
         WORKSHOPS = "workshops", _("organiser un atelier")
         MOBILIZE_STRUCTURE = "mobilize_structure", _("engager sa structure")
 
-    class StructureType(models.TextChoices):
-        ASSOCIATION = "association", _("Association")
-        HIGHER_ED = "higher_ed", _("Établissement du supérieur")
-        SCHOOL = "school", _("Collège ou lycée")
-        COMPANY = "company", _("Entreprise")
-        PUBLIC_INSTITUTION = "public_institution", _("Institution publique")
-        RETIRED = "retired", _("Je suis à la retraite")
-        JOBLESS = "jobless", _("Je suis sans emploi")
+    StructureType = StructureType
 
     WITHOUT_STRUCTURE = (StructureType.RETIRED, StructureType.JOBLESS)
     REPEATABLE_ENGAGEMENTS = (Engagement.SPONSOR, Engagement.WORKSHOPS)
