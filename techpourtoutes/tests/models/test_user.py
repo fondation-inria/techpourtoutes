@@ -1,5 +1,6 @@
 import hashlib
 import uuid
+import warnings
 from datetime import timedelta
 from urllib.parse import urlencode
 
@@ -8,6 +9,7 @@ from django.core.exceptions import ValidationError
 from django.test import override_settings
 from django.urls import reverse
 from django.utils import timezone
+from django.utils.deprecation import RemovedInDjango2028Warning
 
 from techpourtoutes.models import User
 from techpourtoutes.models.user import VERIFICATION_CODE_MAX_ATTEMPTS
@@ -28,6 +30,13 @@ def test_user_full_name_shouts_the_last_name():
     user = User(first_name="Ada", last_name="Lovelace")
 
     assert user.full_name == "Ada LOVELACE"
+
+
+@pytest.mark.django_db
+def test_loading_a_user_raises_no_deprecation_warning(pro):
+    with warnings.catch_warnings():
+        warnings.simplefilter("error", RemovedInDjango2028Warning)
+        User.objects.get(pk=pro.pk)
 
 
 def _save_user(**fields):
