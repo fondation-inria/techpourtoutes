@@ -232,6 +232,7 @@ BREVO_PRO_LIST_ID = env.int("BREVO_PRO_LIST_ID", default=0)
 BREVO_BENEFICIARY_LIST_ID = env.int("BREVO_BENEFICIARY_LIST_ID", default=0)
 BREVO_MANIFESTE_LIST_ID = env.int("BREVO_MANIFESTE_LIST_ID", default=0)
 BREVO_EMAIL_NOTIFICATION_LIST_ID = env.int("BREVO_EMAIL_NOTIFICATION_LIST_ID", default=0)
+BREVO_LEGAL_REPRESENTATIVE_LIST_ID = env.int("BREVO_LEGAL_REPRESENTATIVE_LIST_ID", default=0)
 BREVO_SYNC_ENABLED = env.bool("BREVO_SYNC_ENABLED", default=False)
 
 # Coalition engagement notification recipients
@@ -260,10 +261,6 @@ JOBIRL_ACCOUNT_DELETION_RECIPIENTS = env.list(
 )
 LATITUDE_ACCOUNT_DELETION_RECIPIENTS = env.list(
     "LATITUDE_ACCOUNT_DELETION_RECIPIENTS", default=["bonjour@techpourtoutes.io"]
-)
-
-NEW_MENTORING_SIGNUP_RECIPIENTS = env.list(
-    "NEW_MENTORING_SIGNUP_RECIPIENTS", default=["bonjour@techpourtoutes.io"]
 )
 
 NEW_EVENT_RECIPIENTS = env.list("NEW_EVENT_RECIPIENTS", default=["agir@techpourtoutes.io"])
@@ -352,6 +349,11 @@ MEDIA_ROOT = BASE_DIR / "media"
 TAILWIND_CLI_USE_DAISY_UI = True
 TAILWIND_CLI_SRC_CSS = BASE_DIR / "ui/source.css"
 
+# Public files offered for download, dropped by hand in both public buckets (see
+# infra/object_storage/README.md). Staging's by default; production points at its own.
+DOWNLOADS_URL = env(
+    "DOWNLOADS_URL", default="https://tpt-staging-public.s3.gra.io.cloud.ovh.net/downloads/"
+)
 S3_UPLOAD_URL_TTL = 10 * 60
 S3_PRIVATE_URL_TTL = 5 * 60
 STORAGES = {

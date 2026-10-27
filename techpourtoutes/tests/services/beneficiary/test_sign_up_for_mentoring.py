@@ -3,17 +3,12 @@ from unittest.mock import MagicMock, patch
 import pytest
 from django.core import mail
 
+from techpourtoutes.models import LegalRepresentativeAuthorization
 from techpourtoutes.services.base import ErrorKind
 from techpourtoutes.services.beneficiary.sign_up_for_mentoring import SignUpForMentoring
 
 CREATE_MENTOREE = "techpourtoutes.services.beneficiary.sign_up_for_mentoring.CreateMentoree"
 TASK = "techpourtoutes.services.beneficiary.sign_up_for_mentoring.create_mentoree_task"
-
-MENTORING_DATA = {
-    "phone": "0612345678",
-    "legal_representative_name": "Parent Test",
-    "legal_representative_email": "parent@example.com",
-}
 
 
 def _registered():
@@ -30,6 +25,13 @@ def _registration_failed(*errors, transient):
     )
 
 
+MENTORING_DATA = {
+    "phone": "0612345678",
+    "legal_representative_name": "Parent Test",
+    "legal_representative_email": "parent@example.com",
+}
+
+
 def _sign_up(beneficiary, *, is_minor=False):
     return SignUpForMentoring(
         beneficiary=beneficiary, is_minor=is_minor, mentoring_signup_data=MENTORING_DATA
@@ -37,13 +39,18 @@ def _sign_up(beneficiary, *, is_minor=False):
 
 
 @pytest.mark.django_db
-def test_a_minor_is_handed_over_to_the_consortium_instead_of_jobirl(beneficiary):
+def test_a_minor_waits_for_her_legal_representative_authorization_instead_of_jobirl(
+    beneficiary,
+):
     with patch(CREATE_MENTOREE) as MockCreateMentoree:
         result = _sign_up(beneficiary, is_minor=True)
 
     assert result.success is True
     MockCreateMentoree.assert_not_called()
-    assert "Nouvelle attestation à envoyer" in {message.subject for message in mail.outbox}
+    authorization = beneficiary.legal_representative_authorization
+    assert authorization.legal_representative_name == "Parent Test"
+    assert authorization.legal_representative_email == "parent@example.com"
+    assert mail.outbox[0].to == ["parent@example.com"]
 
 
 @pytest.mark.django_db
@@ -57,6 +64,8 @@ def test_an_adult_is_registered_on_jobirl(beneficiary):
     assert result.success is True
     MockCreateMentoree.assert_called_once_with(beneficiary=beneficiary)
     task.delay.assert_not_called()
+    # An adult never has a legal representative, even if the form data carried one.
+    assert not LegalRepresentativeAuthorization.objects.exists()
 
 
 @pytest.mark.django_db(transaction=True)

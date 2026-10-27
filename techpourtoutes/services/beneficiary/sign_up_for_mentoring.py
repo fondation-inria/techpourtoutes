@@ -1,16 +1,20 @@
 from django.db import transaction
 
-from ...mailers import ConsortiumMailer
 from ...tasks import create_mentoree_task
 from ..base import BaseService
+from ..legal_representative_authorization.request_authorization import (
+    RequestLegalRepresentativeAuthorization,
+)
 from .create_mentoree import CreateMentoree
 
 
 class SignUpForMentoring(BaseService):
     def perform(self, *, beneficiary, is_minor, mentoring_signup_data):
         if is_minor:
-            ConsortiumMailer.mentoree_signed_up(
-                beneficiary=beneficiary, mentoring_signup_data=mentoring_signup_data
+            RequestLegalRepresentativeAuthorization(
+                beneficiary=beneficiary,
+                legal_representative_name=mentoring_signup_data["legal_representative_name"],
+                legal_representative_email=mentoring_signup_data["legal_representative_email"],
             )
             return
         result = CreateMentoree(beneficiary=beneficiary)

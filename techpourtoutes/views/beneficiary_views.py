@@ -18,11 +18,12 @@ from ..forms import (
     StudyStatus,
     UpcomingFeatureNotificationForm,
 )
-from ..models import Event, SavedEvent
+from ..models import Event, MakeuseProject, SavedEvent
 from ..tasks import create_upcoming_feature_notification_task
 from ..utils.dates import compute_age
 
 EVENTS_PER_PAGE = 18
+MAKEUSE_PROJECTS_PER_PAGE = 6
 
 # ------------------- pages -------------------
 
@@ -66,7 +67,7 @@ def new_mentoree(request):
         if beneficiary.jobirl_user_id:
             cta_href = reverse("login_to_jobirl")
             cta_label = "Rejoindre mon espace mentorat"
-        elif beneficiary.legal_representative_email:
+        elif beneficiary.is_registered_for_mentoring:
             cta_href = ""
             cta_label = "Rejoindre mon espace mentorat"
             cta_disabled = True
@@ -106,7 +107,24 @@ def index_makeuses(request):
     return render(
         request,
         "beneficiary/index_makeuses.html",
-        {"cta_href": cta_href},
+        {
+            "cta_href": cta_href,
+            "makeuse_projects": Paginator(
+                MakeuseProject.objects.select_related("beneficiary").order_by("-created_at"),
+                MAKEUSE_PROJECTS_PER_PAGE,
+            ).get_page(request.GET.get("page")),
+        },
+    )
+
+
+def show_makeuse_project(request, slug):
+    return render(
+        request,
+        "beneficiary/show_makeuse_project.html",
+        {
+            "project": get_object_or_404(MakeuseProject, slug=slug),
+            "back_url": _back_to_listing(request, "index_makeuses", anchor="projets"),
+        },
     )
 
 
@@ -128,7 +146,9 @@ def show_event(request, slug):
             "event": event,
             "saved": _is_saved(beneficiary, event),
             "bookmark_action": _bookmark_action(request.user, beneficiary),
-            "back_url": _back_to_listing(request),
+            "back_url": _back_to_listing(
+                request, "index_events", "index_beneficiary_events", "index_pro_events"
+            ),
             "is_organizer": event.is_organized_by(request.user),
         },
     )
@@ -217,26 +237,25 @@ def _events_page(beneficiary, page):
     return Paginator(upcoming, EVENTS_PER_PAGE).get_page(page)
 
 
-def _back_to_listing(request):
+def _back_to_listing(request, *listings, anchor=""):
+    """The first listing is the fallback. `anchor` only follows a visitor who came from the
+    listing: she goes back to where she was, whereas one who landed here from elsewhere starts
+    at the top of the listing."""
     for candidate in (request.GET.get("back", ""), request.headers.get("referer", "")):
-        back_url = _authorized_index_events_back_url(request, candidate)
+        back_url = _authorized_back_url(request, candidate, listings)
         if back_url:
-            return back_url
-    return reverse("index_events")
+            return f"{back_url}#{anchor}" if anchor else back_url
+    return reverse(listings[0])
 
 
-def _authorized_index_events_back_url(request, url):
-    """Only a same-origin link to one of the event listings is trusted as a back link —
+def _authorized_back_url(request, url, listings):
+    """Only a same-origin link to one of the listings is trusted as a back link —
     anything else (an external host, an unrelated page) is ignored."""
     parsed = urlparse(url)
     if (
         not url
         or parsed.netloc not in ("", request.get_host())
-        or parsed.path
-        not in (
-            reverse(name)
-            for name in ("index_beneficiary_events", "index_events", "index_pro_events")
-        )
+        or parsed.path not in (reverse(name) for name in listings)
     ):
         return None
     return parsed.path + (f"?{parsed.query}" if parsed.query else "")

@@ -105,5 +105,7 @@ def test_a_faveod_account_walks_the_three_steps_to_the_end(page_without_parcours
 
     expect(page_without_parcours).to_have_url(re.compile(r"/mon-compte/$"))
     beneficiary = Beneficiary.objects.get(email="oceane@example.com")
-    assert beneficiary.legal_representative_email == "hedy@example.com"
+    assert beneficiary.legal_representative_authorization.legal_representative_email == (
+        "hedy@example.com"
+    )
     assert beneficiary.training_experiences.count() == 1

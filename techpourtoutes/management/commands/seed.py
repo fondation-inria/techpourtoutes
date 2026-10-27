@@ -1,13 +1,23 @@
 from datetime import date, time, timedelta
 from decimal import Decimal
+from uuid import uuid4
 
 from django.conf import settings
+from django.core.files import File
 from django.core.management import call_command
 from django.core.management.base import BaseCommand, CommandError
 from django.utils import timezone
 
-from techpourtoutes.models import Event, Formation, Level, Pro, TrainingExperience
+from techpourtoutes.models import (
+    Event,
+    Formation,
+    Level,
+    MakeuseProject,
+    Pro,
+    TrainingExperience,
+)
 from techpourtoutes.models.beneficiary import Beneficiary
+from techpourtoutes.models.makeuse_project import IMAGE_PREFIX
 from techpourtoutes.utils.school_year import (
     current_school_year_end_date,
     current_school_year_start_date,
@@ -29,6 +39,7 @@ class Command(BaseCommand):
         else:
             self._create_default_accounts()
         self._create_events()
+        self._create_makeuse_projects()
 
     def _import_onisep_samples(self):
         call_command("import_schools_and_formations", sample=True, if_empty=True)
@@ -119,6 +130,7 @@ class Command(BaseCommand):
         """Approved and upcoming, one a week: enough of them to scroll past the first page."""
         pro = Pro.objects.filter(is_superuser=True).earliest("created_at")
         today = timezone.localdate()
+        count_before = Event.objects.count()
         for week, (lasts, fields) in enumerate(EVENT_SEEDS, start=1):
             start = today + timedelta(weeks=week)
             defaults = {
@@ -131,7 +143,221 @@ class Command(BaseCommand):
                 "end_time": time(18, 0),
             }
             Event(**{**defaults, **fields}).save()
-        self.stdout.write(self.style.SUCCESS(f"  {len(EVENT_SEEDS)} events created."))
+        self.stdout.write(
+            self.style.SUCCESS(f"  {Event.objects.count() - count_before} events created.")
+        )
+
+    def _create_makeuse_projects(self):
+        count_before = MakeuseProject.objects.count()
+        for fields in MAKEUSE_PROJECT_SEEDS:
+            title = fields["title"]
+            if MakeuseProject.objects.filter(title=title).exists():
+                self.stdout.write(f"  Makeuse project {title} already exists, skipping.")
+                continue
+            fields = dict(fields)
+            image_path = settings.BASE_DIR / fields.pop(
+                "image", "ui/static/images/events/social/afterwork.webp"
+            )
+            project = MakeuseProject(**fields)
+            with open(image_path, "rb") as image:
+                project.image.save(f"{IMAGE_PREFIX}/{uuid4().hex}{image_path.suffix}", File(image))
+        self.stdout.write(
+            self.style.SUCCESS(
+                f"  {MakeuseProject.objects.count() - count_before} makeuse projects created."
+            )
+        )
+
+
+MAKEUSE_PROJECT_SEEDS = [
+    {
+        "title": "Stage Finder",
+        "category": MakeuseProject.Category.APPS_AND_WEB,
+        "project_type": "Application mobile",
+        "creator_name": "Inès Benali",
+        "contact_email": "ines.benali@example.org",
+        "demo_url": "https://example.org/stage-finder",
+        "idea": (
+            "Une appli qui rapproche les lycéennes des entreprises de leur quartier pour "
+            "trouver un stage de seconde.\n\n"
+            "On filtre par métier, par distance et par durée, et on contacte l'entreprise "
+            "directement depuis l'appli."
+        ),
+        "background": (
+            "Terminale STI2D à Amiens. J'ai galéré à trouver mon propre stage, c'est ce qui "
+            "m'a donné l'idée."
+        ),
+        "methodology": (
+            "Des entretiens avec une dizaine de lycéennes, une maquette sur Figma, puis "
+            "l'application développée avec Flutter."
+        ),
+        "hobbies": "Le volley, le dessin et les escape games.",
+    },
+    {
+        "title": "Cyber Quiz",
+        "category": MakeuseProject.Category.APPS_AND_WEB,
+        "project_type": "Site web",
+        "creator_name": "Léa Martin",
+        "contact_email": "lea.martin@example.org",
+        "demo_url": "https://example.org/cyber-quiz",
+        "idea": (
+            "Un quiz pour apprendre les bons réflexes de cybersécurité en dix minutes : mots de "
+            "passe, hameçonnage, réseaux publics.\n\n"
+            "Chaque réponse est suivie d'une courte explication pour retenir l'essentiel."
+        ),
+        "background": "BUT informatique à Lannion, option cybersécurité.",
+        "methodology": (
+            "Développé avec Django et HTMX, puis testé auprès de ma famille et de mes amies, "
+            "qui n'y connaissaient rien."
+        ),
+        "hobbies": "Les CTF, la randonnée et les romans policiers.",
+    },
+    {
+        "title": "Mentora",
+        "category": MakeuseProject.Category.APPS_AND_WEB,
+        "project_type": "Plateforme",
+        "creator_name": "Aminata Diallo",
+        "contact_email": "aminata.diallo@example.org",
+        "demo_url": "https://example.org/mentora",
+        "idea": (
+            "Une plateforme pour trouver une mentore dans la tech quand on ne connaît "
+            "personne dans le milieu.\n\n"
+            "On décrit son projet en quelques lignes, et la plateforme propose trois mentores "
+            "dont le parcours y ressemble."
+        ),
+        "background": (
+            "BTS SIO à Lyon. Pendant mes deux années, j'ai vu beaucoup de camarades abandonner "
+            "faute de savoir vers qui se tourner."
+        ),
+        "methodology": (
+            "Au départ un simple tableur partagé, puis un site statique, et enfin une vraie "
+            "application avec des comptes. Les retours des premières utilisatrices ont changé "
+            "presque toutes mes idées de départ."
+        ),
+        "hobbies": "La danse, la photo argentique et les podcasts sur l'histoire des sciences.",
+    },
+    {
+        "title": "Data Vélo",
+        "category": MakeuseProject.Category.DATA_AND_AI,
+        "project_type": "Data visualisation",
+        "creator_name": "Chloé Nguyen",
+        "contact_email": "chloe.nguyen@example.org",
+        "demo_url": "https://example.org/data-velo",
+        "idea": (
+            "Visualiser les trajets en vélo partagé de ma ville pour repérer où il manque des "
+            "stations."
+        ),
+        "background": "Reconversion après huit ans comme comptable, formation data analyst.",
+        "methodology": "L'open data de la métropole, Python, pandas et une carte Leaflet.",
+        "hobbies": "Le vélo, évidemment, et la pâtisserie.",
+    },
+    {
+        "title": "Robot trieur",
+        "category": MakeuseProject.Category.OBJECTS_AND_ROBOTICS,
+        "project_type": "Objet connecté",
+        "creator_name": "Sarah Cohen",
+        "contact_email": "sarah.cohen@example.org",
+        "demo_url": "https://example.org/robot-trieur",
+        "idea": "Un petit robot qui trie les déchets de la cantine grâce à une caméra.",
+        "background": "Première générale, spécialités NSI et physique-chimie.",
+        "methodology": (
+            "Une carte Arduino, un modèle de reconnaissance d'images entraîné sur nos propres "
+            "photos, et beaucoup de carton."
+        ),
+        "hobbies": "La robotique et le théâtre.",
+    },
+    {
+        "title": "Chatbot orientation",
+        "category": MakeuseProject.Category.DATA_AND_AI,
+        "project_type": "Intelligence artificielle",
+        "creator_name": "Emma Petit",
+        "contact_email": "emma.petit@example.org",
+        "demo_url": "https://example.org/chatbot-orientation",
+        "idea": (
+            "Un chatbot qui répond aux questions des lycéennes sur les formations du "
+            "numérique, à partir des fiches de l'Onisep."
+        ),
+        "background": "Licence de mathématiques à Grenoble, puis master en science des données.",
+        "methodology": (
+            "Une base de fiches formations, un moteur de recherche sémantique et une interface "
+            "web toute simple."
+        ),
+        "hobbies": "L'escalade et les échecs.",
+    },
+    {
+        "title": "Pixel Garden",
+        "category": MakeuseProject.Category.GAMES,
+        "project_type": "Jeu vidéo",
+        "creator_name": "Manon Lefèvre",
+        "contact_email": "manon.lefevre@example.org",
+        "demo_url": "https://example.org/pixel-garden",
+        "idea": (
+            "Un jeu de jardinage en pixel art pour apprendre les bases de la programmation : "
+            "on arrose et on plante en écrivant de petites instructions."
+        ),
+        "background": "Bac pro, puis BTS en alternance dans une PME de développement web.",
+        "methodology": "Godot, des sprites dessinés à la main et des tests en classe de collège.",
+        "hobbies": "Le jardinage, pour de vrai, et les jeux indépendants.",
+    },
+    {
+        "title": "L'aventure Tech",
+        "category": MakeuseProject.Category.GAMES,
+        "project_type": "Jeu vidéo",
+        "creator_name": "Océane Deneuville",
+        "contact_email": "o.deneuville@myskolae.fr",
+        "demo_url": "https://ocednv.itch.io/tpt",
+        "image": "data/seed/laventure_tech.webp",
+        "idea": (
+            "L'idée est simple : un jeu pédagogique pour montrer aux filles que se lancer dans la "
+            "tech c'est possible. Concrètement, il y a 3 parcours différents selon le profil : "
+            "les lycéennes, les étudiantes, et les filles en reconversion.\n\n"
+            "Le principe : à chaque étape, une situation est donnée et tu dois choisir entre 2 "
+            "choix. Il n'y a pas de bonne ou de mauvaise réponse. Le vrai objectif c'est de "
+            "garder tes 4 jauges au-dessus de zéro. Un peu comme dans la vraie vie, chaque "
+            "décision a un impact, et il faut réussir à trouver l'équilibre."
+        ),
+        "background": (
+            "Mon parcours a été loin d'être linéaire : bac général avec des spécialités un peu "
+            "aléatoires pour finir en Game Design : LLCE anglais, SES et HGGSP. Après le bac "
+            "j'étais complètement perdue, donc j'ai fait ce qu'on fait tous : j'ai pris la "
+            "matière où j'avais les meilleures notes. Direction LEA anglais-espagnol à Nanterre. "
+            "Sauf qu'en espagnol, je ne suis pas très forte donc j'ai arrêté au bout d'un an.\n\n"
+            "Ensuite j'ai retenté avec ma deuxième matière préférée au lycée : la philo, à la "
+            "Sorbonne Panthéon. Alors ouais, ça fait son petit effet quand tu le dis en soirée, "
+            "mais je me voyais clairement pas faire ça toute ma vie. Nouvel arrêt au bout d'un "
+            "an.\n\n"
+            "Et là, dernière tentative, dernière chance : je me tourne vers une école de jeux "
+            "vidéo. Direction l'ICAN, où je vais bientôt attaquer ma dernière année de Bachelor. "
+            "Et franchement c'est vraiment bien parce que c'est hyper pluridisciplinaire : du "
+            "code, du game design, de l'UX, de la 3D, de l'histoire de l'art... il y a un peu de "
+            "tout.\n\n"
+            "À travers mon parcours, j'espère montrer que même quand le chemin n'est pas tout "
+            "droit, on peut finir par trouver sa place."
+        ),
+        "methodology": (
+            "Ce jeu a été réalisé dans le cadre de mon stage chez TechPourToutes. Je l'ai "
+            "développé sur Unity, un moteur de jeu, en y consacrant une journée par semaine "
+            "pendant environ deux mois.\n\n"
+            "J'ai commencé par une phase de recherche, principalement autour des jauges : il "
+            "fallait choisir celles qui représentaient le mieux les enjeux d'un parcours dans la "
+            "tech, et réfléchir à la manière dont elles pouvaient évoluer selon les choix de la "
+            "joueuse. J'ai ensuite étudié plusieurs jeux de référence pour m'inspirer de leurs "
+            "mécaniques et de leur narration. Une fois ces bases posées, j'ai écrit le scénario, "
+            "puis je suis rapidement passée à un prototype jouable, que j'ai amélioré et peaufiné "
+            "tout au long du projet, jusqu'à la version finale.\n\n"
+            "En parallèle, j'ai rencontré des professionnels du jeu vidéo pour avoir leur regard "
+            "sur mon travail. Comme il s'agit d'un jeu pédagogique, je voulais m'assurer que le "
+            "contenu était juste et pertinent, tout en trouvant le bon équilibre : transmettre "
+            "des messages sans trop en dire, pour que le jeu reste avant tout une expérience à "
+            "vivre et non une leçon."
+        ),
+        "hobbies": (
+            "Côté loisirs j'aime beaucoup les jeux vidéo (sans surprise vu mes études), et j'aime "
+            "bien faire du basket. Sinon je suis plutôt sociable donc j'adore sortir boire des "
+            "verres avec mes amis, et niveau musique j'adore jouer de la guitare, j'ai même un "
+            "tatouage de la guitare de Jimmy Hendrix."
+        ),
+    },
+]
 
 
 def _alias(email, tag):

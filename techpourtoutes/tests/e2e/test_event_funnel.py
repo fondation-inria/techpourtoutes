@@ -68,6 +68,8 @@ def test_the_end_date_follows_a_start_date_typed_digit_by_digit(funnel):
     at a time goes through 0002 before reaching 2026: the end date has to keep following."""
     choose_subcategory(funnel, "Salon")
     funnel.get_by_role("button", name="Continuer").click()
+    # Typing before the step settles loses keystrokes: the focus then jumps to its title.
+    expect(funnel.get_by_role("heading", name="Proposer un événement")).to_be_focused()
     funnel.get_by_label("Date de début*").press_sequentially("10122026")
 
     # The order of the segments follows the browser locale; the year is the same in both.

@@ -23,6 +23,7 @@ dependencies = [
   "django-storages[s3]>=1.14.6",
   "django-tailwind-cli>=4.8.1",
   "django-waffle>=5",
+  "fpdf2>=2.8.9",
   "gunicorn>=26.2",
   "httpx>=0.28.1",
   "ipython>=9.17.1",

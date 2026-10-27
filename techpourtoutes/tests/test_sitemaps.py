@@ -4,6 +4,7 @@ from django.urls import reverse
 from techpourtoutes.models import Event
 from techpourtoutes.sitemaps import StaticViewSitemap
 from techpourtoutes.tests.models.test_event import build_event
+from techpourtoutes.tests.models.test_makeuse_project import build_makeuse_project
 from techpourtoutes.tests.sitemap_exclusions import NEVER_LISTED_URL_NAMES, argument_free_url_names
 
 # Pages the XML sitemap leaves out on top of the NEVER_LISTED_URL_NAMES. Adding a new page
@@ -110,3 +111,13 @@ def test_sitemap_omits_events_awaiting_validation(client, event):
     content = client.get("/sitemap.xml").content.decode()
 
     assert reverse("show_event", args=[event.slug]) not in content
+
+
+@pytest.mark.django_db
+def test_sitemap_lists_makeuse_projects(client):
+    project = build_makeuse_project()
+    project.save()
+
+    content = client.get("/sitemap.xml").content.decode()
+
+    assert reverse("show_makeuse_project", args=[project.slug]) in content

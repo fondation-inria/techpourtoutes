@@ -4,7 +4,8 @@ import pytest
 from django.db import transaction
 from django.test import override_settings
 
-from techpourtoutes.models import Pro
+from techpourtoutes.models import LegalRepresentativeAuthorization, Pro
+from techpourtoutes.signals import legal_representative_authorization_signed
 
 
 @pytest.fixture
@@ -178,3 +179,13 @@ def test_clearing_the_groups_closes_the_admin_door(pro, event_moderator_group):
 
     pro.refresh_from_db()
     assert not pro.is_staff
+
+
+@pytest.mark.django_db
+def test_a_signed_legal_representative_authorization_registers_the_mentoree(authorization):
+    with patch("techpourtoutes.signals.create_mentoree_task") as create_mentoree:
+        legal_representative_authorization_signed.send(
+            sender=LegalRepresentativeAuthorization, authorization=authorization
+        )
+
+    create_mentoree.delay.assert_called_once_with(beneficiary_pk=str(authorization.beneficiary.pk))

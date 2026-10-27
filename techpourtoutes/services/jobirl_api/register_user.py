@@ -74,6 +74,8 @@ class RegisterUserOnJobirl(JobirlApiBaseService):
             "formation_code_onisep": formation_code_onisep,
             level_field: experience.get_level_display(),
         }
-        if user.legal_representative_email:
-            data["email_tuteur"] = user.legal_representative_email
+        if user.has_legal_representative_authorization:
+            data["email_tuteur"] = (
+                user.legal_representative_authorization.legal_representative_email
+            )
         return data

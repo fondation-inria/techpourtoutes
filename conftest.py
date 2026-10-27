@@ -42,7 +42,8 @@ def public_file_fields_follow_storages():
         field
         for model in apps.get_models()
         for field in model._meta.get_fields()
-        if isinstance(field, FileField) and field._storage_callable is public_storage
+        if isinstance(field, FileField)
+        and getattr(field, "_storage_callable", None) is public_storage
     ]
 
     def repoint(*, setting, **kwargs):
