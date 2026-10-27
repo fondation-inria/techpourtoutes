@@ -27,7 +27,7 @@ class JobPosting(BaseModel):
     description = models.TextField(verbose_name=_("description"))
     postal_code = models.CharField(max_length=10, blank=True, verbose_name=_("code postal"))
     cog_code = models.CharField(max_length=10, blank=True, verbose_name=_("COG"))
-    city = models.CharField(max_length=100, blank=True, verbose_name=_("ville"))
+    city = models.CharField(max_length=100, verbose_name=_("ville"))
     domain = models.CharField(max_length=255, verbose_name=_("domaine"))
     duration = models.CharField(blank=True, max_length=255, verbose_name=_("durée"))
     company_logo = models.URLField(
