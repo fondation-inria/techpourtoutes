@@ -3,7 +3,7 @@ from unittest.mock import MagicMock, patch
 import pytest
 from django.urls import reverse
 
-from techpourtoutes.models import Level
+from techpourtoutes.models import LegalRepresentativeAuthorization, Level
 from techpourtoutes.tests.birth_dates import birth_date_for_age
 
 ADD_MENTORING_URL = "/devenir-mentoree/"
@@ -99,8 +99,7 @@ def test_mentoring_funnel_post_missing_legal_representative_fields_for_minor(
 
     assert response.status_code == 200
     assert "Ce champ est obligatoire." in response.content.decode()
-    beneficiary.refresh_from_db()
-    assert beneficiary.legal_representative_name == ""
+    assert not LegalRepresentativeAuthorization.objects.exists()
 
 
 @pytest.mark.django_db

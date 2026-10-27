@@ -1,0 +1,7 @@
+{% autoescape off %}Bonjour,
+
+Merci d'avoir signé l'autorisation pour permettre à {{ beneficiary.first_name }} de rejoindre le programme TechPourToutes. Veuillez trouver ci-joint la version pdf.
+
+Merci,
+Bonne journée,
+L'équipe TechPourToutes{% endautoescape %}

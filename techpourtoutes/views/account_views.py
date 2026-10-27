@@ -5,7 +5,6 @@ from django.http import HttpResponse
 from django.shortcuts import redirect, render
 from django.views.decorators.http import require_POST
 
-from techpourtoutes.mailers.consortium_mailer import ConsortiumMailer
 from techpourtoutes.services.account.soft_delete_user import SoftDeleteUser
 
 from ..decorators import beneficiary_required
@@ -19,8 +18,12 @@ from ..forms import (
     VerificationCodeForm,
 )
 from ..mailers import AuthMailer
+from ..models import LegalRepresentativeAuthorization
 from ..ratelimit import rate_limit
 from ..services.account.verify_email_change_code import VerifyEmailChangeCode
+from ..services.legal_representative_authorization.request_authorization import (
+    RequestLegalRepresentativeAuthorization,
+)
 from ..utils.text import mask_email
 from ..utils.training_experience import training_experience_slots
 
@@ -226,10 +229,10 @@ def edit_beneficiary_legal_rep(request):
     if not user.is_registered_for_mentoring:
         return _reject_unregistered_legal_rep(request)
 
-    if user.jobirl_user_id:
+    if _legal_rep_is_locked(user):
         return _render_beneficiary_legal_rep(request, user)
 
-    form = BeneficiaryLegalRepEditForm(beneficiary=user)
+    form = BeneficiaryLegalRepEditForm(authorization=user.legal_representative_authorization)
     return _render_beneficiary_legal_rep_form(request, user, form)
 
 
@@ -240,23 +243,17 @@ def update_beneficiary_legal_rep(request):
     if not user.is_registered_for_mentoring:
         return _reject_unregistered_legal_rep(request)
 
-    if user.jobirl_user_id:
+    if _legal_rep_is_locked(user):
         return _render_beneficiary_legal_rep(request, user)
 
-    form = BeneficiaryLegalRepEditForm(data=request.POST, beneficiary=user)
+    form = BeneficiaryLegalRepEditForm(
+        data=request.POST, authorization=user.legal_representative_authorization
+    )
     if not form.is_valid():
         return _render_beneficiary_legal_rep_form(request, user, form)
 
     if form.has_changed():
-        form.save(user)
-        ConsortiumMailer.mentoree_signed_up(
-            beneficiary=user,
-            mentoring_signup_data={
-                "legal_representative_name": user.legal_representative_name,
-                "legal_representative_email": user.legal_representative_email,
-            },
-            is_update=True,
-        )
+        RequestLegalRepresentativeAuthorization(beneficiary=user, **form.cleaned_data)
     return _render_beneficiary_legal_rep(request, user)
 
 
@@ -296,6 +293,15 @@ def _reject_expired_email_change(request):
         "La demande de changement d'adresse a expiré. Veuillez recommencer.",
     )
     return redirect("show_account")
+
+
+def _legal_rep_is_locked(user):
+    """Only a request still pending can be corrected: a signed one is a proof."""
+    return (
+        not user.has_legal_representative_authorization
+        or user.legal_representative_authorization.status
+        == LegalRepresentativeAuthorization.Status.SIGNED
+    )
 
 
 def _reject_unregistered_legal_rep(request):

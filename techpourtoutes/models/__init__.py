@@ -2,6 +2,7 @@ from .beneficiary import Beneficiary
 from .event import Event
 from .formation import Formation
 from .formation_action import FormationAction
+from .legal_representative_authorization import LegalRepresentativeAuthorization
 from .level import Level
 from .makeuse_project import MakeuseProject
 from .pro import Pro
@@ -16,6 +17,7 @@ __all__ = [
     "Event",
     "Formation",
     "FormationAction",
+    "LegalRepresentativeAuthorization",
     "Level",
     "MakeuseProject",
     "Pro",
