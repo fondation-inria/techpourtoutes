@@ -19,9 +19,14 @@ class JobPosting(BaseModel):
         APPRENTICESHIP = "apprenticeship", _("Contrat d'apprentissage")
         PROFESSIONALIZATION = "professionalization", _("Contrat de professionnalisation")
 
-    external_id = models.CharField(
-        max_length=100, unique=True, verbose_name=_("identifiant de l'offre")
+    class Source(models.TextChoices):
+        APEC = "apec", _("Apec")
+        MYFUTURE = "myfuture", _("MyFuture")
+
+    source = models.CharField(
+        max_length=20, choices=Source.choices, verbose_name=_("source de l'offre")
     )
+    external_id = models.CharField(max_length=100, verbose_name=_("identifiant de l'offre"))
     title = models.CharField(max_length=255, verbose_name=_("titre"))
     company_name = models.CharField(max_length=255, verbose_name=_("nom de l'entreprise"))
     description = models.TextField(verbose_name=_("description"))
@@ -48,6 +53,11 @@ class JobPosting(BaseModel):
     class Meta:
         verbose_name = _("offre")
         verbose_name_plural = _("offres")
+        constraints = [
+            models.UniqueConstraint(
+                fields=["source", "external_id"], name="unique_job_posting_per_source"
+            )
+        ]
 
     def __str__(self):
         return self.title
