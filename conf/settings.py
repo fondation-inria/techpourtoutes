@@ -203,11 +203,14 @@ BREVO_API_KEY = env("BREVO_API_KEY", default="")
 APP_NAME = env("APP", default="")
 EMAIL_SUBJECT_PREFIX = email_subject_prefix(APP_NAME)
 if DEBUG:
-    EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
-    EMAIL_HOST = "localhost"
-    EMAIL_PORT = 1025
+    MAILERS = {
+        "default": {
+            "BACKEND": "django.core.mail.backends.smtp.EmailBackend",
+            "OPTIONS": {"host": "localhost", "port": 1025},
+        }
+    }
 else:
-    EMAIL_BACKEND = "anymail.backends.brevo.EmailBackend"
+    MAILERS = {"default": {"BACKEND": "anymail.backends.brevo.EmailBackend"}}
     ANYMAIL = {"BREVO_API_KEY": BREVO_API_KEY}
 
 # Jobirl API
