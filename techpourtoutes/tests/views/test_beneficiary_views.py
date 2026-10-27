@@ -696,18 +696,32 @@ def test_show_event_hides_an_event_awaiting_validation_from_a_beneficiary(
     assert client.get(reverse("show_event", args=[event.slug])).status_code == 404
 
 
-@pytest.mark.django_db
-def test_show_event_lets_a_staff_member_open_an_event_awaiting_validation(client, event):
-    staff = User.objects.create_user(
-        username="staff@example.com",
-        email="staff@example.com",
-        first_name="Ada",
-        last_name="Moderatrice",
-        is_staff=True,
+def _staff(email):
+    return User.objects.create_user(
+        username=email, email=email, first_name="Ada", last_name="Moderatrice", is_staff=True
     )
-    client.force_login(staff)
+
+
+@pytest.mark.django_db
+def test_show_event_lets_its_moderator_open_an_event_awaiting_validation(client, event, settings):
+    event.created_by.structure_type = Pro.StructureType.ASSOCIATION
+    event.created_by.save()
+    settings.COALITION_ASSOCIATION_RECIPIENTS = ["staff@example.com"]
+    client.force_login(_staff("staff@example.com"))
 
     assert client.get(reverse("show_event", args=[event.slug])).status_code == 200
+
+
+@pytest.mark.django_db
+def test_show_event_hides_an_event_awaiting_validation_from_another_teams_staff(
+    client, event, settings
+):
+    event.created_by.structure_type = Pro.StructureType.ASSOCIATION
+    event.created_by.save()
+    settings.COALITION_ASSOCIATION_RECIPIENTS = ["staff@example.com"]
+    client.force_login(_staff("other-team@example.com"))
+
+    assert client.get(reverse("show_event", args=[event.slug])).status_code == 404
 
 
 @pytest.mark.django_db

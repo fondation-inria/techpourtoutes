@@ -5,6 +5,7 @@ from django.urls import reverse
 
 from ..forms.pro_inscription import OTHER
 from ..models import Pro
+from ..utils.structure_type_teams import recipients_for
 from .base_mailer import BaseMailer
 
 _ENGAGEMENT_LABELS = {**dict(Pro.Engagement.choices), OTHER: "s'engager autrement"}
@@ -54,7 +55,7 @@ class ConsortiumMailer(BaseMailer):
         admin_url = cls._event_admin_url(event)
         cls.send_mail(
             subject=f"Un nouvel événement à valider : {event.title}",
-            recipient_list=cls._structure_type_recipients(event.created_by.structure_type),
+            recipient_list=recipients_for(event.created_by.structure_type),
             context={"event": event, "admin_url": admin_url},
             tags=["interne", "coalition", "nouvel événement"],
         )
@@ -64,7 +65,7 @@ class ConsortiumMailer(BaseMailer):
         admin_url = cls._event_admin_url(event)
         cls.send_mail(
             subject=f"L'événement {event.title} a été modifié",
-            recipient_list=cls._structure_type_recipients(event.created_by.structure_type),
+            recipient_list=recipients_for(event.created_by.structure_type),
             context={"event": event, "admin_url": admin_url},
             tags=["interne", "coalition", "événement modifié"],
         )
@@ -85,32 +86,17 @@ class ConsortiumMailer(BaseMailer):
             tags=["interne", "coalition", "nouvelle proposition de projet Makeuse"],
         )
 
-    @classmethod
-    def _pro_signed_up_recipients(cls, pro, engagement):
+    @staticmethod
+    def _pro_signed_up_recipients(pro, engagement):
         """Mobilizing her structure, or helping otherwise, goes to the team following her kind of
         structure."""
         if engagement in (Pro.Engagement.MOBILIZE_STRUCTURE, OTHER):
-            return cls._structure_type_recipients(pro.structure_type)
+            return recipients_for(pro.structure_type)
         return {
             Pro.Engagement.INTERNSHIPS: settings.COALITION_INTERNSHIPS_RECIPIENTS,
             Pro.Engagement.WORK_AMBASSADOR: settings.COALITION_WORK_AMBASSADOR_RECIPIENTS,
             Pro.Engagement.SPONSOR: settings.COALITION_SPONSOR_RECIPIENTS,
         }.get(engagement, [])
-
-    @staticmethod
-    def _structure_type_recipients(structure_type):
-        """The team following each kind of structure; who works in none is followed by the work
-        ambassadors' one. A type never given — an edge case the screens otherwise rule out —
-        still reaches the coalition's general address."""
-        return {
-            Pro.StructureType.ASSOCIATION: settings.COALITION_ASSOCIATION_RECIPIENTS,
-            Pro.StructureType.HIGHER_ED: settings.COALITION_TRAINING_AMBASSADOR_RECIPIENTS,
-            Pro.StructureType.SCHOOL: settings.COALITION_SCHOOL_RECIPIENTS,
-            Pro.StructureType.COMPANY: settings.COALITION_WORK_AMBASSADOR_RECIPIENTS,
-            Pro.StructureType.PUBLIC_INSTITUTION: settings.COALITION_PUBLIC_INSTITUTION_RECIPIENTS,
-            Pro.StructureType.RETIRED: settings.COALITION_WORK_AMBASSADOR_RECIPIENTS,
-            Pro.StructureType.JOBLESS: settings.COALITION_WORK_AMBASSADOR_RECIPIENTS,
-        }.get(structure_type, ["agir@techpourtoutes.io"])
 
     @staticmethod
     def _event_admin_url(event):
