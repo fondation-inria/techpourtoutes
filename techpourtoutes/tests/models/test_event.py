@@ -11,7 +11,7 @@ from django.db import connection
 from django.db.models.signals import pre_save
 from django.utils import timezone
 
-from techpourtoutes.models import Event, User
+from techpourtoutes.models import Event, Pro, User
 from techpourtoutes.tests.services.event.test_create_event import valid_forms
 
 
@@ -510,25 +510,65 @@ def test_pending_returns_only_the_events_awaiting_validation(pro):
     assert list(Event.objects.pending()) == [waiting]
 
 
-@pytest.mark.django_db
-def test_visible_to_hides_an_event_awaiting_validation_from_everyone_but_its_author(
-    pro, beneficiary
-):
-
-    waiting = build_event(pro)
-    waiting.save()
-    staff = User.objects.create_user(
-        username="staff@example.com",
-        email="staff@example.com",
+def _staff(email, **fields):
+    return User.objects.create_user(
+        username=email,
+        email=email,
         first_name="Ada",
         last_name="Moderatrice",
         is_staff=True,
+        **fields,
     )
 
+
+def _author(structure_type):
+    email = f"{structure_type}@example.com"
+    author = Pro(
+        username=email,
+        email=email,
+        first_name="Léa",
+        last_name="Autrice",
+        structure_type=structure_type,
+    )
+    author.save()
+    return author
+
+
+@pytest.mark.django_db
+def test_visible_to_hides_an_event_awaiting_validation_from_everyone_but_its_author(
+    pro, beneficiary, settings
+):
+    """And but its moderators: the staff of the team following her type of structure."""
+    pro.structure_type = Pro.StructureType.ASSOCIATION
+    pro.save()
+    settings.COALITION_ASSOCIATION_RECIPIENTS = ["staff@example.com"]
+    waiting = build_event(pro)
+    waiting.save()
+
     assert list(Event.objects.visible_to(pro)) == [waiting]
-    assert list(Event.objects.visible_to(staff)) == [waiting]
+    assert list(Event.objects.visible_to(_staff("staff@example.com"))) == [waiting]
+    assert not Event.objects.visible_to(_staff("other-team@example.com")).exists()
     assert not Event.objects.visible_to(beneficiary).exists()
     assert not Event.objects.visible_to(AnonymousUser()).exists()
+
+
+@pytest.mark.django_db
+def test_moderated_by_gives_a_moderator_the_events_of_the_teams_she_belongs_to(settings):
+    settings.COALITION_SCHOOL_RECIPIENTS = ["staff@example.com"]
+    school_event = build_event(_author(Pro.StructureType.SCHOOL))
+    school_event.save()
+    build_event(_author(Pro.StructureType.COMPANY)).save()
+
+    assert list(Event.objects.moderated_by(_staff("staff@example.com"))) == [school_event]
+
+
+@pytest.mark.django_db
+def test_moderated_by_gives_a_superuser_every_event(pro):
+    """Those of a pro who never gave her type of structure included: no team follows them."""
+    build_event(pro).save()
+    build_event(_author(Pro.StructureType.COMPANY)).save()
+
+    assert Event.objects.moderated_by(_staff("admin@example.com", is_superuser=True)).count() == 2
 
 
 @pytest.mark.django_db

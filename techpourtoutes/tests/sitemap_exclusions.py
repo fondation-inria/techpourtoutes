@@ -35,6 +35,7 @@ NEVER_LISTED_URL_NAMES = {
     "index_pro_events",
     "index_beneficiary_events",
     "new_event",
+    "edit_pro_additional_information",
     "new_training_ambassador_request",
     "create_training_ambassador_request",
     "new_makeuse_project_submission",
@@ -45,6 +46,7 @@ NEVER_LISTED_URL_NAMES = {
     "create_event",
     "create_event_image_upload",
     "update_event",
+    "update_pro_additional_information",
     # Funnel steps (not entry points)
     "beneficiary_inscription_funnel",
     "new_beneficiary_inscription_funnel",

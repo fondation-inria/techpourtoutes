@@ -3,13 +3,18 @@ from urllib.parse import urlencode
 from django.contrib import messages
 from django.core.exceptions import ValidationError
 from django.http import Http404, HttpResponse, JsonResponse
-from django.shortcuts import get_object_or_404, render
+from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
 from django.utils.http import url_has_allowed_host_and_scheme
 from django.views.decorators.http import require_POST
 
 from ..decorators import beneficiary_required, pro_required
-from ..forms import EventDetailsForm, EventLocationForm, EventSubcategoryForm
+from ..forms import (
+    EventDetailsForm,
+    EventLocationForm,
+    EventSubcategoryForm,
+    ProAdditionalInformationForm,
+)
 from ..forms.event.details_form import IMAGE_CONTENT_TYPES, IMAGE_MAX_SIZE, IMAGE_PREFIX
 from ..models import Event
 from ..services.event.create_event import CreateEvent
@@ -27,6 +32,10 @@ _STEP_FORMS = {
 
 # Never carried forward: they steer the funnel, they are not answers.
 _CONTROL_FIELDS = {"action", "to", "csrfmiddlewaretoken", "q", "confirmed"}
+
+_ADDITIONAL_INFORMATION_STEP = (
+    "coalition/funnels/partials/pro_inscription/steps/additional_information.html"
+)
 
 
 @beneficiary_required
@@ -62,7 +71,29 @@ def index_pro_events(request):
 def new_event(request):
     """Renders `event_funnel.html` ;
     nothing is persisted until the last screen: the answers travel as hidden inputs."""
+    if not request.user.pro.structure_type:
+        return _complete_profile_first(request)
     return _render(request, "coalition/funnels/event_funnel.html", _STEPS[0], {})
+
+
+@pro_required
+def edit_pro_additional_information(request):
+    """Asks what her profile still lacks before she proposes or edits an event."""
+    form = ProAdditionalInformationForm(pro=request.user.pro)
+    return _render_additional_information(
+        request, "coalition/funnels/edit_pro_additional_information.html", form
+    )
+
+
+@require_POST
+@pro_required
+def update_pro_additional_information(request):
+    pro = request.user.pro
+    form = ProAdditionalInformationForm(data=request.POST, pro=pro)
+    if not form.is_valid():
+        return _render_additional_information(request, _ADDITIONAL_INFORMATION_STEP, form)
+    form.save(pro)
+    return HttpResponse(headers={"HX-Redirect": _next_page(request) or reverse("new_event")})
 
 
 @pro_required
@@ -70,6 +101,8 @@ def edit_event(request, pk):
     """Renders `event_funnel.html`, opened on the answers the event already holds ;
     nothing is persisted until the last screen: the answers travel as hidden inputs."""
     event = get_object_or_404(request.user.pro.events, pk=pk)
+    if not request.user.pro.structure_type:
+        return _complete_profile_first(request)
     answers = _answers_from(event)
     back = _safe_back(request, request.GET.get("back", ""))
     if back:
@@ -121,6 +154,34 @@ def create_event_image_upload(request):
 
 
 # ------------------- private -------------------
+
+
+def _complete_profile_first(request):
+    """The team told about her event follows her type of structure: she gives it first, then
+    goes on to the page she asked for."""
+    query = urlencode({"next": request.get_full_path()})
+    return redirect(f"{reverse('edit_pro_additional_information')}?{query}")
+
+
+def _next_page(request):
+    return _safe_back(request, request.GET.get("next", ""))
+
+
+def _render_additional_information(request, template, form):
+    funnel_url = reverse("update_pro_additional_information")
+    if next_page := _next_page(request):
+        funnel_url = f"{funnel_url}?{urlencode({'next': next_page})}"
+    return render(
+        request,
+        template,
+        {
+            "form": form,
+            "step_template": _ADDITIONAL_INFORMATION_STEP,
+            "funnel_url": funnel_url,
+            "back_url": reverse("show_account"),
+            "submit_label": "Continuer",
+        },
+    )
 
 
 def _content_length(request):

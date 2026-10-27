@@ -1,8 +1,8 @@
-from django.contrib.auth.models import Permission
 from django.contrib.postgres.fields import ArrayField
 from django.db import models
 from django.utils.translation import gettext_lazy as _
 
+from .structure_type import StructureType
 from .user import User
 
 
@@ -16,14 +16,7 @@ class Pro(User):
         WORKSHOPS = "workshops", _("organiser un atelier")
         MOBILIZE_STRUCTURE = "mobilize_structure", _("engager sa structure")
 
-    class StructureType(models.TextChoices):
-        ASSOCIATION = "association", _("Association")
-        HIGHER_ED = "higher_ed", _("Établissement du supérieur")
-        SCHOOL = "school", _("Collège ou lycée")
-        COMPANY = "company", _("Entreprise")
-        PUBLIC_INSTITUTION = "public_institution", _("Institution publique")
-        RETIRED = "retired", _("Je suis à la retraite")
-        JOBLESS = "jobless", _("Je suis sans emploi")
+    StructureType = StructureType
 
     WITHOUT_STRUCTURE = (StructureType.RETIRED, StructureType.JOBLESS)
     REPEATABLE_ENGAGEMENTS = (Engagement.SPONSOR, Engagement.WORKSHOPS)
@@ -53,15 +46,6 @@ class Pro(User):
         if not self.pk:
             self.set_unusable_password()
         super().save(*args, **kwargs)
-
-    @classmethod
-    def event_moderators(cls):
-        permission = Permission.objects.get(
-            codename="change_event", content_type__app_label="techpourtoutes"
-        )
-        return cls.objects.filter(
-            models.Q(groups__permissions=permission) | models.Q(user_permissions=permission)
-        ).distinct()
 
     def add_engagement(self, engagement):
         engagement = str(engagement)

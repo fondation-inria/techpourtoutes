@@ -64,6 +64,12 @@ class ProAdditionalInformationForm(forms.Form):
             self.add_error("structure_name", _("Ce champ est obligatoire."))
         return cleaned_data
 
+    def save(self, pro):
+        for name, value in self.cleaned_data.items():
+            setattr(pro, name, value)
+        pro.save()
+        return pro
+
     def _given_by(self, pro):
         given = {name: getattr(pro, name) for name in self.fields if getattr(pro, name, None)}
         if pro.structure_type in Pro.WITHOUT_STRUCTURE:
