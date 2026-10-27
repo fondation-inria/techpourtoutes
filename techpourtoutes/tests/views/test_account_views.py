@@ -9,7 +9,13 @@ from django.core import mail
 from django.urls import reverse
 from django.utils import timezone
 
-from techpourtoutes.models import Beneficiary, Event, Pro, SavedEvent
+from techpourtoutes.models import (
+    Beneficiary,
+    Event,
+    LegalRepresentativeAuthorization,
+    Pro,
+    SavedEvent,
+)
 
 
 @pytest.mark.django_db
@@ -39,6 +45,45 @@ def test_show_account_shows_forum_link_when_engaged_as_training_ambassador(clien
     response = client.get(reverse("show_account"))
 
     assert b"Rejoindre le forum" in response.content
+
+
+@pytest.mark.django_db
+def test_show_account_shows_only_profile_events_and_training_ambassador_to_a_training_ambassador(
+    client, pro
+):
+    pro.engagements = [Pro.Engagement.TRAINING_AMBASSADOR]
+    pro.save()
+    client.force_login(pro)
+
+    content = client.get(reverse("show_account")).content.decode()
+
+    for title in ("Profil", "Événements", "Ambassadorat étudiant"):
+        assert f"{title}<" in content
+    for title in ("Mentorat", "Ambassadorat métier", "Stages &amp; alternances", "Ateliers"):
+        assert title not in content
+
+
+@pytest.mark.django_db
+def test_show_account_offers_the_training_ambassador_to_a_pro_with_no_engagement(client, pro):
+    client.force_login(pro)
+
+    response = client.get(reverse("show_account"))
+
+    assert "Découvrir l&#x27;ambassadorat étudiant" in response.content.decode()
+
+
+@pytest.mark.django_db
+def test_show_account_hides_the_training_ambassador_from_a_pro_with_another_engagement(
+    client, pro
+):
+    pro.engagements = [Pro.Engagement.MENTOR]
+    pro.save()
+    client.force_login(pro)
+
+    content = client.get(reverse("show_account")).content.decode()
+
+    assert "Ambassadorat étudiant" not in content
+    assert "Ambassadorat métier" in content
 
 
 @pytest.mark.django_db
@@ -189,9 +234,9 @@ def _welcome_modal(client, beneficiary):
 
 
 @pytest.mark.django_db
-def test_show_account_welcome_modal_announces_a_call_about_mentoring(client, beneficiary):
-    beneficiary.legal_representative_email = "parent@example.com"
-    beneficiary.save()
+def test_show_account_welcome_modal_announces_a_call_about_mentoring(
+    client, beneficiary, authorization
+):
 
     content = _welcome_modal(client, beneficiary)
 
@@ -383,31 +428,40 @@ def test_update_beneficiary_legal_rep_redirects_when_not_registered_for_mentorin
 
     assert response.status_code == 200
     assert response.redirect_chain[-1][0] == reverse("show_account")
-    beneficiary.refresh_from_db()
-    assert beneficiary.legal_representative_name == ""
-    assert beneficiary.legal_representative_email == ""
+    assert not LegalRepresentativeAuthorization.objects.exists()
 
 
 @pytest.mark.django_db
-def test_edit_beneficiary_legal_rep_is_blocked_once_validated(client, beneficiary):
-    """Jobirl already holds what was submitted: the form has nothing left to correct."""
-    beneficiary.legal_representative_email = "parent@example.com"
-    beneficiary.jobirl_user_id = 42
-    beneficiary.save()
+def test_edit_beneficiary_legal_rep_is_blocked_once_signed(client, beneficiary, authorization):
+    """A signed authorization is a proof: the form has nothing left to correct."""
+    authorization.status = LegalRepresentativeAuthorization.Status.SIGNED
+    authorization.save()
     client.force_login(beneficiary)
 
     response = client.get(reverse("edit_beneficiary_legal_rep"))
 
     assert response.status_code == 200
     assert "form" not in response.context
-    assert "parent@example.com" in response.content.decode()
+    assert "marie.petit@example.com" in response.content.decode()
 
 
 @pytest.mark.django_db
-def test_update_beneficiary_legal_rep_saves_changes_and_notifies(client, beneficiary):
-    beneficiary.legal_representative_name = "Rep Original"
-    beneficiary.legal_representative_email = "parent@example.com"
-    beneficiary.save()
+def test_edit_beneficiary_legal_rep_prefills_the_pending_request(
+    client, beneficiary, authorization
+):
+    client.force_login(beneficiary)
+
+    response = client.get(reverse("edit_beneficiary_legal_rep"))
+
+    assert response.context["form"]["legal_representative_email"].value() == (
+        "marie.petit@example.com"
+    )
+
+
+@pytest.mark.django_db
+def test_update_beneficiary_legal_rep_replaces_the_pending_request(
+    client, beneficiary, authorization
+):
     client.force_login(beneficiary)
 
     response = client.post(
@@ -419,38 +473,37 @@ def test_update_beneficiary_legal_rep_saves_changes_and_notifies(client, benefic
     )
 
     assert response.status_code == 200
-    beneficiary.refresh_from_db()
-    assert beneficiary.legal_representative_name == "Nouveau Nom"
-    assert beneficiary.legal_representative_email == "autre@example.com"
+    replacement = LegalRepresentativeAuthorization.objects.get()
+    assert replacement.token != authorization.token
+    assert replacement.legal_representative_name == "Nouveau Nom"
+    assert replacement.legal_representative_email == "autre@example.com"
     assert len(mail.outbox) == 1
-    assert "Mise à jour" in mail.outbox[0].subject
+    assert mail.outbox[0].to == ["autre@example.com"]
 
 
 @pytest.mark.django_db
-def test_update_beneficiary_legal_rep_skips_notification_when_unchanged(client, beneficiary):
-    beneficiary.legal_representative_name = "Rep Original"
-    beneficiary.legal_representative_email = "parent@example.com"
-    beneficiary.save()
+def test_update_beneficiary_legal_rep_skips_notification_when_unchanged(
+    client, beneficiary, authorization
+):
     client.force_login(beneficiary)
 
     response = client.post(
         reverse("update_beneficiary_legal_rep"),
         data={
-            "legal_representative_name": "Rep Original",
-            "legal_representative_email": "parent@example.com",
+            "legal_representative_name": "Marie Petit",
+            "legal_representative_email": "marie.petit@example.com",
         },
     )
 
     assert response.status_code == 200
     assert len(mail.outbox) == 0
+    assert LegalRepresentativeAuthorization.objects.get().token == authorization.token
 
 
 @pytest.mark.django_db
-def test_update_beneficiary_legal_rep_is_blocked_once_validated(client, beneficiary):
-    beneficiary.legal_representative_name = "Rep Original"
-    beneficiary.legal_representative_email = "parent@example.com"
-    beneficiary.jobirl_user_id = 42
-    beneficiary.save()
+def test_update_beneficiary_legal_rep_is_blocked_once_signed(client, beneficiary, authorization):
+    authorization.status = LegalRepresentativeAuthorization.Status.SIGNED
+    authorization.save()
     client.force_login(beneficiary)
 
     response = client.post(
@@ -462,9 +515,8 @@ def test_update_beneficiary_legal_rep_is_blocked_once_validated(client, benefici
     )
 
     assert response.status_code == 200
-    beneficiary.refresh_from_db()
-    assert beneficiary.legal_representative_name == "Rep Original"
-    assert beneficiary.legal_representative_email == "parent@example.com"
+    authorization.refresh_from_db()
+    assert authorization.legal_representative_email == "marie.petit@example.com"
 
 
 @pytest.mark.django_db

@@ -1,6 +1,7 @@
 import re
 
 from django import template
+from django.conf import settings
 from django.core.validators import DomainNameValidator
 from django.template.loader import render_to_string
 from django.utils.html import Urlizer
@@ -65,3 +66,14 @@ def linkify(text, autoescape=True):
     ignored by the browser, and `noopener` lost with it.
     """
     return mark_safe(_urlize(text, nofollow=False, autoescape=autoescape))
+
+
+@register.simple_tag
+def download_url(key):
+    """The URL of a file dropped under `downloads/` in the public bucket.
+
+    Not `storages["public"].url()`: it prefixes the key on a review app and points at the disk
+    locally, while these files sit at the same key in staging's bucket for every environment
+    but production.
+    """
+    return settings.DOWNLOADS_URL + key

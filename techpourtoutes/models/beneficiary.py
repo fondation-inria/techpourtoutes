@@ -6,12 +6,6 @@ from .user import User
 
 class Beneficiary(User):
     birth_date = models.DateField(null=True, blank=True, verbose_name=_("date de naissance"))
-    legal_representative_name = models.CharField(
-        max_length=150, blank=True, verbose_name=_("nom de la personne responsable légale")
-    )
-    legal_representative_email = models.EmailField(
-        blank=True, verbose_name=_("email de la personne responsable légale")
-    )
     has_requested_training_ambassador = models.BooleanField(
         default=False, verbose_name=_("a demandé à être mise en contact avec une ambassadrice")
     )
@@ -22,7 +16,11 @@ class Beneficiary(User):
 
     @property
     def is_registered_for_mentoring(self):
-        return bool(self.jobirl_user_id or self.legal_representative_email)
+        return bool(self.jobirl_user_id) or self.has_legal_representative_authorization
+
+    @property
+    def has_legal_representative_authorization(self):
+        return hasattr(self, "legal_representative_authorization")
 
     def save(self, *args, **kwargs):
         if not self.pk:
@@ -32,6 +30,11 @@ class Beneficiary(User):
 
     def soft_delete(self):
         self.birth_date = None
-        self.legal_representative_name = ""
-        self.legal_representative_email = ""
+        self._forget_legal_representative()
+        self.makeuse_projects.all().delete()
         super().soft_delete()
+
+    def _forget_legal_representative(self):
+        if self.has_legal_representative_authorization:
+            self.legal_representative_authorization.proof_pdf.delete(save=False)
+            self.legal_representative_authorization.delete()

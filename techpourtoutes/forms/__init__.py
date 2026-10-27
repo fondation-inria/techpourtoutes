@@ -22,6 +22,7 @@ from .beneficiary_inscription import (
     StudyStatus,
 )
 from .event import EventDetailsForm, EventLocationForm, EventSubcategoryForm
+from .legal_representative_authorization_form import LegalRepresentativeAuthorizationForm
 from .manifeste_signature_form import ManifesteSignatureForm
 from .pro_inscription import (
     ProAdditionalInformationForm,
@@ -55,6 +56,7 @@ __all__ = [
     "EventSubcategoryForm",
     "EventDetailsForm",
     "EventLocationForm",
+    "LegalRepresentativeAuthorizationForm",
     "LoginRequestForm",
     "ManifesteSignatureForm",
     "ProEditUserForm",

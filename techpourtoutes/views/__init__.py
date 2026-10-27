@@ -48,6 +48,7 @@ from .beneficiary_views import (
     new_training_ambassador_beneficiary,
     new_upcoming_feature_notification,
     show_event,
+    show_makeuse_project,
     show_participation_modal,
     update_saved_event,
 )
@@ -71,6 +72,11 @@ from .event_views import (
     index_pro_events,
     new_event,
     update_event,
+)
+from .legal_representative_authorization_views import (
+    edit_legal_representative_authorization,
+    show_legal_representative_authorization,
+    update_legal_representative_authorization,
 )
 from .local_upload_views import create_local_upload
 from .pro.engagement_views import create_pro_engagement, new_pro_engagement
@@ -174,6 +180,7 @@ __all__ = [
     "search_schools",
     "show_account",
     "show_event",
+    "show_makeuse_project",
     "show_user",
     "show_user_email",
     "show_user_email_verification",
@@ -190,4 +197,7 @@ __all__ = [
     "update_user_email",
     "update_beneficiary_training_experience",
     "update_pro_training_experience",
+    "edit_legal_representative_authorization",
+    "show_legal_representative_authorization",
+    "update_legal_representative_authorization",
 ]

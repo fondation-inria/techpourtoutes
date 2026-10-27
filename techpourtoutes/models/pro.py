@@ -73,6 +73,12 @@ class Pro(User):
         return self.Engagement.TRAINING_AMBASSADOR in self.engagements
 
     @property
+    def may_be_training_ambassador(self):
+        """Whether she is a training ambassador or still could become one: the engagement goes
+        with no other — events, which she may still propose, are none."""
+        return set(self.engagements) <= {self.Engagement.TRAINING_AMBASSADOR}
+
+    @property
     def is_work_ambassador(self):
         return self.Engagement.WORK_AMBASSADOR in self.engagements
 

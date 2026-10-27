@@ -1,11 +1,19 @@
+import os
 from datetime import date
 
 import pytest
 from django.core.exceptions import ValidationError
+from django.core.files.base import ContentFile
 from django.test import override_settings
 
-from techpourtoutes.models import Beneficiary, User
+from techpourtoutes.models import (
+    Beneficiary,
+    LegalRepresentativeAuthorization,
+    MakeuseProject,
+    User,
+)
 from techpourtoutes.services.brevo_api.mappings import brevo_attributes_for, brevo_list_id_for
+from techpourtoutes.tests.models.test_makeuse_project import build_makeuse_project
 
 
 @pytest.mark.django_db
@@ -97,8 +105,6 @@ def test_beneficiary_rejects_invalid_postal_code():
 def test_soft_delete_anonymizes_expected_fields_for_beneficiary(beneficiary):
     original_pk = beneficiary.pk
     original_postal_code = beneficiary.postal_code
-    beneficiary.legal_representative_name = "Parent Test"
-    beneficiary.legal_representative_email = "parent@example.com"
     beneficiary.faveod_id = 4243
     beneficiary.save()
 
@@ -123,8 +129,20 @@ def test_soft_delete_anonymizes_expected_fields_for_beneficiary(beneficiary):
     assert isinstance(beneficiary, Beneficiary)
     assert beneficiary.birth_date is None
     assert beneficiary.postal_code == original_postal_code
-    assert beneficiary.legal_representative_name == ""
-    assert beneficiary.legal_representative_email == ""
+
+
+@pytest.mark.django_db
+def test_soft_delete_forgets_her_legal_representative_and_the_proof(
+    authorization, beneficiary, settings, tmp_path
+):
+    settings.MEDIA_ROOT = tmp_path
+    authorization.proof_pdf.save("proof.pdf", ContentFile(b"%PDF-1.4 proof"))
+    stored = authorization.proof_pdf.path
+
+    beneficiary.soft_delete()
+
+    assert not LegalRepresentativeAuthorization.objects.exists()
+    assert not os.path.exists(stored)
 
 
 @pytest.mark.django_db
@@ -140,7 +158,17 @@ def test_is_registered_for_mentoring_true_for_an_adult_with_a_jobirl_account(ben
 
 
 @pytest.mark.django_db
-def test_is_registered_for_mentoring_true_for_a_minor_with_a_legal_representative(beneficiary):
-    beneficiary.legal_representative_email = "parent@example.com"
-
+def test_is_registered_for_mentoring_true_for_a_minor_with_a_legal_representative(
+    authorization, beneficiary
+):
     assert beneficiary.is_registered_for_mentoring is True
+
+
+@pytest.mark.django_db
+def test_soft_delete_deletes_the_beneficiarys_makeuse_projects(beneficiary):
+    """Her name, parcours and hobbies are on show: leaving the club takes them offline."""
+    build_makeuse_project(beneficiary=beneficiary).save()
+
+    beneficiary.soft_delete()
+
+    assert not MakeuseProject.objects.exists()

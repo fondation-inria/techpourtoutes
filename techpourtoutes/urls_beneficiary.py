@@ -49,6 +49,21 @@ urlpatterns = [
         views.create_upcoming_feature_notification,
         name="create_upcoming_feature_notification",
     ),
+    path(
+        "autorisation/<str:token>/",
+        views.show_legal_representative_authorization,
+        name="show_legal_representative_authorization",
+    ),
+    path(
+        "autorisation/<str:token>/signer/",
+        views.edit_legal_representative_authorization,
+        name="edit_legal_representative_authorization",
+    ),
+    path(
+        "autorisation/<str:token>/update/",
+        views.update_legal_representative_authorization,
+        name="update_legal_representative_authorization",
+    ),
     path("rejoindre-les-makeuses/", views.index_makeuses, name="index_makeuses"),
     path(
         "rejoindre-les-makeuses/proposition/",
@@ -59,6 +74,11 @@ urlpatterns = [
         "rejoindre-les-makeuses/proposition/envoyer/",
         views.create_makeuse_project_submission,
         name="create_makeuse_project_submission",
+    ),
+    path(
+        "rejoindre-les-makeuses/projets/<slug:slug>/",
+        views.show_makeuse_project,
+        name="show_makeuse_project",
     ),
     path("evenements/", views.index_events, name="index_events"),
     path("mes-evenements/", views.index_beneficiary_events, name="index_beneficiary_events"),
