@@ -1,4 +1,3 @@
-from django.contrib.auth.models import Permission
 from django.contrib.postgres.fields import ArrayField
 from django.db import models
 from django.utils.translation import gettext_lazy as _
@@ -53,15 +52,6 @@ class Pro(User):
         if not self.pk:
             self.set_unusable_password()
         super().save(*args, **kwargs)
-
-    @classmethod
-    def event_moderators(cls):
-        permission = Permission.objects.get(
-            codename="change_event", content_type__app_label="techpourtoutes"
-        )
-        return cls.objects.filter(
-            models.Q(groups__permissions=permission) | models.Q(user_permissions=permission)
-        ).distinct()
 
     def add_engagement(self, engagement):
         engagement = str(engagement)

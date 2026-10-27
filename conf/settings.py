@@ -266,8 +266,6 @@ LATITUDE_ACCOUNT_DELETION_RECIPIENTS = env.list(
     "LATITUDE_ACCOUNT_DELETION_RECIPIENTS", default=["bonjour@techpourtoutes.io"]
 )
 
-NEW_EVENT_RECIPIENTS = env.list("NEW_EVENT_RECIPIENTS", default=["agir@techpourtoutes.io"])
-
 MAKEUSE_PROJECT_SUBMISSION_RECIPIENTS = env.list(
     "MAKEUSE_PROJECT_SUBMISSION_RECIPIENTS", default=["bonjour@techpourtoutes.io"]
 )
