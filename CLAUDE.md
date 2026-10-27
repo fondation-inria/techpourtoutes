@@ -57,7 +57,11 @@ Define success criteria. Loop until verified. Turn tasks into verifiable goals �
 1. [Step] → verify: [check]
 2. [Step] → verify: [check]
 
-### 6. Git is the user's
+### 6. Accessibility: RGAA 4
+
+Every front-end change must comply with RGAA 4 as far as possible: keyboard reachability and visible focus, accessible names and descriptions, content shown on hover also shown on focus and tap, dismissable with Escape, contrast, no information carried by colour alone. When a criterion cannot be met, say so explicitly — which criterion, why, and what the alternative would cost — never leave it silent.
+
+### 7. Git is the user's
 
 Never touch the index or the history without an explicit instruction: no `git add`, `git rm`, `git mv`, `commit`, `push`, `stash`, `reset`, `checkout`, `restore`, `merge`, `rebase` or branch change. Delete, move and edit files with plain file operations, and leave every change unstaged for the user to review.
 

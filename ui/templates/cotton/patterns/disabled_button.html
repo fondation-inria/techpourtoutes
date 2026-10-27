@@ -1,7 +1,14 @@
 <c-vars label="" variant="" reason="" />
 
-{# The reason stays in the page after the button, so screen readers read it too; it shows on hover or tap. #}
-<span class="group relative inline-block">
-    <c-components.button label="{{ label }}" variant="{{ variant }}" :disabled="True" />
-    <span class="pointer-events-none absolute left-1/2 bottom-full z-30 mb-1 w-72 max-w-[80vw] -translate-x-1/2 rounded bg-neutral-950 px-3 py-2 text-xs text-neutral-50 opacity-0 group-hover:opacity-100">{{ reason }}</span>
+{# The button stays focusable, so the keyboard reaches its reason too; a tap counts as a hover. #}
+<span class="relative inline-block"
+      x-data="{ tip: false }"
+      x-id="['reason']"
+      @mouseenter="tip = true"
+      @mouseleave="tip = false"
+      @focusin="tip = true"
+      @focusout="tip = false"
+      @keydown.escape.window="tip = false">
+    <c-components.button label="{{ label }}" variant="{{ variant }}" :disabled="True" x-bind:aria-describedby="$id('reason')" />
+    <span role="tooltip" :id="$id('reason')" x-show="tip" x-cloak class="absolute left-1/2 bottom-full z-30 w-72 max-w-[80vw] -translate-x-1/2 rounded border-b-4 border-transparent bg-neutral-950 bg-clip-padding px-3 py-2 text-xs text-neutral-50">{{ reason }}</span>
 </span>
