@@ -76,8 +76,6 @@ def test_create_beneficiary_saves_beneficiary_with_expected_fields():
     assert beneficiary.birth_date == date(1995, 1, 1)
     assert beneficiary.brevo_sync_enabled is True
     assert beneficiary.phone == ""
-    assert beneficiary.legal_representative_name == ""
-    assert beneficiary.legal_representative_email == ""
     assert result.beneficiary == beneficiary
 
 
@@ -122,7 +120,7 @@ def test_create_beneficiary_schedules_welcome_email_task():
 
 
 @pytest.mark.django_db
-def test_create_beneficiary_wants_mentor_and_minor_persists_legal_representative():
+def test_create_beneficiary_wants_mentor_and_minor_hands_over_her_legal_representative():
     with patch(SIGN_UP, return_value=_signed_up()) as MockSignUp:
         result = _create_beneficiary(
             birth_date=date.today().replace(year=date.today().year - 16),
@@ -130,9 +128,8 @@ def test_create_beneficiary_wants_mentor_and_minor_persists_legal_representative
         )
 
     assert result.beneficiary.phone == "+33612345678"
-    assert result.beneficiary.legal_representative_name == "Parent Test"
-    assert result.beneficiary.legal_representative_email == "parent@example.com"
     assert MockSignUp.call_args.kwargs["is_minor"] is True
+    assert MockSignUp.call_args.kwargs["mentoring_signup_data"] == _minor_mentoring_data()
 
 
 @pytest.mark.django_db
@@ -149,9 +146,6 @@ def test_create_beneficiary_wants_mentor_and_adult_signs_up_for_mentoring():
         mentoring_signup_data=_minor_mentoring_data(),
     )
     assert result.beneficiary.phone == "+33612345678"
-    # An adult never has a legal representative, even if the form data carried one.
-    assert result.beneficiary.legal_representative_name == ""
-    assert result.beneficiary.legal_representative_email == ""
 
 
 @pytest.mark.django_db
@@ -194,7 +188,7 @@ def test_updates_phone_and_signs_up_an_adult(beneficiary):
 
 
 @pytest.mark.django_db
-def test_saves_legal_representative_for_a_minor(beneficiary):
+def test_hands_over_the_legal_representative_of_a_minor(beneficiary):
     beneficiary.birth_date = date(2012, 1, 1)
     beneficiary.save()
     data = {
@@ -207,9 +201,6 @@ def test_saves_legal_representative_for_a_minor(beneficiary):
         result = UpsertBeneficiary(beneficiary=beneficiary, mentoring_signup_data=data)
 
     assert result.success is True
-    beneficiary.refresh_from_db()
-    assert beneficiary.legal_representative_name == "Parent Test"
-    assert beneficiary.legal_representative_email == "parent@example.com"
     MockSignUp.assert_called_once_with(
         beneficiary=beneficiary, is_minor=True, mentoring_signup_data=data
     )

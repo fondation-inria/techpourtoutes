@@ -67,7 +67,7 @@ def new_mentoree(request):
         if beneficiary.jobirl_user_id:
             cta_href = reverse("login_to_jobirl")
             cta_label = "Rejoindre mon espace mentorat"
-        elif beneficiary.legal_representative_email:
+        elif beneficiary.is_registered_for_mentoring:
             cta_href = ""
             cta_label = "Rejoindre mon espace mentorat"
             cta_disabled = True

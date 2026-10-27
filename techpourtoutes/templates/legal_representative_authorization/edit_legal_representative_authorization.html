@@ -1,0 +1,49 @@
+{% load static %}
+<c-layout.base
+    variant="funnel"
+    title="Autorisation responsable légal – TechPourToutes"
+    description="Autorisation pour rejoindre le programme TechPourToutes."
+    hero>
+    <div class="flex flex-col gap-6">
+        <c-components.title title="Autorisation pour rejoindre le programme TechPourToutes" variant="h1" />
+        <div x-data="{ open: false }" class="flex flex-col gap-4 text-sm leading-[1.4]">
+            <p><strong>{{ beneficiary.first_name }} {{ beneficiary.last_name }}</strong> souhaite rejoindre le programme TechPourToutes et a besoin de votre autorisation en tant que personne responsable légale pour bénéficier de tous les services de TechPourToutes, en particulier la possibilité d'être mentorée ou d'être mise en relation avec des membres de la coalition TechPourToutes pour demander des conseils à des étudiantes ou des spécialistes de la tech.</p>
+            <button type="button" @click="open = !open" :aria-expanded="open"
+                    class="flex items-center gap-2 w-fit underline underline-offset-4 cursor-pointer">
+                En savoir plus sur TechPourToutes
+                <span class="w-4 h-4 transition-transform" :class="open || 'rotate-180'">
+                    <c-components.icon name="chevron-down" class="w-full h-full rotate-180" />
+                </span>
+            </button>
+            <div x-show="open" class="flex flex-col gap-4">
+                <p>TechPourToutes est un programme 100 % gratuit à destination des lycéennes et des étudiantes de 15 à 25 ans qui leur propose un accompagnement à la carte et sur mesure vers les métiers techniques du numérique. TechPourToutes est une initiative soutenue par l'État dans le cadre du développement des compétences et métiers d'avenir.
+                </p>
+            </div>
+        </div>
+        {# Posted to its own anchor: when invalid, the page comes back open on the form. #}
+        <div id="autorisation">
+        <c-components.card title="Autorisation">
+            <c-patterns.form url="{% url 'update_legal_representative_authorization' authorization.token %}#autorisation" outer_class="mt-4">
+                <p class="text-sm">Veuillez vérifier vos informations, puis donner votre autorisation. Une confirmation vous sera envoyée par mail.</p>
+                <p class="text-xs text-neutral-500">Les champs suivis d'un astérisque (*) sont obligatoires</p>
+                <c-components.form_fields.input field=form.legal_representative_name autocomplete="name" />
+                <c-components.form_fields.select field=form.relationship />
+                <c-components.form_fields.checkbox field=form.authorization_confirmed />
+                <c-components.form_fields.checkbox field=form.terms_accepted />
+                <c-components.form_fields.checkbox field=form.newsletter_consent />
+                <div class="flex justify-center">
+                    <c-components.button type="submit" label="Autoriser" />
+                </div>
+            </c-patterns.form>
+        </c-components.card>
+        </div>
+        <div class="flex items-center justify-between">
+            <img src="{% static 'svg/rf.svg' %}"
+                 alt="République Française"
+                 class="h-14 w-auto" />
+            <img src="{% static 'svg/france-2030.svg' %}"
+                 alt="France 2030 — Lauréat"
+                 class="h-14 w-auto" />
+        </div>
+    </div>
+</c-layout.base>

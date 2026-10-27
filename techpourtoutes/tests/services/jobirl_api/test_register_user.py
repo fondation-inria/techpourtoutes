@@ -153,10 +153,8 @@ def test_register_mentor_on_jobirl_leaves_out_the_uai_of_a_school_without_one(
 
 @override_settings(JOBIRL_URL=JOBIRL_TEST_URL, JOBIRL_API_KEY=JOBIRL_TEST_API_KEY)
 def test_register_mentor_on_jobirl_includes_legal_representative_email_when_set(
-    httpx_mock, beneficiary, beneficiary_experience
+    httpx_mock, beneficiary, beneficiary_experience, authorization
 ):
-    beneficiary.legal_representative_email = "parent@example.com"
-    beneficiary.save()
     register_url = f"{JOBIRL_TEST_URL}/techpourtoutes/api/user_register"
     httpx_mock.add_response(
         url=register_url,
@@ -167,7 +165,7 @@ def test_register_mentor_on_jobirl_includes_legal_representative_email_when_set(
     RegisterUserOnJobirl(user=beneficiary, is_pro=False)
 
     body = httpx_mock.get_request().content.decode()
-    assert "parent%40example.com" in body or "parent@example.com" in body
+    assert "marie.petit%40example.com" in body or "marie.petit@example.com" in body
 
 
 @override_settings(JOBIRL_URL=JOBIRL_TEST_URL, JOBIRL_API_KEY=JOBIRL_TEST_API_KEY)

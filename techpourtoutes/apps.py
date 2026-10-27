@@ -6,8 +6,13 @@ class TechpourtoutesConfig(AppConfig):
 
     def ready(self):
         from .models import Beneficiary, Pro, User
-        from .signals import connect_brevo_sync, connect_staff_flag_sync
+        from .signals import (
+            connect_brevo_sync,
+            connect_mentoring_to_legal_representative_authorization,
+            connect_staff_flag_sync,
+        )
 
         connect_brevo_sync(Beneficiary)
         connect_brevo_sync(Pro)
         connect_staff_flag_sync(User)
+        connect_mentoring_to_legal_representative_authorization()

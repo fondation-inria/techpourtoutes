@@ -1,0 +1,7 @@
+{% autoescape off %}Bonjour {{ beneficiary.first_name }},
+
+Nous n'avons malheureusement pas reçu ton autorisation signée. Peux-tu en reparler avec {{ authorization.legal_representative_name }} pour être sûre de bénéficier de tous les services TechPourToutes ?
+
+Merci,
+Bonne journée,
+L'équipe TechPourToutes{% endautoescape %}

@@ -1,0 +1,17 @@
+<c-layout.base
+    variant="funnel"
+    title="Autorisation responsable légal – TechPourToutes"
+    description="Autorisation pour rejoindre le programme TechPourToutes."
+    hero>
+    <div class="flex flex-col gap-6">
+        <c-components.title title="Autorisation pour rejoindre le programme TechPourToutes" variant="h1" />
+        {% if authorization %}
+            <p>Merci, votre autorisation a bien été enregistrée. Vous allez la recevoir par mail au format PDF, et {{ authorization.beneficiary.first_name }} peut maintenant bénéficier de tous les services de TechPourToutes.</p>
+        {% else %}
+            <p>Ce lien n'est plus valide. Si une nouvelle demande vous a été envoyée, utilisez le lien du dernier mail reçu.</p>
+        {% endif %}
+        <div class="flex justify-center">
+            <c-components.button label="Retour à l'accueil" href="{% url 'home' %}" />
+        </div>
+    </div>
+</c-layout.base>

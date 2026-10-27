@@ -8,7 +8,7 @@ from django.core import mail
 from django.urls import reverse
 from django.utils import timezone
 
-from techpourtoutes.models import Beneficiary, Event, Level, User
+from techpourtoutes.models import Beneficiary, Event, LegalRepresentativeAuthorization, Level, User
 from techpourtoutes.services.base import ErrorKind
 from techpourtoutes.tests.birth_dates import birth_date_for_age
 from techpourtoutes.tests.models.test_event import build_event
@@ -651,8 +651,7 @@ def test_skipping_the_mentoring_screen_creates_beneficiary_without_mentoring_sig
     assert b"Saisis le code" in response.content
     beneficiary = Beneficiary.objects.get(email="oceane@example.com")
     assert beneficiary.phone == ""
-    subjects = {message.subject for message in mail.outbox}
-    assert "Nouvelle attestation à envoyer" not in subjects
+    assert not LegalRepresentativeAuthorization.objects.exists()
 
 
 @pytest.mark.django_db
@@ -885,9 +884,11 @@ def test_mentoring_signup_step_persists_legal_representative_email_for_a_minor(
     )
 
     assert b"Saisis le code" in response.content
-    beneficiary = Beneficiary.objects.get(email="oceane@example.com")
-    assert beneficiary.legal_representative_name == "Parent Test"
-    assert beneficiary.legal_representative_email == "parent@example.com"
+    authorization = Beneficiary.objects.get(
+        email="oceane@example.com"
+    ).legal_representative_authorization
+    assert authorization.legal_representative_name == "Parent Test"
+    assert authorization.legal_representative_email == "parent@example.com"
 
 
 @pytest.mark.django_db
@@ -918,9 +919,8 @@ def test_mentoring_signup_step_creates_an_adult_beneficiary_without_legal_repres
         response = _post_step(client, "mentoring_signup", {"phone": "0612345678"})
 
     assert b"Saisis le code" in response.content
-    beneficiary = Beneficiary.objects.get(email="oceane@example.com")
-    assert beneficiary.legal_representative_name == ""
-    assert beneficiary.legal_representative_email == ""
+    assert Beneficiary.objects.filter(email="oceane@example.com").exists()
+    assert not LegalRepresentativeAuthorization.objects.exists()
 
 
 @pytest.mark.django_db

@@ -34,7 +34,6 @@ class UpsertBeneficiary(BaseService):
         with transaction.atomic():
             self._save_beneficiary(
                 beneficiary_data=beneficiary_data,
-                is_minor=is_minor,
                 training_experience_form=training_experience_form,
                 mentoring_signup_data=mentoring_signup_data,
                 training_ambassador_request_data=training_ambassador_request_data,
@@ -60,7 +59,6 @@ class UpsertBeneficiary(BaseService):
         self,
         *,
         beneficiary_data,
-        is_minor,
         training_experience_form,
         mentoring_signup_data,
         training_ambassador_request_data,
@@ -70,7 +68,9 @@ class UpsertBeneficiary(BaseService):
         if training_experience_form and not self.beneficiary.postal_code:
             self.beneficiary.postal_code = training_experience_form.out_of_scope_postal_code
         if mentoring_signup_data:
-            self._apply_mentoring_contact(mentoring_signup_data, is_minor)
+            self.beneficiary.phone = mentoring_signup_data["phone"]
+            if mentoring_signup_data["postal_code"]:
+                self.beneficiary.postal_code = mentoring_signup_data["postal_code"]
         if training_ambassador_request_data:
             self.beneficiary.has_requested_training_ambassador = True
         self.beneficiary.save()
@@ -79,18 +79,6 @@ class UpsertBeneficiary(BaseService):
         self.beneficiary.first_name = beneficiary_data["first_name"]
         self.beneficiary.last_name = beneficiary_data["last_name"]
         self.beneficiary.brevo_sync_enabled = beneficiary_data["newsletter_consent"]
-
-    def _apply_mentoring_contact(self, mentoring_signup_data, is_minor):
-        self.beneficiary.phone = mentoring_signup_data["phone"]
-        if mentoring_signup_data["postal_code"]:
-            self.beneficiary.postal_code = mentoring_signup_data["postal_code"]
-        # An adult never has a legal representative, even if the form data carried one.
-        self.beneficiary.legal_representative_name = (
-            mentoring_signup_data["legal_representative_name"] if is_minor else ""
-        )
-        self.beneficiary.legal_representative_email = (
-            mentoring_signup_data["legal_representative_email"] if is_minor else ""
-        )
 
     def _create_training_experience(self, training_experience_form):
         training_experience_form.save(self.beneficiary)

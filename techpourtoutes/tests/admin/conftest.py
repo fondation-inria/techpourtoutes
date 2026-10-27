@@ -2,7 +2,7 @@ import pytest
 from django_otp import DEVICE_ID_SESSION_KEY
 from django_otp.plugins.otp_totp.models import TOTPDevice
 
-from techpourtoutes.models import Beneficiary, Pro
+from techpourtoutes.models import Beneficiary, LegalRepresentativeAuthorization, Pro
 
 
 @pytest.fixture
@@ -65,11 +65,18 @@ def pros(db):
     }
 
 
-def _make_beneficiary(email, first_name, **overrides):
+def _make_beneficiary(email, first_name, legal_representative_email="", **overrides):
     beneficiary = Beneficiary(
         username=email, first_name=first_name, last_name="Test", email=email, **overrides
     )
     beneficiary.save()
+    if legal_representative_email:
+        LegalRepresentativeAuthorization(
+            beneficiary=beneficiary,
+            legal_representative_name="Parent Test",
+            legal_representative_email=legal_representative_email,
+            status="signed" if beneficiary.jobirl_user_id else "pending",
+        ).save()
     return beneficiary
 
 
