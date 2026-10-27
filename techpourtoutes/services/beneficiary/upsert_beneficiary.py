@@ -52,9 +52,7 @@ class UpsertBeneficiary(BaseService):
                 beneficiary=self.beneficiary, **makeuse_project_submission_data
             )
         if training_experience_form:
-            report_missing_record(
-                training_experience_form, self.beneficiary, "Funnel d'inscription"
-            )
+            report_missing_record(training_experience_form, self.beneficiary)
         if is_new:
             self._trigger_onboarding()
 
@@ -69,7 +67,7 @@ class UpsertBeneficiary(BaseService):
     ):
         if beneficiary_data:
             self._apply_identity(beneficiary_data)
-        if training_experience_form and training_experience_form.out_of_scope_postal_code:
+        if training_experience_form and not self.beneficiary.postal_code:
             self.beneficiary.postal_code = training_experience_form.out_of_scope_postal_code
         if mentoring_signup_data:
             self._apply_mentoring_contact(mentoring_signup_data, is_minor)

@@ -265,3 +265,16 @@ def test_adding_mentoring_to_an_existing_beneficiary_sends_no_onboarding_email(b
             )
 
     apply_async.assert_not_called()
+
+
+@pytest.mark.django_db
+def test_keeps_her_postal_code_over_the_one_of_her_parcours(beneficiary):
+    beneficiary.postal_code = "75011"
+    beneficiary.save()
+    form = _training_experience_form()
+    form.out_of_scope_postal_code = "29200"
+
+    UpsertBeneficiary(beneficiary=beneficiary, training_experience_form=form)
+
+    beneficiary.refresh_from_db()
+    assert beneficiary.postal_code == "75011"

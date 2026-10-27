@@ -8,8 +8,6 @@ class AddProEngagement(ProEngagementMixin, BaseService):
     """Adds one more engagement to a pro who already has an account, along with what she
     told about it — unless she is not eligible for it."""
 
-    origin = "Ajout d'engagement pro"
-
     def perform(
         self,
         *,

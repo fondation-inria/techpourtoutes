@@ -39,7 +39,7 @@ def update_pro_training_experience(request, pk):
         return _render_pro_training_experience_form(request, experience, form)
 
     form.save(experience)
-    report_missing_record(form, experience.user, "Compte pro")
+    report_missing_record(form, experience.user)
     return render(
         request,
         "account/partials/show_pro_training_experience.html",
@@ -173,7 +173,7 @@ def _save_beneficiary_training_experience(request, form, beneficiary, experience
             experience.delete()
         return _render_beneficiary_training_experience_item(request, experience=None)
     saved = form.save(experience or TrainingExperience(user=beneficiary))
-    report_missing_record(form, saved.user, "Compte bénéficiaire")
+    report_missing_record(form, saved.user)
     return _render_beneficiary_training_experience_item(
         request, saved, oob_swap=_training_experience_oob_swap(saved)
     )

@@ -6,7 +6,6 @@ from django.urls import reverse
 from ...decorators import beneficiary_required
 from ...forms import BeneficiaryMentoringSignUpForm, BeneficiaryStudyStatusForm
 from ...services.beneficiary.upsert_beneficiary import UpsertBeneficiary
-from ...utils.missing_record import report_missing_record
 from ..beneficiary_views import (
     TRAINING_EXPERIENCE_FORMS,
     is_minor,
@@ -54,13 +53,9 @@ def _submit_training_experience(request, beneficiary):
     form = TRAINING_EXPERIENCE_FORMS[study_status](data=request.POST)
     if not form.is_valid():
         return _training_experience_step(request, study_status, form)
-    if form.out_of_scope_postal_code:
-        beneficiary.postal_code = form.out_of_scope_postal_code
-        beneficiary.save()
     # Saved on its own: the parcours belongs to her account whether or not she finishes the last
     # step, and nothing then has to be carried over to it.
-    form.save(beneficiary)
-    report_missing_record(form, beneficiary, "Inscription mentorat")
+    UpsertBeneficiary(beneficiary=beneficiary, training_experience_form=form)
     return _mentoring_signup_step(request, beneficiary)
 
 
