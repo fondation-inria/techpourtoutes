@@ -68,10 +68,12 @@ from .event_views import (
     create_event,
     create_event_image_upload,
     edit_event,
+    edit_pro_additional_information,
     index_beneficiary_events,
     index_pro_events,
     new_event,
     update_event,
+    update_pro_additional_information,
 )
 from .legal_representative_authorization_views import (
     edit_legal_representative_authorization,
@@ -173,6 +175,8 @@ __all__ = [
     "create_event_image_upload",
     "update_event",
     "edit_event",
+    "edit_pro_additional_information",
+    "update_pro_additional_information",
     "index_beneficiary_events",
     "index_pro_events",
     "search_addresses",

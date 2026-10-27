@@ -36,6 +36,16 @@ urlpatterns = [
     ),
     path("organiser-un-atelier/", views.new_workshop_request, name="new_workshop_request"),
     path("proposer-un-evenement/", views.new_event, name="new_event"),
+    path(
+        "proposer-un-evenement/completer-votre-profil/",
+        views.edit_pro_additional_information,
+        name="edit_pro_additional_information",
+    ),
+    path(
+        "proposer-un-evenement/completer-votre-profil/enregistrer/",
+        views.update_pro_additional_information,
+        name="update_pro_additional_information",
+    ),
     path("evenements/<uuid:pk>/modifier/", views.edit_event, name="edit_event"),
     path("evenements/creer/", views.create_event, name="create_event"),
     path(
