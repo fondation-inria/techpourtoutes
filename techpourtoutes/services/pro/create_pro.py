@@ -9,8 +9,6 @@ class CreatePro(ProEngagementMixin, BaseService):
     """Creates the pro who went through the inscription funnel, along with what each of her
     engagements calls for."""
 
-    origin = "Funnel d'inscription pro"
-
     def perform(
         self,
         *,

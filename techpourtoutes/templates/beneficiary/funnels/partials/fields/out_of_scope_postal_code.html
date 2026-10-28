@@ -1,0 +1,8 @@
+<div x-data="{ notFound: {{ form.school_not_found.value|yesno:'true,false' }} }"
+     @school-change.window="if ($event.detail.group === '{{ form.dom_id }}') notFound = $event.detail.notFound"
+     x-show="notFound"
+     x-cloak>
+    <template x-if="notFound">
+        <c-components.form_fields.input field=form.postal_code autocomplete="postal-code" />
+    </template>
+</div>

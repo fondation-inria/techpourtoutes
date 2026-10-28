@@ -6,7 +6,6 @@ from django.urls import reverse
 from ...decorators import beneficiary_required
 from ...forms import BeneficiaryMentoringSignUpForm, BeneficiaryStudyStatusForm
 from ...services.beneficiary.upsert_beneficiary import UpsertBeneficiary
-from ...utils.missing_record import report_missing_record
 from ..beneficiary_views import (
     TRAINING_EXPERIENCE_FORMS,
     is_minor,
@@ -56,13 +55,14 @@ def _submit_training_experience(request, beneficiary):
         return _training_experience_step(request, study_status, form)
     # Saved on its own: the parcours belongs to her account whether or not she finishes the last
     # step, and nothing then has to be carried over to it.
-    form.save(beneficiary)
-    report_missing_record(form, beneficiary, "Inscription mentorat")
+    UpsertBeneficiary(beneficiary=beneficiary, training_experience_form=form)
     return _mentoring_signup_step(request, beneficiary)
 
 
 def _submit_mentoring_signup(request, beneficiary):
-    form = BeneficiaryMentoringSignUpForm(data=request.POST)
+    form = BeneficiaryMentoringSignUpForm(
+        data=request.POST, asks_postal_code=_asks_postal_code(beneficiary)
+    )
     require_legal_representative(form, is_minor(beneficiary.birth_date))
     if form.is_valid() and _sign_up_for_mentoring(request, beneficiary, form):
         return HttpResponse(headers={"HX-Redirect": reverse("show_account")})
@@ -79,6 +79,7 @@ _MENTORING_SUBMITS = {
 def _sign_up_for_mentoring(request, beneficiary, form):
     result = UpsertBeneficiary(beneficiary=beneficiary, mentoring_signup_data=form.cleaned_data)
     if result.failure:
+        beneficiary.refresh_from_db()
         relay_errors(request, result)
         return False
     messages.success(
@@ -101,7 +102,12 @@ def _mentoring_signup_step(request, beneficiary, form=None):
         "mentoring_signup",
         form=form or BeneficiaryMentoringSignUpForm(),
         is_minor=is_minor(beneficiary.birth_date),
+        asks_postal_code=_asks_postal_code(beneficiary),
     )
+
+
+def _asks_postal_code(beneficiary):
+    return not beneficiary.postal_code and beneficiary.training_experiences.first().school is None
 
 
 def _render_mentoring_step(request, step, **context):

@@ -6,6 +6,9 @@
     {% endif %}
     <p class="text-xs text-neutral-500">Tous les champs sont obligatoires</p>
     <c-components.form_fields.input field=form.phone />
+    {% if asks_postal_code %}
+        <c-components.form_fields.input field=form.postal_code autocomplete="postal-code" />
+    {% endif %}
     {% if is_minor %}
         <div class="flex flex-col gap-4">
             <c-components.form_fields.input field=form.legal_representative_name autocomplete="name" description="exemple : Hedy Lamarr" />

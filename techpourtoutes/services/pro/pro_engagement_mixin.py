@@ -21,9 +21,7 @@ _NOTIFIED_ENGAGEMENTS = (
 class ProEngagementMixin:
     """What taking on engagements does to `self.pro`, whether she signs up with them or adds one
     later. Her answers override one another in this order: the additional information, then the
-    workshop request, then the training ambassador's. The service names its `origin`."""
-
-    origin = ""
+    workshop request, then the training ambassador's."""
 
     def _save_pro_with(
         self, training_ambassador_form, workshop_request_form, additional_information
@@ -68,7 +66,7 @@ class ProEngagementMixin:
             ConsortiumMailer.training_ambassador_signed_up(
                 pro=self.pro, training_experience=self.training_experience
             )
-            report_missing_record(self.training_ambassador_form, self.pro, self.origin)
+            report_missing_record(self.training_ambassador_form, self.pro)
             ProMailer.welcome_training_ambassador(pro=self.pro)
         if self.workshop_request_form:
             answers = self.workshop_request_form.cleaned_data
@@ -78,7 +76,7 @@ class ProEngagementMixin:
                 remark=answers["remark"],
                 structure_uai=answers["structure_uai"],
             )
-            report_missing_record(self.workshop_request_form, self.pro, self.origin)
+            report_missing_record(self.workshop_request_form, self.pro)
 
     # The school she asks a workshop for is her structure only when she works there, and the job
     # she gave hers only when the list named it.

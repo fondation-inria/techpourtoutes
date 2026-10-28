@@ -14,6 +14,7 @@ SIGN_UP = "techpourtoutes.services.beneficiary.upsert_beneficiary.SignUpForMento
 def _training_experience_form():
     form = MagicMock()
     form.has_missing_record = False
+    form.out_of_scope_postal_code = ""
     return form
 
 
@@ -22,6 +23,7 @@ def _minor_mentoring_data():
         "phone": "0612345678",
         "legal_representative_name": "Parent Test",
         "legal_representative_email": "parent@example.com",
+        "postal_code": "",
     }
 
 
@@ -84,6 +86,16 @@ def test_create_beneficiary_saves_training_experience():
     result = _create_beneficiary(training_experience_form=form)
 
     form.save.assert_called_once_with(result.beneficiary)
+
+
+@pytest.mark.django_db
+def test_create_beneficiary_saves_the_postal_code_of_her_parcours():
+    form = _training_experience_form()
+    form.out_of_scope_postal_code = "29200"
+
+    _create_beneficiary(training_experience_form=form)
+
+    assert Beneficiary.objects.get(email="lea@example.com").postal_code == "29200"
 
 
 @pytest.mark.django_db
@@ -195,6 +207,36 @@ def test_hands_over_the_legal_representative_of_a_minor(beneficiary):
 
 
 @pytest.mark.django_db
+def test_saves_the_postal_code_she_gives_before_signing_up(beneficiary):
+    data = {**_minor_mentoring_data(), "postal_code": "29200"}
+    postal_code_at_sign_up = []
+
+    def sign_up(**kwargs):
+        postal_code_at_sign_up.append(kwargs["beneficiary"].postal_code)
+        return _signed_up()
+
+    with patch(SIGN_UP, side_effect=sign_up):
+        UpsertBeneficiary(beneficiary=beneficiary, mentoring_signup_data=data)
+
+    assert postal_code_at_sign_up == ["29200"]
+    beneficiary.refresh_from_db()
+    assert beneficiary.postal_code == "29200"
+
+
+@pytest.mark.django_db
+def test_keeps_her_postal_code_when_none_is_asked(beneficiary):
+    beneficiary.postal_code = "75011"
+    beneficiary.save()
+    data = {**_minor_mentoring_data(), "postal_code": ""}
+
+    with patch(SIGN_UP, return_value=_signed_up()):
+        UpsertBeneficiary(beneficiary=beneficiary, mentoring_signup_data=data)
+
+    beneficiary.refresh_from_db()
+    assert beneficiary.postal_code == "75011"
+
+
+@pytest.mark.django_db
 def test_relays_sign_up_failure(beneficiary):
     with patch(SIGN_UP, return_value=_sign_up_refused("Jobirl error")):
         result = UpsertBeneficiary(
@@ -214,3 +256,16 @@ def test_adding_mentoring_to_an_existing_beneficiary_sends_no_onboarding_email(b
             )
 
     apply_async.assert_not_called()
+
+
+@pytest.mark.django_db
+def test_keeps_her_postal_code_over_the_one_of_her_parcours(beneficiary):
+    beneficiary.postal_code = "75011"
+    beneficiary.save()
+    form = _training_experience_form()
+    form.out_of_scope_postal_code = "29200"
+
+    UpsertBeneficiary(beneficiary=beneficiary, training_experience_form=form)
+
+    beneficiary.refresh_from_db()
+    assert beneficiary.postal_code == "75011"

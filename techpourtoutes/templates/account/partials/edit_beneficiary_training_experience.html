@@ -14,7 +14,7 @@
                 hx-target="#beneficiary-training-experience-{{ experience.pk }}"
                 hx-swap="delete"
                 hx-headers='{"X-CSRFToken": "{{ csrf_token }}"}'
-                hx-confirm="Voulez-vous vraiment supprimer cette année de formation ?" />
+                hx-confirm="Veux-tu vraiment supprimer cette année de formation ?" />
         {% endif %}
         <p class="description-text-xxs pr-8">Les champs suivis d'un astérisque (*) sont obligatoires.</p>
         <c-components.form_fields.select field=form.period_label
@@ -37,8 +37,8 @@
                                 id_field=form.school_id
                                 not_found_field=form.school_not_found
                                 scope="secondary"
-                                label="Votre établissement*"
-                                description="Recherchez par nom et/ou code postal"
+                                label="Ton établissement*"
+                                description="Saisis le nom et/ou code postal de l'établissement"
                                 group="{{ form.dom_id }}"
                                 unique_id="{{ form.dom_id }}"
                             />
@@ -49,8 +49,8 @@
                                 not_found_field=form.formation_not_found
                                 school_id_field=form.school_id
                                 scope="secondary"
-                                label="Votre formation*"
-                                description="Recherchez par nom"
+                                label="Ta formation*"
+                                description="Recherche par nom"
                                 group="{{ form.dom_id }}"
                                 unique_id="{{ form.dom_id }}"
                             />
@@ -63,8 +63,8 @@
                                 id_field=form.school_id
                                 not_found_field=form.school_not_found
                                 scope="higher_ed"
-                                label="Votre établissement*"
-                                description="Recherchez par nom"
+                                label="Ton établissement*"
+                                description="Saisis le nom de l'établissement"
                                 group="{{ form.dom_id }}"
                                 unique_id="{{ form.dom_id }}-sup"
                             />
@@ -75,8 +75,8 @@
                                 not_found_field=form.formation_not_found
                                 school_id_field=form.school_id
                                 scope="higher_ed"
-                                label="Votre formation*"
-                                description="Recherchez par nom"
+                                label="Ta formation*"
+                                description="Recherche par nom"
                                 group="{{ form.dom_id }}"
                                 unique_id="{{ form.dom_id }}-sup"
                             />

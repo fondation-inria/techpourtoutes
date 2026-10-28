@@ -10,9 +10,9 @@ FORMATION_LABEL_MAX_LENGTH = TrainingExperience._meta.get_field(
 
 def validate_selected_school(form, school):
     if school is None:
-        form.add_error("school_id", _("Sélectionnez un établissement valide."))
+        form.add_error("school_id", _("Sélectionner un établissement valide."))
 
 
 def validate_selected_formation(form, formation):
     if formation is None:
-        form.add_error("formation_id", _("Sélectionnez une formation valide."))
+        form.add_error("formation_id", _("Sélectionner une formation valide."))
