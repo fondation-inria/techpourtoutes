@@ -8,6 +8,7 @@ from django.views.decorators.http import require_POST
 
 from ...forms import (
     ProAdditionalInformationForm,
+    ProSponsorForm,
     ProTrainingAmbassadorForm,
     ProWorkshopRequestForm,
 )
@@ -85,6 +86,8 @@ def _form(step, pro, data=None):
         return ProWorkshopRequestForm(data=data)
     if step == "additional_information":
         return ProAdditionalInformationForm(data=data, pro=pro)
+    if step == "sponsor":
+        return ProSponsorForm(data=data, pro=pro)
     return None
 
 
@@ -95,6 +98,11 @@ def _screen_answers(step, form):
         return {"workshop_request_form": form}
     if step == "additional_information":
         return {"additional_information": form.cleaned_data}
+    if step == "sponsor":
+        return {
+            "additional_information": form.cleaned_data,
+            "message": form.cleaned_data["message"],
+        }
     return {}
 
 

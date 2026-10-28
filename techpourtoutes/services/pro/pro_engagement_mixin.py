@@ -55,13 +55,14 @@ class ProEngagementMixin:
                     )
 
     # Only once everything is saved: the team and Latitudes must find what they are told about.
-    def _notify_about_engagements(self, engagements, other_message=""):
+    def _notify_about_engagements(self, engagements, messages=None):
+        """`messages` holds what she wrote the team, by engagement."""
         for engagement in _NOTIFIED_ENGAGEMENTS:
             if engagement in engagements:
                 ConsortiumMailer.pro_signed_up(
                     pro=self.pro,
                     engagement=engagement,
-                    message=other_message if engagement == OTHER else "",
+                    message=(messages or {}).get(engagement, ""),
                 )
         if self.training_ambassador_form:
             ConsortiumMailer.training_ambassador_signed_up(

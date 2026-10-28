@@ -87,6 +87,22 @@ def test_add_pro_engagement_tells_her_and_the_team(pro):
     assert len(_sent_to("sponsor@example.com")) == 1
 
 
+def test_add_pro_engagement_hands_her_message_to_the_team(pro):
+    _add(pro, Pro.Engagement.SPONSOR, message="Un don de matériel")
+    assert "Un don de matériel" in _sent_to("sponsor@example.com")[0].body
+
+
+def test_add_pro_engagement_keeps_a_sponsorship_given_again_once(pro):
+    _with_engagements(pro, "sponsor")
+
+    result = _add(pro, Pro.Engagement.SPONSOR)
+
+    assert result.success
+    pro.refresh_from_db()
+    assert pro.engagements == ["sponsor"]
+    assert len(_sent_to("sponsor@example.com")) == 1
+
+
 def test_add_pro_engagement_registers_a_new_mentor_on_jobirl(pro):
     registered = MagicMock(success=True, failure=False, user_id=287565, token="tpt_abc")
     with patch(REGISTER, return_value=registered):

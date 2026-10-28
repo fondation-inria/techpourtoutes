@@ -28,7 +28,7 @@ class CreatePro(ProEngagementMixin, BaseService):
         )
 
         ProMailer.welcome(pro=self.pro, code=self.pro.issue_login_code())
-        self._notify_about_engagements(self.chosen, engagements["message"])
+        self._notify_about_engagements(self.chosen, {OTHER: engagements["message"]})
 
     def _apply_identity(self, identity):
         self.pro.civility = identity["civility"]

@@ -1,3 +1,5 @@
+{% load pro_engagements %}
+
 <c-layout.base title="Engager ma structure – TechPourToutes" description="Mentorat, événements, ambassadorat, mécénat : découvrez comment votre structure peut s'engager avec TechPourToutes pour féminiser les métiers du numérique.">
     <c-components.title title="Engager ma structure" title_bg="yellow" />
     <div class="flex flex-wrap gap-2 md:gap-4">
@@ -22,7 +24,9 @@
     <c-components.horizontal_card color="blue" label="Événement">
         Vous organisez une conférence, un afterwork ou un job dating et souhaitez valoriser vos actions auprès de notre communauté&nbsp;? Partagez votre événement sur notre site et faites-le connaître à notre réseau.
         <div class="flex justify-end mt-3">
-            {% if user.is_authenticated %}
+            {% if user.beneficiary %}
+                <c-patterns.disabled_button label="Proposer un événement" variant="secondary" reason="{% beneficiary_refusal_reason %}" />
+            {% elif user.is_authenticated %}
                 <c-components.button href="{% url "new_event" %}" label="Proposer un événement" variant="secondary"/>
             {% else %}
                 <c-components.button href="{% url "new_pro_inscription_funnel" %}?engagement=events" label="Proposer un événement" variant="secondary"/>
