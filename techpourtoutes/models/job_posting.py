@@ -1,3 +1,4 @@
+from django.contrib.postgres.fields import ArrayField
 from django.db import models
 from django.utils.translation import gettext_lazy as _
 
@@ -33,13 +34,13 @@ class JobPosting(BaseModel):
     postal_code = models.CharField(max_length=10, blank=True, verbose_name=_("code postal"))
     cog_code = models.CharField(max_length=10, blank=True, verbose_name=_("COG"))
     city = models.CharField(max_length=100, verbose_name=_("ville"))
-    domain = models.CharField(max_length=255, verbose_name=_("domaine"))
+    domains = ArrayField(models.CharField(max_length=255), verbose_name=_("domaines"))
     duration = models.CharField(blank=True, max_length=255, verbose_name=_("durée"))
     company_logo = models.URLField(
         max_length=500, blank=True, verbose_name=_("logo de l'entreprise")
     )
-    category = models.CharField(
-        max_length=20, choices=Category.choices, verbose_name=_("catégorie")
+    categories = ArrayField(
+        models.CharField(max_length=20, choices=Category.choices), verbose_name=_("catégories")
     )
     contract_type = models.CharField(
         max_length=20, blank=True, choices=ContractType.choices, verbose_name=_("type de contrat")

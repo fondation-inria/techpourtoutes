@@ -217,6 +217,9 @@ else:
 JOBIRL_API_KEY = env("JOBIRL_API_KEY", default="")
 JOBIRL_URL = env("JOBIRL_URL", default="")
 
+# MyFuture API
+MYFUTURE_API_KEY = env("MYFUTURE_API_KEY", default="")
+
 # n8n webhooks
 N8N_WORKSHOP_WEBHOOK_URL = env(
     "N8N_WORKSHOP_WEBHOOK_URL",

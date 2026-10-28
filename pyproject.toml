@@ -27,6 +27,7 @@ dependencies = [
   "gunicorn>=26.2",
   "httpx>=0.28.1",
   "ipython>=9.17.1",
+  "nh3>=0.3.7",
   "phonenumberslite>=9.0.41",
   "psycopg2>=2.9.12,<2.9.13",        # 2.9.13 ships no wheel: building it needs pg_config
   "redis>=7.4,<8",                   # redis-py 8 speaks RESP3, kombu (Celery broker) only accepts it from 5.7

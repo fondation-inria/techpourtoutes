@@ -333,6 +333,39 @@ def carif_oref_record():
 
 
 @pytest.fixture
+def myfuture_record():
+    """One offer as both MyFuture endpoints return it."""
+
+    def build(external_id="22NisRqehckrMvEu3", **overrides):
+        return {
+            "_id": external_id,
+            "title": "Stage en électricité générale",
+            "description": "<p>Explorez le métier d’électricien.</p>",
+            "address": {
+                "street": "CURATS, LD CANTIRAN",
+                "postalCode": "32110",
+                "departmentCode": "32",
+                "inseeCode": "32094",
+                "city": "Caupenne-d'Armagnac",
+            },
+            "coordinates": {"latitude": 43.7842826352, "longitude": -0.0711396072349},
+            "owner_name": "Didier Ducom",
+            "owner_logo": None,
+            "createdAt": "2025-01-06T08:21:32.994Z",
+            "updatedAt": "2025-03-11T13:56:31.694Z",
+            "domains": ["électrotechnique"],
+            "subDomainKeys": ["electricite-electronique-robotiqueelectrotechnique"],
+            "domainKeys": ["electricite-electronique-robotique"],
+            "internshipTypes": ["3eInternship"],
+            "periods": [],
+            "canonicalUrl": f"https://myfutu.re/internships/offers/{external_id}",
+            **overrides,
+        }
+
+    return build
+
+
+@pytest.fixture
 def valid_pro_model_data():
     return {
         "civility": "Madame",
