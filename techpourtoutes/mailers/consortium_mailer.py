@@ -15,18 +15,10 @@ class ConsortiumMailer(BaseMailer):
 
     @classmethod
     def pro_signed_up(cls, *, pro, engagement, message=""):
-        recipient_list = {
-            Pro.Engagement.INTERNSHIPS: settings.COALITION_INTERNSHIPS_RECIPIENTS,
-            Pro.Engagement.WORK_AMBASSADOR: settings.COALITION_WORK_AMBASSADOR_RECIPIENTS,
-            Pro.Engagement.SPONSOR: settings.COALITION_SPONSOR_RECIPIENTS,
-            Pro.Engagement.MOBILIZE_STRUCTURE: settings.COALITION_MOBILIZE_STRUCTURE_RECIPIENTS,
-            OTHER: settings.COALITION_OTHER_ENGAGEMENT_RECIPIENTS,
-        }.get(engagement, [])
-
         engagement_label = _ENGAGEMENT_LABELS[engagement]
         cls.send_mail(
             subject=f"Une nouvelle demande pour {engagement_label}",
-            recipient_list=recipient_list,
+            recipient_list=cls._pro_signed_up_recipients(pro, engagement),
             context={"pro": pro, "engagement": engagement_label, "message": message},
             tags=["interne", "coalition", "nouvelle demande d'engagement"],
         )
@@ -94,6 +86,28 @@ class ConsortiumMailer(BaseMailer):
             },
             tags=["interne", "coalition", "nouvelle proposition de projet Makeuse"],
         )
+
+    @staticmethod
+    def _pro_signed_up_recipients(pro, engagement):
+        """Mobilizing her structure, or helping otherwise, goes to the team following her kind of
+        structure."""
+        if engagement in (Pro.Engagement.MOBILIZE_STRUCTURE, OTHER):
+            return {
+                Pro.StructureType.ASSOCIATION: settings.COALITION_ASSOCIATION_RECIPIENTS,
+                Pro.StructureType.HIGHER_ED: settings.COALITION_TRAINING_AMBASSADOR_RECIPIENTS,
+                Pro.StructureType.SCHOOL: settings.COALITION_SCHOOL_RECIPIENTS,
+                Pro.StructureType.COMPANY: settings.COALITION_WORK_AMBASSADOR_RECIPIENTS,
+                Pro.StructureType.PUBLIC_INSTITUTION: (
+                    settings.COALITION_PUBLIC_INSTITUTION_RECIPIENTS
+                ),
+                Pro.StructureType.RETIRED: settings.COALITION_WORK_AMBASSADOR_RECIPIENTS,
+                Pro.StructureType.JOBLESS: settings.COALITION_WORK_AMBASSADOR_RECIPIENTS,
+            }.get(pro.structure_type, [])
+        return {
+            Pro.Engagement.INTERNSHIPS: settings.COALITION_INTERNSHIPS_RECIPIENTS,
+            Pro.Engagement.WORK_AMBASSADOR: settings.COALITION_WORK_AMBASSADOR_RECIPIENTS,
+            Pro.Engagement.SPONSOR: settings.COALITION_SPONSOR_RECIPIENTS,
+        }.get(engagement, [])
 
     @staticmethod
     def _event_admin_url(event):

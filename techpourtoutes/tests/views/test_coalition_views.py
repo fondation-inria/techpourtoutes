@@ -5,6 +5,7 @@ from django.test import override_settings
 from django.urls import reverse
 
 from techpourtoutes.models import User
+from techpourtoutes.templatetags.pro_engagements import BENEFICIARY_REFUSAL_REASON
 
 
 @pytest.mark.django_db
@@ -68,6 +69,28 @@ def test_pages_send_signed_in_pro_to_new_event(client, pro, page):
     assert f"?next={reverse('index_pro_events')}" not in html
 
 
+@pytest.mark.django_db
+@pytest.mark.parametrize("page", ["new_internship", "new_structure_engagement"])
+def test_pages_show_beneficiary_events_disabled_with_its_reason(client, beneficiary, page):
+    client.force_login(beneficiary)
+
+    html = client.get(reverse(page)).content.decode()
+
+    assert str(BENEFICIARY_REFUSAL_REASON) in html
+    assert f'href="{reverse("new_event")}"' not in html
+    assert f'href="{reverse("new_pro_inscription_funnel")}?engagement=events"' not in html
+
+
+@pytest.mark.django_db
+def test_new_internship_shows_beneficiary_internships_disabled(client, beneficiary):
+    client.force_login(beneficiary)
+
+    html = client.get(reverse("new_internship")).content.decode()
+
+    assert "stages.techpourtoutes.io" not in html
+    assert "Proposer un stage" in html
+
+
 _ENGAGEMENT_PAGES = [
     ("new_mentor", "mentor"),
     ("new_work_ambassador", "work_ambassador"),
@@ -75,6 +98,11 @@ _ENGAGEMENT_PAGES = [
     ("new_workshop_request", "workshops"),
     ("new_structure_engagement", "sponsor"),
     ("new_structure_engagement", "mobilize_structure"),
+]
+_ENGAGEMENT_PAGES_OPEN_TO_SIGNED_IN = [
+    (page, engagement)
+    for page, engagement in _ENGAGEMENT_PAGES
+    if engagement != "mobilize_structure"
 ]
 
 
@@ -93,7 +121,7 @@ def test_engagement_pages_send_anonymous_visitor_to_inscription_funnel(client, p
 
 
 @pytest.mark.django_db
-@pytest.mark.parametrize(("page", "engagement"), _ENGAGEMENT_PAGES)
+@pytest.mark.parametrize(("page", "engagement"), _ENGAGEMENT_PAGES_OPEN_TO_SIGNED_IN)
 def test_engagement_pages_link_pro_with_a_screen_left_to_new_pro_engagement(
     client, pro, page, engagement
 ):
@@ -118,16 +146,58 @@ def test_new_mentor_lets_pro_with_nothing_left_to_give_add_the_engagement_at_onc
 
 
 @pytest.mark.django_db
-@pytest.mark.parametrize(("page", "engagement"), _ENGAGEMENT_PAGES)
-def test_engagement_pages_show_beneficiary_no_engagement_button(
+@pytest.mark.parametrize("engagements", [[], ["sponsor"]])
+def test_new_structure_engagement_always_links_pro_to_the_sponsor_screen(client, pro, engagements):
+    pro.structure_type = "company"
+    pro.engagements = engagements
+    pro.save()
+    client.force_login(pro)
+
+    html = client.get(reverse("new_structure_engagement")).content.decode()
+
+    assert f'href="{reverse("new_pro_engagement", args=["sponsor"])}"' in html
+    assert reverse("create_pro_engagement", args=["sponsor"]) not in html
+
+
+@pytest.mark.django_db
+def test_new_mentor_sends_mentor_to_her_mentoring_space(client, pro):
+    pro.engagements = ["mentor"]
+    pro.save()
+    client.force_login(pro)
+
+    html = client.get(reverse("new_mentor")).content.decode()
+
+    assert f'href="{reverse("login_to_jobirl")}"' in html
+    assert "Rejoindre mon espace mentorat" in html
+    assert reverse("new_pro_engagement", args=["mentor"]) not in html
+
+
+@pytest.mark.django_db
+@pytest.mark.parametrize(("page", "engagement"), _ENGAGEMENT_PAGES_OPEN_TO_SIGNED_IN)
+def test_engagement_pages_show_beneficiary_the_engagement_disabled_with_its_reason(
     client, beneficiary, page, engagement
 ):
     client.force_login(beneficiary)
 
     html = client.get(reverse(page)).content.decode()
 
+    assert str(BENEFICIARY_REFUSAL_REASON) in html
     assert reverse("new_pro_engagement", args=[engagement]) not in html
     assert reverse("create_pro_engagement", args=[engagement]) not in html
+
+
+@pytest.mark.django_db
+@pytest.mark.parametrize("user", ["pro", "beneficiary"])
+def test_new_structure_engagement_shows_signed_in_user_no_button_to_mobilize_a_structure(
+    client, request, user
+):
+    client.force_login(request.getfixturevalue(user))
+
+    html = client.get(reverse("new_structure_engagement")).content.decode()
+
+    assert reverse("new_pro_engagement", args=["mobilize_structure"]) not in html
+    assert reverse("create_pro_engagement", args=["mobilize_structure"]) not in html
+    assert "Rejoindre la coalition" not in html
 
 
 @pytest.mark.django_db

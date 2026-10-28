@@ -9,7 +9,7 @@ from ...models import User
 class ProIdentityForm(forms.Form):
     civility = forms.ChoiceField(
         label=_("Civilité*"),
-        choices=[("", _("Sélectionner une option")), *User.Civility.choices],
+        choices=User.Civility.choices,
     )
     first_name = forms.CharField(label=_("Votre prénom*"))
     last_name = forms.CharField(label=_("Votre nom*"))

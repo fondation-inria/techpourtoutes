@@ -17,8 +17,7 @@ pytestmark = pytest.mark.django_db
 
 @pytest.fixture(autouse=True)
 def mail_recipients(settings):
-    settings.COALITION_MOBILIZE_STRUCTURE_RECIPIENTS = ["structure@example.com"]
-    settings.COALITION_OTHER_ENGAGEMENT_RECIPIENTS = ["agir@example.com"]
+    settings.COALITION_WORK_AMBASSADOR_RECIPIENTS = ["company@example.com"]
     settings.COALITION_TRAINING_AMBASSADOR_RECIPIENTS = ["training@example.com"]
 
 
@@ -247,7 +246,7 @@ def test_create_pro_welcomes_her_with_a_login_code():
 def test_create_pro_tells_the_team_about_a_structure_to_mobilize():
     _create("mobilize_structure", additional_information=_additional_information())
 
-    assert len(_sent_to("structure@example.com")) == 1
+    assert len(_sent_to("company@example.com")) == 1
 
 
 def test_create_pro_relays_the_message_of_another_engagement():
@@ -257,7 +256,7 @@ def test_create_pro_relays_the_message_of_another_engagement():
         additional_information=_additional_information(),
     )
 
-    [relayed] = _sent_to("agir@example.com")
+    [relayed] = _sent_to("company@example.com")
     assert "Je veux aider autrement." in relayed.body
 
 
@@ -269,14 +268,14 @@ def test_create_pro_relays_the_message_of_another_engagement_to_its_team_only():
         additional_information=_additional_information(),
     )
 
-    [notified] = _sent_to("structure@example.com")
+    [notified] = [m for m in _sent_to("company@example.com") if "sa structure" in m.subject]
     assert "Je veux aider autrement." not in notified.body
 
 
 def test_create_pro_relays_nothing_without_another_engagement():
     _create("sponsor", additional_information=_additional_information())
 
-    assert _sent_to("agir@example.com") == []
+    assert _sent_to("company@example.com") == []
 
 
 # ------------------- mentor -------------------

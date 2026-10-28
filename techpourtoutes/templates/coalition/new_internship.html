@@ -1,3 +1,5 @@
+{% load pro_engagements %}
+
 <c-layout.base title="Accueillir une stagiaire – TechPourToutes" description="De la troisième au stage de fin d'études, offrez une expérience professionnelle à des filles motivées et talentueuses et contribuez à la diversité dans le numérique en postant une annonce.">
     <c-components.title title="Accueillir une stagiaire" title_bg="yellow" />
     <div class="flex flex-wrap gap-2 md:gap-4">
@@ -15,19 +17,29 @@
     <c-components.horizontal_card color="purple" title="Recrutez la prochaine génération de talents" style="serif" label="Stage ou alternance dans le supérieur">
         Valorisez vos opportunités de stage et d'alternance auprès d'étudiantes en les publiant sur notre plateforme&nbsp;: une manière concrète d'agir en faveur de l'égalité de genre et de la féminisation des métiers de la tech et du numérique.
         <div class="flex justify-end mt-3">
-            <c-components.button icon="external-link" target="_blank" href="https://stages.techpourtoutes.io/professionnels" label="Proposer un stage" variant="secondary"/>
+            {% if user.beneficiary %}
+                <c-patterns.disabled_button label="Proposer un stage" variant="secondary" reason="{% beneficiary_refusal_reason %}" />
+            {% else %}
+                <c-components.button icon="external-link" target="_blank" href="https://stages.techpourtoutes.io/professionnels" label="Proposer un stage" variant="secondary"/>
+            {% endif %}
         </div>
     </c-components.horizontal_card>
     <c-components.horizontal_card color="yellow" title="Accueillez les talents de demain" style="serif" label="Stages de 3ème et de 2nde">
         Déposez vos offres sur la plateforme dédiée et accueillez des élèves en stage en troisième ou en seconde pour leur faire découvrir les métiers du numérique et les aider à construire leur orientation.
         <div class="flex justify-end mt-3">
-            <c-components.button icon="external-link" target="_blank" href="https://stages.techpourtoutes.io/professionnels" label="Proposer un stage" variant="secondary"/>
+            {% if user.beneficiary %}
+                <c-patterns.disabled_button label="Proposer un stage" variant="secondary" reason="{% beneficiary_refusal_reason %}" />
+            {% else %}
+                <c-components.button icon="external-link" target="_blank" href="https://stages.techpourtoutes.io/professionnels" label="Proposer un stage" variant="secondary"/>
+            {% endif %}
         </div>
     </c-components.horizontal_card>
     <c-components.horizontal_card color="orange" title="Faites découvrir les coulisses de votre entreprise" style="serif" label="Portes ouvertes">
         Ouvrez vos portes aux filles pour leur présenter vos activités, leur faire visiter vos locaux et échanger avec vos équipes sur les métiers de la tech.
         <div class="flex justify-end mt-3">
-            {% if user.is_authenticated %}
+            {% if user.beneficiary %}
+                <c-patterns.disabled_button label="Organiser des portes ouvertes" variant="secondary" reason="{% beneficiary_refusal_reason %}" />
+            {% elif user.is_authenticated %}
                 <c-components.button href="{% url "new_event" %}" label="Organiser des portes ouvertes" variant="secondary"/>
             {% else %}
                 <c-components.button href="{% url "new_pro_inscription_funnel" %}?engagement=events" label="Organiser des portes ouvertes" variant="secondary"/>
@@ -37,7 +49,9 @@
     <c-components.horizontal_card color="green" title="Partagez le quotidien de vos métiers" style="serif" label="Stages « Vis ma vie »">
         Accueillez une lycéenne ou une étudiante pendant une journée aux côtés d'une professionnelle de votre entreprise pour lui faire découvrir son métier, ses missions et son environnement de travail.
         <div class="flex justify-end mt-3">
-            {% if user.is_authenticated %}
+            {% if user.beneficiary %}
+                <c-patterns.disabled_button label="Organiser un vis ma vie" variant="secondary" reason="{% beneficiary_refusal_reason %}" />
+            {% elif user.is_authenticated %}
                 <c-components.button href="{% url "new_event" %}" label="Organiser un vis ma vie" variant="secondary"/>
             {% else %}
                 <c-components.button href="{% url "new_pro_inscription_funnel" %}?engagement=events" label="Organiser un vis ma vie" variant="secondary"/>

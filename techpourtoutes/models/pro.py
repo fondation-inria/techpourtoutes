@@ -14,7 +14,7 @@ class Pro(User):
         TRAINING_AMBASSADOR = "training_ambassador", _("devenir ambassadrice étudiante")
         SPONSOR = "sponsor", _("devenir mécène")
         WORKSHOPS = "workshops", _("organiser un atelier")
-        MOBILIZE_STRUCTURE = "mobilize_structure", _("mobiliser sa structure")
+        MOBILIZE_STRUCTURE = "mobilize_structure", _("engager sa structure")
 
     class StructureType(models.TextChoices):
         ASSOCIATION = "association", _("Association")
@@ -26,6 +26,7 @@ class Pro(User):
         JOBLESS = "jobless", _("Je suis sans emploi")
 
     WITHOUT_STRUCTURE = (StructureType.RETIRED, StructureType.JOBLESS)
+    REPEATABLE_ENGAGEMENTS = (Engagement.SPONSOR, Engagement.WORKSHOPS)
 
     structure_type = models.CharField(
         max_length=30,

@@ -13,7 +13,7 @@ ENGAGEMENT_CHOICES = [
     (Pro.Engagement.INTERNSHIPS, _("Je veux proposer des stages")),
     (EVENTS, _("Je veux proposer des événements")),
     (Pro.Engagement.TRAINING_AMBASSADOR, _("Je veux devenir ambassadrice étudiante")),
-    (Pro.Engagement.MOBILIZE_STRUCTURE, _("Je veux mobiliser ma structure")),
+    (Pro.Engagement.MOBILIZE_STRUCTURE, _("Je veux engager ma structure")),
     (Pro.Engagement.WORKSHOPS, _("Je veux organiser un atelier pour mes élèves")),
     (Pro.Engagement.SPONSOR, _("Je veux devenir mécène ou proposer des bourses")),
     (OTHER, _("Autre")),

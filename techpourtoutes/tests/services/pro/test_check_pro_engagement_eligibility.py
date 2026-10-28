@@ -13,6 +13,7 @@ from techpourtoutes.services.pro.check_pro_engagement_eligibility import (
         ([], "training_ambassador"),
         (["sponsor"], "mentor"),
         (["workshops"], "workshops"),
+        (["sponsor"], "sponsor"),
     ],
 )
 def test_check_pro_engagement_eligibility_lets_her_take_it_on(engagements, engagement):
