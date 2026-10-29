@@ -5,6 +5,9 @@
       "size": "L"
     },
     {
+      "command": "0 2 * * * python manage.py import_myfuture_job_postings --async"
+    },
+    {
       "command": "0 4 * * * python manage.py purge_orphan_images"
     },
     {
