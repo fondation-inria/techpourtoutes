@@ -53,7 +53,7 @@ def test_if_empty_runs_the_import_when_only_other_sources_are_in():
         description="…",
         city="Paris",
         domains=["informatique"],
-        categories=[JobPosting.Category.FIRST_JOB],
+        category=JobPosting.Category.FIRST_JOB,
         published_at=datetime(2026, 1, 1, tzinfo=UTC),
         url="https://www.apec.fr/offre/1",
     ).save()

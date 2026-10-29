@@ -39,8 +39,8 @@ class JobPosting(BaseModel):
     company_logo = models.URLField(
         max_length=500, blank=True, verbose_name=_("logo de l'entreprise")
     )
-    categories = ArrayField(
-        models.CharField(max_length=20, choices=Category.choices), verbose_name=_("catégories")
+    category = models.CharField(
+        max_length=20, choices=Category.choices, verbose_name=_("catégorie")
     )
     contract_type = models.CharField(
         max_length=20, blank=True, choices=ContractType.choices, verbose_name=_("type de contrat")

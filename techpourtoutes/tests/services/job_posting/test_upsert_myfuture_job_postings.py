@@ -29,7 +29,7 @@ def test_an_offer_is_mapped_onto_a_job_posting(myfuture_record):
     assert posting.domains == ["électrotechnique"]
     assert posting.duration == ""
     assert posting.company_logo == ""
-    assert posting.categories == [Category.TROISIEME_INTERNSHIP]
+    assert posting.category == Category.TROISIEME_INTERNSHIP
     assert posting.contract_type == ""
     assert posting.published_at == datetime(2025, 1, 6, 8, 21, 32, 994000, tzinfo=UTC)
     assert posting.source_updated_at == datetime(2025, 3, 11, 13, 56, 31, 694000, tzinfo=UTC)
@@ -54,7 +54,6 @@ def test_the_optional_address_fields_and_the_logo_are_read_when_present(myfuture
     ("internship_type", "category"),
     [
         ("3eInternship", Category.TROISIEME_INTERNSHIP),
-        ("highSchoolInternship", Category.SECONDE_INTERNSHIP),
         ("studentInternship", Category.HIGHER_ED_INTERNSHIP),
         ("apprenticeship", Category.APPRENTICESHIP),
         ("pmsmp", Category.FIRST_JOB),
@@ -63,41 +62,49 @@ def test_the_optional_address_fields_and_the_logo_are_read_when_present(myfuture
 def test_each_internship_type_lands_in_its_category(myfuture_record, internship_type, category):
     UpsertMyFutureJobPostings(records=[myfuture_record(internshipTypes=[internship_type])])
 
-    assert JobPosting.objects.get().categories == [category]
+    assert JobPosting.objects.get().category == category
 
 
-def test_the_internship_types_are_read_whatever_their_case(myfuture_record):
-    """MyFuture sends `PMSMP` and `3einternship` alongside their usual spelling."""
-    record = myfuture_record(internshipTypes=["PMSMP", "3einternship"])
+@pytest.mark.parametrize(
+    ("internship_type", "category"),
+    [
+        ("PMSMP", Category.FIRST_JOB),
+        ("3einternship", Category.TROISIEME_INTERNSHIP),
+        ("3eInternShip", Category.TROISIEME_INTERNSHIP),
+    ],
+)
+def test_the_internship_types_are_read_whatever_their_case(
+    myfuture_record, internship_type, category
+):
+    """MyFuture sends these alongside their usual spelling."""
+    UpsertMyFutureJobPostings(records=[myfuture_record(internshipTypes=[internship_type])])
 
-    UpsertMyFutureJobPostings(records=[record])
-
-    assert JobPosting.objects.get().categories == [
-        Category.FIRST_JOB,
-        Category.TROISIEME_INTERNSHIP,
-    ]
+    assert JobPosting.objects.get().category == category
 
 
-def test_an_offer_open_to_several_audiences_keeps_every_category(myfuture_record):
-    record = myfuture_record(internshipTypes=["highSchoolInternship", "studentInternship"])
+@pytest.mark.parametrize(
+    "internship_types", [["pmsmp", "3eInternship"], ["3eInternship", "pmsmp"]]
+)
+def test_an_offer_of_several_types_lands_in_a_single_category(myfuture_record, internship_types):
+    """A handful of offers are tagged both 3e and PMSMP, in either order."""
+    UpsertMyFutureJobPostings(records=[myfuture_record(internshipTypes=internship_types)])
 
-    UpsertMyFutureJobPostings(records=[record])
-
-    assert JobPosting.objects.get().categories == [
-        Category.SECONDE_INTERNSHIP,
-        Category.HIGHER_ED_INTERNSHIP,
-    ]
+    assert JobPosting.objects.get().category == Category.TROISIEME_INTERNSHIP
 
 
 def test_the_types_without_a_category_are_left_out(myfuture_record):
-    record = myfuture_record(internshipTypes=["3eInternship", "miniInternship", "visit"])
+    record = myfuture_record(
+        internshipTypes=["3eInternship", "miniInternship", "visit", "highSchoolInternship"]
+    )
 
     UpsertMyFutureJobPostings(records=[record])
 
-    assert JobPosting.objects.get().categories == [Category.TROISIEME_INTERNSHIP]
+    assert JobPosting.objects.get().category == Category.TROISIEME_INTERNSHIP
 
 
-@pytest.mark.parametrize("internship_types", [[], ["miniInternship"], ["visit"]])
+@pytest.mark.parametrize(
+    "internship_types", [[], ["miniInternship"], ["visit"], ["highSchoolInternship"]]
+)
 def test_an_offer_without_any_category_is_not_imported(myfuture_record, internship_types):
     UpsertMyFutureJobPostings(records=[myfuture_record(internshipTypes=internship_types)])
 
@@ -211,7 +218,7 @@ def test_the_other_sources_offers_are_left_alone(myfuture_record):
         description="…",
         city="Paris",
         domains=["informatique"],
-        categories=[Category.FIRST_JOB],
+        category=Category.FIRST_JOB,
         published_at=datetime(2026, 1, 1, tzinfo=UTC),
         url="https://www.apec.fr/offre/1",
     ).save()

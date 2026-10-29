@@ -6,11 +6,12 @@ from techpourtoutes.models import JobPosting
 from techpourtoutes.services.base import BaseService
 from techpourtoutes.utils.myfuture import SUB_DOMAINS
 
-# Lowercased, because MyFuture spells some of them both ways (`PMSMP`, `3einternship`).
-# `miniInternship` and `visit` fit no category and are left out.
+# Lowercased, because MyFuture spells some of them several ways (`PMSMP`, `3einternship`).
+# An offer of several types lands in the first of them listed here.
+# `miniInternship`, `visit` and `highSchoolInternship` fit no category and are left out: the last
+# is MyFuture's long internship in a lycée pro (PFMP), not the seconde one.
 CATEGORIES = {
     "3einternship": JobPosting.Category.TROISIEME_INTERNSHIP,
-    "highschoolinternship": JobPosting.Category.SECONDE_INTERNSHIP,
     "studentinternship": JobPosting.Category.HIGHER_ED_INTERNSHIP,
     "apprenticeship": JobPosting.Category.APPRENTICESHIP,
     "pmsmp": JobPosting.Category.FIRST_JOB,
@@ -29,7 +30,7 @@ MAPPED_FIELDS = [
     "city",
     "domains",
     "company_logo",
-    "categories",
+    "category",
     "contract_type",
     "published_at",
     "source_updated_at",
@@ -48,7 +49,7 @@ class UpsertMyFutureJobPostings(BaseService):
         postings = [
             self._posting(record)
             for record in records
-            if _categories(record) and record["address"].get("city") and not _expired(record)
+            if _category(record) and record["address"].get("city") and not _expired(record)
         ]
         JobPosting.objects.bulk_create(
             postings,
@@ -63,7 +64,7 @@ class UpsertMyFutureJobPostings(BaseService):
 
     def _posting(self, record):
         address = record["address"]
-        categories = _categories(record)
+        category = _category(record)
         return JobPosting(
             source=JobPosting.Source.MYFUTURE,
             external_id=record["_id"],
@@ -79,10 +80,10 @@ class UpsertMyFutureJobPostings(BaseService):
             city=address["city"],
             domains=[SUB_DOMAINS[key] for key in record["subDomainKeys"] if key in SUB_DOMAINS],
             company_logo=record["owner_logo"] or "",
-            categories=categories,
+            category=category,
             contract_type=(
                 JobPosting.ContractType.APPRENTICESHIP
-                if JobPosting.Category.APPRENTICESHIP in categories
+                if category == JobPosting.Category.APPRENTICESHIP
                 else ""
             ),
             published_at=parse_datetime(record["createdAt"]),
@@ -91,9 +92,9 @@ class UpsertMyFutureJobPostings(BaseService):
         )
 
 
-def _categories(record) -> list:
-    types = (internship_type.lower() for internship_type in record["internshipTypes"])
-    return list(dict.fromkeys(CATEGORIES[type_] for type_ in types if type_ in CATEGORIES))
+def _category(record):
+    types = {internship_type.lower() for internship_type in record["internshipTypes"]}
+    return next((category for type_, category in CATEGORIES.items() if type_ in types), None)
 
 
 def _expired(record) -> bool:

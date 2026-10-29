@@ -10,31 +10,7 @@ class Migration(migrations.Migration):
     operations = [
         migrations.RemoveField(
             model_name="jobposting",
-            name="category",
-        ),
-        migrations.RemoveField(
-            model_name="jobposting",
             name="domain",
-        ),
-        migrations.AddField(
-            model_name="jobposting",
-            name="categories",
-            field=django.contrib.postgres.fields.ArrayField(
-                base_field=models.CharField(
-                    choices=[
-                        ("higher_ed_internship", "Stage du supérieur"),
-                        ("apprenticeship", "Alternance"),
-                        ("seconde_internship", "Stage de seconde"),
-                        ("troisieme_internship", "Stage de troisième"),
-                        ("first_job", "Premier emploi"),
-                    ],
-                    max_length=20,
-                ),
-                default=list,
-                size=None,
-                verbose_name="catégories",
-            ),
-            preserve_default=False,
         ),
         migrations.AddField(
             model_name="jobposting",
