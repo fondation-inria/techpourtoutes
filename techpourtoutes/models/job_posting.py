@@ -52,8 +52,8 @@ class JobPosting(BaseModel):
     url = models.URLField(verbose_name=_("lien de l'offre"))
 
     class Meta:
-        verbose_name = _("offre")
-        verbose_name_plural = _("offres")
+        verbose_name = _("Offre d'emploi")
+        verbose_name_plural = _("Offres d'emploi")
         constraints = [
             models.UniqueConstraint(
                 fields=["source", "external_id"], name="unique_job_posting_per_source"

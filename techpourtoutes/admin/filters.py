@@ -1,7 +1,7 @@
 from django.contrib import admin
 from django.utils.translation import gettext_lazy as _
 
-from techpourtoutes.models import Pro
+from techpourtoutes.models import JobPosting, Pro
 
 
 class MentoringStatusFilter(admin.SimpleListFilter):
@@ -33,6 +33,21 @@ class MentoringStatusFilter(admin.SimpleListFilter):
             return queryset.filter(
                 jobirl_user_id=None, legal_representative_authorization__isnull=True
             )
+        return queryset
+
+
+class JobPostingCategoryFilter(admin.SimpleListFilter):
+    """`categories` is an array: the native choices filter cannot match one of its items."""
+
+    title = _("catégorie")
+    parameter_name = "category"
+
+    def lookups(self, _request, _model_admin):
+        return JobPosting.Category.choices
+
+    def queryset(self, _request, queryset):
+        if self.value():
+            return queryset.filter(categories__contains=[self.value()])
         return queryset
 
 

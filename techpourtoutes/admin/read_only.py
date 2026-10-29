@@ -2,7 +2,7 @@ from django.contrib import admin
 
 
 class ReadOnlyAdminMixin:
-    """Data owned by the Onisep import: displayed in the admin, never edited by hand."""
+    """Data owned by an import: displayed in the admin, never edited by hand."""
 
     def has_add_permission(self, _request):
         return False
