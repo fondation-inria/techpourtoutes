@@ -121,6 +121,7 @@ def test_a_missing_school_still_resolves_a_formation_from_the_whole_catalogue(
             school_id="",
             school_label="Lycée du bout du monde",
             school_not_found="on",
+            postal_code="29200",
             formation_id=str(elsewhere.pk),
             formation_label=elsewhere.name,
         )
@@ -164,6 +165,7 @@ def test_both_records_missing_saves_the_level_and_the_typed_names(beneficiary, s
             school_id="",
             school_label="Lycée du bout du monde",
             school_not_found="on",
+            postal_code="29200",
             formation_id="",
             formation_label="Bac pro maréchalerie",
             formation_not_found="on",
@@ -188,6 +190,66 @@ def test_a_missing_school_requires_its_free_text_name(school, formation):
 
     assert not form.is_valid()
     assert "school_label" in form.errors
+
+
+@pytest.mark.django_db
+def test_a_missing_school_requires_her_postal_code(school, formation):
+    form = BeneficiaryHighSchoolTrainingExperienceForm(
+        data=_valid_data(
+            school,
+            formation,
+            school_id="",
+            school_label="Lycée du bout du monde",
+            school_not_found="on",
+        )
+    )
+
+    assert not form.is_valid()
+    assert "postal_code" in form.errors
+
+
+@pytest.mark.django_db
+def test_a_missing_school_rejects_an_invalid_postal_code(school, formation):
+    form = BeneficiaryHighSchoolTrainingExperienceForm(
+        data=_valid_data(
+            school,
+            formation,
+            school_id="",
+            school_label="Lycée du bout du monde",
+            school_not_found="on",
+            postal_code="2920",
+        )
+    )
+
+    assert not form.is_valid()
+    assert form.errors["postal_code"] == ["Le code postal doit contenir 5 chiffres."]
+
+
+@pytest.mark.django_db
+def test_a_missing_school_exposes_her_postal_code(school, formation):
+    form = BeneficiaryHighSchoolTrainingExperienceForm(
+        data=_valid_data(
+            school,
+            formation,
+            school_id="",
+            school_label="Lycée du bout du monde",
+            school_not_found="on",
+            postal_code="29200",
+        )
+    )
+
+    assert form.is_valid(), form.errors
+    assert form.out_of_scope_postal_code == "29200"
+
+
+@pytest.mark.django_db
+def test_a_found_school_neither_asks_nor_exposes_a_postal_code(school, formation):
+    form = BeneficiaryHighSchoolTrainingExperienceForm(
+        data=_valid_data(school, formation, postal_code="29200")
+    )
+
+    assert form.is_valid(), form.errors
+    assert form.out_of_scope_postal_code == ""
 
 
 @pytest.mark.django_db

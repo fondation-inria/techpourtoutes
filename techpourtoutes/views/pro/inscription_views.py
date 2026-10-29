@@ -196,8 +196,9 @@ def _validate_email(request, answers):
     form = ProEmailForm(data=answers)
     if not form.is_valid():
         raise _StepInterrupt(_render_step(request, "email", form=form))
-    if User.objects.filter(email=form.cleaned_data["email"]).exists():
-        raise _StepInterrupt(_login_redirect_for_existing_email(request))
+    existing_user = User.objects.filter(email=form.cleaned_data["email"]).first()
+    if existing_user is not None:
+        raise _StepInterrupt(_login_redirect_for_existing_email(request, existing_user))
     return form.cleaned_data
 
 
@@ -218,11 +219,19 @@ def _cleaned(step):
     return lambda request, answers: validate(request, answers).cleaned_data
 
 
-def _login_redirect_for_existing_email(request):
+def _login_redirect_for_existing_email(request, user):
     messages.error(request, "Un compte existe déjà avec cette adresse mail.")
-    params = {"back": reverse("coalition_home"), "next": reverse("show_account")}
+    params = {"back": reverse("coalition_home"), "next": _after_login(request, user)}
     _funnel(request).clear()
     return HttpResponse(headers={"HX-Redirect": f"{reverse('login_request')}?{urlencode(params)}"})
+
+
+# A pro come to support the programme finds its screen once signed in.
+def _after_login(request, user):
+    preselected = _funnel(request).answers.get("preselected_engagement")
+    if preselected == Pro.Engagement.SPONSOR and hasattr(user, "pro"):
+        return reverse("new_pro_engagement", args=[preselected])
+    return reverse("show_account")
 
 
 _STEP_FORMS = {

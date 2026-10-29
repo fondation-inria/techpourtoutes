@@ -5,6 +5,9 @@
             <c-patterns.funnel_progress post_url="{{ funnel_url }}" progress="{{ progress }}" />
         {% endif %}
     </c-slot>
+    <p class="text-xs text-neutral-500">
+        Les champs suivis d'un astérisque (*) sont obligatoires.
+    </p>
     {# Only partner schools take part: instead of a free-text fallback, a word on why hers may be missing. #}
     <div class="flex flex-col gap-y-1">
         <c-components.form_fields.school_search

@@ -6,8 +6,8 @@ same way: pick a study status, pick a level, pick a school and its formation.
 
 from techpourtoutes.models import Formation, FormationAction, School
 
-HIGH_SCHOOL_LABEL = "Dans quel établissement étudies-tu ?*"
-HIGH_SCHOOL_FORMATION_LABEL = "Quelle est ta formation ?*"
+HIGH_SCHOOL_LABEL = "Dans quel établissement étudies-tu ?"
+HIGH_SCHOOL_FORMATION_LABEL = "Quelle est ta formation ?"
 
 
 def voltaire_teaching(formation_name):

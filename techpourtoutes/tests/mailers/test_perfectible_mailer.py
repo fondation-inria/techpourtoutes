@@ -8,7 +8,6 @@ from techpourtoutes.mailers import PerfectibleMailer
 def test_missing_record_reports_both_free_text_names(beneficiary):
     PerfectibleMailer.missing_record(
         user=beneficiary,
-        origin="Funnel d'inscription",
         level="Terminale",
         school_label="Lycée du bout du monde",
         formation_label="Bac pro maréchalerie",
@@ -20,7 +19,6 @@ def test_missing_record_reports_both_free_text_names(beneficiary):
     assert message.to == ["perfectible@techpourtoutes.io"]
     assert "Lycée du bout du monde" in message.body
     assert "Bac pro maréchalerie" in message.body
-    assert "Funnel d'inscription" in message.body
     assert beneficiary.email in message.body
 
 
@@ -28,7 +26,6 @@ def test_missing_record_reports_both_free_text_names(beneficiary):
 def test_missing_record_names_the_record_that_did_resolve(beneficiary, school):
     PerfectibleMailer.missing_record(
         user=beneficiary,
-        origin="Compte bénéficiaire",
         level="Terminale",
         school_label=school.location_label,
         formation_label="Bac pro maréchalerie",
@@ -45,7 +42,6 @@ def test_missing_record_names_the_record_that_did_resolve(beneficiary, school):
 def test_missing_record_attaches_its_brevo_tags(beneficiary):
     PerfectibleMailer.missing_record(
         user=beneficiary,
-        origin="Atelier",
         level="",
         school_label="Lycée du bout du monde",
         formation_label="",

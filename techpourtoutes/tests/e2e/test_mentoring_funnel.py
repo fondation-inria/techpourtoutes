@@ -74,13 +74,13 @@ def test_a_graduate_gets_the_year_question_instead(page_without_parcours):
 
     _expect_step(page_without_parcours, "training_experience")
     expect(
-        page_without_parcours.get_by_role("button", name="En quelle année était-ce ?*")
+        page_without_parcours.get_by_role("button", name="En quelle année était-ce ?")
     ).to_be_visible()
 
 
 def test_the_parcours_step_leads_to_the_mentoring_questions(page_without_parcours):
     choose_study_status(page_without_parcours, "Je suis au collège ou au lycée")
-    select_option(page_without_parcours, "En quelle classe es-tu ?*", "Terminale")
+    select_option(page_without_parcours, "En quelle classe es-tu ?", "Terminale")
     pick(page_without_parcours, HIGH_SCHOOL_LABEL, "voltaire", "Lycée Voltaire (75011)")
     pick(page_without_parcours, HIGH_SCHOOL_FORMATION_LABEL, "bac", "Bac général")
     page_without_parcours.get_by_role("button", name="Continuer").click()
@@ -93,7 +93,7 @@ def test_the_parcours_step_leads_to_the_mentoring_questions(page_without_parcour
 
 def test_a_faveod_account_walks_the_three_steps_to_the_end(page_without_parcours):
     choose_study_status(page_without_parcours, "Je suis au collège ou au lycée")
-    select_option(page_without_parcours, "En quelle classe es-tu ?*", "Terminale")
+    select_option(page_without_parcours, "En quelle classe es-tu ?", "Terminale")
     pick(page_without_parcours, HIGH_SCHOOL_LABEL, "voltaire", "Lycée Voltaire (75011)")
     pick(page_without_parcours, HIGH_SCHOOL_FORMATION_LABEL, "bac", "Bac général")
     page_without_parcours.get_by_role("button", name="Continuer").click()

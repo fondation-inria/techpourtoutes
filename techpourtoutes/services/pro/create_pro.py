@@ -9,8 +9,6 @@ class CreatePro(ProEngagementMixin, BaseService):
     """Creates the pro who went through the inscription funnel, along with what each of her
     engagements calls for."""
 
-    origin = "Funnel d'inscription pro"
-
     def perform(
         self,
         *,
@@ -28,7 +26,7 @@ class CreatePro(ProEngagementMixin, BaseService):
         )
 
         ProMailer.welcome(pro=self.pro, code=self.pro.issue_login_code())
-        self._notify_about_engagements(self.chosen, engagements["message"])
+        self._notify_about_engagements(self.chosen, {OTHER: engagements["message"]})
 
     def _apply_identity(self, identity):
         self.pro.civility = identity["civility"]

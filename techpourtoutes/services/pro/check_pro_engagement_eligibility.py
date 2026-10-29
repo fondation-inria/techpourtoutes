@@ -9,13 +9,13 @@ _ALREADY_TAKEN_ON = _("Vous avez déjà pris cet engagement.")
 
 class CheckProEngagementEligibility(BaseService):
     """Fails when `pro` may not take on `engagement`, with `refusal_reason` saying why. A
-    workshop can be asked for again and again; a training ambassador, for now, takes on no other
-    engagement — events, which she may still propose, are none."""
+    sponsorship or a workshop can be given again and again; a training ambassador, for now, takes
+    on no other engagement — events, which she may still propose, are none."""
 
     refusal_reason = None
 
     def perform(self, *, pro, engagement):
-        if engagement in pro.engagements and engagement != Pro.Engagement.WORKSHOPS:
+        if engagement in pro.engagements and engagement not in Pro.REPEATABLE_ENGAGEMENTS:
             self._refuse(_ALREADY_TAKEN_ON)
         if pro.is_training_ambassador:
             self._refuse(ProEngagementsForm.student_only_reason)

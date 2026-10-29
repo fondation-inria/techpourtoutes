@@ -1,9 +1,10 @@
+from datetime import date
 from unittest.mock import MagicMock, patch
 
 import pytest
 from django.urls import reverse
 
-from techpourtoutes.models import LegalRepresentativeAuthorization, Level
+from techpourtoutes.models import LegalRepresentativeAuthorization, Level, TrainingExperience
 from techpourtoutes.tests.birth_dates import birth_date_for_age
 
 ADD_MENTORING_URL = "/devenir-mentoree/"
@@ -50,6 +51,7 @@ def test_mentoring_funnel_get_renders_form_for_adult(client, beneficiary, benefi
     assert response.status_code == 200
     assert response.context["is_minor"] is False
     assert "responsable légale" not in response.content.decode()
+    assert "code postal" not in response.content.decode()
 
 
 @pytest.mark.django_db
@@ -100,6 +102,81 @@ def test_mentoring_funnel_post_missing_legal_representative_fields_for_minor(
     assert response.status_code == 200
     assert "Ce champ est obligatoire." in response.content.decode()
     assert not LegalRepresentativeAuthorization.objects.exists()
+
+
+@pytest.fixture
+def out_of_scope_experience(beneficiary, formation):
+    return TrainingExperience.objects.create(
+        user=beneficiary,
+        out_of_scope_school_name="Lycée du bout du monde",
+        formation=formation,
+        level=Level.TERMINALE,
+        start_date=date(2023, 9, 1),
+        end_date=date(2024, 8, 31),
+    )
+
+
+@pytest.mark.django_db
+def test_mentoring_funnel_asks_her_postal_code_when_her_school_is_not_in_the_catalogue(
+    client, beneficiary, out_of_scope_experience
+):
+    client.force_login(beneficiary)
+
+    response = client.get(ADD_MENTORING_URL)
+
+    assert "Ton code postal*" in response.content.decode()
+
+
+@pytest.mark.django_db
+def test_mentoring_funnel_does_not_ask_a_postal_code_she_already_gave(
+    client, beneficiary, out_of_scope_experience
+):
+    beneficiary.postal_code = "29200"
+    beneficiary.save()
+    client.force_login(beneficiary)
+
+    response = client.get(ADD_MENTORING_URL)
+
+    assert "code postal" not in response.content.decode()
+
+
+@pytest.mark.django_db
+def test_mentoring_funnel_post_without_the_postal_code_it_asks_stays_put(
+    client, beneficiary, out_of_scope_experience
+):
+    client.force_login(beneficiary)
+
+    with patch(
+        "techpourtoutes.services.beneficiary.sign_up_for_mentoring.CreateMentoree"
+    ) as create_mentoree:
+        response = client.post(
+            ADD_MENTORING_URL, {"action": "mentoring_signup", "phone": "0612345678"}
+        )
+
+    assert response.status_code == 200
+    assert "Indique ton code postal." in response.content.decode()
+    create_mentoree.assert_not_called()
+
+
+@pytest.mark.django_db
+def test_mentoring_funnel_post_saves_the_postal_code_it_asks(
+    client, beneficiary, out_of_scope_experience
+):
+    client.force_login(beneficiary)
+    instance = MagicMock(success=True, failure=False, errors=[])
+
+    with patch(
+        "techpourtoutes.services.beneficiary.sign_up_for_mentoring.CreateMentoree",
+        return_value=instance,
+    ):
+        response = client.post(
+            ADD_MENTORING_URL,
+            {"action": "mentoring_signup", "phone": "0612345678", "postal_code": "29200"},
+        )
+
+    assert response["HX-Redirect"] == reverse("show_account")
+    beneficiary.refresh_from_db()
+    assert beneficiary.postal_code == "29200"
 
 
 @pytest.mark.django_db
@@ -173,7 +250,7 @@ def test_mentoring_funnel_study_status_step_advances_to_the_parcours(client, ben
     )
 
     assert response.context["step"] == "training_experience"
-    assert "En quelle classe es-tu ?*" in response.content.decode()
+    assert "En quelle classe es-tu ?" in response.content.decode()
 
 
 @pytest.mark.django_db
@@ -215,6 +292,26 @@ def test_mentoring_funnel_parcours_step_saves_it_and_advances_to_the_signup(
     assert experience.school == school
     assert experience.formation == formation
     assert experience.level == Level.TERMINALE
+
+
+@pytest.mark.django_db
+def test_mentoring_funnel_parcours_step_saves_the_postal_code_of_a_missing_school(
+    client, beneficiary, school, formation
+):
+    client.force_login(beneficiary)
+    payload = {
+        **_parcours_post(school, formation),
+        "school_id": "",
+        "school_label": "Lycée du bout du monde",
+        "school_not_found": "on",
+        "postal_code": "29200",
+    }
+
+    response = client.post(ADD_MENTORING_URL, payload)
+
+    assert response.context["step"] == "mentoring_signup"
+    beneficiary.refresh_from_db()
+    assert beneficiary.postal_code == "29200"
 
 
 @pytest.mark.django_db
