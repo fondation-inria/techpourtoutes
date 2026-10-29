@@ -100,7 +100,16 @@ def test_job_posting_changelist_filters_by_contract_type(verified_admin_client, 
 
 
 @pytest.mark.django_db
-def test_job_posting_page_shows_every_field_read_only(verified_admin_client, job_postings):
+def test_job_posting_changelist_filters_by_hidden(verified_admin_client, job_postings):
+    JobPosting.objects.filter(external_id="mf-2").update(hidden=True)
+
+    assert _listed_titles(verified_admin_client, hidden__exact="1") == {"Data analyste"}
+
+
+@pytest.mark.django_db
+def test_job_posting_page_shows_every_field_read_only_but_hidden(
+    verified_admin_client, job_postings
+):
     job_posting = job_postings["apprenticeship"]
     url = reverse("admin:techpourtoutes_jobposting_change", args=[job_posting.pk])
     response = verified_admin_client.get(url)
@@ -119,6 +128,30 @@ def test_job_posting_page_shows_every_field_read_only(verified_admin_client, job
     ):
         assert value in content
     assert 'name="title"' not in content
+    assert 'name="hidden"' in content
+
+
+@pytest.mark.django_db
+def test_job_posting_page_unpublishes_the_offer_and_nothing_else(verified_admin_client):
+    job_posting = _job_posting()
+    url = reverse("admin:techpourtoutes_jobposting_change", args=[job_posting.pk])
+
+    verified_admin_client.post(url, {"hidden": "on", "title": "Titre réécrit"})
+
+    job_posting.refresh_from_db()
+    assert job_posting.hidden
+    assert job_posting.title == "Développeuse web"
+
+
+@pytest.mark.django_db
+def test_job_posting_page_republishes_the_offer(verified_admin_client):
+    job_posting = _job_posting(hidden=True)
+    url = reverse("admin:techpourtoutes_jobposting_change", args=[job_posting.pk])
+
+    verified_admin_client.post(url, {})
+
+    job_posting.refresh_from_db()
+    assert not job_posting.hidden
 
 
 @pytest.mark.django_db

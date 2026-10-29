@@ -193,12 +193,30 @@ def test_an_offer_already_imported_is_updated_in_place(myfuture_record):
     assert posting.title == "Stage en domotique"
 
 
+def test_an_offer_unpublished_by_hand_stays_unpublished_once_updated(myfuture_record):
+    UpsertMyFutureJobPostings(records=[myfuture_record()])
+    JobPosting.objects.update(hidden=True)
+
+    UpsertMyFutureJobPostings(records=[myfuture_record(title="Stage en domotique")])
+
+    assert JobPosting.all_objects.get().hidden
+
+
 def test_an_offer_myfuture_no_longer_lists_is_deleted(myfuture_record):
     UpsertMyFutureJobPostings(records=[myfuture_record("kept"), myfuture_record("gone")])
 
     UpsertMyFutureJobPostings(records=[myfuture_record("kept")])
 
     assert list(JobPosting.objects.values_list("external_id", flat=True)) == ["kept"]
+
+
+def test_an_unpublished_offer_myfuture_no_longer_lists_is_deleted(myfuture_record):
+    UpsertMyFutureJobPostings(records=[myfuture_record()])
+    JobPosting.objects.update(hidden=True)
+
+    UpsertMyFutureJobPostings(records=[])
+
+    assert not JobPosting.all_objects.exists()
 
 
 def test_an_offer_that_lost_its_last_category_is_deleted(myfuture_record):

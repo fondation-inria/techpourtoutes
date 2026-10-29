@@ -66,4 +66,4 @@ class Command(BaseCommand):
 
     @staticmethod
     def _myfuture_postings():
-        return JobPosting.objects.filter(source=JobPosting.Source.MYFUTURE)
+        return JobPosting.all_objects.filter(source=JobPosting.Source.MYFUTURE)

@@ -5,6 +5,11 @@ from django.utils.translation import gettext_lazy as _
 from techpourtoutes.models.base import BaseModel
 
 
+class VisibleJobPostingManager(models.Manager):
+    def get_queryset(self):
+        return super().get_queryset().filter(hidden=False)
+
+
 class JobPosting(BaseModel):
     class Category(models.TextChoices):
         HIGHER_ED_INTERNSHIP = "higher_ed_internship", _("Stage du supérieur")
@@ -24,6 +29,8 @@ class JobPosting(BaseModel):
         APEC = "apec", _("Apec")
         MYFUTURE = "myfuture", _("MyFuture")
 
+    objects = VisibleJobPostingManager()
+    all_objects = models.Manager()
     source = models.CharField(
         max_length=20, choices=Source.choices, verbose_name=_("source de l'offre")
     )
@@ -50,6 +57,11 @@ class JobPosting(BaseModel):
         null=True, blank=True, verbose_name=_("mise à jour chez le partenaire le")
     )
     url = models.URLField(verbose_name=_("lien de l'offre"))
+    hidden = models.BooleanField(
+        default=False,
+        verbose_name=_("dépubliée"),
+        help_text=_("Une offre dépubliée n'apparaît plus sur le site. Décocher la republie."),
+    )
 
     class Meta:
         verbose_name = _("Offre d'emploi")
