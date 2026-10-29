@@ -1,6 +1,7 @@
-from datetime import UTC, datetime
+from datetime import UTC, datetime, timedelta
 
 import pytest
+from django.utils import timezone
 
 from techpourtoutes.models import JobPosting
 from techpourtoutes.services.job_posting.upsert_myfuture_job_postings import (
@@ -117,6 +118,30 @@ def test_an_offer_without_a_city_is_not_imported(myfuture_record):
     assert not JobPosting.objects.exists()
 
 
+def test_an_offer_whose_periods_have_all_passed_is_not_imported(myfuture_record):
+    record = myfuture_record(periods=[_period(days_from_now=-30), _period(days_from_now=-10)])
+
+    UpsertMyFutureJobPostings(records=[record])
+
+    assert not JobPosting.objects.exists()
+
+
+def test_an_offer_with_a_period_still_to_come_is_imported(myfuture_record):
+    record = myfuture_record(periods=[_period(days_from_now=-30), _period(days_from_now=10)])
+
+    UpsertMyFutureJobPostings(records=[record])
+
+    assert JobPosting.objects.exists()
+
+
+def test_an_offer_whose_last_period_has_passed_is_deleted(myfuture_record):
+    UpsertMyFutureJobPostings(records=[myfuture_record(periods=[_period(days_from_now=10)])])
+
+    UpsertMyFutureJobPostings(records=[myfuture_record(periods=[_period(days_from_now=-10)])])
+
+    assert not JobPosting.objects.exists()
+
+
 def test_only_the_sub_domains_we_follow_become_domains(myfuture_record):
     record = myfuture_record(
         subDomainKeys=[
@@ -194,3 +219,12 @@ def test_the_other_sources_offers_are_left_alone(myfuture_record):
     UpsertMyFutureJobPostings(records=[myfuture_record()])
 
     assert JobPosting.objects.filter(source=JobPosting.Source.APEC).exists()
+
+
+def _period(*, days_from_now):
+    """A week-long period ending that many days from now, spelled as MyFuture does."""
+    end = timezone.now() + timedelta(days=days_from_now)
+    return {
+        "from": (end - timedelta(days=4)).isoformat().replace("+00:00", "Z"),
+        "to": end.isoformat().replace("+00:00", "Z"),
+    }

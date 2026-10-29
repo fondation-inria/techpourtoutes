@@ -1,4 +1,5 @@
 import nh3
+from django.utils import timezone
 from django.utils.dateparse import parse_datetime
 
 from techpourtoutes.models import JobPosting
@@ -39,14 +40,15 @@ MAPPED_FIELDS = [
 class UpsertMyFutureJobPostings(BaseService):
     """Mirror MyFuture: what it lists is created or updated, what it no longer lists is deleted.
 
-    An offer is skipped when it fits none of our categories, or has no city to show.
+    An offer is skipped when it fits none of our categories, has no city to show, or lists only
+    periods that have passed.
     """
 
     def perform(self, *, records) -> None:
         postings = [
             self._posting(record)
             for record in records
-            if _categories(record) and record["address"].get("city")
+            if _categories(record) and record["address"].get("city") and not _expired(record)
         ]
         JobPosting.objects.bulk_create(
             postings,
@@ -92,3 +94,11 @@ class UpsertMyFutureJobPostings(BaseService):
 def _categories(record) -> list:
     types = (internship_type.lower() for internship_type in record["internshipTypes"])
     return list(dict.fromkeys(CATEGORIES[type_] for type_ in types if type_ in CATEGORIES))
+
+
+def _expired(record) -> bool:
+    """Most offers list no period at all: those never expire."""
+    periods = record["periods"]
+    return bool(periods) and all(
+        parse_datetime(period["to"]) < timezone.now() for period in periods
+    )
