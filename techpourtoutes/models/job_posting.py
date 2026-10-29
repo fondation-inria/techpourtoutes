@@ -23,6 +23,14 @@ class JobPosting(BaseModel):
         APEC = "apec", _("Apec")
         MYFUTURE = "myfuture", _("MyFuture")
 
+    CATEGORY_COLORS = {
+        Category.HIGHER_ED_INTERNSHIP: "purple",
+        Category.APPRENTICESHIP: "orange",
+        Category.SECONDE_INTERNSHIP: "green",
+        Category.TROISIEME_INTERNSHIP: "blue",
+        Category.FIRST_JOB: "yellow",
+    }
+
     source = models.CharField(
         max_length=20, choices=Source.choices, verbose_name=_("source de l'offre")
     )
@@ -61,3 +69,7 @@ class JobPosting(BaseModel):
 
     def __str__(self):
         return self.title
+
+    @property
+    def category_color(self):
+        return self.CATEGORY_COLORS[self.category]

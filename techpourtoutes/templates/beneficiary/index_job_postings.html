@@ -1,0 +1,36 @@
+<c-layout.base title="Stages, alternances et 1er emploi - TechPourToutes" description="Trouve un stage de 3e ou de 2de, un stage dans le supérieur, une alternance ou un premier emploi dans le numérique, parmi les offres de nos partenaires.">
+    <c-components.title title="Stages, alternances et 1er emploi" title_bg="yellow" class="md:whitespace-nowrap" />
+    <c-components.card>
+        <p>Envie de découvrir les métiers du numérique&nbsp;? Avec TechPourToutes, vis tes premières immersions en entreprise dès la 3e ou la 2de&nbsp;! Et pour la suite&nbsp;? Stage, alternance ou premier emploi&nbsp;: découvre les opportunités pour passer à l’action&nbsp;!</p>
+        <p class="mt-3">Retrouve les offres de nos partenaires l’Apec et My Future.</p>
+        <p class="mt-3">Entreprises, ouvrez vos portes aux talents de demain&nbsp;! Découvrez comment <c-components.inline-link href="{% url "new_internship" %}" label="proposer une offre" />.</p>
+    </c-components.card>
+     <div class="w-full mt-5">
+        <c-components.tabs class="flex">
+            <c-components.tab_link href="{% url "index_job_postings" %}" label="Stages dans le supérieur" active="{% if category == "higher_ed_internship" %}true{% else %}false{% endif %}" class="md:flex-none flex-auto" border_color="border-purple-500" bg_color="bg-purple-500" />
+            <c-components.tab_link href="{% url "index_job_postings" %}?category=apprenticeship" label="Alternances" active="{% if category == "apprenticeship" %}true{% else %}false{% endif %}" class="md:flex-none flex-auto" border_color="border-orange-500" bg_color="bg-orange-500" />
+            <c-components.tab_link href="{% url "index_job_postings" %}?category=seconde_internship" label="Stages de 2de" active="{% if category == "seconde_internship" %}true{% else %}false{% endif %}" class="md:flex-none flex-auto" border_color="border-green-500" bg_color="bg-green-500" />
+            <c-components.tab_link href="{% url "index_job_postings" %}?category=troisieme_internship" label="Stages de 3e" active="{% if category == "troisieme_internship" %}true{% else %}false{% endif %}" class="md:flex-none flex-auto" border_color="border-blue-500" bg_color="bg-blue-500" active_text_color="text-white"/>
+            <c-components.tab_link href="{% url "index_job_postings" %}?category=first_job" label="Premier emploi" active="{% if category == "first_job" %}true{% else %}false{% endif %}" class="md:flex-none flex-auto" border_color="border-yellow-500" bg_color="bg-yellow-500"/>
+        </c-components.tabs>
+        <c-components.card class="relative -mt-0.5 rounded-tl-none w-full z-10">
+            {% with job_posting_count=job_postings.paginator.count %}
+                <p class="mb-3">{{ job_posting_count }} offre{% if job_posting_count > 1 %}s{% endif %} </p>
+            {% endwith %}
+            <div class="grid gap-4">
+                {% for job_posting in job_postings %}
+                    <c-components.job-posting-card :job_posting="job_posting"/>
+                {% empty %}
+                    <div class="flex flex-col gap-3 border border-black p-2">
+                        <c-components.title title="Aucune offre ne correspond à ta recherche" variant="h3" style="serif"/>
+                        <p>Essaie de retirer un filtre ou d'élargir ta recherche.</p>
+                        <c-components.inline-link label="Réinitialiser la recherche" href="" />
+                    </div>
+                {% endfor %}
+            </div>
+            <div class="mt-4 flex justify-center">
+                <c-components.pagination :page="job_postings" query="category={{ category }}" />
+            </div>
+        </c-components.card>
+    </div>
+</c-layout.base>

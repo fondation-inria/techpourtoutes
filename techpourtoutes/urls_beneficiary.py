@@ -102,5 +102,5 @@ urlpatterns = [
         views.show_event,
         name="show_event",
     ),
-    path("stages-alternances-emplois/", views.index_internships, name="index_internships"),
+    path("stages-alternances-emplois/", views.index_job_postings, name="index_job_postings"),
 ]
