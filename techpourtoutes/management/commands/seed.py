@@ -129,6 +129,7 @@ class Command(BaseCommand):
         self.stdout.write(self.style.SUCCESS(f"  Beneficiary created: {email}"))
 
     def _create_events(self):
+        """Approved and upcoming, one a week: enough of them to scroll past the first page."""
         pro = Pro.objects.filter(is_superuser=True).earliest("created_at")
         if Event.objects.filter(created_by=pro).upcoming().exists():
             self.stdout.write("  Events already exist, skipping.")
@@ -172,7 +173,6 @@ class Command(BaseCommand):
         )
 
     def _create_job_postings(self):
-        """One a day, every third one updated since: the dates read « Aujourd'hui », « Hier »…"""
         now = timezone.now()
         count_before = JobPosting.objects.count()
         for days_ago, fields in enumerate(JOB_POSTING_SEEDS):

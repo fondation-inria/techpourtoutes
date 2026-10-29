@@ -1,6 +1,6 @@
-<c-vars href="#" label="" active="" class="" border_color="border-orange-500" bg_color="bg-orange-500" active_text_color="text-black"/>
+<c-vars href="#" label="" value="" current="" class="" border_color="border-orange-500" bg_color="bg-orange-500" active_text_color="text-black"/>
 
 <a href="{{ href }}" role="tab"
-   class="tab font-medium border {{ border_color }} -ml-px -mt-px text-black{% if active == "true" or not active and request.path == href %} {{ bg_color }} {{ active_text_color }} [--tab-border-color:orange-500] tab-active{% else %} bg-white{% endif %} {{ class }}">
+   class="tab font-medium border {{ border_color }} -ml-px -mt-px text-black{% if value and value == current or not value and request.path == href %} {{ bg_color }} {{ active_text_color }} [--tab-border-color:orange-500] tab-active{% else %} bg-white{% endif %} {{ class }}">
     {{ label|safe }}
 </a>

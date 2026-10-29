@@ -7,11 +7,11 @@
     </c-components.card>
      <div class="w-full mt-5">
         <c-components.tabs class="flex">
-            <c-components.tab_link href="{% url "index_job_postings" %}" label="Stages dans le supérieur" active="{% if category == "higher_ed_internship" %}true{% else %}false{% endif %}" class="md:flex-none flex-auto" border_color="border-purple-500" bg_color="bg-purple-500" />
-            <c-components.tab_link href="{% url "index_job_postings" %}?category=apprenticeship" label="Alternances" active="{% if category == "apprenticeship" %}true{% else %}false{% endif %}" class="md:flex-none flex-auto" border_color="border-orange-500" bg_color="bg-orange-500" />
-            <c-components.tab_link href="{% url "index_job_postings" %}?category=seconde_internship" label="Stages de 2de" active="{% if category == "seconde_internship" %}true{% else %}false{% endif %}" class="md:flex-none flex-auto" border_color="border-green-500" bg_color="bg-green-500" />
-            <c-components.tab_link href="{% url "index_job_postings" %}?category=troisieme_internship" label="Stages de 3e" active="{% if category == "troisieme_internship" %}true{% else %}false{% endif %}" class="md:flex-none flex-auto" border_color="border-blue-500" bg_color="bg-blue-500" active_text_color="text-white"/>
-            <c-components.tab_link href="{% url "index_job_postings" %}?category=first_job" label="Premier emploi" active="{% if category == "first_job" %}true{% else %}false{% endif %}" class="md:flex-none flex-auto" border_color="border-yellow-500" bg_color="bg-yellow-500"/>
+            <c-components.tab_link href="{% url "index_job_postings" %}" label="Stages dans le supérieur" value="higher_ed_internship" current="{{ category }}" class="md:flex-none flex-auto" border_color="border-purple-500" bg_color="bg-purple-500" />
+            <c-components.tab_link href="{% url "index_job_postings" %}?category=apprenticeship" label="Alternances" value="apprenticeship" current="{{ category }}" class="md:flex-none flex-auto" border_color="border-orange-500" bg_color="bg-orange-500" />
+            <c-components.tab_link href="{% url "index_job_postings" %}?category=seconde_internship" label="Stages de 2de" value="seconde_internship" current="{{ category }}" class="md:flex-none flex-auto" border_color="border-green-500" bg_color="bg-green-500" />
+            <c-components.tab_link href="{% url "index_job_postings" %}?category=troisieme_internship" label="Stages de 3e" value="troisieme_internship" current="{{ category }}" class="md:flex-none flex-auto" border_color="border-blue-500" bg_color="bg-blue-500" active_text_color="text-white"/>
+            <c-components.tab_link href="{% url "index_job_postings" %}?category=first_job" label="Premier emploi" value="first_job" current="{{ category }}" class="md:flex-none flex-auto" border_color="border-yellow-500" bg_color="bg-yellow-500"/>
         </c-components.tabs>
         <c-components.card class="relative -mt-0.5 rounded-tl-none w-full z-10">
             {% with job_posting_count=job_postings.paginator.count %}
