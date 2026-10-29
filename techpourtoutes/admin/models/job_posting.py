@@ -1,4 +1,5 @@
 from django.contrib import admin
+from django.utils.html import format_html
 from django.utils.safestring import mark_safe
 from django.utils.translation import gettext_lazy as _
 
@@ -31,7 +32,7 @@ class JobPostingAdmin(ReadOnlyAdminMixin, admin.ModelAdmin):
                 "fields": (
                     "title",
                     "company_name",
-                    "company_logo",
+                    "company_logo_preview",
                     "description",
                     "duration",
                     "postal_code",
@@ -55,9 +56,19 @@ class JobPostingAdmin(ReadOnlyAdminMixin, admin.ModelAdmin):
         ),
     )
 
-    readonly_fields = ("description", "created_at", "updated_at")
+    readonly_fields = ("description", "company_logo_preview", "created_at", "updated_at")
 
     @admin.display(description=_("description"))
     def description(self, job_posting):
         """Sanitised by the import, down to the tags it lays itself out with."""
         return mark_safe(job_posting.description)
+
+    @admin.display(description=_("aperçu du logo"))
+    def company_logo_preview(self, job_posting):
+        """Some logos are served as `application/octet-stream`: an <img> still sniffs them."""
+        if job_posting.company_logo:
+            return format_html(
+                '<img src="{}" alt="" style="max-height: 150px;">', job_posting.company_logo
+            )
+        else:
+            return "-"

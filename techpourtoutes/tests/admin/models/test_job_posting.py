@@ -119,3 +119,25 @@ def test_job_posting_page_shows_every_field_read_only(verified_admin_client, job
     ):
         assert value in content
     assert 'name="title"' not in content
+
+
+@pytest.mark.django_db
+def test_job_posting_page_previews_the_company_logo(verified_admin_client):
+    logo = "https://myfuture.s3.fr-par.scw.cloud/prod/logos/abc/logo-1728551302683"
+    job_posting = _job_posting(company_logo=logo)
+    url = reverse("admin:techpourtoutes_jobposting_change", args=[job_posting.pk])
+
+    content = verified_admin_client.get(url).content.decode()
+
+    assert f'<img src="{logo}" alt=""' in content
+
+
+@pytest.mark.django_db
+def test_job_posting_page_without_a_logo_previews_nothing(verified_admin_client):
+    job_posting = _job_posting()
+    url = reverse("admin:techpourtoutes_jobposting_change", args=[job_posting.pk])
+
+    content = verified_admin_client.get(url).content.decode()
+
+    assert "Aperçu du logo" in content
+    assert "logos/" not in content
