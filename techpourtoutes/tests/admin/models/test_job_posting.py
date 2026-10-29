@@ -22,7 +22,7 @@ def _job_posting(**overrides):
             "city": "Paris",
             "domains": ["informatique"],
             "duration": "12 mois",
-            "categories": [Category.APPRENTICESHIP],
+            "category": Category.APPRENTICESHIP,
             "contract_type": JobPosting.ContractType.APPRENTICESHIP,
             "published_at": datetime(2026, 1, 1, tzinfo=UTC),
             "url": "https://www.myfuture.fr/offre/1",
@@ -42,14 +42,14 @@ def job_postings(db):
             external_id="apec-1",
             title="Stage d'observation",
             company_name="Mairie de Lyon",
-            categories=[Category.TROISIEME_INTERNSHIP, Category.SECONDE_INTERNSHIP],
+            category=Category.TROISIEME_INTERNSHIP,
             contract_type="",
         ),
         "cdi": _job_posting(
             external_id="mf-2",
             title="Data analyste",
             company_name="Doctolib",
-            categories=[Category.FIRST_JOB],
+            category=Category.FIRST_JOB,
             contract_type=JobPosting.ContractType.CDI,
         ),
     }
@@ -68,7 +68,7 @@ def test_job_posting_changelist_shows_title_company_source_and_type(
     assert "Stage d&#x27;observation" in content
     assert "Mairie de Lyon" in content
     assert "Apec" in content
-    assert "Stage de troisième, Stage de seconde" in content
+    assert "Stage de troisième" in content
     assert "Contrat d&#x27;apprentissage" in content
 
 
@@ -90,7 +90,7 @@ def test_job_posting_changelist_filters_by_source(verified_admin_client, job_pos
 
 @pytest.mark.django_db
 def test_job_posting_changelist_filters_by_category(verified_admin_client, job_postings):
-    titles = _listed_titles(verified_admin_client, category=Category.SECONDE_INTERNSHIP)
+    titles = _listed_titles(verified_admin_client, category__exact=Category.TROISIEME_INTERNSHIP)
     assert titles == {"Stage d'observation"}
 
 
