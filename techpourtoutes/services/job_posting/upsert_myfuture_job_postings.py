@@ -58,7 +58,7 @@ class UpsertMyFutureJobPostings(BaseService):
             update_fields=MAPPED_FIELDS,
             batch_size=1000,
         )
-        JobPosting.objects.filter(source=JobPosting.Source.MYFUTURE).exclude(
+        JobPosting.all_objects.filter(source=JobPosting.Source.MYFUTURE).exclude(
             external_id__in=[posting.external_id for posting in postings]
         ).delete()
 
