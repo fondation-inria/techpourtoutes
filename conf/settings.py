@@ -220,6 +220,9 @@ JOBIRL_URL = env("JOBIRL_URL", default="")
 # MyFuture API
 MYFUTURE_API_KEY = env("MYFUTURE_API_KEY", default="")
 
+# cron.json runs on every app: we prevent some from running.
+SCHEDULED_IMPORTS_ENABLED = env.bool("SCHEDULED_IMPORTS_ENABLED", default=False)
+
 # n8n webhooks
 N8N_WORKSHOP_WEBHOOK_URL = env(
     "N8N_WORKSHOP_WEBHOOK_URL",

@@ -18,9 +18,17 @@ def test_the_offers_are_downloaded_and_upserted(myfuture_record):
         fetch.return_value = MagicMock(failure=False, myfuture_records=[myfuture_record()])
         result = ImportMyFutureJobPostings()
 
-    fetch.assert_called_once_with()
+    fetch.assert_called_once_with(sample=False)
     assert result.success
     assert JobPosting.objects.get(external_id="22NisRqehckrMvEu3")
+
+
+def test_a_sample_is_handed_down_to_the_download():
+    with patch(FETCH) as fetch:
+        fetch.return_value = MagicMock(failure=False, myfuture_records=[])
+        ImportMyFutureJobPostings(sample=True)
+
+    fetch.assert_called_once_with(sample=True)
 
 
 def test_a_failed_fetch_deletes_nothing(myfuture_record):

@@ -27,6 +27,16 @@ def test_both_endpoints_are_walked_until_a_short_page(httpx_mock):
     assert [request.url.params["offset"] for request in requests] == ["0", "2", "0"]
 
 
+def test_a_sample_is_a_single_call(httpx_mock):
+    httpx_mock.add_response(json=_offers("a", "b"))
+
+    with patch.object(FetchMyFutureJobPostings, "PAGE_SIZE", 2):
+        result = FetchMyFutureJobPostings(sample=True)
+
+    assert [record["_id"] for record in result.myfuture_records] == ["a", "b"]
+    assert [request.url.path for request in httpx_mock.get_requests()] == ["/api/offers"]
+
+
 def test_an_offer_listed_on_both_endpoints_comes_back_once(httpx_mock):
     httpx_mock.add_response(json=_offers("a", "b"))
     httpx_mock.add_response(json=_offers("b"))

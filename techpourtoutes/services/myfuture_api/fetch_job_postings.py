@@ -6,17 +6,20 @@ ENDPOINTS = ("offers", "internships")
 
 
 class FetchMyFutureJobPostings(MyFutureApiBaseService):
-    """Both endpoints, every page. They overlap: an offer listed on both comes back once."""
+    """Both endpoints, every page. They overlap: an offer listed on both comes back once.
+
+    A sample is the first page of the first endpoint: a single call.
+    """
 
     # The API's maximum. It announces no page count, so a shorter page is the last one.
     PAGE_SIZE = 1000
 
-    def perform(self) -> None:
+    def perform(self, sample=False) -> None:
         self._records = {}
-        for endpoint in ENDPOINTS:
-            self._walk(endpoint)
+        for endpoint in ENDPOINTS[:1] if sample else ENDPOINTS:
+            self._walk(endpoint, sample=sample)
 
-    def _walk(self, endpoint) -> None:
+    def _walk(self, endpoint, *, sample) -> None:
         offset = 0
         while True:
             page = self.request(
@@ -27,7 +30,7 @@ class FetchMyFutureJobPostings(MyFutureApiBaseService):
                 limit=self.PAGE_SIZE,
             )
             self._records.update((record["_id"], record) for record in page)
-            if len(page) < self.PAGE_SIZE:
+            if sample or len(page) < self.PAGE_SIZE:
                 return
             offset += self.PAGE_SIZE
 
