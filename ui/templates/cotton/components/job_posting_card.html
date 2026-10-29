@@ -6,7 +6,7 @@
 />
 {% load humanize static %}
 
-<div class="flex flex-col md:flex-row w-full bg-neutral-0 border border-black shadow-box {{ class }}">
+<div class="flex w-full wrap-anywhere bg-neutral-0 border border-black shadow-box {{ class }}">
     <div class="flex-1 min-w-0 p-4">
         <div class="flex items-center gap-4">
             {% if job_posting.company_logo %}
@@ -14,7 +14,7 @@
             {% else %}
                 <img src="{% static 'images/job-posting-placeholder.png' %}" alt="" class="{{ logo_class }} bg-{{ job_posting.category_color }}-500" />
             {% endif %}
-            <div>
+            <div class="min-w-0">
                 <c-components.title title="{{ job_posting.title }}" variant="h3" style="serif" class="{{ title_class }}" />
                 <p>{{ job_posting.company_name }}</p>
             </div>
