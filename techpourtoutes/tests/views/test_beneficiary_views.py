@@ -11,6 +11,7 @@ from django.utils import timezone
 from waffle.testutils import override_switch
 
 from techpourtoutes.models import Event, JobPosting, MakeuseProject, Pro, SavedEvent, User
+from techpourtoutes.utils.territories import REGIONS
 
 from ..models.test_event import build_event
 from ..models.test_makeuse_project import build_makeuse_project
@@ -187,7 +188,7 @@ def save_job_posting(title, category, **overrides):
             "company_name": "Numeum",
             "description": "Une offre",
             "city": "Amiens",
-            "domain": "Développement",
+            "domains": [JobPosting.Domain.DEVELOPPEMENT],
             "category": category,
             "published_at": timezone.now(),
             "url": "https://www.apec.fr/offre",
@@ -271,6 +272,46 @@ def test_index_job_postings_highlights_the_tab_of_the_category(client, query, ac
     ]
 
 
+@pytest.mark.django_db
+@override_switch("internships", active=True)
+def test_index_job_postings_offers_every_domain(client):
+    html = client.get(INDEX_JOB_POSTINGS_URL).content.decode()
+
+    for domain in JobPosting.Domain:
+        assert f'value="{domain.value}"' in html
+        assert str(domain.label) in html
+
+
+@pytest.mark.django_db
+@pytest.mark.parametrize(
+    "category, offered",
+    [
+        ("first_job", ["cdd", "cdi", "interim"]),
+        ("apprenticeship", ["apprenticeship", "professionalization"]),
+        ("higher_ed_internship", []),
+        ("seconde_internship", []),
+        ("troisieme_internship", []),
+    ],
+)
+@override_switch("internships", active=True)
+def test_index_job_postings_offers_the_contract_types_of_the_category(client, category, offered):
+    html = client.get(INDEX_JOB_POSTINGS_URL, {"category": category}).content.decode()
+
+    assert re.findall(r'name="contract_type"\s+value="([^"]*)"', html) == offered
+    assert ("Type de contrat" in html) == bool(offered)
+
+
+@pytest.mark.django_db
+@override_switch("internships", active=True)
+def test_index_job_postings_offers_every_region_and_department(client):
+    html = client.get(INDEX_JOB_POSTINGS_URL).content.decode()
+
+    for region in REGIONS:
+        assert region.name in html
+        for department in region.departments:
+            assert re.search(rf'name="department"\s+value="{department.code}"', html)
+
+
 @pytest.fixture
 def twenty_one_apprenticeships():
     for index in range(21):
@@ -286,7 +327,7 @@ def test_index_job_postings_shows_twenty_postings_and_a_link_to_the_next_page_of
 
     assert len(response.context["job_postings"].object_list) == 20
     assert b'href="?category=apprenticeship&page=2"' in response.content
-    assert re.search(r"21\s+offres", response.content.decode())
+    assert "21&nbsp;offres" in response.content.decode()
 
 
 @pytest.mark.django_db

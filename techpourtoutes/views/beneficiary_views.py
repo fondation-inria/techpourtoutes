@@ -23,6 +23,7 @@ from ..forms import (
 from ..models import Event, JobPosting, MakeuseProject, SavedEvent
 from ..tasks import create_upcoming_feature_notification_task
 from ..utils.dates import compute_age
+from ..utils.territories import REGIONS
 
 EVENTS_PER_PAGE = 18
 MAKEUSE_PROJECTS_PER_PAGE = 6
@@ -213,6 +214,12 @@ def index_job_postings(request):
         "beneficiary/index_job_postings.html",
         {
             "category": category,
+            "domains": JobPosting.Domain.choices,
+            "regions": REGIONS,
+            "contract_types": [
+                (contract_type, contract_type.label)
+                for contract_type in JobPosting.CATEGORY_CONTRACT_TYPES.get(category, [])
+            ],
             "job_postings": Paginator(
                 JobPosting.objects.filter(category=category).order_by(
                     Coalesce("source_updated_at", "published_at").desc()

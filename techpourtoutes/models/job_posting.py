@@ -1,3 +1,4 @@
+from django.contrib.postgres.fields import ArrayField
 from django.db import models
 from django.utils.translation import gettext_lazy as _
 
@@ -19,9 +20,43 @@ class JobPosting(BaseModel):
         APPRENTICESHIP = "apprenticeship", _("Contrat d'apprentissage")
         PROFESSIONALIZATION = "professionalization", _("Contrat de professionnalisation")
 
+    class Domain(models.TextChoices):
+        ELECTRONIQUE = "electronique", _("Électronique")
+        ELECTROTECHNIQUE = "electrotechnique", _("Électrotechnique")
+        TELECOMMUNICATIONS = "telecommunications", _("Télécommunications")
+        TECHNOLOGIES_DE_L_INFORMATION = (
+            "technologies_de_l_information",
+            _("Technologies de l’information"),
+        )
+        DEVELOPPEMENT = "developpement", _("Développement - programmation - logiciel")
+        INFORMATIQUE_DE_GESTION = "informatique_de_gestion", _("Informatique de gestion")
+        INFORMATIQUE_GENERALITES = "informatique_generalites", _("Informatique (généralités)")
+        INFORMATIQUE_INDUSTRIELLE = (
+            "informatique_industrielle",
+            _("Informatique industrielle et technologique"),
+        )
+        INFORMATIQUE_POUR_LA_RECHERCHE = (
+            "informatique_pour_la_recherche",
+            _("Informatique pour la recherche"),
+        )
+        DIRECTION_INFORMATIQUE = "direction_informatique", _("Direction informatique")
+        EXPLOITATION_MAINTENANCE = (
+            "exploitation_maintenance",
+            _("Exploitation, maintenance informatique"),
+        )
+        MAITRISE_D_OUVRAGE = "maitrise_d_ouvrage", _("Maîtrise d’ouvrage et fonctionnel")
+        SYSTEME_RESEAUX_DONNEES = "systeme_reseaux_donnees", _("Système, réseaux, données")
+        MATHEMATIQUES = "mathematiques", _("Mathématiques")
+        SCIENCES_DE_L_UNIVERS = "sciences_de_l_univers", _("Sciences de l’univers")
+
     class Source(models.TextChoices):
         APEC = "apec", _("Apec")
         MYFUTURE = "myfuture", _("MyFuture")
+
+    CATEGORY_CONTRACT_TYPES = {
+        Category.FIRST_JOB: [ContractType.CDD, ContractType.CDI, ContractType.INTERIM],
+        Category.APPRENTICESHIP: [ContractType.APPRENTICESHIP, ContractType.PROFESSIONALIZATION],
+    }
 
     CATEGORY_COLORS = {
         Category.HIGHER_ED_INTERNSHIP: "purple",
@@ -41,7 +76,9 @@ class JobPosting(BaseModel):
     postal_code = models.CharField(max_length=10, blank=True, verbose_name=_("code postal"))
     cog_code = models.CharField(max_length=10, blank=True, verbose_name=_("COG"))
     city = models.CharField(max_length=100, verbose_name=_("ville"))
-    domain = models.CharField(max_length=255, verbose_name=_("domaine"))
+    domains = ArrayField(
+        models.CharField(max_length=255, choices=Domain.choices), verbose_name=_("domaines")
+    )
     duration = models.CharField(blank=True, max_length=255, verbose_name=_("durée"))
     company_logo = models.URLField(
         max_length=500, blank=True, verbose_name=_("logo de l'entreprise")

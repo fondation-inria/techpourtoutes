@@ -14,8 +14,21 @@
             <c-components.tab_link href="{% url "index_job_postings" %}?category=first_job" label="Premier emploi" value="first_job" current="{{ category }}" class="md:flex-none flex-auto" border_color="border-yellow-500" bg_color="bg-yellow-500"/>
         </c-components.tabs>
         <c-components.card class="relative -mt-0.5 rounded-tl-none w-full z-10">
+            <div class="flex flex-wrap gap-4 mb-3">
+                <c-components.form_fields.filter_select label="Région / Département" id="job_posting_location" icon="location" tint_class="bg-green-500/20" selection_target="#job_posting_selected_filters">
+                    <c-components.form_fields.region_options :regions="regions" id="job_posting_location" />
+                </c-components.form_fields.filter_select>
+                <c-components.form_fields.filter_select label="Domaine" name="domain" id="job_posting_domain" icon="job-domain" :options="domains" selection_target="#job_posting_selected_filters" />
+                <c-components.form_fields.filter_select label="Durée" name="duration" id="job_posting_duration" icon="job-duration" tint_class="bg-orange-500/20" selection_target="#job_posting_selected_filters" />
+                {% if contract_types %}
+                    <c-components.form_fields.filter_select label="Type de contrat" name="contract_type" id="job_posting_contract_type" icon="job-category" :options="contract_types" tint_class="bg-yellow-500/20" selection_target="#job_posting_selected_filters" />
+                {% endif %}
+            </div>
+            <div id="job_posting_selected_filters" class="hidden has-[li]:flex flex-wrap items-center gap-2 mb-5">
+                <span class="text-sm">Filtres sélectionnés&nbsp;:</span>
+            </div>
             {% with job_posting_count=job_postings.paginator.count %}
-                <p class="mb-3">{{ job_posting_count }} offre{% if job_posting_count > 1 %}s{% endif %} </p>
+                <p class="mb-3">{{ job_posting_count }}&nbsp;offre{% if job_posting_count > 1 %}s{% endif %} </p>
             {% endwith %}
             <div class="grid gap-4">
                 {% for job_posting in job_postings %}
