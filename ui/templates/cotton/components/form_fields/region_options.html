@@ -1,0 +1,54 @@
+<c-vars :regions=[] id="" />
+
+<div x-data="{
+        query: '',
+        normalize(text) { return text.normalize('NFD').replace(/\p{Diacritic}/gu, '').replaceAll('-', ' ').toLowerCase() },
+        matches(el) { return this.normalize(el.dataset.search).includes(this.normalize(this.query.trim())) },
+        searching() { return this.query.trim() !== '' },
+     }"
+     class="flex flex-col gap-3">
+    <div class="sticky -top-4 -mx-4 -mt-4 p-4 pb-1 bg-neutral-0">
+        <label for="{{ id }}_search" class="sr-only">Rechercher une région ou un département</label>
+        <div class="relative">
+            <input type="search" id="{{ id }}_search" x-ref="search" x-model="query" @keydown.enter.prevent
+                   placeholder="Rechercher" autocomplete="off"
+                   class="field-base field-default pr-8 [&::-webkit-search-cancel-button]:appearance-none">
+            <button type="button" x-show="query" x-cloak @click="query = ''; $refs.search.focus()"
+                    aria-label="Effacer la recherche"
+                    class="absolute right-2 top-1/2 -translate-y-1/2 rounded-full p-0.5 hover:bg-black/10 focus-visible:outline-2 focus-visible:outline-blue-500 cursor-pointer">
+                <c-components.icon name="close" class="w-3 h-3" />
+            </button>
+        </div>
+    </div>
+    {% for region in regions %}
+        {% if region.departments|length > 1 %}
+            <div data-group data-search="{{ region.name }}" x-data="{ expanded: false }"
+                 x-show="matches($el) || [...$el.querySelectorAll('[data-group-member]')].some(member => matches(member))">
+                <div data-group-toggle class="flex items-center justify-between gap-4">
+                    <c-components.form_fields.checkbox name="region" id="{{ id }}_region_{{ region.code }}" value="{{ region.code }}" label="{{ region.name }}" />
+                    <button type="button" @click="expanded = !expanded"
+                            :aria-expanded="expanded || searching()" aria-controls="{{ id }}_region_{{ region.code }}_departments"
+                            aria-label="Départements de {{ region.name }}"
+                            class="rounded-sm p-1 hover:bg-primary/20 focus-visible:outline-2 focus-visible:outline-blue-500 cursor-pointer">
+                        <span class="block transition-transform" :class="(expanded || searching()) && 'rotate-180'"><c-components.icon name="chevron-down" class="w-4 h-4" /></span>
+                    </button>
+                </div>
+                <div id="{{ id }}_region_{{ region.code }}_departments" x-show="expanded || searching()" x-cloak class="flex flex-col gap-3 pt-3 pl-7">
+                    {% for department in region.departments %}
+                        <div data-group-member data-search="{{ department.name }} {{ department.code }}"
+                             x-show="matches($el.closest('[data-group]')) || matches($el)">
+                            <c-components.form_fields.checkbox name="department" id="{{ id }}_department_{{ department.code }}" value="{{ department.code }}" label="{{ department.name }} ({{ department.code }})" />
+                        </div>
+                    {% endfor %}
+                </div>
+            </div>
+        {% else %}
+            <div data-search="{{ region.name }} {{ region.departments.0.code }}" x-show="matches($el)">
+                <c-components.form_fields.checkbox name="department" id="{{ id }}_department_{{ region.departments.0.code }}" value="{{ region.departments.0.code }}" label="{{ region.name }}" />
+            </div>
+        {% endif %}
+    {% endfor %}
+    <p x-show="![...$root.querySelectorAll('[data-search]')].some(el => matches(el))" x-cloak class="text-xs">
+        Aucun lieu ne correspond à ta recherche.
+    </p>
+</div>
