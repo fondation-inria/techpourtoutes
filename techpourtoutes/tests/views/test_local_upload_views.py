@@ -74,6 +74,7 @@ def test_create_local_upload_refuses_a_content_type_other_than_the_signed_one(cl
     assert not storages["public"].exists(KEY)
 
 
+@pytest.mark.django_db
 def test_create_local_upload_does_not_exist_once_an_object_storage_is_configured(
     client, s3_storages
 ):
@@ -84,5 +85,6 @@ def test_create_local_upload_only_accepts_put(client):
     assert client.get(reverse("create_local_upload", args=["public"])).status_code == 405
 
 
+@pytest.mark.django_db
 def test_create_local_upload_does_not_know_an_unknown_storage(client):
     assert _put(client, storage_alias="nope").status_code == 404

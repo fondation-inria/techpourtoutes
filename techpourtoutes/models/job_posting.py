@@ -1,3 +1,4 @@
+from django.contrib.postgres.fields import ArrayField
 from django.db import models
 from django.utils.translation import gettext_lazy as _
 
@@ -23,6 +24,14 @@ class JobPosting(BaseModel):
         APEC = "apec", _("Apec")
         MYFUTURE = "myfuture", _("MyFuture")
 
+    CATEGORY_COLORS = {
+        Category.HIGHER_ED_INTERNSHIP: "purple",
+        Category.APPRENTICESHIP: "orange",
+        Category.SECONDE_INTERNSHIP: "green",
+        Category.TROISIEME_INTERNSHIP: "blue",
+        Category.FIRST_JOB: "yellow",
+    }
+
     source = models.CharField(
         max_length=20, choices=Source.choices, verbose_name=_("source de l'offre")
     )
@@ -33,7 +42,7 @@ class JobPosting(BaseModel):
     postal_code = models.CharField(max_length=10, blank=True, verbose_name=_("code postal"))
     cog_code = models.CharField(max_length=10, blank=True, verbose_name=_("COG"))
     city = models.CharField(max_length=100, verbose_name=_("ville"))
-    domain = models.CharField(max_length=255, verbose_name=_("domaine"))
+    domains = ArrayField(models.CharField(max_length=255), verbose_name=_("domaines"))
     duration = models.CharField(blank=True, max_length=255, verbose_name=_("durée"))
     company_logo = models.URLField(
         max_length=500, blank=True, verbose_name=_("logo de l'entreprise")
@@ -61,3 +70,7 @@ class JobPosting(BaseModel):
 
     def __str__(self):
         return self.title
+
+    @property
+    def category_color(self):
+        return self.CATEGORY_COLORS[self.category]

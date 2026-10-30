@@ -11,6 +11,7 @@ from django.utils import timezone
 from techpourtoutes.models import (
     Event,
     Formation,
+    JobPosting,
     Level,
     MakeuseProject,
     Pro,
@@ -40,6 +41,7 @@ class Command(BaseCommand):
             self._create_default_accounts()
         self._create_events()
         self._create_makeuse_projects()
+        self._create_job_postings()
 
     def _import_onisep_samples(self):
         call_command("import_schools_and_formations", sample=True, if_empty=True)
@@ -129,6 +131,9 @@ class Command(BaseCommand):
     def _create_events(self):
         """Approved and upcoming, one a week: enough of them to scroll past the first page."""
         pro = Pro.objects.filter(is_superuser=True).earliest("created_at")
+        if Event.objects.filter(created_by=pro).upcoming().exists():
+            self.stdout.write("  Events already exist, skipping.")
+            return
         today = timezone.localdate()
         count_before = Event.objects.count()
         for week, (lasts, fields) in enumerate(EVENT_SEEDS, start=1):
@@ -164,6 +169,29 @@ class Command(BaseCommand):
         self.stdout.write(
             self.style.SUCCESS(
                 f"  {MakeuseProject.objects.count() - count_before} makeuse projects created."
+            )
+        )
+
+    def _create_job_postings(self):
+        now = timezone.now()
+        count_before = JobPosting.objects.count()
+        for days_ago, fields in enumerate(JOB_POSTING_SEEDS):
+            JobPosting.objects.get_or_create(
+                source=JobPosting.Source.APEC if days_ago % 2 else JobPosting.Source.MYFUTURE,
+                external_id=f"seed-{days_ago}",
+                defaults={
+                    "description": JOB_POSTING_DESCRIPTION.format(**fields),
+                    "url": f"https://example.org/offres/seed-{days_ago}",
+                    "published_at": now - timedelta(days=days_ago),
+                    "source_updated_at": (
+                        now - timedelta(days=days_ago // 3) if days_ago % 3 == 0 else None
+                    ),
+                    **fields,
+                },
+            )
+        self.stdout.write(
+            self.style.SUCCESS(
+                f"  {JobPosting.objects.count() - count_before} job postings created."
             )
         )
 
@@ -806,4 +834,304 @@ EVENT_SEEDS = [
             "price": Decimal("0"),
         },
     ),
+]
+
+
+JOB_POSTING_DESCRIPTION = (
+    "{company_name} recherche une personne motivée pour rejoindre ses équipes en tant que "
+    "« {title} » à {city}.\n\n"
+    "Au sein d'une équipe d'une dizaine de personnes, tu participeras à la conception, au "
+    "développement et à l'amélioration continue de nos produits. Tu seras accompagnée par une "
+    "tutrice qui t'aidera à monter en compétences tout au long de ta mission, et tu prendras part "
+    "aux rituels de l'équipe : points quotidiens, revues de code, démonstrations aux "
+    "utilisatrices.\n\n"
+    "Nous recherchons une personne curieuse, rigoureuse et qui aime travailler en équipe. Aucune "
+    "expérience préalable n'est exigée : ta motivation et ton envie d'apprendre comptent avant "
+    "tout. Le poste est ouvert au télétravail partiel."
+)
+
+JOB_POSTING_SEEDS = [
+    *(
+        {
+            "category": JobPosting.Category.HIGHER_ED_INTERNSHIP,
+            "title": title,
+            "company_name": company_name,
+            "city": city,
+            "postal_code": postal_code,
+            "domains": domains,
+            "duration": duration,
+        }
+        for title, company_name, city, postal_code, domains, duration in [
+            (
+                "Stage développeuse web",
+                "Nébula Studio",
+                "Paris",
+                "75011",
+                ["developpement"],
+                "6 mois",
+            ),
+            (
+                "Stage data analyst",
+                "Datacolline",
+                "Lyon",
+                "69003",
+                ["systeme_reseaux_donnees", "mathematiques"],
+                "6 mois",
+            ),
+            (
+                "Stage analyste SOC",
+                "Rempart Cyber",
+                "Rennes",
+                "35000",
+                ["systeme_reseaux_donnees"],
+                "4 mois",
+            ),
+            (
+                "Stage UX designer",
+                "Atelier Lumen",
+                "Nantes",
+                "44000",
+                ["technologies_de_l_information"],
+                "5 mois",
+            ),
+            (
+                "Stage ingénieure DevOps",
+                "Cirrus Cloud",
+                "Roubaix",
+                "59100",
+                ["systeme_reseaux_donnees", "telecommunications"],
+                "6 mois",
+            ),
+            (
+                "Stage data scientist",
+                "Prisme IA",
+                "Grenoble",
+                "38000",
+                ["informatique_pour_la_recherche", "systeme_reseaux_donnees"],
+                "6 mois",
+            ),
+            (
+                "Stage développeuse mobile",
+                "Appsolue",
+                "Bordeaux",
+                "33000",
+                ["developpement"],
+                "4 mois",
+            ),
+            (
+                "Stage cheffe de projet digital",
+                "Agence Boussole",
+                "Lille",
+                "59000",
+                ["maitrise_d_ouvrage", "direction_informatique"],
+                "6 mois",
+            ),
+            (
+                "Stage ingénieure systèmes embarqués",
+                "Orbitale",
+                "Toulouse",
+                "31000",
+                ["informatique_industrielle", "electronique"],
+                "6 mois",
+            ),
+            (
+                "Stage développeuse back-end",
+                "Fluxio",
+                "Paris",
+                "75009",
+                ["developpement"],
+                "6 mois",
+            ),
+            (
+                "Stage administratrice réseaux",
+                "Réseau Plus",
+                "Strasbourg",
+                "67000",
+                ["telecommunications"],
+                "3 mois",
+            ),
+            (
+                "Stage product owner",
+                "Mosaïque Tech",
+                "Marseille",
+                "13002",
+                ["maitrise_d_ouvrage"],
+                "6 mois",
+            ),
+            (
+                "Stage pentesteuse",
+                "Bastion Sécurité",
+                "Paris",
+                "75015",
+                ["systeme_reseaux_donnees"],
+                "6 mois",
+            ),
+            (
+                "Stage ingénieure machine learning",
+                "Neurone & Co",
+                "Saclay",
+                "91190",
+                ["informatique_pour_la_recherche"],
+                "6 mois",
+            ),
+            (
+                "Stage développeuse front-end",
+                "Pixelia",
+                "Montpellier",
+                "34000",
+                ["developpement"],
+                "5 mois",
+            ),
+            (
+                "Stage data engineer",
+                "Hydre Data",
+                "Nantes",
+                "44200",
+                ["systeme_reseaux_donnees"],
+                "6 mois",
+            ),
+            (
+                "Stage testeuse logiciel",
+                "Qualitest Lab",
+                "Lyon",
+                "69007",
+                ["developpement"],
+                "4 mois",
+            ),
+            (
+                "Stage webdesigner",
+                "Studio Ardoise",
+                "Rennes",
+                "35200",
+                ["technologies_de_l_information"],
+                "3 mois",
+            ),
+            (
+                "Stage ingénieure cloud",
+                "Altitude Cloud",
+                "Sophia Antipolis",
+                "06560",
+                ["systeme_reseaux_donnees"],
+                "6 mois",
+            ),
+            (
+                "Stage développeuse jeux vidéo",
+                "Manette Studio",
+                "Angoulême",
+                "16000",
+                ["developpement"],
+                "6 mois",
+            ),
+            (
+                "Stage business analyst",
+                "Compas Conseil",
+                "Paris",
+                "75002",
+                ["informatique_de_gestion"],
+                "6 mois",
+            ),
+            (
+                "Stage ingénieure robotique",
+                "Robotek",
+                "Clermont-Ferrand",
+                "63000",
+                ["electronique"],
+                "6 mois",
+            ),
+            (
+                "Stage développeuse full stack",
+                "Trame",
+                "Toulouse",
+                "31400",
+                ["developpement"],
+                "6 mois",
+            ),
+        ]
+    ),
+    {
+        "category": JobPosting.Category.APPRENTICESHIP,
+        "title": "Alternance développeuse web",
+        "company_name": "Fluxio",
+        "city": "Paris",
+        "postal_code": "75009",
+        "domains": ["developpement"],
+        "duration": "24 mois",
+        "contract_type": JobPosting.ContractType.APPRENTICESHIP,
+    },
+    {
+        "category": JobPosting.Category.APPRENTICESHIP,
+        "title": "Alternance technicienne support",
+        "company_name": "Réseau Plus",
+        "city": "Strasbourg",
+        "postal_code": "67000",
+        "domains": ["exploitation_maintenance"],
+        "duration": "12 mois",
+        "contract_type": JobPosting.ContractType.PROFESSIONALIZATION,
+    },
+    {
+        "category": JobPosting.Category.APPRENTICESHIP,
+        "title": "Alternance data analyst",
+        "company_name": "Datacolline",
+        "city": "Lyon",
+        "postal_code": "69003",
+        "domains": ["systeme_reseaux_donnees", "informatique_pour_la_recherche"],
+        "duration": "24 mois",
+        "contract_type": JobPosting.ContractType.APPRENTICESHIP,
+    },
+    {
+        "category": JobPosting.Category.FIRST_JOB,
+        "title": "Développeuse junior Python",
+        "company_name": "Prisme IA",
+        "city": "Grenoble",
+        "postal_code": "38000",
+        "domains": ["developpement"],
+        "contract_type": JobPosting.ContractType.CDI,
+    },
+    {
+        "category": JobPosting.Category.FIRST_JOB,
+        "title": "Analyste cybersécurité junior",
+        "company_name": "Rempart Cyber",
+        "city": "Rennes",
+        "postal_code": "35000",
+        "domains": ["systeme_reseaux_donnees", "telecommunications"],
+        "duration": "12 mois",
+        "contract_type": JobPosting.ContractType.CDD,
+    },
+    {
+        "category": JobPosting.Category.FIRST_JOB,
+        "title": "Technicienne réseaux",
+        "company_name": "Cirrus Cloud",
+        "city": "Roubaix",
+        "postal_code": "59100",
+        "domains": ["telecommunications"],
+        "duration": "6 mois",
+        "contract_type": JobPosting.ContractType.INTERIM,
+    },
+    {
+        "category": JobPosting.Category.TROISIEME_INTERNSHIP,
+        "title": "Stage d'observation en développement web",
+        "company_name": "Pixelia",
+        "city": "Montpellier",
+        "postal_code": "34000",
+        "domains": ["developpement"],
+        "duration": "1 semaine",
+    },
+    {
+        "category": JobPosting.Category.TROISIEME_INTERNSHIP,
+        "title": "Stage d'observation en cybersécurité",
+        "company_name": "Bastion Sécurité",
+        "city": "Paris",
+        "postal_code": "75015",
+        "domains": ["systeme_reseaux_donnees"],
+        "duration": "1 semaine",
+    },
+    {
+        "category": JobPosting.Category.TROISIEME_INTERNSHIP,
+        "title": "Stage d'observation en robotique",
+        "company_name": "Robotek",
+        "city": "Clermont-Ferrand",
+        "postal_code": "63000",
+        "domains": ["electronique"],
+        "duration": "1 semaine",
+    },
 ]
