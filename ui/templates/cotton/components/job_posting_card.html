@@ -4,15 +4,18 @@
     class=""
     logo_class="w-[65px] h-[65px] shrink-0 object-contain border border-black shadow shadow-black shadow-bottom-and-right"
 />
-{% load humanize static %}
+{% load date_filters static %}
 
 <div class="flex w-full wrap-anywhere bg-neutral-0 border border-black shadow-box {{ class }}">
     <div class="flex-1 min-w-0 p-4">
         <div class="flex items-center gap-4">
+            {% static 'images/job-posting-placeholder.png' as placeholder %}
             {% if job_posting.company_logo %}
-                <img src="{{ job_posting.company_logo }}" alt="" class="{{ logo_class }} bg-{{ job_posting.category_color }}-500" />
+                <img src="{{ job_posting.company_logo }}" alt="" loading="lazy"
+                     onerror="this.onerror = null; this.src = '{{ placeholder }}'; this.classList.replace('bg-neutral-0', 'bg-{{ job_posting.category_color }}-500')"
+                     class="{{ logo_class }} bg-neutral-0" />
             {% else %}
-                <img src="{% static 'images/job-posting-placeholder.png' %}" alt="" class="{{ logo_class }} bg-{{ job_posting.category_color }}-500" />
+                <img src="{{ placeholder }}" alt="" class="{{ logo_class }} bg-{{ job_posting.category_color }}-500" />
             {% endif %}
             <div class="min-w-0">
                 <c-components.title title="{{ job_posting.title }}" variant="h3" style="serif" class="{{ title_class }}" />
@@ -20,15 +23,17 @@
             </div>
         </div>
         <div class="mt-4 text-black leading-[1.4]">
-            <p class="line-clamp-3">{{ job_posting.description }}</p>
+            <p class="line-clamp-3">{{ job_posting.description|striptags }}</p>
         </div>
         <div class="flex flex-wrap gap-x-6 gap-y-2 mt-3">
             <div class="flex items-center gap-2">
                 <c-components.icon name="location" class="w-6 h-6 shrink-0"/> <span>{{ job_posting.city }} </span>
             </div>
+            {% for domain in job_posting.domain_labels %}
             <div class="flex items-center gap-2">
-                <c-components.icon name="job-domain" class="w-6 h-6 shrink-0"/> <span>{{ job_posting.domain }} </span>
+                <c-components.icon name="job-domain" class="w-6 h-6 shrink-0"/> <span>{{ domain }} </span>
             </div>
+            {% endfor %}
             {% if job_posting.duration %}
             <div class="flex items-center gap-2">
                 <c-components.icon name="job-duration" class="w-6 h-6 shrink-0"/> <span>{{ job_posting.duration }} </span>
@@ -39,7 +44,9 @@
             </div>
         </div>
         <div class="flex items-center justify-between mt-3">
-            <p class="text-xs"> {% if job_posting.source_updated_at %} {{ job_posting.source_updated_at|naturalday:"j F Y"|capfirst }} {% else %} {{ job_posting.published_at|naturalday:"j F Y"|capfirst }} {% endif %} </p>
+            {% with updated_at=job_posting.source_updated_at|default:job_posting.published_at %}
+            <time datetime="{{ updated_at|date:'c' }}" class="text-xs">{{ updated_at|time_ago|capfirst }}</time>
+            {% endwith %}
             <c-components.icon name="arrow-right-circle" class="w-6 h-6 shrink-0" />
         </div>
     </div>

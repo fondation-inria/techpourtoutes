@@ -858,16 +858,16 @@ JOB_POSTING_SEEDS = [
             "company_name": company_name,
             "city": city,
             "postal_code": postal_code,
-            "domains": [domain],
+            "domains": domains,
             "duration": duration,
         }
-        for title, company_name, city, postal_code, domain, duration in [
+        for title, company_name, city, postal_code, domains, duration in [
             (
                 "Stage développeuse web",
                 "Nébula Studio",
                 "Paris",
                 "75011",
-                JobPosting.Domain.DEVELOPPEMENT,
+                [JobPosting.Domain.DEVELOPPEMENT],
                 "6 mois",
             ),
             (
@@ -875,7 +875,7 @@ JOB_POSTING_SEEDS = [
                 "Datacolline",
                 "Lyon",
                 "69003",
-                JobPosting.Domain.SYSTEME_RESEAUX_DONNEES,
+                [JobPosting.Domain.SYSTEME_RESEAUX_DONNEES, JobPosting.Domain.MATHEMATIQUES],
                 "6 mois",
             ),
             (
@@ -883,7 +883,7 @@ JOB_POSTING_SEEDS = [
                 "Rempart Cyber",
                 "Rennes",
                 "35000",
-                JobPosting.Domain.SYSTEME_RESEAUX_DONNEES,
+                [JobPosting.Domain.SYSTEME_RESEAUX_DONNEES],
                 "4 mois",
             ),
             (
@@ -891,7 +891,7 @@ JOB_POSTING_SEEDS = [
                 "Atelier Lumen",
                 "Nantes",
                 "44000",
-                JobPosting.Domain.TECHNOLOGIES_DE_L_INFORMATION,
+                [JobPosting.Domain.TECHNOLOGIES_DE_L_INFORMATION],
                 "5 mois",
             ),
             (
@@ -899,7 +899,7 @@ JOB_POSTING_SEEDS = [
                 "Cirrus Cloud",
                 "Roubaix",
                 "59100",
-                JobPosting.Domain.SYSTEME_RESEAUX_DONNEES,
+                [JobPosting.Domain.SYSTEME_RESEAUX_DONNEES, JobPosting.Domain.TELECOMMUNICATIONS],
                 "6 mois",
             ),
             (
@@ -907,7 +907,10 @@ JOB_POSTING_SEEDS = [
                 "Prisme IA",
                 "Grenoble",
                 "38000",
-                JobPosting.Domain.INFORMATIQUE_POUR_LA_RECHERCHE,
+                [
+                    JobPosting.Domain.INFORMATIQUE_POUR_LA_RECHERCHE,
+                    JobPosting.Domain.SYSTEME_RESEAUX_DONNEES,
+                ],
                 "6 mois",
             ),
             (
@@ -915,7 +918,7 @@ JOB_POSTING_SEEDS = [
                 "Appsolue",
                 "Bordeaux",
                 "33000",
-                JobPosting.Domain.DEVELOPPEMENT,
+                [JobPosting.Domain.DEVELOPPEMENT],
                 "4 mois",
             ),
             (
@@ -923,7 +926,7 @@ JOB_POSTING_SEEDS = [
                 "Agence Boussole",
                 "Lille",
                 "59000",
-                JobPosting.Domain.MAITRISE_D_OUVRAGE,
+                [JobPosting.Domain.MAITRISE_D_OUVRAGE, JobPosting.Domain.DIRECTION_INFORMATIQUE],
                 "6 mois",
             ),
             (
@@ -931,7 +934,7 @@ JOB_POSTING_SEEDS = [
                 "Orbitale",
                 "Toulouse",
                 "31000",
-                JobPosting.Domain.INFORMATIQUE_INDUSTRIELLE,
+                [JobPosting.Domain.INFORMATIQUE_INDUSTRIELLE, JobPosting.Domain.ELECTRONIQUE],
                 "6 mois",
             ),
             (
@@ -939,7 +942,7 @@ JOB_POSTING_SEEDS = [
                 "Fluxio",
                 "Paris",
                 "75009",
-                JobPosting.Domain.DEVELOPPEMENT,
+                [JobPosting.Domain.DEVELOPPEMENT],
                 "6 mois",
             ),
             (
@@ -947,7 +950,7 @@ JOB_POSTING_SEEDS = [
                 "Réseau Plus",
                 "Strasbourg",
                 "67000",
-                JobPosting.Domain.TELECOMMUNICATIONS,
+                [JobPosting.Domain.TELECOMMUNICATIONS],
                 "3 mois",
             ),
             (
@@ -955,7 +958,7 @@ JOB_POSTING_SEEDS = [
                 "Mosaïque Tech",
                 "Marseille",
                 "13002",
-                JobPosting.Domain.MAITRISE_D_OUVRAGE,
+                [JobPosting.Domain.MAITRISE_D_OUVRAGE],
                 "6 mois",
             ),
             (
@@ -963,7 +966,7 @@ JOB_POSTING_SEEDS = [
                 "Bastion Sécurité",
                 "Paris",
                 "75015",
-                JobPosting.Domain.SYSTEME_RESEAUX_DONNEES,
+                [JobPosting.Domain.SYSTEME_RESEAUX_DONNEES],
                 "6 mois",
             ),
             (
@@ -971,7 +974,7 @@ JOB_POSTING_SEEDS = [
                 "Neurone & Co",
                 "Saclay",
                 "91190",
-                JobPosting.Domain.INFORMATIQUE_POUR_LA_RECHERCHE,
+                [JobPosting.Domain.INFORMATIQUE_POUR_LA_RECHERCHE],
                 "6 mois",
             ),
             (
@@ -979,7 +982,7 @@ JOB_POSTING_SEEDS = [
                 "Pixelia",
                 "Montpellier",
                 "34000",
-                JobPosting.Domain.DEVELOPPEMENT,
+                [JobPosting.Domain.DEVELOPPEMENT],
                 "5 mois",
             ),
             (
@@ -987,7 +990,7 @@ JOB_POSTING_SEEDS = [
                 "Hydre Data",
                 "Nantes",
                 "44200",
-                JobPosting.Domain.SYSTEME_RESEAUX_DONNEES,
+                [JobPosting.Domain.SYSTEME_RESEAUX_DONNEES],
                 "6 mois",
             ),
             (
@@ -995,7 +998,7 @@ JOB_POSTING_SEEDS = [
                 "Qualitest Lab",
                 "Lyon",
                 "69007",
-                JobPosting.Domain.DEVELOPPEMENT,
+                [JobPosting.Domain.DEVELOPPEMENT],
                 "4 mois",
             ),
             (
@@ -1003,7 +1006,7 @@ JOB_POSTING_SEEDS = [
                 "Studio Ardoise",
                 "Rennes",
                 "35200",
-                JobPosting.Domain.TECHNOLOGIES_DE_L_INFORMATION,
+                [JobPosting.Domain.TECHNOLOGIES_DE_L_INFORMATION],
                 "3 mois",
             ),
             (
@@ -1011,7 +1014,7 @@ JOB_POSTING_SEEDS = [
                 "Altitude Cloud",
                 "Sophia Antipolis",
                 "06560",
-                JobPosting.Domain.SYSTEME_RESEAUX_DONNEES,
+                [JobPosting.Domain.SYSTEME_RESEAUX_DONNEES],
                 "6 mois",
             ),
             (
@@ -1019,7 +1022,7 @@ JOB_POSTING_SEEDS = [
                 "Manette Studio",
                 "Angoulême",
                 "16000",
-                JobPosting.Domain.DEVELOPPEMENT,
+                [JobPosting.Domain.DEVELOPPEMENT],
                 "6 mois",
             ),
             (
@@ -1027,7 +1030,7 @@ JOB_POSTING_SEEDS = [
                 "Compas Conseil",
                 "Paris",
                 "75002",
-                JobPosting.Domain.INFORMATIQUE_DE_GESTION,
+                [JobPosting.Domain.INFORMATIQUE_DE_GESTION],
                 "6 mois",
             ),
             (
@@ -1035,7 +1038,7 @@ JOB_POSTING_SEEDS = [
                 "Robotek",
                 "Clermont-Ferrand",
                 "63000",
-                JobPosting.Domain.ELECTRONIQUE,
+                [JobPosting.Domain.ELECTRONIQUE],
                 "6 mois",
             ),
             (
@@ -1043,7 +1046,7 @@ JOB_POSTING_SEEDS = [
                 "Trame",
                 "Toulouse",
                 "31400",
-                JobPosting.Domain.DEVELOPPEMENT,
+                [JobPosting.Domain.DEVELOPPEMENT],
                 "6 mois",
             ),
         ]
@@ -1074,7 +1077,10 @@ JOB_POSTING_SEEDS = [
         "company_name": "Datacolline",
         "city": "Lyon",
         "postal_code": "69003",
-        "domains": [JobPosting.Domain.SYSTEME_RESEAUX_DONNEES],
+        "domains": [
+            JobPosting.Domain.SYSTEME_RESEAUX_DONNEES,
+            JobPosting.Domain.INFORMATIQUE_POUR_LA_RECHERCHE,
+        ],
         "duration": "24 mois",
         "contract_type": JobPosting.ContractType.APPRENTICESHIP,
     },
@@ -1093,7 +1099,10 @@ JOB_POSTING_SEEDS = [
         "company_name": "Rempart Cyber",
         "city": "Rennes",
         "postal_code": "35000",
-        "domains": [JobPosting.Domain.SYSTEME_RESEAUX_DONNEES],
+        "domains": [
+            JobPosting.Domain.SYSTEME_RESEAUX_DONNEES,
+            JobPosting.Domain.TELECOMMUNICATIONS,
+        ],
         "duration": "12 mois",
         "contract_type": JobPosting.ContractType.CDD,
     },

@@ -230,6 +230,21 @@ def test_index_job_postings_defaults_to_higher_ed_internships(client, job_postin
 
 @pytest.mark.django_db
 @override_switch("internships", active=True)
+def test_index_job_postings_shows_every_domain_of_a_posting(client):
+    save_job_posting(
+        "Stage",
+        JobPosting.Category.HIGHER_ED_INTERNSHIP,
+        domains=[JobPosting.Domain.MATHEMATIQUES, JobPosting.Domain.SYSTEME_RESEAUX_DONNEES],
+    )
+
+    html = client.get(INDEX_JOB_POSTINGS_URL).content.decode()
+
+    for label in ["Mathématiques", "Système, réseaux, données"]:
+        assert re.search(rf"#job-domain.*?<span>\s*{label}\s*</span>", html, re.DOTALL)
+
+
+@pytest.mark.django_db
+@override_switch("internships", active=True)
 def test_index_job_postings_lists_the_latest_update_or_publication_first(client):
     now = timezone.now()
     category = JobPosting.Category.HIGHER_ED_INTERNSHIP
