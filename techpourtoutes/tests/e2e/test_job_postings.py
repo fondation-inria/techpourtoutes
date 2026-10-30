@@ -1,3 +1,5 @@
+import re
+
 from playwright.sync_api import expect
 from waffle.testutils import override_switch
 
@@ -50,6 +52,92 @@ def test_a_ticked_region_stands_for_its_departments_until_one_is_unticked(page, 
     expect(page.get_by_role("button", name="Retirer le filtre Morbihan (56)")).to_be_attached()
     expect(location).to_contain_text("3")
     assert page.get_by_role("checkbox", name="Bretagne").evaluate("box => box.indeterminate")
+
+
+@override_switch("internships", active=True)
+def test_resetting_unticks_every_filter_at_once(page, live_server):
+    page.goto(f"{live_server.url}/stages-alternances-emplois/")
+    location = page.get_by_role("button", name="Région / Département")
+    location.click()
+    page.get_by_role("button", name="Départements de Bretagne").click()
+    page.get_by_text("Finistère (29)", exact=True).click()
+    domain = page.get_by_role("button", name="Domaine")
+    domain.click()
+    page.get_by_text("Électronique", exact=True).click()
+    page.keyboard.press("Escape")
+
+    page.get_by_role("button", name="Tout réinitialiser").click()
+
+    expect(page.get_by_text("Filtres sélectionnés")).to_be_hidden()
+    expect(location).not_to_contain_text("1")
+    expect(domain).not_to_contain_text("1")
+    expect(location).to_be_focused()
+    finistere = page.get_by_role("checkbox", name="Finistère (29)", include_hidden=True)
+    expect(finistere).not_to_be_checked()
+    bretagne = page.get_by_role("checkbox", name="Bretagne", include_hidden=True)
+    assert not bretagne.evaluate("box => box.indeterminate")
+
+
+@override_switch("internships", active=True)
+def test_ticking_a_filter_narrows_the_list_without_reloading_the_page(page, live_server):
+    category = JobPosting.Category.HIGHER_ED_INTERNSHIP
+    save_job_posting("Stage à Brest", category, cog_code="29019")
+    save_job_posting(
+        "Stage de maths à Brest", category, cog_code="29019", domains=["mathematiques"]
+    )
+    save_job_posting("Stage à Rennes", category, cog_code="35238")
+    page.goto(f"{live_server.url}/stages-alternances-emplois/")
+    location = page.get_by_role("button", name="Région / Département")
+    location.click()
+    page.get_by_role("button", name="Départements de Bretagne").click()
+
+    page.get_by_text("Finistère (29)", exact=True).click()
+
+    expect(page.locator("#job_posting_count")).to_have_text("2\xa0offres")
+    expect(page.get_by_text("Stage à Rennes")).to_be_hidden()
+    expect(location).to_be_visible()
+    expect(page.get_by_role("checkbox", name="Morbihan (56)")).to_be_visible()
+    assert "department=29" in page.url
+
+    page.keyboard.press("Escape")
+    page.get_by_role("button", name="Domaine").click()
+    page.locator("#job_posting_domain_panel").get_by_text("Mathématiques", exact=True).click()
+
+    expect(page.locator("#job_posting_count")).to_have_text("1\xa0offre")
+
+    page.keyboard.press("Escape")
+    page.get_by_role("button", name="Retirer le filtre Finistère (29)").click()
+    page.get_by_role("button", name="Retirer le filtre Mathématiques").click()
+
+    expect(page.locator("#job_posting_count")).to_have_text("3\xa0offres")
+
+
+@override_switch("internships", active=True)
+def test_going_back_shows_the_filters_of_the_previous_url(page, live_server):
+    page.goto(f"{live_server.url}/stages-alternances-emplois/")
+    page.get_by_role("button", name="Domaine").click()
+    panel = page.locator("#job_posting_domain_panel")
+    panel.get_by_text("Électronique", exact=True).click()
+    expect(page).to_have_url(re.compile("domain=electronique$"))
+    panel.get_by_text("Mathématiques", exact=True).click()
+    expect(page).to_have_url(re.compile("domain=mathematiques$"))
+
+    page.go_back()
+
+    expect(page.get_by_role("list", name="Domaine").get_by_role("listitem")).to_have_count(1)
+    electronique = page.get_by_role("checkbox", name="Électronique", include_hidden=True)
+    expect(electronique).to_be_checked()
+
+
+@override_switch("internships", active=True)
+def test_a_filtered_url_opens_with_its_filters_ticked(page, live_server):
+    page.goto(f"{live_server.url}/stages-alternances-emplois/?department=29&domain=mathematiques")
+
+    expect(page.get_by_role("button", name="Retirer le filtre Finistère (29)")).to_be_visible()
+    expect(page.get_by_role("button", name="Retirer le filtre Mathématiques")).to_be_visible()
+    expect(page.get_by_role("button", name="Région / Département")).to_contain_text("1")
+    bretagne = page.get_by_role("checkbox", name="Bretagne", include_hidden=True)
+    assert bretagne.evaluate("box => box.indeterminate")
 
 
 @override_switch("internships", active=True)

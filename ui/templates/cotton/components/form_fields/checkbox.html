@@ -7,6 +7,7 @@
     name=""
     id=""
     value=""
+    :checked=False
     variant="default"
     full_width=False
     class=""
@@ -21,7 +22,7 @@
                 id="{{ field.id_for_label|default:id }}"
                 name="{{ field.html_name|default:name }}"
                 {% if value %}value="{{ value }}"{% endif %}
-                {% if field.value %}checked{% endif %}
+                {% if field.value or checked %}checked{% endif %}
                 {% if variant == "disabled" %}disabled{% endif %}
                 class="peer sr-only"
             />

@@ -1,4 +1,4 @@
-<c-vars :regions=[] id="" />
+<c-vars :regions=[] :ticked=[] id="" />
 
 <div x-data="{
         query: '',
@@ -25,7 +25,7 @@
             <div data-group data-search="{{ region.name }}" x-data="{ expanded: false }"
                  x-show="matches($el) || [...$el.querySelectorAll('[data-group-member]')].some(member => matches(member))">
                 <div data-group-toggle class="flex items-center justify-between gap-4">
-                    <c-components.form_fields.checkbox name="region" id="{{ id }}_region_{{ region.code }}" value="{{ region.code }}" label="{{ region.name }}" />
+                    <c-components.form_fields.checkbox id="{{ id }}_region_{{ region.code }}" label="{{ region.name }}" />
                     <button type="button" @click="expanded = !expanded"
                             :aria-expanded="expanded || searching()" aria-controls="{{ id }}_region_{{ region.code }}_departments"
                             aria-label="Départements de {{ region.name }}"
@@ -37,14 +37,14 @@
                     {% for department in region.departments %}
                         <div data-group-member data-search="{{ department.name }} {{ department.code }}"
                              x-show="matches($el.closest('[data-group]')) || matches($el)">
-                            <c-components.form_fields.checkbox name="department" id="{{ id }}_department_{{ department.code }}" value="{{ department.code }}" label="{{ department.name }} ({{ department.code }})" />
+                            <c-components.form_fields.checkbox name="department" id="{{ id }}_department_{{ department.code }}" value="{{ department.code }}" label="{{ department.name }} ({{ department.code }})" checked="{% if department.code in ticked %}checked{% endif %}" />
                         </div>
                     {% endfor %}
                 </div>
             </div>
         {% else %}
             <div data-search="{{ region.name }} {{ region.departments.0.code }}" x-show="matches($el)">
-                <c-components.form_fields.checkbox name="department" id="{{ id }}_department_{{ region.departments.0.code }}" value="{{ region.departments.0.code }}" label="{{ region.name }}" />
+                <c-components.form_fields.checkbox name="department" id="{{ id }}_department_{{ region.departments.0.code }}" value="{{ region.departments.0.code }}" label="{{ region.name }}" checked="{% if region.departments.0.code in ticked %}checked{% endif %}" />
             </div>
         {% endif %}
     {% endfor %}
