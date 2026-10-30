@@ -14,9 +14,34 @@
             <c-components.tab_link href="{% url "index_job_postings" %}?category=first_job" label="Premier emploi" value="first_job" current="{{ category }}" class="md:flex-none flex-auto" border_color="border-yellow-500" bg_color="bg-yellow-500"/>
         </c-components.tabs>
         <c-components.card class="relative -mt-0.5 rounded-tl-none w-full z-10">
+            <form id="job_posting_filters" action="{% url "index_job_postings" %}"
+                  hx-get="{% url "index_job_postings" %}" hx-trigger="change[target.type === 'checkbox'], submit"
+                  hx-select="#job_posting_results" hx-target="#job_posting_results" hx-swap="outerHTML"
+                  hx-select-oob="#job_posting_count:innerHTML" hx-push-url="true" hx-history="false"
+                  class="flex flex-wrap gap-4 mb-3">
+                <input type="hidden" name="category" value="{{ category }}">
+                <c-components.form_fields.filter_select label="Région / Département" id="job_posting_location" icon="location" tint_class="bg-green-500/20" selection_target="#job_posting_selected_filters">
+                    <c-components.form_fields.region_options :regions="regions" :ticked="ticked_departments" id="job_posting_location" />
+                </c-components.form_fields.filter_select>
+                <c-components.form_fields.filter_select label="Domaine" name="domain" id="job_posting_domain" icon="job-domain" :options="domains" :ticked="ticked_domains" selection_target="#job_posting_selected_filters" />
+                {% if category != "seconde_internship" and category != "troisieme_internship" %}
+                    <c-components.form_fields.filter_select label="Durée" name="duration" id="job_posting_duration" icon="job-duration" tint_class="bg-orange-500/20" selection_target="#job_posting_selected_filters" />
+                {% endif %}
+                {% if contract_types %}
+                    <c-components.form_fields.filter_select label="Type de contrat" name="contract_type" id="job_posting_contract_type" icon="job-category" :options="contract_types" :ticked="ticked_contract_types" tint_class="bg-yellow-500/20" selection_target="#job_posting_selected_filters" />
+                {% endif %}
+            </form>
+            <div id="job_posting_selected_filters" x-data class="hidden has-[li]:flex flex-wrap items-center gap-2 mb-5">
+                <span class="text-sm">Filtres sélectionnés&nbsp;:</span>
+                <button type="button" @click="$dispatch('reset-filters'); htmx.trigger('#job_posting_filters', 'submit'); document.getElementById('job_posting_location').focus()"
+                        class="order-last ml-auto text-sm underline decoration-1 underline-offset-4 hover:decoration-2 active:bg-neutral-200 focus:outline-blue-500 focus:outline-offset-2 cursor-pointer">
+                    Tout réinitialiser
+                </button>
+            </div>
             {% with job_posting_count=job_postings.paginator.count %}
-                <p class="mb-3">{{ job_posting_count }} offre{% if job_posting_count > 1 %}s{% endif %} </p>
+                <p id="job_posting_count" aria-live="polite" class="mb-3">{{ job_posting_count }}&nbsp;offre{% if job_posting_count > 1 %}s{% endif %} </p>
             {% endwith %}
+            <div id="job_posting_results">
             <div class="grid gap-4">
                 {% for job_posting in job_postings %}
                     <c-components.job-posting-card :job_posting="job_posting"/>
@@ -24,12 +49,13 @@
                     <div class="flex flex-col gap-3 border border-black p-2">
                         <c-components.title title="Aucune offre ne correspond à ta recherche" variant="h3" style="serif"/>
                         <p>Essaie de retirer un filtre ou d'élargir ta recherche.</p>
-                        <c-components.inline-link label="Réinitialiser la recherche" href="" />
+                        <c-components.inline-link label="Réinitialiser la recherche" href="?category={{ category }}" />
                     </div>
                 {% endfor %}
             </div>
             <div class="mt-4 flex justify-center">
-                <c-components.pagination :page="job_postings" query="category={{ category }}" />
+                <c-components.pagination :page="job_postings" query="{{ query }}" />
+            </div>
             </div>
         </c-components.card>
     </div>

@@ -6,6 +6,8 @@
     :errors=[]
     name=""
     id=""
+    value=""
+    :checked=False
     variant="default"
     full_width=False
     class=""
@@ -19,17 +21,21 @@
                 type="checkbox"
                 id="{{ field.id_for_label|default:id }}"
                 name="{{ field.html_name|default:name }}"
-                {% if field.value %}checked{% endif %}
+                {% if value %}value="{{ value }}"{% endif %}
+                {% if field.value or checked %}checked{% endif %}
                 {% if variant == "disabled" %}disabled{% endif %}
                 class="peer sr-only"
             />
-            <span class="tick-base rounded-xs peer-checked:bg-primary {% if variant == "disabled" %}tick-disabled{% elif field.errors or errors or variant == "error" %}tick-error{% elif variant == "valid" %}tick-valid{% else %}tick-default{% endif %}"></span>
+            <span class="tick-base rounded-xs peer-checked:bg-primary peer-indeterminate:bg-primary {% if variant == "disabled" %}tick-disabled{% elif field.errors or errors or variant == "error" %}tick-error{% elif variant == "valid" %}tick-valid{% else %}tick-default{% endif %}"></span>
             <svg class="absolute h-3 w-3 hidden peer-checked:block text-black pointer-events-none" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="3" aria-hidden="true">
                 <path stroke-linecap="round" stroke-linejoin="round" d="M5 10l4 4 7-8" />
             </svg>
+            <svg class="absolute h-3 w-3 hidden peer-indeterminate:block text-black pointer-events-none" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="3" aria-hidden="true">
+                <path stroke-linecap="round" d="M5 10h10" />
+            </svg>
         </span>
         <span class="{% if full_width %}text-base font-normal{% else %}text-xs font-light{% endif %} leading-[1.4] {% if variant == "disabled" %}text-disabled{% else %}text-neutral-950{% endif %} {{ label_class }}">
-            {{ label|default:field.label }}
+            {% firstof label field.label %}
         </span>
     </label>
     {% if description %}
