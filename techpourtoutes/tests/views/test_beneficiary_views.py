@@ -187,7 +187,7 @@ def save_job_posting(title, category, **overrides):
             "company_name": "Numeum",
             "description": "Une offre",
             "city": "Amiens",
-            "domain": "Développement",
+            "domains": ["Développement"],
             "category": category,
             "published_at": timezone.now(),
             "url": "https://www.apec.fr/offre",
@@ -225,6 +225,16 @@ def test_index_job_postings_defaults_to_higher_ed_internships(client, job_postin
 
     assert b"Stage de fin" in response.content
     assert b"Alternance en d" not in response.content
+
+
+@pytest.mark.django_db
+@override_switch("internships", active=True)
+def test_index_job_postings_shows_every_domain_of_a_posting(client):
+    save_job_posting(
+        "Stage", JobPosting.Category.HIGHER_ED_INTERNSHIP, domains=["Data", "Cybersécurité"]
+    )
+
+    assert "Data, Cybersécurité" in client.get(INDEX_JOB_POSTINGS_URL).content.decode()
 
 
 @pytest.mark.django_db
