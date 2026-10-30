@@ -234,7 +234,11 @@ def test_index_job_postings_shows_every_domain_of_a_posting(client):
         "Stage", JobPosting.Category.HIGHER_ED_INTERNSHIP, domains=["Data", "Cybersécurité"]
     )
 
-    assert "Data, Cybersécurité" in client.get(INDEX_JOB_POSTINGS_URL).content.decode()
+    html = client.get(INDEX_JOB_POSTINGS_URL).content.decode()
+
+    assert html.count("#job-domain") == 2
+    assert re.search(r"#job-domain.*?<span>\s*Data\s*</span>", html, re.DOTALL)
+    assert re.search(r"#job-domain.*?<span>\s*Cybersécurité\s*</span>", html, re.DOTALL)
 
 
 @pytest.mark.django_db
