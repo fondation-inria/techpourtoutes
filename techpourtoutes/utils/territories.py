@@ -195,3 +195,8 @@ REGIONS = (
     Region("06", "Mayotte", (Department("976", "Mayotte"),)),
     Region("99", "Pays étranger", (Department("99", "Pays étranger"),)),
 )
+
+DEPARTMENT_CODES = {department.code for region in REGIONS for department in region.departments}
+
+# Corsica's postal codes all start with 20 rather than with their department's code.
+CORSICA_POSTAL_CODES = {"2A": r"^20[01]", "2B": r"^20[2-6]"}

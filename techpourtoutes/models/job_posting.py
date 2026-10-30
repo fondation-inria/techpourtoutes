@@ -1,8 +1,42 @@
+import operator
+from functools import reduce
+
 from django.contrib.postgres.fields import ArrayField
 from django.db import models
 from django.utils.translation import gettext_lazy as _
 
-from techpourtoutes.models.base import BaseModel
+from techpourtoutes.models.base import BaseModel, BaseQuerySet
+from techpourtoutes.utils.territories import CORSICA_POSTAL_CODES
+
+
+class JobPostingQuerySet(BaseQuerySet):
+    def in_domains(self, domains):
+        """No ticked domain means no filter, not an empty list."""
+        if not domains:
+            return self
+        return self.filter(domains__overlap=domains)
+
+    def with_contract_types(self, contract_types):
+        if not contract_types:
+            return self
+        return self.filter(contract_type__in=contract_types)
+
+    def in_departments(self, codes):
+        """A posting gives either its COG or its postal code, and both start with its
+        department's code: two characters long in mainland France, three overseas; 99 stands
+        for any foreign country in a COG. Corsica's postal codes all start with 20 instead."""
+        if not codes:
+            return self
+        return self.filter(reduce(operator.or_, map(_in_department, codes)))
+
+
+def _in_department(code):
+    postal_code = (
+        models.Q(postal_code__regex=CORSICA_POSTAL_CODES[code])
+        if code in CORSICA_POSTAL_CODES
+        else models.Q(postal_code__startswith=code)
+    )
+    return models.Q(cog_code__startswith=code) | postal_code
 
 
 class JobPosting(BaseModel):
@@ -94,6 +128,8 @@ class JobPosting(BaseModel):
         null=True, blank=True, verbose_name=_("mise à jour chez le partenaire le")
     )
     url = models.URLField(verbose_name=_("lien de l'offre"))
+
+    objects = JobPostingQuerySet.as_manager()
 
     class Meta:
         verbose_name = _("offre")

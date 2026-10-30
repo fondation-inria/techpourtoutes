@@ -1,4 +1,4 @@
-<c-vars label="" name="" id="" icon="" :options=[] tint_class="bg-neutral-0" selection_target="" class="" />
+<c-vars label="" name="" id="" icon="" :options=[] :ticked=[] tint_class="bg-neutral-0" selection_target="" class="" />
 
 <div x-data="{
         open: false,
@@ -21,11 +21,19 @@
         remove(id) {
             const input = document.getElementById(id);
             input.checked = false;
-            this.cascade(input);
-            this.sync();
+            input.dispatchEvent(new Event('change', { bubbles: true }));
             this.$refs.button.focus();
         },
+        reset() {
+            this.$refs.panel.querySelectorAll('input[type=checkbox]').forEach(input => {
+                input.checked = false;
+                input.indeterminate = false;
+            });
+            this.sync();
+        },
      }"
+     x-init="$refs.panel.querySelectorAll('[data-group-member]:first-child input').forEach(input => cascade(input)); sync()"
+     @reset-filters.window="reset()"
      @click.outside="open = false"
      @focusout="if ($event.relatedTarget && !$el.contains($event.relatedTarget) && !$event.relatedTarget.contains($el)) open = false"
      @keydown.escape="if (open) { open = false; $refs.button.focus() }"
@@ -49,7 +57,7 @@
                 {{ slot }}
             {% else %}
                 {% for value, option_label in options %}
-                    <c-components.form_fields.checkbox name="{{ name }}" id="{{ id }}_{{ forloop.counter0 }}" value="{{ value }}" label="{{ option_label }}" />
+                    <c-components.form_fields.checkbox name="{{ name }}" id="{{ id }}_{{ forloop.counter0 }}" value="{{ value }}" label="{{ option_label }}" checked="{% if value in ticked %}checked{% endif %}" />
                 {% endfor %}
             {% endif %}
         </div>
