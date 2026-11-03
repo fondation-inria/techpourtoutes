@@ -4,7 +4,14 @@ from django.core.management.base import CommandError
 from django.test import override_settings
 
 from techpourtoutes.forms.fields import UploadedImageKeyField
-from techpourtoutes.models import Beneficiary, Event, MakeuseProject, Pro, TrainingExperience
+from techpourtoutes.models import (
+    Beneficiary,
+    Event,
+    JobPosting,
+    MakeuseProject,
+    Pro,
+    TrainingExperience,
+)
 from techpourtoutes.models.makeuse_project import IMAGE_PREFIX
 from techpourtoutes.utils.dates import compute_age
 
@@ -163,3 +170,37 @@ def test_seed_makeuse_projects_are_idempotent():
         call_command("seed")
 
     assert MakeuseProject.objects.count() == 8
+
+
+@pytest.mark.django_db
+def test_seed_creates_more_than_a_page_of_higher_ed_internships_and_a_few_of_three_other_kinds():
+    with override_settings(SEED_ENABLED=True):
+        call_command("seed")
+
+    assert (
+        JobPosting.objects.filter(category=JobPosting.Category.HIGHER_ED_INTERNSHIP).count() > 20
+    )
+    assert JobPosting.objects.filter(category=JobPosting.Category.APPRENTICESHIP).exists()
+    assert JobPosting.objects.filter(category=JobPosting.Category.FIRST_JOB).exists()
+    assert JobPosting.objects.filter(category=JobPosting.Category.TROISIEME_INTERNSHIP).exists()
+    assert not JobPosting.objects.filter(category=JobPosting.Category.SECONDE_INTERNSHIP).exists()
+
+
+@pytest.mark.django_db
+def test_seed_job_postings_are_idempotent():
+    with override_settings(SEED_ENABLED=True):
+        call_command("seed")
+        count = JobPosting.objects.count()
+        call_command("seed")
+
+    assert JobPosting.objects.count() == count
+
+
+@pytest.mark.django_db
+def test_seed_events_are_idempotent():
+    with override_settings(SEED_ENABLED=True):
+        call_command("seed")
+        count = Event.objects.count()
+        call_command("seed")
+
+    assert Event.objects.count() == count

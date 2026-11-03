@@ -70,6 +70,7 @@ INSTALLED_APPS = [
     "django.contrib.staticfiles",
     "django.contrib.sitemaps",
     "django.contrib.postgres",
+    "django.contrib.humanize",
     "django_extensions",
     "django_tailwind_cli",
     "django_cotton",

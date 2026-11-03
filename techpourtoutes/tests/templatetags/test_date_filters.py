@@ -1,6 +1,8 @@
-from datetime import date, datetime
+from datetime import date, datetime, timedelta
 
-from techpourtoutes.templatetags.date_filters import iso_date
+from django.utils import timezone
+
+from techpourtoutes.templatetags.date_filters import iso_date, time_ago
 
 
 def test_iso_date_formats_date_objects():
@@ -15,3 +17,8 @@ def test_iso_date_passes_strings_through():
 def test_iso_date_empty_values():
     assert iso_date(None) == ""
     assert iso_date("") == ""
+
+
+def test_time_ago_keeps_only_the_largest_unit():
+    assert time_ago(timezone.now() - timedelta(days=17, hours=5)) == "il y a 2\xa0semaines"
+    assert time_ago(timezone.now() - timedelta(days=3, hours=5)) == "il y a 3\xa0jours"
