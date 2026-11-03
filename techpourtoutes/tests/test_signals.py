@@ -1,7 +1,8 @@
 from unittest.mock import patch
 
 import pytest
-from django.db import transaction
+from django.core.management.sql import emit_post_migrate_signal
+from django.db import connection, transaction
 from django.test import override_settings
 
 from techpourtoutes.models import LegalRepresentativeAuthorization, Pro
@@ -189,3 +190,12 @@ def test_a_signed_legal_representative_authorization_registers_the_mentoree(auth
         )
 
     create_mentoree.delay.assert_called_once_with(beneficiary_pk=str(authorization.beneficiary.pk))
+
+
+@pytest.mark.django_db
+def test_the_update_date_triggers_are_installed_after_every_migration():
+    """A new model gets its trigger without a migration of its own."""
+    with patch("techpourtoutes.signals.install_updated_at_triggers") as install:
+        emit_post_migrate_signal(verbosity=0, interactive=False, db="default")
+
+    install.assert_called_once_with(connection)

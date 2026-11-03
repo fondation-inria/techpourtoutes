@@ -4,6 +4,7 @@ from .create_upcoming_feature_notification import create_upcoming_feature_notifi
 from .delete_brevo_contact import delete_brevo_contact_task
 from .flag_recommended_schools import flag_recommended_schools_task
 from .flag_training_ambassador_schools import flag_training_ambassador_schools_task
+from .import_apec_job_postings import import_apec_job_postings_task
 from .import_carif_oref_formations import import_carif_oref_formations_task
 from .import_myfuture_job_postings import import_myfuture_job_postings_task
 from .import_onisep_formation_actions import import_onisep_formation_actions_task
@@ -27,6 +28,7 @@ __all__ = (
     "delete_brevo_contact_task",
     "flag_recommended_schools_task",
     "flag_training_ambassador_schools_task",
+    "import_apec_job_postings_task",
     "import_carif_oref_formations_task",
     "import_myfuture_job_postings_task",
     "import_onisep_formation_actions_task",

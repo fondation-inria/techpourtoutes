@@ -12,6 +12,8 @@ pytestmark = pytest.mark.django_db
 
 Category = JobPosting.Category
 
+LAST_WEEK = datetime(2026, 10, 27, tzinfo=UTC)
+
 
 def test_an_offer_is_mapped_onto_a_job_posting(myfuture_record):
     result = UpsertMyFutureJobPostings(records=[myfuture_record()])
@@ -195,6 +197,24 @@ def test_an_offer_already_imported_is_updated_in_place(myfuture_record):
     posting = JobPosting.objects.get()
     assert posting.pk == first_pk
     assert posting.title == "Stage en domotique"
+
+
+def test_an_offer_myfuture_lists_unchanged_keeps_its_update_date(myfuture_record):
+    UpsertMyFutureJobPostings(records=[myfuture_record()])
+    JobPosting.objects.update(updated_at=LAST_WEEK)
+
+    UpsertMyFutureJobPostings(records=[myfuture_record()])
+
+    assert JobPosting.objects.get().updated_at == LAST_WEEK
+
+
+def test_an_offer_that_changed_moves_its_update_date(myfuture_record):
+    UpsertMyFutureJobPostings(records=[myfuture_record()])
+    JobPosting.objects.update(updated_at=LAST_WEEK)
+
+    UpsertMyFutureJobPostings(records=[myfuture_record(title="Stage en domotique")])
+
+    assert JobPosting.objects.get().updated_at > timezone.now() - timedelta(minutes=1)
 
 
 def test_an_offer_unpublished_by_hand_stays_unpublished_once_updated(myfuture_record):

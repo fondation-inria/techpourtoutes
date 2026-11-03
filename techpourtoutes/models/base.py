@@ -20,6 +20,8 @@ class BaseModel(models.Model):
     before saving as Django doesn't do it by default.
 
     Includes fields common to all models: a UUID primary key and creation/update timestamps.
+    Outside `save()`, `updated_at` is kept by a database trigger (`utils/updated_at_triggers`),
+    which only moves it when the row really changed.
     """
 
     id = models.UUIDField(

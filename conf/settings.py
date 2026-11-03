@@ -221,6 +221,10 @@ JOBIRL_URL = env("JOBIRL_URL", default="")
 # MyFuture API
 MYFUTURE_API_KEY = env("MYFUTURE_API_KEY", default="")
 
+# Apec SFTP server
+APEC_SFTP_LOGIN = env("APEC_SFTP_LOGIN", default="")
+APEC_SFTP_PASSWORD = env("APEC_SFTP_PASSWORD", default="")
+
 # cron.json runs on every app: we prevent some from running.
 SCHEDULED_IMPORTS_ENABLED = env.bool("SCHEDULED_IMPORTS_ENABLED", default=False)
 

@@ -10,9 +10,11 @@ class TechpourtoutesConfig(AppConfig):
             connect_brevo_sync,
             connect_mentoring_to_legal_representative_authorization,
             connect_staff_flag_sync,
+            connect_updated_at_triggers,
         )
 
         connect_brevo_sync(Beneficiary)
         connect_brevo_sync(Pro)
         connect_staff_flag_sync(User)
         connect_mentoring_to_legal_representative_authorization()
+        connect_updated_at_triggers(self)

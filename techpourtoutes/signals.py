@@ -1,12 +1,13 @@
 from django.conf import settings
-from django.db import transaction
-from django.db.models.signals import m2m_changed, post_save, pre_delete
+from django.db import connections, transaction
+from django.db.models.signals import m2m_changed, post_migrate, post_save, pre_delete
 from django.dispatch import Signal
 
 from techpourtoutes.services.brevo_api.mappings import brevo_list_id_for
 from techpourtoutes.tasks.create_mentoree import create_mentoree_task
 from techpourtoutes.tasks.delete_brevo_contact import delete_brevo_contact_task
 from techpourtoutes.tasks.upsert_brevo_contact import upsert_brevo_contact_task
+from techpourtoutes.utils.updated_at_triggers import install_updated_at_triggers
 
 # Sent once a legal representative's signature is committed, with the `authorization`: what it
 # unlocks follows from here, without the authorization knowing about it.
@@ -90,3 +91,11 @@ def connect_brevo_sync(model_cls):
 def connect_mentoring_to_legal_representative_authorization():
     """Register the mentoree on Jobirl once her legal representative signs."""
     legal_representative_authorization_signed.connect(_register_mentoree, weak=False)
+
+
+def connect_updated_at_triggers(app_config):
+    post_migrate.connect(_on_migrated, sender=app_config)
+
+
+def _on_migrated(sender, using, **kwargs):
+    install_updated_at_triggers(connections[using])
