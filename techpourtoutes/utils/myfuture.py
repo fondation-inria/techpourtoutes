@@ -4,9 +4,6 @@ SUB_DOMAINS = {
     "electricite-electronique-robotiqueelectronique": "électronique",
     "electricite-electronique-robotiqueelectrotechnique": "électrotechnique",
     "electricite-electronique-robotiquetelecommunications": "télécommunications",
-    "information-communication-audiovisueltechnologies-de-linformation": (
-        "technologies de l'information"
-    ),
     "informatique-internetbases-de-donnees": "bases de données",
     "informatique-internetdeveloppement-programmation-logiciel": (
         "développement - programmation - logiciel"

@@ -56,6 +56,18 @@ def test_only_the_sub_domains_we_follow_are_asked_for(httpx_mock):
         assert request.url.params["subDomainKeys"].split(",") == list(SUB_DOMAINS)
 
 
+def test_information_technologies_are_not_asked_for(httpx_mock):
+    httpx_mock.add_response(json=[])
+    httpx_mock.add_response(json=[])
+
+    FetchMyFutureJobPostings()
+
+    for request in httpx_mock.get_requests():
+        assert "information-communication-audiovisueltechnologies-de-linformation" not in (
+            request.url.params["subDomainKeys"].split(",")
+        )
+
+
 def test_a_page_that_fails_stops_the_walk(httpx_mock):
     httpx_mock.add_response(json=_offers("a", "b"))
     httpx_mock.add_response(status_code=503)
