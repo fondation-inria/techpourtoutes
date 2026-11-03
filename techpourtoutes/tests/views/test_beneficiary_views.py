@@ -232,14 +232,15 @@ def test_index_job_postings_defaults_to_higher_ed_internships(client, job_postin
 @override_switch("internships", active=True)
 def test_index_job_postings_shows_every_domain_of_a_posting(client):
     save_job_posting(
-        "Stage", JobPosting.Category.HIGHER_ED_INTERNSHIP, domains=["Data", "Cybersécurité"]
+        "Stage",
+        JobPosting.Category.HIGHER_ED_INTERNSHIP,
+        domains=[JobPosting.Domain.MATHEMATIQUES, JobPosting.Domain.SYSTEME_RESEAUX_DONNEES],
     )
 
     html = client.get(INDEX_JOB_POSTINGS_URL).content.decode()
 
-    assert html.count("#job-domain") == 2
-    assert re.search(r"#job-domain.*?<span>\s*Data\s*</span>", html, re.DOTALL)
-    assert re.search(r"#job-domain.*?<span>\s*Cybersécurité\s*</span>", html, re.DOTALL)
+    for label in ["Mathématiques", "Système, réseaux, données"]:
+        assert re.search(rf"#job-domain.*?<span>\s*{label}\s*</span>", html, re.DOTALL)
 
 
 @pytest.mark.django_db

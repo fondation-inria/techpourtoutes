@@ -58,11 +58,7 @@ class JobPosting(BaseModel):
         ELECTRONIQUE = "electronique", _("Électronique")
         ELECTROTECHNIQUE = "electrotechnique", _("Électrotechnique")
         TELECOMMUNICATIONS = "telecommunications", _("Télécommunications")
-        TECHNOLOGIES_DE_L_INFORMATION = (
-            "technologies_de_l_information",
-            _("Technologies de l’information"),
-        )
-        DEVELOPPEMENT = "developpement", _("Développement - programmation - logiciel")
+        DEVELOPPEMENT = "developpement", _("Développement, programmation, logiciel")
         INFORMATIQUE_DE_GESTION = "informatique_de_gestion", _("Informatique de gestion")
         INFORMATIQUE_GENERALITES = "informatique_generalites", _("Informatique (généralités)")
         INFORMATIQUE_INDUSTRIELLE = (
@@ -146,3 +142,7 @@ class JobPosting(BaseModel):
     @property
     def category_color(self):
         return self.CATEGORY_COLORS[self.category]
+
+    @property
+    def domain_labels(self):
+        return [self.Domain(domain).label for domain in self.domains]
