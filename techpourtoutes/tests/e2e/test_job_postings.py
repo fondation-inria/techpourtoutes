@@ -1,5 +1,7 @@
 import re
+from datetime import timedelta
 
+from django.utils import timezone
 from playwright.sync_api import expect
 from waffle.testutils import override_switch
 
@@ -164,3 +166,114 @@ def test_searching_a_place_shows_the_matches_under_their_region(page, live_serve
     search.fill("2A")
 
     expect(page.get_by_text("Corse-du-Sud (2A)", exact=True)).to_be_visible()
+
+
+@override_switch("internships", active=True)
+def test_searching_narrows_the_list_and_reveals_the_sort_which_keeps_the_focus(page, live_server):
+    category = JobPosting.Category.HIGHER_ED_INTERNSHIP
+    now = timezone.now()
+    save_job_posting("Stage web", category, published_at=now - timedelta(days=5))
+    save_job_posting("Stage en réseaux", category, description="Un peu de web", published_at=now)
+    save_job_posting("Stage en design", category)
+    page.goto(f"{live_server.url}/stages-alternances-emplois/")
+    sort = page.get_by_role("button", name="Trier par")
+    options = page.get_by_role("group", name="Trier par")
+    expect(sort).to_be_hidden()
+
+    page.get_by_label("Rechercher une offre").fill("web")
+    page.get_by_role("button", name="Rechercher").click()
+
+    expect(page.locator("#job_posting_count")).to_have_text("2\xa0offres")
+    expect(sort).to_have_text("pertinence")
+    first_title = page.locator("#job_posting_results h3").first
+    expect(first_title).to_have_text("Stage web")
+    expect(options).to_be_hidden()
+
+    sort.click()
+    expect(options.get_by_role("radio", name="Pertinence")).to_be_checked()
+    page.keyboard.press("Escape")
+    expect(options).to_be_hidden()
+    expect(sort).to_be_focused()
+
+    sort.click()
+    options.get_by_text("Date").click(delay=120)
+
+    expect(page).to_have_url(re.compile("sort=date"))
+    expect(first_title).to_have_text("Stage en réseaux")
+    expect(sort).to_have_text("date")
+    expect(options).to_be_hidden()
+    expect(sort).to_be_focused()
+
+    page.keyboard.press("Enter")
+    expect(options).to_be_visible()
+    page.keyboard.press("Tab")
+    page.keyboard.press("ArrowUp")
+
+    expect(first_title).to_have_text("Stage web")
+    expect(sort).to_have_text("pertinence")
+    expect(options).to_be_hidden()
+    expect(sort).to_be_focused()
+
+    page.get_by_label("Rechercher une offre").fill("")
+    page.keyboard.press("Enter")
+
+    expect(page.locator("#job_posting_count")).to_have_text("3\xa0offres")
+    expect(sort).to_be_hidden()
+
+
+@override_switch("internships", active=True)
+def test_the_search_cross_clears_the_field_and_gives_the_focus_back(page, live_server):
+    category = JobPosting.Category.HIGHER_ED_INTERNSHIP
+    save_job_posting("Stage web", category)
+    save_job_posting("Stage en design", category)
+    page.goto(f"{live_server.url}/stages-alternances-emplois/?q=web")
+    search = page.get_by_label("Rechercher une offre")
+    clear = page.get_by_role("button", name="Effacer la recherche")
+
+    clear.click()
+
+    expect(search).to_have_value("")
+    expect(search).to_be_focused()
+    expect(clear).to_be_hidden()
+
+    search.fill("web")
+    search.press("Enter")
+
+    expect(page.locator("#job_posting_count")).to_have_text("1\xa0offre")
+    clear.click()
+
+    expect(search).to_have_value("")
+    expect(search).to_be_focused()
+
+
+@override_switch("internships", active=True)
+def test_a_too_short_search_shows_an_error_and_still_filters(page, live_server):
+    category = JobPosting.Category.HIGHER_ED_INTERNSHIP
+    save_job_posting("Stage de maths", category, domains=["mathematiques"])
+    save_job_posting("Stage web", category)
+    page.goto(f"{live_server.url}/stages-alternances-emplois/")
+    search = page.get_by_label("Rechercher une offre")
+    error = page.get_by_role("alert").filter(has_text="Saisis au moins 3 caractères")
+
+    search.fill("we")
+    search.press("Enter")
+
+    expect(error).to_be_visible()
+    expect(page.locator("#job_posting_count")).to_have_text("2\xa0offres")
+    expect(search).to_be_focused()
+    expect(search).to_have_attribute("aria-invalid", "true")
+    expect(search).to_have_accessible_description(re.compile("Saisis au moins 3 caractères"))
+
+    page.get_by_role("button", name="Domaine").click()
+    page.locator("#job_posting_domain_panel").get_by_text("Mathématiques", exact=True).click()
+
+    expect(page.locator("#job_posting_count")).to_have_text("1\xa0offre")
+    expect(error).to_be_visible()
+
+    page.keyboard.press("Escape")
+    search.fill("web")
+    search.press("Enter")
+
+    expect(error).to_be_hidden()
+    expect(search).not_to_have_attribute("aria-invalid", "true")
+    expect(search).to_be_focused()

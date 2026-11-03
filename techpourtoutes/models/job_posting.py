@@ -1,8 +1,22 @@
+import re
+from html import unescape
+
 from django.contrib.postgres.fields import ArrayField
+from django.contrib.postgres.indexes import GinIndex
+from django.contrib.postgres.search import (
+    SearchQuery,
+    SearchRank,
+    SearchVector,
+    SearchVectorField,
+)
 from django.db import models
+from django.utils.html import strip_tags
 from django.utils.translation import gettext_lazy as _
 
 from techpourtoutes.models.base import BaseModel, BaseQuerySet
+
+SEARCH_CONFIG = "french_unaccent"
+MASCULINE_OF_FEMININE = (("euse", "eur"), ("trice", "teur"), ("cheffe", "chef"), ("[ée]e", "é"))
 
 
 class JobPostingQuerySet(BaseQuerySet):
@@ -21,6 +35,36 @@ class JobPostingQuerySet(BaseQuerySet):
         if not codes:
             return self
         return self.filter(department_code__in=codes)
+
+    def search(self, terms):
+        query = SearchQuery(
+            " & ".join(f"{_masculine(word)}:*" for word in re.findall(r"\w+", terms.lower())),
+            search_type="raw",
+            config=SEARCH_CONFIG,
+        )
+        return self.filter(search_vector=query).annotate(
+            relevance=SearchRank(models.F("search_vector"), query)
+        )
+
+
+def _masculine(word):
+    for feminine, masculine in MASCULINE_OF_FEMININE:
+        word = re.sub(rf"{feminine}(s?)$", rf"{masculine}\1", word)
+    return word
+
+
+def _masculine_text(field):
+    text = models.F(field)
+    for feminine, masculine in MASCULINE_OF_FEMININE:
+        text = models.Func(
+            text,
+            models.Value(rf"{feminine}(s?)\M"),
+            models.Value(rf"{masculine}\1"),
+            models.Value("gi"),
+            function="regexp_replace",
+            output_field=models.TextField(),
+        )
+    return text
 
 
 class VisibleJobPostingManager(models.Manager.from_queryset(JobPostingQuerySet)):
@@ -147,6 +191,13 @@ class JobPosting(BaseModel):
         verbose_name=_("dépubliée"),
         help_text=_("Une offre dépubliée n'apparaît plus sur le site. Décocher la republie."),
     )
+    search_vector = models.GeneratedField(
+        expression=SearchVector(_masculine_text("title"), weight="A", config=SEARCH_CONFIG)
+        + SearchVector(_masculine_text("company_name"), weight="B", config=SEARCH_CONFIG)
+        + SearchVector(_masculine_text("description"), weight="C", config=SEARCH_CONFIG),
+        output_field=SearchVectorField(),
+        db_persist=True,
+    )
 
     class Meta:
         verbose_name = _("Offre d'emploi")
@@ -156,6 +207,7 @@ class JobPosting(BaseModel):
                 fields=["source", "external_id"], name="unique_job_posting_per_source"
             )
         ]
+        indexes = [GinIndex(fields=["search_vector"], name="job_posting_search_vector")]
 
     def __str__(self):
         return self.title
@@ -173,3 +225,7 @@ class JobPosting(BaseModel):
     @property
     def domain_labels(self):
         return [self.Domain(domain).label for domain in self.domains]
+
+    @property
+    def description_text(self):
+        return unescape(strip_tags(self.description))

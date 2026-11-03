@@ -1,0 +1,29 @@
+<c-vars :sort_by_date=False form="" />
+
+<div x-data="{ open: false }"
+     @click.outside="open = false"
+     @focusout="if ($event.relatedTarget && !$el.contains($event.relatedTarget) && !$event.relatedTarget.contains($el)) open = false"
+     @keydown.escape="if (open) { open = false; $refs.button.focus() }"
+     class="relative inline-flex items-center gap-1">
+    <span id="job_posting_sort_label" class="label-text-sm">Trier par</span>
+    <button type="button" id="job_posting_sort_by" x-ref="button"
+            @click="open = !open"
+            :aria-expanded="open" aria-labelledby="job_posting_sort_label job_posting_sort_by"
+            class="flex items-center gap-1 rounded-sm text-sm text-blue-500 focus-visible:outline-2 focus-visible:outline-blue-500 focus-visible:outline-offset-2 cursor-pointer">
+        {% if sort_by_date %}date{% else %}pertinence{% endif %}
+        <span class="shrink-0 transition-transform" :class="open && 'rotate-180'"><c-components.icon name="chevron-down" class="w-4 h-4" /></span>
+    </button>
+    <fieldset x-show="open" x-cloak
+              @click="if ($event.target.matches('input')) { open = false; $refs.button.focus() }"
+              class="absolute right-0 top-full z-20 mt-2 w-max flex flex-col p-2 rounded-sm bg-neutral-0 border border-black shadow-bottom-and-right shadow-black">
+        <legend class="sr-only">Trier par</legend>
+        <label class="relative px-2 py-1 rounded-sm text-sm hover:bg-black/10 has-checked:font-medium has-checked:text-blue-500 has-focus-visible:outline-2 has-focus-visible:outline-blue-500 cursor-pointer">
+            <input type="radio" form="{{ form }}" name="sort" value="relevance" {% if not sort_by_date %}checked{% endif %} class="sr-only">
+            Pertinence
+        </label>
+        <label class="relative px-2 py-1 rounded-sm text-sm hover:bg-black/10 has-checked:font-medium has-checked:text-blue-500 has-focus-visible:outline-2 has-focus-visible:outline-blue-500 cursor-pointer">
+            <input type="radio" form="{{ form }}" name="sort" value="date" {% if sort_by_date %}checked{% endif %} class="sr-only">
+            Date
+        </label>
+    </fieldset>
+</div>

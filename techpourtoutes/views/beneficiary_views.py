@@ -28,6 +28,7 @@ from ..utils.territories import DEPARTMENT_CODES, REGIONS
 EVENTS_PER_PAGE = 18
 MAKEUSE_PROJECTS_PER_PAGE = 6
 JOB_POSTINGS_PER_PAGE = 20
+JOB_POSTING_SEARCH_MIN_LENGTH = 3
 
 # ------------------- pages -------------------
 
@@ -214,6 +215,9 @@ def index_job_postings(request):
     ticked_departments = _ticked(request, "department", DEPARTMENT_CODES)
     contract_types = JobPosting.CATEGORY_CONTRACT_TYPES.get(category, [])
     ticked_contract_types = _ticked(request, "contract_type", contract_types)
+    search = request.GET.get("q", "").strip()
+    searching = len(search) >= JOB_POSTING_SEARCH_MIN_LENGTH
+    sort_by_date = request.GET.get("sort") == "date"
     query = request.GET.copy()
     query.pop("page", None)
     return render(
@@ -222,6 +226,12 @@ def index_job_postings(request):
         {
             "category": category,
             "query": query.urlencode(),
+            "search": search,
+            "searching": searching,
+            "sort_by_date": sort_by_date,
+            "search_errors": [f"Saisis au moins {JOB_POSTING_SEARCH_MIN_LENGTH} caractères"]
+            if search and not searching
+            else [],
             "domains": [(domain, domain.label) for domain in domains],
             "ticked_domains": ticked_domains,
             "regions": REGIONS,
@@ -231,11 +241,14 @@ def index_job_postings(request):
             ],
             "ticked_contract_types": ticked_contract_types,
             "job_postings": Paginator(
-                JobPosting.objects.filter(category=category)
-                .in_domains(ticked_domains)
-                .in_departments(ticked_departments)
-                .with_contract_types(ticked_contract_types)
-                .order_by(Coalesce("source_updated_at", "published_at").desc()),
+                _searched_and_sorted(
+                    JobPosting.objects.filter(category=category)
+                    .in_domains(ticked_domains)
+                    .in_departments(ticked_departments)
+                    .with_contract_types(ticked_contract_types),
+                    search if searching else None,
+                    sort_by_date,
+                ),
                 JOB_POSTINGS_PER_PAGE,
             ).get_page(request.GET.get("page")),
         },
@@ -244,6 +257,18 @@ def index_job_postings(request):
 
 def _ticked(request, name, allowed):
     return [value for value in request.GET.getlist(name) if value in allowed]
+
+
+def _searched_and_sorted(job_postings, search, sort_by_date):
+    latest_first = Coalesce("source_updated_at", "published_at").desc()
+    if not search:
+        return job_postings.order_by(latest_first)
+    found = job_postings.search(search)
+    return (
+        found.order_by(latest_first)
+        if sort_by_date
+        else found.order_by("-relevance", latest_first)
+    )
 
 
 # ------------------- events -------------------
