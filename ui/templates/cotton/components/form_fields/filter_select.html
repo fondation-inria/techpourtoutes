@@ -44,7 +44,7 @@
             class="flex items-center gap-2 px-4 py-3 rounded-sm text-sm font-normal leading-[1.4] bg-neutral-0 text-black border border-black shadow-bottom-and-right shadow-black hover:font-medium hover:shadow-bottom-and-right-lg focus-visible:outline-2 focus-visible:outline-blue-500 focus-visible:outline-offset-2 cursor-pointer">
         {% if icon %}<c-components.icon name="{{ icon }}" class="w-5 h-5 shrink-0" />{% endif %}
         <span>{{ label }}</span>
-        <span x-show="selected.length" x-cloak class="inline-flex items-center justify-center w-6 h-6 rounded-full border border-black text-xs {{ tint_class }}">
+        <span x-show="selected.length" x-cloak class="inline-flex items-center justify-center w-5 h-5 rounded-full border border-black text-xs {{ tint_class }}">
             <span x-text="selected.length"></span><span class="sr-only">&nbsp;sélectionné(s)</span>
         </span>
         <span class="shrink-0 transition-transform" :class="open && 'rotate-180'"><c-components.icon name="chevron-down" class="w-4 h-4" /></span>

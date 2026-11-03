@@ -7,7 +7,7 @@
         searching() { return this.query.trim() !== '' },
      }"
      class="flex flex-col gap-3">
-    <div class="sticky -top-4 -mx-4 -mt-4 p-4 pb-1 bg-neutral-0">
+    <div class="sticky -top-4 z-10 -mx-4 -mt-4 p-4 pb-1 bg-neutral-0">
         <label for="{{ id }}_search" class="sr-only">Rechercher une région ou un département</label>
         <div class="relative">
             <input type="search" id="{{ id }}_search" x-ref="search" x-model="query" @keydown.enter.prevent

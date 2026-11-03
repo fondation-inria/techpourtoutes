@@ -41,7 +41,7 @@ def _in_department(code):
 
 class JobPosting(BaseModel):
     class Category(models.TextChoices):
-        HIGHER_ED_INTERNSHIP = "higher_ed_internship", _("Stage du supérieur")
+        HIGHER_ED_INTERNSHIP = "higher_ed_internship", _("Stage dans le supérieur")
         APPRENTICESHIP = "apprenticeship", _("Alternance")
         SECONDE_INTERNSHIP = "seconde_internship", _("Stage de seconde")
         TROISIEME_INTERNSHIP = "troisieme_internship", _("Stage de troisième")
