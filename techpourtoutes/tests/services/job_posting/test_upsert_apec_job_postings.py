@@ -11,6 +11,7 @@ pytestmark = pytest.mark.django_db
 
 Category = JobPosting.Category
 ContractType = JobPosting.ContractType
+Domain = JobPosting.Domain
 
 LAST_WEEK = datetime(2026, 10, 27, tzinfo=UTC)
 
@@ -26,8 +27,9 @@ def test_an_offer_is_mapped_onto_a_job_posting(apec_record):
     assert posting.company_name == "TRANSPORTS DE L'AGGLOMÉRATION"
     assert posting.postal_code == ""
     assert posting.cog_code == "75101"
+    assert posting.department_code == "75"
     assert posting.city == "Paris 01"
-    assert posting.domains == ["Maîtrise d'ouvrage et fonctionnel"]
+    assert posting.domains == [JobPosting.Domain.MAITRISE_D_OUVRAGE]
     assert posting.duration == "12 mois"
     assert posting.company_logo == (
         "https://www.apec.fr/files/live/mounts/images"
@@ -139,14 +141,30 @@ def test_an_offer_asking_more_than_three_years_or_unknown_is_not_imported(apec_r
     assert not JobPosting.objects.exists()
 
 
-@pytest.mark.parametrize("function", ["02B", "04A", "04C", "06A", "06E", "06G"])
-def test_the_design_research_and_it_functions_are_imported(apec_record, function):
+@pytest.mark.parametrize(
+    ("function", "domain"),
+    [
+        ("02B", Domain.CREATION),
+        ("04A", Domain.CONCEPTION_RECHERCHE),
+        ("04B", Domain.DIRECTION_RECHERCHE_DEVELOPPEMENT),
+        ("04D", Domain.PROJETS_SCIENTIFIQUES_TECHNIQUES),
+        ("04E", Domain.TEST_ESSAI_VALIDATION_EXPERTISE),
+        ("06A", Domain.INFORMATIQUE),
+        ("06B", Domain.EXPLOITATION_MAINTENANCE),
+        ("06C", Domain.INFORMATIQUE_DE_GESTION),
+        ("06D", Domain.INFORMATIQUE_INDUSTRIELLE),
+        ("06E", Domain.DEVELOPPEMENT),
+        ("06F", Domain.MAITRISE_D_OUVRAGE),
+        ("06G", Domain.SYSTEMES_ET_RESEAUX),
+    ],
+)
+def test_each_function_we_follow_lands_in_its_domain(apec_record, function, domain):
     UpsertApecJobPostings(records=[apec_record(JOB_fonction=function)])
 
-    assert JobPosting.objects.exists()
+    assert JobPosting.objects.get().domains == [domain]
 
 
-@pytest.mark.parametrize("function", ["01C", "05F", "07A", "08B", "10D"])
+@pytest.mark.parametrize("function", ["01C", "04C", "05F", "07A", "08B", "10D"])
 def test_the_other_functions_are_not_imported(apec_record, function):
     UpsertApecJobPostings(records=[apec_record(JOB_fonction=function)])
 
@@ -213,7 +231,9 @@ def test_an_offer_unpublished_by_hand_stays_unpublished_once_updated(apec_record
 
     UpsertApecJobPostings(records=[apec_record(Intitule="Data Engineer F/H")])
 
-    assert JobPosting.all_objects.get().hidden
+    posting = JobPosting.all_objects.get()
+    assert posting.title == "Data Engineer F/H"
+    assert posting.hidden
 
 
 def test_an_offer_the_export_no_longer_lists_is_deleted(apec_record):

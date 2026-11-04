@@ -7,22 +7,22 @@ from django.utils import timezone
 from techpourtoutes.models import JobPosting
 from techpourtoutes.services.base import BaseService
 from techpourtoutes.utils.job_posting import DESCRIPTION_ATTRIBUTES, DESCRIPTION_TAGS
+from techpourtoutes.utils.territories import department_code
 
 # The Apec functions we import: design, research and development, IT.
-FUNCTIONS = {
-    "02B",
-    "04A",
-    "04B",
-    "04C",
-    "04D",
-    "04E",
-    "06A",
-    "06B",
-    "06C",
-    "06D",
-    "06E",
-    "06F",
-    "06G",
+FUNCTION_DOMAINS = {
+    "02B": JobPosting.Domain.CREATION,
+    "04A": JobPosting.Domain.CONCEPTION_RECHERCHE,
+    "04B": JobPosting.Domain.DIRECTION_RECHERCHE_DEVELOPPEMENT,
+    "04D": JobPosting.Domain.PROJETS_SCIENTIFIQUES_TECHNIQUES,
+    "04E": JobPosting.Domain.TEST_ESSAI_VALIDATION_EXPERTISE,
+    "06A": JobPosting.Domain.INFORMATIQUE,
+    "06B": JobPosting.Domain.EXPLOITATION_MAINTENANCE,
+    "06C": JobPosting.Domain.INFORMATIQUE_DE_GESTION,
+    "06D": JobPosting.Domain.INFORMATIQUE_INDUSTRIELLE,
+    "06E": JobPosting.Domain.DEVELOPPEMENT,
+    "06F": JobPosting.Domain.MAITRISE_D_OUVRAGE,
+    "06G": JobPosting.Domain.SYSTEMES_ET_RESEAUX,
 }
 # Up to three years: past that, an offer no longer suits a first job. A level Apec would add or
 # rename is left out until we decide where it belongs.
@@ -58,6 +58,7 @@ MAPPED_FIELDS = [
     "description",
     "postal_code",
     "cog_code",
+    "department_code",
     "city",
     "domains",
     "duration",
@@ -83,7 +84,7 @@ class UpsertApecJobPostings(BaseService):
         postings = [
             self._posting(record)
             for record in records
-            if record["JOB_fonction"] in FUNCTIONS
+            if record["JOB_fonction"] in FUNCTION_DOMAINS
             and record.get("Niveau_experience") in EXPERIENCE_LEVELS
         ]
         if not postings:
@@ -115,8 +116,9 @@ class UpsertApecJobPostings(BaseService):
                 attributes={**DESCRIPTION_ATTRIBUTES, "*": set()},
             ),
             cog_code=record["COG_lieu"],
+            department_code=department_code(record["COG_lieu"], ""),
             city=_plain(record["Libelle_lieu"]).title(),
-            domains=[record["Libelle_fonction"]],
+            domains=[FUNCTION_DOMAINS[record["JOB_fonction"]]],
             duration=f"{months} mois" if months else "",
             company_logo=f"{LOGO_BASE_URL}{logo}" if logo else "",
             category=_category(record),
