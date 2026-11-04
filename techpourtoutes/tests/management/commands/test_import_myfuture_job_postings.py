@@ -26,7 +26,7 @@ def test_the_command_calls_the_service():
     service.assert_called_once_with(sample=False)
 
 
-def test_sample_asks_the_service_for_a_single_page():
+def test_sample_asks_the_service_for_the_committed_sample():
     with patch(SERVICE) as service:
         service.return_value.failure = False
         call_command("import_myfuture_job_postings", sample=True)
@@ -62,7 +62,7 @@ def test_if_empty_runs_the_import_when_only_other_sources_are_in():
         company_name="Apec",
         description="…",
         city="Paris",
-        domains=["informatique"],
+        domains=[JobPosting.Domain.DEVELOPPEMENT],
         category=JobPosting.Category.FIRST_JOB,
         published_at=datetime(2026, 1, 1, tzinfo=UTC),
         url="https://www.apec.fr/offre/1",

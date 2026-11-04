@@ -5,6 +5,7 @@ from django.urls import reverse
 
 from ..forms.pro_inscription import OTHER
 from ..models import Pro
+from ..utils.structure_type_teams import recipients_for
 from .base_mailer import BaseMailer
 
 _ENGAGEMENT_LABELS = {**dict(Pro.Engagement.choices), OTHER: "s'engager autrement"}
@@ -52,11 +53,9 @@ class ConsortiumMailer(BaseMailer):
     @classmethod
     def event_submitted(cls, *, event):
         admin_url = cls._event_admin_url(event)
-        moderator_emails = Pro.event_moderators().values_list("email", flat=True)
-        recipient_list = list(dict.fromkeys([*settings.NEW_EVENT_RECIPIENTS, *moderator_emails]))
         cls.send_mail(
             subject=f"Un nouvel événement à valider : {event.title}",
-            recipient_list=recipient_list,
+            recipient_list=recipients_for(event.created_by.structure_type),
             context={"event": event, "admin_url": admin_url},
             tags=["interne", "coalition", "nouvel événement"],
         )
@@ -66,7 +65,7 @@ class ConsortiumMailer(BaseMailer):
         admin_url = cls._event_admin_url(event)
         cls.send_mail(
             subject=f"L'événement {event.title} a été modifié",
-            recipient_list=settings.NEW_EVENT_RECIPIENTS,
+            recipient_list=recipients_for(event.created_by.structure_type),
             context={"event": event, "admin_url": admin_url},
             tags=["interne", "coalition", "événement modifié"],
         )
@@ -92,17 +91,7 @@ class ConsortiumMailer(BaseMailer):
         """Mobilizing her structure, or helping otherwise, goes to the team following her kind of
         structure."""
         if engagement in (Pro.Engagement.MOBILIZE_STRUCTURE, OTHER):
-            return {
-                Pro.StructureType.ASSOCIATION: settings.COALITION_ASSOCIATION_RECIPIENTS,
-                Pro.StructureType.HIGHER_ED: settings.COALITION_TRAINING_AMBASSADOR_RECIPIENTS,
-                Pro.StructureType.SCHOOL: settings.COALITION_SCHOOL_RECIPIENTS,
-                Pro.StructureType.COMPANY: settings.COALITION_WORK_AMBASSADOR_RECIPIENTS,
-                Pro.StructureType.PUBLIC_INSTITUTION: (
-                    settings.COALITION_PUBLIC_INSTITUTION_RECIPIENTS
-                ),
-                Pro.StructureType.RETIRED: settings.COALITION_WORK_AMBASSADOR_RECIPIENTS,
-                Pro.StructureType.JOBLESS: settings.COALITION_WORK_AMBASSADOR_RECIPIENTS,
-            }.get(pro.structure_type, [])
+            return recipients_for(pro.structure_type)
         return {
             Pro.Engagement.INTERNSHIPS: settings.COALITION_INTERNSHIPS_RECIPIENTS,
             Pro.Engagement.WORK_AMBASSADOR: settings.COALITION_WORK_AMBASSADOR_RECIPIENTS,

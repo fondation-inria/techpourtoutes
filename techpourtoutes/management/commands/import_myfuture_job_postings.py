@@ -19,7 +19,7 @@ class Command(BaseCommand):
         parser.add_argument(
             "--sample",
             action="store_true",
-            help="Make a single call to MyFuture: the first page of the offers.",
+            help="Import the committed sample instead of the offers on MyFuture's API.",
         )
         parser.add_argument(
             "--if-empty",

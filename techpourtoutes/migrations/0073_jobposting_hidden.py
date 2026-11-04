@@ -3,7 +3,7 @@ from django.db import migrations, models
 
 class Migration(migrations.Migration):
     dependencies = [
-        ("techpourtoutes", "0068_jobposting_categories_domains"),
+        ("techpourtoutes", "0072_alter_jobposting_options"),
     ]
 
     operations = [

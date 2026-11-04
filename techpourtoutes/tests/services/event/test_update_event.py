@@ -10,7 +10,7 @@ from techpourtoutes.services.event.update_event import UpdateEvent
 from .test_create_event import valid_forms
 
 new_event_recipients = override_settings(
-    NEW_EVENT_RECIPIENTS=["agir@techpourtoutes.io"],
+    COALITION_PUBLIC_INSTITUTION_RECIPIENTS=["agir@techpourtoutes.io"],
 )
 
 

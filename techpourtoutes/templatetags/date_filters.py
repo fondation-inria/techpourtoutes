@@ -1,8 +1,14 @@
 from datetime import date
 
 from django import template
+from django.utils.timesince import timesince
 
 register = template.Library()
+
+
+@register.filter
+def time_ago(value):
+    return f"il y a {timesince(value, depth=1)}"
 
 
 @register.filter

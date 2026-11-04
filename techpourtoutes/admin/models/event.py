@@ -257,15 +257,17 @@ class EventAdmin(SimpleHistoryAdmin):
             )
         return readonly_fields
 
+    def get_queryset(self, request):
+        """It also backs `get_object`: an event she does not moderate is out of her reach."""
+        return super().get_queryset(request).moderated_by(request.user)
+
     def get_changelist(self, request, **kwargs):
         return _DecidedEventChangeList
 
     def changelist_view(self, request, extra_context=None):
         extra_context = {
             **(extra_context or {}),
-            "pending_events": Event.objects.filter(status=Event.Status.PENDING).order_by(
-                "created_at"
-            ),
+            "pending_events": self.get_queryset(request).pending().order_by("created_at"),
         }
         return super().changelist_view(request, extra_context=extra_context)
 
