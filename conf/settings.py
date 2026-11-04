@@ -70,6 +70,7 @@ INSTALLED_APPS = [
     "django.contrib.staticfiles",
     "django.contrib.sitemaps",
     "django.contrib.postgres",
+    "django.contrib.humanize",
     "django_extensions",
     "django_tailwind_cli",
     "django_cotton",
@@ -271,8 +272,6 @@ JOBIRL_ACCOUNT_DELETION_RECIPIENTS = env.list(
 LATITUDE_ACCOUNT_DELETION_RECIPIENTS = env.list(
     "LATITUDE_ACCOUNT_DELETION_RECIPIENTS", default=["bonjour@techpourtoutes.io"]
 )
-
-NEW_EVENT_RECIPIENTS = env.list("NEW_EVENT_RECIPIENTS", default=["agir@techpourtoutes.io"])
 
 MAKEUSE_PROJECT_SUBMISSION_RECIPIENTS = env.list(
     "MAKEUSE_PROJECT_SUBMISSION_RECIPIENTS", default=["bonjour@techpourtoutes.io"]

@@ -10,6 +10,7 @@ from django.utils.translation import gettext_lazy as _
 from simple_history.models import HistoricalRecords
 
 from ..utils.object_storage import public_storage
+from ..utils.structure_type_teams import structure_types_followed_by
 from ..utils.text import strip_accents
 from .base import BaseModel, BaseQuerySet
 from .mixins import SlugFromTitleMixin
@@ -24,14 +25,22 @@ class EventQuerySet(BaseQuerySet):
         return self.filter(status=Event.Status.PENDING)
 
     def visible_to(self, user):
-        """An event awaiting validation is still a draft: only the pro who submitted it and the
-        moderation team may open it."""
-        if user.is_staff:
-            return self
-        return self.filter(
+        """An event awaiting validation is still a draft: only the pro who submitted it and
+        those who moderate it may open it."""
+        visible = self.filter(
             models.Q(status=Event.Status.APPROVED)
             | models.Q(status=Event.Status.PENDING, created_by=user.pk)
         )
+        if user.is_staff:
+            return visible | self.moderated_by(user)
+        return visible
+
+    def moderated_by(self, user):
+        """A superuser moderates every event; anyone else only those of the pros whose team
+        lists her address."""
+        if user.is_superuser:
+            return self
+        return self.filter(created_by__structure_type__in=structure_types_followed_by(user.email))
 
     def past(self):
         now = timezone.localtime()
