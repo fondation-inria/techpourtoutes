@@ -149,3 +149,17 @@ def test_additional_information_form_ignores_what_is_posted_for_what_she_already
     )
     assert form.is_valid()
     assert form.cleaned_data["structure_name"] == "Inria"
+
+
+@pytest.mark.django_db
+def test_additional_information_form_saves_her_answers_onto_her_profile(pro):
+    pro.structure_type = ""
+    pro.save()
+    form = ProAdditionalInformationForm(data={"structure_type": "association"}, pro=pro)
+    assert form.is_valid()
+
+    form.save(pro)
+
+    pro.refresh_from_db()
+    assert pro.structure_type == "association"
+    assert pro.structure_name == "Inria"
