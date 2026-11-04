@@ -217,7 +217,7 @@ def test_the_other_sources_offers_are_left_alone(myfuture_record):
         company_name="Apec",
         description="…",
         city="Paris",
-        domains=["informatique"],
+        domains=[JobPosting.Domain.DEVELOPPEMENT],
         category=Category.FIRST_JOB,
         published_at=datetime(2026, 1, 1, tzinfo=UTC),
         url="https://www.apec.fr/offre/1",

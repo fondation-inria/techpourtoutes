@@ -5,7 +5,7 @@ from django.core import mail
 from django.urls import reverse
 
 from techpourtoutes.admin.models.saved_event import EventSavedByInline
-from techpourtoutes.models import Event, SavedEvent
+from techpourtoutes.models import Event, Pro, SavedEvent
 from techpourtoutes.tests.models.test_event import build_event
 
 CHANGELIST = "admin:techpourtoutes_event_changelist"
@@ -389,6 +389,57 @@ def test_a_moderator_cannot_reach_other_admin_models(verified_moderator_client):
     response = verified_moderator_client.get(reverse("admin:techpourtoutes_pro_changelist"))
 
     assert response.status_code == 403
+
+
+def _event_by_a_pro_of(structure_type, title, status=Event.Status.APPROVED):
+    email = f"{structure_type}@example.com"
+    author = Pro(
+        username=email,
+        email=email,
+        first_name="Léa",
+        last_name="Autrice",
+        structure_type=structure_type,
+    )
+    author.save()
+    event = build_event(author, title=title, status=status, online_url="https://example.org/live")
+    event.save()
+    return event
+
+
+@pytest.mark.django_db
+@pytest.mark.parametrize("status", [Event.Status.APPROVED, Event.Status.PENDING])
+def test_a_moderator_only_lists_the_events_of_the_structure_types_she_follows(
+    verified_moderator_client, moderator_pro, settings, status
+):
+    settings.COALITION_SCHOOL_RECIPIENTS = [moderator_pro.email]
+    _event_by_a_pro_of(Pro.StructureType.SCHOOL, "Forum du lycée", status)
+    _event_by_a_pro_of(Pro.StructureType.COMPANY, "Journée en entreprise", status)
+
+    content = verified_moderator_client.get(reverse(CHANGELIST)).content.decode()
+
+    assert "Forum du lycée" in content
+    assert "Journée en entreprise" not in content
+
+
+@pytest.mark.django_db
+def test_a_moderator_cannot_open_an_event_she_does_not_follow(verified_moderator_client):
+    event = _event_by_a_pro_of(Pro.StructureType.COMPANY, "Journée en entreprise")
+
+    response = verified_moderator_client.get(_change_url(event))
+
+    assert response.status_code == 302
+    assert response["Location"] == reverse("admin:index")
+
+
+@pytest.mark.django_db
+def test_the_general_admin_lists_the_events_of_every_structure_type(verified_admin_client):
+    _event_by_a_pro_of(Pro.StructureType.SCHOOL, "Forum du lycée")
+    _event_by_a_pro_of(Pro.StructureType.COMPANY, "Journée en entreprise")
+
+    content = verified_admin_client.get(reverse(CHANGELIST)).content.decode()
+
+    assert "Forum du lycée" in content
+    assert "Journée en entreprise" in content
 
 
 @pytest.mark.django_db

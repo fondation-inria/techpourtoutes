@@ -17,9 +17,11 @@ NEW_EVENT_URL = reverse_lazy("new_event")
 CREATE_URL = reverse_lazy("create_event")
 IMAGE_UPLOAD_URL = reverse_lazy("create_event_image_upload")
 UPDATE_URL = reverse_lazy("update_event")
+EDIT_ADDITIONAL_INFORMATION_URL = reverse_lazy("edit_pro_additional_information")
+UPDATE_ADDITIONAL_INFORMATION_URL = reverse_lazy("update_pro_additional_information")
 
 new_event_recipients = override_settings(
-    NEW_EVENT_RECIPIENTS=["agir@techpourtoutes.io"],
+    COALITION_PUBLIC_INSTITUTION_RECIPIENTS=["agir@techpourtoutes.io"],
 )
 
 SUBCATEGORY = {"subcategory": Event.Subcategory.SALON}
@@ -54,6 +56,144 @@ LOCATION = {
 # posted with the whole payload rather than by chaining requests.
 def answers(**overrides):
     return SUBCATEGORY | DETAILS | LOCATION | overrides
+
+
+@pytest.fixture
+def pro(pro):
+    """The funnel only opens once she has said what type of structure she works in."""
+    pro.structure_type = Pro.StructureType.PUBLIC_INSTITUTION
+    pro.save()
+    return pro
+
+
+@pytest.mark.django_db
+def test_new_event_first_asks_a_pro_without_a_structure_type_to_complete_her_profile(client, pro):
+    pro.structure_type = ""
+    pro.save()
+    client.force_login(pro)
+
+    response = client.get(NEW_EVENT_URL)
+
+    assert response.status_code == 302
+    assert response["Location"] == (
+        f"{EDIT_ADDITIONAL_INFORMATION_URL}?{urlencode({'next': NEW_EVENT_URL})}"
+    )
+
+
+@pytest.mark.django_db
+def test_edit_event_first_asks_a_pro_without_a_structure_type_to_complete_her_profile(
+    client, pro, event
+):
+    """An event proposed before the type of structure was asked: the team told about her
+    changes follows it all the same."""
+    pro.structure_type = ""
+    pro.save()
+    client.force_login(pro)
+    edit_url = f"{reverse('edit_event', args=[event.pk])}?{urlencode({'back': '/x/'})}"
+
+    response = client.get(edit_url)
+
+    assert response.status_code == 302
+    assert response["Location"] == (
+        f"{EDIT_ADDITIONAL_INFORMATION_URL}?{urlencode({'next': edit_url})}"
+    )
+
+
+@pytest.mark.django_db
+def test_edit_pro_additional_information_only_asks_what_her_profile_lacks(client, pro):
+    pro.structure_type = ""
+    pro.save()
+    client.force_login(pro)
+
+    content = client.get(EDIT_ADDITIONAL_INFORMATION_URL).content.decode()
+
+    assert 'name="structure_type"' in content
+    assert 'name="job_title"' not in content
+    assert f'hx-post="{UPDATE_ADDITIONAL_INFORMATION_URL}"' in content
+
+
+@pytest.mark.django_db
+def test_edit_pro_additional_information_posts_on_to_where_she_was_going(client, pro, event):
+    pro.structure_type = ""
+    pro.save()
+    client.force_login(pro)
+    query = urlencode({"next": reverse("edit_event", args=[event.pk])})
+
+    content = client.get(f"{EDIT_ADDITIONAL_INFORMATION_URL}?{query}").content.decode()
+
+    assert f'hx-post="{UPDATE_ADDITIONAL_INFORMATION_URL}?{query}"' in content
+
+
+@pytest.mark.django_db
+def test_edit_pro_additional_information_is_reserved_to_pros(client, beneficiary):
+    client.force_login(beneficiary)
+
+    response = client.get(EDIT_ADDITIONAL_INFORMATION_URL, follow=True)
+
+    assert response.redirect_chain[-1][0] == reverse("show_account")
+
+
+@pytest.mark.django_db
+def test_update_pro_additional_information_saves_her_profile_and_opens_the_funnel(client, pro):
+    pro.structure_type = ""
+    pro.save()
+    client.force_login(pro)
+
+    response = client.post(UPDATE_ADDITIONAL_INFORMATION_URL, {"structure_type": "association"})
+
+    assert response["HX-Redirect"] == NEW_EVENT_URL
+    pro.refresh_from_db()
+    assert pro.structure_type == Pro.StructureType.ASSOCIATION
+
+
+@pytest.mark.django_db
+def test_update_pro_additional_information_goes_on_to_the_event_being_edited(client, pro, event):
+    pro.structure_type = ""
+    pro.save()
+    client.force_login(pro)
+    edit_url = reverse("edit_event", args=[event.pk])
+
+    response = client.post(
+        f"{UPDATE_ADDITIONAL_INFORMATION_URL}?{urlencode({'next': edit_url})}",
+        {"structure_type": "association"},
+    )
+
+    assert response["HX-Redirect"] == edit_url
+
+
+@pytest.mark.django_db
+def test_update_pro_additional_information_ignores_a_next_off_the_site(client, pro):
+    pro.structure_type = ""
+    pro.save()
+    client.force_login(pro)
+
+    response = client.post(
+        f"{UPDATE_ADDITIONAL_INFORMATION_URL}?{urlencode({'next': 'https://evil.example/'})}",
+        {"structure_type": "association"},
+    )
+
+    assert response["HX-Redirect"] == NEW_EVENT_URL
+
+
+@pytest.mark.django_db
+def test_update_pro_additional_information_keeps_an_invalid_answer_on_screen(client, pro):
+    pro.structure_type = ""
+    pro.save()
+    client.force_login(pro)
+
+    response = client.post(UPDATE_ADDITIONAL_INFORMATION_URL, {"structure_type": ""})
+
+    assert "HX-Redirect" not in response
+    assert 'name="structure_type"' in response.content.decode()
+    pro.refresh_from_db()
+    assert pro.structure_type == ""
+
+
+@pytest.mark.django_db
+def test_update_pro_additional_information_rejects_a_get(client, pro):
+    client.force_login(pro)
+
+    assert client.get(UPDATE_ADDITIONAL_INFORMATION_URL).status_code == 405
 
 
 @pytest.mark.django_db

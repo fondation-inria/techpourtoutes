@@ -12,29 +12,39 @@ from playwright.sync_api import expect
 
 from techpourtoutes.models import Event, Pro
 
+from .helpers import select_option
+
 # These tests drive a real browser to cover what the view tests cannot: every conditional field
 # of this funnel is revealed client-side, and the answers only exist in the page — a step is
 # submitted with hidden inputs the previous screen rendered.
 
 new_event_recipients = override_settings(
-    NEW_EVENT_RECIPIENTS=["agir@techpourtoutes.io"],
+    COALITION_ASSOCIATION_RECIPIENTS=["agir@techpourtoutes.io"],
 )
 
 START = timezone.localdate() + timedelta(days=30)
 
 
-@pytest.fixture
-def funnel(live_server, page, db):
+def open_the_funnel_as(live_server, page, **profile):
     pro = Pro(
         username="alice@example.com",
         civility=Pro.Civility.MADAME,
         first_name="Alice",
         last_name="Martin",
         email="alice@example.com",
+        **profile,
     )
     pro.save()
     page.goto(f"{live_server.url}/se-connecter/token/{pro.issue_login_token()}/")
     page.goto(f"{live_server.url}/coalition/proposer-un-evenement/")
+    return pro
+
+
+@pytest.fixture
+def funnel(live_server, page, db):
+    open_the_funnel_as(
+        live_server, page, structure_type=Pro.StructureType.ASSOCIATION, structure_name="Numeum"
+    )
     return page
 
 
@@ -49,6 +59,22 @@ def fill_details(page):
     page.get_by_label("Description de l'événement*").fill("Une journée de rencontres.")
     page.get_by_label("Date de début*").fill(START.isoformat())
     page.get_by_label("Heure de début*").fill("09:00")
+
+
+def test_a_pro_without_a_structure_type_completes_her_profile_first(live_server, page, db):
+    pro = open_the_funnel_as(live_server, page)
+
+    select_option(page, "Dans quel type de structure travaillez-vous ?*", "Association")
+    page.fill('input[name="structure_name"]', "Numeum")
+    page.fill('input[name="job_title"]', "Chargée de projets")
+    page.fill('input[name="phone"]', "0612345678")
+    page.fill('input[name="postal_code"]', "75011")
+    page.get_by_role("button", name="Continuer").click()
+
+    expect(page.get_by_label("Quel type d'événement voulez-vous proposer ?")).to_be_visible()
+    pro.refresh_from_db()
+    assert pro.structure_type == Pro.StructureType.ASSOCIATION
+    assert pro.structure_name == "Numeum"
 
 
 def test_the_end_date_follows_the_start_date_until_she_changes_it(funnel):
@@ -346,6 +372,8 @@ def test_stepping_back_keeps_what_the_current_screen_already_holds(funnel):
 
 @new_event_recipients
 def test_an_event_is_edited_through_the_same_funnel(page, live_server, pro, event):
+    pro.structure_type = Pro.StructureType.ASSOCIATION
+    pro.save()
     event.status = Event.Status.APPROVED
     event.description = "Une journée pour rencontrer des professionnelles."
     event.save()

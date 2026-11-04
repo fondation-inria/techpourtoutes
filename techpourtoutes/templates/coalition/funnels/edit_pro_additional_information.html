@@ -1,0 +1,9 @@
+<c-layout.base
+    variant="funnel"
+    title="Proposer un événement"
+    back="{{ back_url }}">
+    {% include step_template with messages_in_layout=True %}
+    <c-slot name="right">
+        <div class="hidden md:block flex-1"></div>
+    </c-slot>
+</c-layout.base>

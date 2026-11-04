@@ -8,8 +8,10 @@ from django.test import override_settings
 from django.test.utils import CaptureQueriesContext
 from django.urls import reverse
 from django.utils import timezone
+from waffle.testutils import override_switch
 
-from techpourtoutes.models import Event, MakeuseProject, Pro, SavedEvent, User
+from techpourtoutes.models import Event, JobPosting, MakeuseProject, Pro, SavedEvent, User
+from techpourtoutes.utils.territories import REGIONS
 
 from ..models.test_event import build_event
 from ..models.test_makeuse_project import build_makeuse_project
@@ -174,6 +176,354 @@ def test_new_training_ambassador_beneficiary_no_cta_for_pro(client, pro):
     assert response.context["cta_href"] is None
 
 
+INDEX_JOB_POSTINGS_URL = "/stages-alternances-emplois/"
+
+
+def save_job_posting(title, category, **overrides):
+    JobPosting(
+        **{
+            "source": JobPosting.Source.APEC,
+            "external_id": title,
+            "title": title,
+            "company_name": "Numeum",
+            "description": "Une offre",
+            "city": "Amiens",
+            "domains": [JobPosting.Domain.DEVELOPPEMENT],
+            "category": category,
+            "published_at": timezone.now(),
+            "url": "https://www.apec.fr/offre",
+            **overrides,
+        }
+    ).save()
+
+
+@pytest.fixture
+def job_postings():
+    save_job_posting("Stage de fin d'études", JobPosting.Category.HIGHER_ED_INTERNSHIP)
+    save_job_posting("Alternance en développement", JobPosting.Category.APPRENTICESHIP)
+
+
+@pytest.mark.django_db
+@override_switch("internships", active=False)
+def test_index_job_postings_not_found_when_switch_inactive(client):
+    assert client.get(INDEX_JOB_POSTINGS_URL).status_code == 404
+
+
+@pytest.mark.django_db
+@override_switch("internships", active=True)
+def test_index_job_postings_lists_the_requested_category_only(client, job_postings):
+    response = client.get(INDEX_JOB_POSTINGS_URL, {"category": "apprenticeship"})
+
+    assert b"Alternance en d" in response.content
+    assert b"Stage de fin" not in response.content
+
+
+@pytest.mark.django_db
+@pytest.mark.parametrize("query", [{}, {"category": "inconnue"}])
+@override_switch("internships", active=True)
+def test_index_job_postings_defaults_to_higher_ed_internships(client, job_postings, query):
+    response = client.get(INDEX_JOB_POSTINGS_URL, query)
+
+    assert b"Stage de fin" in response.content
+    assert b"Alternance en d" not in response.content
+
+
+@pytest.mark.django_db
+@override_switch("internships", active=True)
+def test_index_job_postings_shows_every_domain_of_a_posting(client):
+    save_job_posting(
+        "Stage",
+        JobPosting.Category.HIGHER_ED_INTERNSHIP,
+        domains=[JobPosting.Domain.MATHEMATIQUES, JobPosting.Domain.SYSTEME_RESEAUX_DONNEES],
+    )
+
+    html = client.get(INDEX_JOB_POSTINGS_URL).content.decode()
+
+    for label in ["Mathématiques", "Système, réseaux, données"]:
+        assert re.search(rf"#job-domain.*?<span>\s*{label}\s*</span>", html, re.DOTALL)
+
+
+@pytest.mark.django_db
+@override_switch("internships", active=True)
+def test_index_job_postings_lists_the_latest_update_or_publication_first(client):
+    now = timezone.now()
+    category = JobPosting.Category.HIGHER_ED_INTERNSHIP
+    save_job_posting("Publiée il y a 5 jours", category, published_at=now - timedelta(days=5))
+    save_job_posting(
+        "Mise à jour aujourd'hui",
+        category,
+        published_at=now - timedelta(days=10),
+        source_updated_at=now,
+    )
+    save_job_posting("Publiée hier", category, published_at=now - timedelta(days=1))
+
+    content = client.get(INDEX_JOB_POSTINGS_URL).content.decode()
+
+    assert (
+        content.index("Mise à jour aujourd")
+        < content.index("Publiée hier")
+        < content.index("Publiée il y a 5 jours")
+    )
+
+
+@pytest.mark.django_db
+@pytest.mark.parametrize(
+    "query, active_href",
+    [
+        ({}, INDEX_JOB_POSTINGS_URL),
+        ({"category": "apprenticeship"}, f"{INDEX_JOB_POSTINGS_URL}?category=apprenticeship"),
+        (
+            {"category": "apprenticeship", "page": 2},
+            f"{INDEX_JOB_POSTINGS_URL}?category=apprenticeship",
+        ),
+    ],
+)
+@override_switch("internships", active=True)
+def test_index_job_postings_highlights_the_tab_of_the_category(client, query, active_href):
+    html = client.get(INDEX_JOB_POSTINGS_URL, query).content.decode()
+
+    assert re.findall(r'<a href="([^"]*)" role="tab"\s+class="[^"]*tab-active', html) == [
+        active_href
+    ]
+
+
+def listed_titles(response):
+    return {job_posting.title for job_posting in response.context["job_postings"]}
+
+
+@pytest.mark.django_db
+@pytest.mark.parametrize(
+    "query, expected",
+    [
+        ({"domain": "mathematiques"}, {"Maths", "Maths et réseaux"}),
+        ({"domain": ["mathematiques", "electronique"]}, {"Maths", "Maths et réseaux", "Électro"}),
+        ({"domain": "inconnu"}, {"Maths", "Maths et réseaux", "Électro"}),
+        ({}, {"Maths", "Maths et réseaux", "Électro"}),
+    ],
+)
+@override_switch("internships", active=True)
+def test_index_job_postings_keeps_the_postings_of_any_ticked_domain(client, query, expected):
+    category = JobPosting.Category.HIGHER_ED_INTERNSHIP
+    save_job_posting("Maths", category, domains=[JobPosting.Domain.MATHEMATIQUES])
+    save_job_posting(
+        "Maths et réseaux",
+        category,
+        domains=[JobPosting.Domain.MATHEMATIQUES, JobPosting.Domain.SYSTEME_RESEAUX_DONNEES],
+    )
+    save_job_posting("Électro", category, domains=[JobPosting.Domain.ELECTRONIQUE])
+
+    assert listed_titles(client.get(INDEX_JOB_POSTINGS_URL, query)) == expected
+
+
+@pytest.mark.django_db
+@pytest.mark.parametrize(
+    "query, expected",
+    [
+        ({"contract_type": "cdi"}, {"CDI"}),
+        ({"contract_type": ["cdi", "interim"]}, {"CDI", "Intérim"}),
+        ({"contract_type": "apprenticeship"}, {"CDD", "CDI", "Intérim"}),
+        ({}, {"CDD", "CDI", "Intérim"}),
+    ],
+)
+@override_switch("internships", active=True)
+def test_index_job_postings_keeps_the_postings_of_any_ticked_contract_type(
+    client, query, expected
+):
+    for title, contract_type in [
+        ("CDD", JobPosting.ContractType.CDD),
+        ("CDI", JobPosting.ContractType.CDI),
+        ("Intérim", JobPosting.ContractType.INTERIM),
+    ]:
+        save_job_posting(title, JobPosting.Category.FIRST_JOB, contract_type=contract_type)
+
+    response = client.get(INDEX_JOB_POSTINGS_URL, {"category": "first_job", **query})
+
+    assert listed_titles(response) == expected
+
+
+EVERY_PLACE = {
+    "Brest",
+    "Quimper",
+    "Ajaccio",
+    "Porto-Vecchio",
+    "Bastia",
+    "Saint-Denis",
+    "Saint-Pierre",
+    "Londres",
+}
+
+
+@pytest.mark.django_db
+@pytest.mark.parametrize(
+    "query, expected",
+    [
+        ({"department": "29"}, {"Brest", "Quimper"}),
+        (
+            {"department": ["2A", "974"]},
+            {"Ajaccio", "Porto-Vecchio", "Saint-Denis", "Saint-Pierre"},
+        ),
+        ({"department": "2B"}, {"Bastia"}),
+        ({"department": "99"}, {"Londres"}),
+        ({"department": "97"}, EVERY_PLACE),
+        ({}, EVERY_PLACE),
+    ],
+)
+@override_switch("internships", active=True)
+def test_index_job_postings_keeps_the_postings_of_any_ticked_department(client, query, expected):
+    category = JobPosting.Category.HIGHER_ED_INTERNSHIP
+    for title, cog_code in [
+        ("Brest", "29019"),
+        ("Ajaccio", "2A004"),
+        ("Saint-Denis", "97411"),
+        ("Londres", "99132"),
+    ]:
+        save_job_posting(title, category, cog_code=cog_code)
+    for title, postal_code in [
+        ("Quimper", "29000"),
+        ("Porto-Vecchio", "20137"),
+        ("Bastia", "20200"),
+        ("Saint-Pierre", "97410"),
+    ]:
+        save_job_posting(title, category, postal_code=postal_code)
+
+    assert listed_titles(client.get(INDEX_JOB_POSTINGS_URL, query)) == expected
+
+
+@pytest.mark.django_db
+@override_switch("internships", active=True)
+def test_index_job_postings_offers_every_domain(client):
+    html = client.get(INDEX_JOB_POSTINGS_URL).content.decode()
+
+    for domain in JobPosting.Domain:
+        assert f'value="{domain.value}"' in html
+        assert str(domain.label) in html
+
+
+@pytest.mark.django_db
+@pytest.mark.parametrize(
+    "category, offered",
+    [
+        ("first_job", ["cdd", "cdi", "interim"]),
+        ("apprenticeship", ["apprenticeship", "professionalization"]),
+        ("higher_ed_internship", []),
+        ("seconde_internship", []),
+        ("troisieme_internship", []),
+    ],
+)
+@override_switch("internships", active=True)
+def test_index_job_postings_offers_the_contract_types_of_the_category(client, category, offered):
+    html = client.get(INDEX_JOB_POSTINGS_URL, {"category": category}).content.decode()
+
+    assert re.findall(r'name="contract_type"\s+value="([^"]*)"', html) == offered
+    assert ("Type de contrat" in html) == bool(offered)
+
+
+@pytest.mark.django_db
+@pytest.mark.parametrize(
+    "category, offered",
+    [
+        ("higher_ed_internship", True),
+        ("apprenticeship", True),
+        ("first_job", True),
+        ("seconde_internship", False),
+        ("troisieme_internship", False),
+    ],
+)
+@override_switch("internships", active=True)
+def test_index_job_postings_offers_the_duration_filter_but_to_pupils(client, category, offered):
+    html = client.get(INDEX_JOB_POSTINGS_URL, {"category": category}).content.decode()
+
+    assert ('id="job_posting_duration"' in html) == offered
+
+
+@pytest.mark.django_db
+@override_switch("internships", active=True)
+def test_index_job_postings_offers_every_region_and_department(client):
+    html = client.get(INDEX_JOB_POSTINGS_URL).content.decode()
+
+    for region in REGIONS:
+        assert region.name in html
+        for department in region.departments:
+            assert re.search(rf'name="department"\s+value="{department.code}"', html)
+
+
+@pytest.fixture
+def twenty_one_apprenticeships():
+    for index in range(21):
+        save_job_posting(f"Alternance {index:02d}", JobPosting.Category.APPRENTICESHIP)
+
+
+@pytest.mark.django_db
+@override_switch("internships", active=True)
+def test_index_job_postings_shows_twenty_postings_and_a_link_to_the_next_page_of_the_category(
+    client, twenty_one_apprenticeships
+):
+    response = client.get(INDEX_JOB_POSTINGS_URL, {"category": "apprenticeship"})
+
+    assert len(response.context["job_postings"].object_list) == 20
+    assert b'href="?category=apprenticeship&page=2"' in response.content
+    assert "21&nbsp;offres" in response.content.decode()
+
+
+@pytest.mark.django_db
+@override_switch("internships", active=True)
+def test_index_job_postings_keeps_the_filters_in_the_link_to_the_next_page(
+    client, twenty_one_apprenticeships
+):
+    response = client.get(
+        INDEX_JOB_POSTINGS_URL,
+        {"category": "apprenticeship", "domain": "developpement", "page": "1"},
+    )
+
+    assert b'href="?category=apprenticeship&amp;domain=developpement&page=2"' in response.content
+
+
+@pytest.mark.django_db
+@override_switch("internships", active=True)
+def test_index_job_postings_ticks_the_filters_of_the_query(client):
+    html = client.get(
+        INDEX_JOB_POSTINGS_URL, {"domain": "mathematiques", "department": "29"}
+    ).content.decode()
+
+    assert re.findall(r'value="([^"]*)"\s+checked', html) == ["29", "mathematiques"]
+    assert 'name="region"' not in html
+
+
+@pytest.mark.django_db
+@override_switch("internships", active=True)
+def test_index_job_postings_ticks_the_contract_types_of_the_query(client):
+    html = client.get(
+        INDEX_JOB_POSTINGS_URL, {"category": "first_job", "contract_type": "cdi"}
+    ).content.decode()
+
+    assert re.findall(r'value="([^"]*)"\s+checked', html) == ["cdi"]
+
+
+@pytest.mark.django_db
+@override_switch("internships", active=True)
+def test_index_job_postings_serves_the_page_asked_for(client, twenty_one_apprenticeships):
+    response = client.get(INDEX_JOB_POSTINGS_URL, {"category": "apprenticeship", "page": 2})
+
+    assert response.context["job_postings"].number == 2
+    assert len(response.context["job_postings"].object_list) == 1
+
+
+@pytest.mark.django_db
+@pytest.mark.parametrize(
+    "active, href",
+    [
+        (True, INDEX_JOB_POSTINGS_URL),
+        (False, f"{NEW_UPCOMING_FEATURE_NOTIFICATION_URL}?feature=stage"),
+    ],
+)
+def test_beneficiary_home_links_job_postings_according_to_switch(client, active, href):
+    """Both the home card and the sidebar link there."""
+    with override_switch("internships", active=active):
+        html = client.get(reverse("home")).content.decode()
+
+    assert html.count(f'href="{href}"') == 2
+
+
 INDEX_EVENTS_URL = "/evenements/"
 
 
@@ -283,10 +633,13 @@ def test_index_events_leaves_an_unsaved_event_unmarked(client, beneficiary, salo
 
 @pytest.mark.django_db
 def test_index_events_saved_flag_costs_no_query_per_event(client, beneficiary, pro):
-    """Four events must cost what one costs: the flag is annotated, never fetched per row."""
+    """Four events must cost what one costs: the flag is annotated, never fetched per row.
+
+    A first render warms the cache of the switches the layout reads."""
 
     approved_event(pro, title="Événement 0").save()
     client.force_login(beneficiary)
+    client.get(INDEX_EVENTS_URL)
     with CaptureQueriesContext(connection) as one_event:
         client.get(INDEX_EVENTS_URL)
 
@@ -696,18 +1049,32 @@ def test_show_event_hides_an_event_awaiting_validation_from_a_beneficiary(
     assert client.get(reverse("show_event", args=[event.slug])).status_code == 404
 
 
-@pytest.mark.django_db
-def test_show_event_lets_a_staff_member_open_an_event_awaiting_validation(client, event):
-    staff = User.objects.create_user(
-        username="staff@example.com",
-        email="staff@example.com",
-        first_name="Ada",
-        last_name="Moderatrice",
-        is_staff=True,
+def _staff(email):
+    return User.objects.create_user(
+        username=email, email=email, first_name="Ada", last_name="Moderatrice", is_staff=True
     )
-    client.force_login(staff)
+
+
+@pytest.mark.django_db
+def test_show_event_lets_its_moderator_open_an_event_awaiting_validation(client, event, settings):
+    event.created_by.structure_type = Pro.StructureType.ASSOCIATION
+    event.created_by.save()
+    settings.COALITION_ASSOCIATION_RECIPIENTS = ["staff@example.com"]
+    client.force_login(_staff("staff@example.com"))
 
     assert client.get(reverse("show_event", args=[event.slug])).status_code == 200
+
+
+@pytest.mark.django_db
+def test_show_event_hides_an_event_awaiting_validation_from_another_teams_staff(
+    client, event, settings
+):
+    event.created_by.structure_type = Pro.StructureType.ASSOCIATION
+    event.created_by.save()
+    settings.COALITION_ASSOCIATION_RECIPIENTS = ["staff@example.com"]
+    client.force_login(_staff("other-team@example.com"))
+
+    assert client.get(reverse("show_event", args=[event.slug])).status_code == 404
 
 
 @pytest.mark.django_db
@@ -1106,6 +1473,7 @@ def test_index_makeuses_cards_read_the_creator_from_her_account(client, benefici
 def test_index_makeuses_reads_the_creators_without_a_query_per_card(client, beneficiary):
     linked = {"beneficiary": beneficiary, "creator_name": "", "contact_email": ""}
     build_makeuse_project(title="Projet 0", **linked).save()
+    client.get(reverse("index_makeuses"))
     with CaptureQueriesContext(connection) as one_project:
         client.get(reverse("index_makeuses"))
 
