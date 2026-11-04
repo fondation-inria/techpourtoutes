@@ -198,6 +198,17 @@ def test_seed_job_postings_are_idempotent():
 
 
 @pytest.mark.django_db
+def test_seed_job_postings_are_idempotent_once_unpublished():
+    with override_settings(SEED_ENABLED=True):
+        call_command("seed")
+        JobPosting.objects.update(hidden=True)
+        count = JobPosting.all_objects.count()
+        call_command("seed")
+
+    assert JobPosting.all_objects.count() == count
+
+
+@pytest.mark.django_db
 def test_seed_events_are_idempotent():
     with override_settings(SEED_ENABLED=True):
         call_command("seed")

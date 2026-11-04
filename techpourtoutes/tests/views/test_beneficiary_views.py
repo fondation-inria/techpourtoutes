@@ -230,6 +230,16 @@ def test_index_job_postings_defaults_to_higher_ed_internships(client, job_postin
 
 @pytest.mark.django_db
 @override_switch("internships", active=True)
+def test_index_job_postings_leaves_out_the_hidden_postings(client):
+    category = JobPosting.Category.HIGHER_ED_INTERNSHIP
+    save_job_posting("Publiée", category)
+    save_job_posting("Dépubliée", category, hidden=True)
+
+    assert listed_titles(client.get(INDEX_JOB_POSTINGS_URL)) == {"Publiée"}
+
+
+@pytest.mark.django_db
+@override_switch("internships", active=True)
 def test_index_job_postings_shows_every_domain_of_a_posting(client):
     save_job_posting(
         "Stage",

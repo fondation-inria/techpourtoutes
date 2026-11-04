@@ -23,6 +23,11 @@ class JobPostingQuerySet(BaseQuerySet):
         return self.filter(department_code__in=codes)
 
 
+class VisibleJobPostingManager(models.Manager.from_queryset(JobPostingQuerySet)):
+    def get_queryset(self):
+        return super().get_queryset().filter(hidden=False)
+
+
 class JobPosting(BaseModel):
     class Category(models.TextChoices):
         HIGHER_ED_INTERNSHIP = "higher_ed_internship", _("Stage dans le supérieur")
@@ -77,6 +82,9 @@ class JobPosting(BaseModel):
     class Source(models.TextChoices):
         APEC = "apec", _("Apec")
         MYFUTURE = "myfuture", _("MyFuture")
+
+    objects = VisibleJobPostingManager()
+    all_objects = models.Manager()
 
     CATEGORY_CONTRACT_TYPES = {
         Category.FIRST_JOB: [ContractType.CDD, ContractType.CDI, ContractType.INTERIM],
@@ -134,8 +142,11 @@ class JobPosting(BaseModel):
         null=True, blank=True, verbose_name=_("mise à jour chez le partenaire le")
     )
     url = models.URLField(verbose_name=_("lien de l'offre"))
-
-    objects = JobPostingQuerySet.as_manager()
+    hidden = models.BooleanField(
+        default=False,
+        verbose_name=_("dépubliée"),
+        help_text=_("Une offre dépubliée n'apparaît plus sur le site. Décocher la republie."),
+    )
 
     class Meta:
         verbose_name = _("Offre d'emploi")

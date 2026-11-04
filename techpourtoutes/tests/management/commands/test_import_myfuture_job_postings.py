@@ -44,6 +44,16 @@ def test_if_empty_skips_the_import_once_myfuture_offers_are_in(capsys, myfuture_
     assert "déjà" in capsys.readouterr().out
 
 
+def test_if_empty_counts_the_unpublished_offers_in(myfuture_record):
+    UpsertMyFutureJobPostings(records=[myfuture_record()])
+    JobPosting.objects.update(hidden=True)
+
+    with patch(SERVICE) as service:
+        call_command("import_myfuture_job_postings", if_empty=True)
+
+    service.assert_not_called()
+
+
 def test_if_empty_runs_the_import_when_only_other_sources_are_in():
     JobPosting(
         source=JobPosting.Source.APEC,

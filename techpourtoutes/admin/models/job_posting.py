@@ -1,4 +1,5 @@
 from django.contrib import admin
+from django.contrib.admin.utils import flatten_fieldsets
 from django.templatetags.static import static
 from django.utils.html import format_html
 from django.utils.safestring import mark_safe
@@ -6,15 +7,15 @@ from django.utils.translation import gettext_lazy as _
 
 from techpourtoutes.models import JobPosting
 
-from ..read_only import ReadOnlyAdminMixin
-
 
 @admin.register(JobPosting)
-class JobPostingAdmin(ReadOnlyAdminMixin, admin.ModelAdmin):
+class JobPostingAdmin(admin.ModelAdmin):
+    """Owned by the import, but for `hidden`: the team unpublishes an offer by hand."""
+
     list_display_links = ("title", "company_name", "source", "category", "contract_type")
     list_display = (*list_display_links, "offer_link")
     search_fields = ("title", "company_name")
-    list_filter = ("source", "category", "contract_type")
+    list_filter = ("source", "category", "contract_type", "hidden")
     fieldsets = (
         (
             "Informations générales",
@@ -47,6 +48,7 @@ class JobPostingAdmin(ReadOnlyAdminMixin, admin.ModelAdmin):
             "Informations techniques",
             {
                 "fields": (
+                    "hidden",
                     "url",
                     "published_at",
                     "source_updated_at",
@@ -58,7 +60,17 @@ class JobPostingAdmin(ReadOnlyAdminMixin, admin.ModelAdmin):
         ),
     )
 
-    readonly_fields = ("description", "company_logo_preview", "created_at", "updated_at")
+    def get_queryset(self, _request):
+        return JobPosting.all_objects.all()
+
+    def has_add_permission(self, _request):
+        return False
+
+    def has_delete_permission(self, _request, _obj=None):
+        return False
+
+    def get_readonly_fields(self, _request, _obj=None):
+        return [field for field in flatten_fieldsets(self.fieldsets) if field != "hidden"]
 
     @admin.display(description=_("description"))
     def description(self, job_posting):

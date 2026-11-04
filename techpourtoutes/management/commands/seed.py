@@ -175,9 +175,9 @@ class Command(BaseCommand):
 
     def _create_job_postings(self):
         now = timezone.now()
-        count_before = JobPosting.objects.count()
+        count_before = JobPosting.all_objects.count()
         for days_ago, fields in enumerate(JOB_POSTING_SEEDS):
-            JobPosting.objects.get_or_create(
+            JobPosting.all_objects.get_or_create(
                 source=JobPosting.Source.APEC if days_ago % 2 else JobPosting.Source.MYFUTURE,
                 external_id=f"seed-{days_ago}",
                 defaults={
@@ -193,7 +193,7 @@ class Command(BaseCommand):
             )
         self.stdout.write(
             self.style.SUCCESS(
-                f"  {JobPosting.objects.count() - count_before} job postings created."
+                f"  {JobPosting.all_objects.count() - count_before} job postings created."
             )
         )
 
