@@ -37,6 +37,7 @@ class JobPostingAdmin(ReadOnlyAdminMixin, admin.ModelAdmin):
                     "duration",
                     "postal_code",
                     "cog_code",
+                    "department_code",
                     "city",
                 )
             },
