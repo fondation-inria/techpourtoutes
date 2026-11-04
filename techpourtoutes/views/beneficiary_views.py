@@ -209,7 +209,8 @@ def index_job_postings(request):
     category = request.GET.get("category")
     if category not in JobPosting.Category.values:
         category = JobPosting.Category.HIGHER_ED_INTERNSHIP
-    ticked_domains = _ticked(request, "domain", JobPosting.Domain.values)
+    domains = JobPosting.domains_for(category)
+    ticked_domains = _ticked(request, "domain", domains)
     ticked_departments = _ticked(request, "department", DEPARTMENT_CODES)
     contract_types = JobPosting.CATEGORY_CONTRACT_TYPES.get(category, [])
     ticked_contract_types = _ticked(request, "contract_type", contract_types)
@@ -221,7 +222,7 @@ def index_job_postings(request):
         {
             "category": category,
             "query": query.urlencode(),
-            "domains": JobPosting.Domain.choices,
+            "domains": [(domain, domain.label) for domain in domains],
             "ticked_domains": ticked_domains,
             "regions": REGIONS,
             "ticked_departments": ticked_departments,

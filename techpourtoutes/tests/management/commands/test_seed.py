@@ -184,6 +184,7 @@ def test_seed_creates_more_than_a_page_of_higher_ed_internships_and_a_few_of_thr
     assert JobPosting.objects.filter(category=JobPosting.Category.FIRST_JOB).exists()
     assert JobPosting.objects.filter(category=JobPosting.Category.TROISIEME_INTERNSHIP).exists()
     assert not JobPosting.objects.filter(category=JobPosting.Category.SECONDE_INTERNSHIP).exists()
+    assert not JobPosting.objects.filter(department_code="").exists()
 
 
 @pytest.mark.django_db

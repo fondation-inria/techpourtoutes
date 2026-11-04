@@ -1,3 +1,3 @@
-postdeploy: python manage.py migrate && python manage.py collectstatic --noinput && python manage.py import_schools_and_formations --if-empty --sample
+postdeploy: python manage.py migrate && python manage.py collectstatic --noinput && python manage.py import_schools_and_formations --if-empty --sample && python manage.py import_myfuture_job_postings --if-empty --sample
 web: gunicorn conf.wsgi --config gunicorn.conf.py --log-file - --capture-output
 worker: celery -A conf worker --loglevel=info --concurrency=2

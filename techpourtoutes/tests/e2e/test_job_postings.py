@@ -81,11 +81,11 @@ def test_resetting_unticks_every_filter_at_once(page, live_server):
 @override_switch("internships", active=True)
 def test_ticking_a_filter_narrows_the_list_without_reloading_the_page(page, live_server):
     category = JobPosting.Category.HIGHER_ED_INTERNSHIP
-    save_job_posting("Stage à Brest", category, cog_code="29019")
+    save_job_posting("Stage à Brest", category, department_code="29")
     save_job_posting(
-        "Stage de maths à Brest", category, cog_code="29019", domains=["mathematiques"]
+        "Stage de maths à Brest", category, department_code="29", domains=["mathematiques"]
     )
-    save_job_posting("Stage à Rennes", category, cog_code="35238")
+    save_job_posting("Stage à Rennes", category, department_code="35")
     page.goto(f"{live_server.url}/stages-alternances-emplois/")
     location = page.get_by_role("button", name="Région / Département")
     location.click()

@@ -51,7 +51,6 @@
       "Bash(sudo *)",
       "Bash(chmod *)",
       "Bash(chown *)",
-      "Bash(curl *)",
       "Bash(wget *)",
       "Bash(ssh *)",
       "Bash(scp *)",
