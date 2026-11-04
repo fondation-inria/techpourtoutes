@@ -1,4 +1,8 @@
+from django.conf import settings
+
 from techpourtoutes.models import JobPosting
+
+MYFUTURE_SAMPLE_PATH = settings.BASE_DIR / "data" / "myfuture" / "job_postings_sample.json"
 
 # The sub-domains whose offers we import, keyed as MyFuture spells them: the parent domain's key
 # glued to the sub-domain's own slug.

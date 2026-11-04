@@ -26,7 +26,7 @@ def test_the_command_calls_the_service():
     service.assert_called_once_with(sample=False)
 
 
-def test_sample_asks_the_service_for_a_single_page():
+def test_sample_asks_the_service_for_the_committed_sample():
     with patch(SERVICE) as service:
         service.return_value.failure = False
         call_command("import_myfuture_job_postings", sample=True)
