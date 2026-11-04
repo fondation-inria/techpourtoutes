@@ -74,6 +74,20 @@ def test_job_posting_changelist_shows_title_company_source_and_type(
 
 
 @pytest.mark.django_db
+def test_job_posting_changelist_links_each_offer_on_its_source(verified_admin_client):
+    _job_posting()
+
+    content = verified_admin_client.get(reverse(CHANGELIST)).content.decode()
+
+    assert (
+        '<a href="https://www.myfuture.fr/offre/1" target="_blank" rel="noopener noreferrer"'
+        ' title="Voir l’offre (nouvelle fenêtre)" aria-label="Voir l’offre (nouvelle fenêtre)">'
+        in content
+    )
+    assert "svg/sprite.svg#external-link" in content
+
+
+@pytest.mark.django_db
 @pytest.mark.parametrize(
     ("query", "expected"),
     [("analyste", {"Data analyste"}), ("doctolib", {"Data analyste"})],
