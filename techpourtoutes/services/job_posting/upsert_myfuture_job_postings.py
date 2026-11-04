@@ -5,6 +5,7 @@ from django.utils.dateparse import parse_datetime
 from techpourtoutes.models import JobPosting
 from techpourtoutes.services.base import BaseService
 from techpourtoutes.utils.myfuture import SUB_DOMAINS
+from techpourtoutes.utils.territories import department_code
 
 # Lowercased, because MyFuture spells some of them several ways (`PMSMP`, `3einternship`).
 # An offer of several types lands in the first of them listed here.
@@ -27,6 +28,7 @@ MAPPED_FIELDS = [
     "description",
     "postal_code",
     "cog_code",
+    "department_code",
     "city",
     "domains",
     "company_logo",
@@ -65,6 +67,8 @@ class UpsertMyFutureJobPostings(BaseService):
     def _posting(self, record):
         address = record["address"]
         category = _category(record)
+        postal_code = address.get("postalCode") or ""
+        cog_code = address.get("inseeCode") or ""
         return JobPosting(
             source=JobPosting.Source.MYFUTURE,
             external_id=record["_id"],
@@ -75,8 +79,9 @@ class UpsertMyFutureJobPostings(BaseService):
                 tags=DESCRIPTION_TAGS,
                 attributes=DESCRIPTION_ATTRIBUTES,
             ),
-            postal_code=address.get("postalCode") or "",
-            cog_code=address.get("inseeCode") or "",
+            postal_code=postal_code,
+            cog_code=cog_code,
+            department_code=department_code(cog_code, postal_code),
             city=address["city"],
             domains=[SUB_DOMAINS[key] for key in record["subDomainKeys"] if key in SUB_DOMAINS],
             company_logo=record["owner_logo"] or "",

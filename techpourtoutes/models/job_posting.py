@@ -1,12 +1,8 @@
-import operator
-from functools import reduce
-
 from django.contrib.postgres.fields import ArrayField
 from django.db import models
 from django.utils.translation import gettext_lazy as _
 
 from techpourtoutes.models.base import BaseModel, BaseQuerySet
-from techpourtoutes.utils.territories import CORSICA_POSTAL_CODES
 
 
 class JobPostingQuerySet(BaseQuerySet):
@@ -22,21 +18,9 @@ class JobPostingQuerySet(BaseQuerySet):
         return self.filter(contract_type__in=contract_types)
 
     def in_departments(self, codes):
-        """A posting gives either its COG or its postal code, and both start with its
-        department's code: two characters long in mainland France, three overseas; 99 stands
-        for any foreign country in a COG. Corsica's postal codes all start with 20 instead."""
         if not codes:
             return self
-        return self.filter(reduce(operator.or_, map(_in_department, codes)))
-
-
-def _in_department(code):
-    postal_code = (
-        models.Q(postal_code__regex=CORSICA_POSTAL_CODES[code])
-        if code in CORSICA_POSTAL_CODES
-        else models.Q(postal_code__startswith=code)
-    )
-    return models.Q(cog_code__startswith=code) | postal_code
+        return self.filter(department_code__in=codes)
 
 
 class JobPosting(BaseModel):
@@ -58,26 +42,37 @@ class JobPosting(BaseModel):
         ELECTRONIQUE = "electronique", _("Électronique")
         ELECTROTECHNIQUE = "electrotechnique", _("Électrotechnique")
         TELECOMMUNICATIONS = "telecommunications", _("Télécommunications")
-        DEVELOPPEMENT = "developpement", _("Développement, programmation, logiciel")
+        BASES_DE_DONNEES = "bases_de_donnees", _("Bases de données")
+        DEVELOPPEMENT = "developpement", _("Développement - programmation - logiciel")
         INFORMATIQUE_DE_GESTION = "informatique_de_gestion", _("Informatique de gestion")
-        INFORMATIQUE_GENERALITES = "informatique_generalites", _("Informatique (généralités)")
-        INFORMATIQUE_INDUSTRIELLE = (
-            "informatique_industrielle",
-            _("Informatique industrielle et technologique"),
-        )
+        INFORMATIQUE = "informatique", _("Informatique")
+        INFORMATIQUE_INDUSTRIELLE = "informatique_industrielle", _("Informatique industrielle")
         INFORMATIQUE_POUR_LA_RECHERCHE = (
             "informatique_pour_la_recherche",
             _("Informatique pour la recherche"),
         )
-        DIRECTION_INFORMATIQUE = "direction_informatique", _("Direction informatique")
+        SYSTEMES_ET_RESEAUX = "systemes_et_reseaux", _("Systèmes et réseaux")
+        MATHEMATIQUES = "mathematiques", _("Mathématiques")
+        SCIENCES_DE_L_UNIVERS = "sciences_de_l_univers", _("Sciences de l’univers")
         EXPLOITATION_MAINTENANCE = (
             "exploitation_maintenance",
             _("Exploitation, maintenance informatique"),
         )
         MAITRISE_D_OUVRAGE = "maitrise_d_ouvrage", _("Maîtrise d’ouvrage et fonctionnel")
-        SYSTEME_RESEAUX_DONNEES = "systeme_reseaux_donnees", _("Système, réseaux, données")
-        MATHEMATIQUES = "mathematiques", _("Mathématiques")
-        SCIENCES_DE_L_UNIVERS = "sciences_de_l_univers", _("Sciences de l’univers")
+        CREATION = "creation", _("Création")
+        CONCEPTION_RECHERCHE = "conception_recherche", _("Conception, recherche")
+        DIRECTION_RECHERCHE_DEVELOPPEMENT = (
+            "direction_recherche_developpement",
+            _("Direction recherche et développement"),
+        )
+        PROJETS_SCIENTIFIQUES_TECHNIQUES = (
+            "projets_scientifiques_techniques",
+            _("Projets scientifiques et techniques"),
+        )
+        TEST_ESSAI_VALIDATION_EXPERTISE = (
+            "test_essai_validation_expertise",
+            _("Test, essai, validation, expertise"),
+        )
 
     class Source(models.TextChoices):
         APEC = "apec", _("Apec")
@@ -87,6 +82,18 @@ class JobPosting(BaseModel):
         Category.FIRST_JOB: [ContractType.CDD, ContractType.CDI, ContractType.INTERIM],
         Category.APPRENTICESHIP: [ContractType.APPRENTICESHIP, ContractType.PROFESSIONALIZATION],
     }
+
+    # Only Apec's offers, all of them for graduates, fall in these: pupils are never offered them.
+    APEC_DOMAINS = [
+        Domain.EXPLOITATION_MAINTENANCE,
+        Domain.MAITRISE_D_OUVRAGE,
+        Domain.CREATION,
+        Domain.CONCEPTION_RECHERCHE,
+        Domain.DIRECTION_RECHERCHE_DEVELOPPEMENT,
+        Domain.PROJETS_SCIENTIFIQUES_TECHNIQUES,
+        Domain.TEST_ESSAI_VALIDATION_EXPERTISE,
+    ]
+    PUPIL_CATEGORIES = [Category.SECONDE_INTERNSHIP, Category.TROISIEME_INTERNSHIP]
 
     CATEGORY_COLORS = {
         Category.HIGHER_ED_INTERNSHIP: "purple",
@@ -105,6 +112,9 @@ class JobPosting(BaseModel):
     description = models.TextField(verbose_name=_("description"))
     postal_code = models.CharField(max_length=10, blank=True, verbose_name=_("code postal"))
     cog_code = models.CharField(max_length=10, blank=True, verbose_name=_("COG"))
+    department_code = models.CharField(
+        max_length=3, blank=True, db_index=True, verbose_name=_("code du département")
+    )
     city = models.CharField(max_length=100, verbose_name=_("ville"))
     domains = ArrayField(
         models.CharField(max_length=255, choices=Domain.choices), verbose_name=_("domaines")
@@ -138,6 +148,12 @@ class JobPosting(BaseModel):
 
     def __str__(self):
         return self.title
+
+    @classmethod
+    def domains_for(cls, category):
+        if category in cls.PUPIL_CATEGORIES:
+            return [domain for domain in cls.Domain if domain not in cls.APEC_DOMAINS]
+        return list(cls.Domain)
 
     @property
     def category_color(self):

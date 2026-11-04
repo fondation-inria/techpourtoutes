@@ -12,3 +12,27 @@ def test_job_posting_rejects_a_domain_outside_the_choices():
         save_job_posting(
             "Stage", JobPosting.Category.HIGHER_ED_INTERNSHIP, domains=["Développement web"]
         )
+
+
+def test_job_posting_domains_are_the_normalized_list():
+    assert JobPosting.Domain.labels == [
+        "Électronique",
+        "Électrotechnique",
+        "Télécommunications",
+        "Bases de données",
+        "Développement - programmation - logiciel",
+        "Informatique de gestion",
+        "Informatique",
+        "Informatique industrielle",
+        "Informatique pour la recherche",
+        "Systèmes et réseaux",
+        "Mathématiques",
+        "Sciences de l’univers",
+        "Exploitation, maintenance informatique",
+        "Maîtrise d’ouvrage et fonctionnel",
+        "Création",
+        "Conception, recherche",
+        "Direction recherche et développement",
+        "Projets scientifiques et techniques",
+        "Test, essai, validation, expertise",
+    ]

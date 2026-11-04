@@ -234,12 +234,12 @@ def test_index_job_postings_shows_every_domain_of_a_posting(client):
     save_job_posting(
         "Stage",
         JobPosting.Category.HIGHER_ED_INTERNSHIP,
-        domains=[JobPosting.Domain.MATHEMATIQUES, JobPosting.Domain.SYSTEME_RESEAUX_DONNEES],
+        domains=[JobPosting.Domain.MATHEMATIQUES, JobPosting.Domain.SYSTEMES_ET_RESEAUX],
     )
 
     html = client.get(INDEX_JOB_POSTINGS_URL).content.decode()
 
-    for label in ["Mathématiques", "Système, réseaux, données"]:
+    for label in ["Mathématiques", "Systèmes et réseaux"]:
         assert re.search(rf"#job-domain.*?<span>\s*{label}\s*</span>", html, re.DOTALL)
 
 
@@ -308,7 +308,7 @@ def test_index_job_postings_keeps_the_postings_of_any_ticked_domain(client, quer
     save_job_posting(
         "Maths et réseaux",
         category,
-        domains=[JobPosting.Domain.MATHEMATIQUES, JobPosting.Domain.SYSTEME_RESEAUX_DONNEES],
+        domains=[JobPosting.Domain.MATHEMATIQUES, JobPosting.Domain.SYSTEMES_ET_RESEAUX],
     )
     save_job_posting("Électro", category, domains=[JobPosting.Domain.ELECTRONIQUE])
 
@@ -341,28 +341,15 @@ def test_index_job_postings_keeps_the_postings_of_any_ticked_contract_type(
     assert listed_titles(response) == expected
 
 
-EVERY_PLACE = {
-    "Brest",
-    "Quimper",
-    "Ajaccio",
-    "Porto-Vecchio",
-    "Bastia",
-    "Saint-Denis",
-    "Saint-Pierre",
-    "Londres",
-}
+EVERY_PLACE = {"Brest", "Ajaccio", "Saint-Denis", "Londres", "Nulle part"}
 
 
 @pytest.mark.django_db
 @pytest.mark.parametrize(
     "query, expected",
     [
-        ({"department": "29"}, {"Brest", "Quimper"}),
-        (
-            {"department": ["2A", "974"]},
-            {"Ajaccio", "Porto-Vecchio", "Saint-Denis", "Saint-Pierre"},
-        ),
-        ({"department": "2B"}, {"Bastia"}),
+        ({"department": "29"}, {"Brest"}),
+        ({"department": ["2A", "974"]}, {"Ajaccio", "Saint-Denis"}),
         ({"department": "99"}, {"Londres"}),
         ({"department": "97"}, EVERY_PLACE),
         ({}, EVERY_PLACE),
@@ -371,32 +358,51 @@ EVERY_PLACE = {
 @override_switch("internships", active=True)
 def test_index_job_postings_keeps_the_postings_of_any_ticked_department(client, query, expected):
     category = JobPosting.Category.HIGHER_ED_INTERNSHIP
-    for title, cog_code in [
-        ("Brest", "29019"),
-        ("Ajaccio", "2A004"),
-        ("Saint-Denis", "97411"),
-        ("Londres", "99132"),
+    for title, department in [
+        ("Brest", "29"),
+        ("Ajaccio", "2A"),
+        ("Saint-Denis", "974"),
+        ("Londres", "99"),
+        ("Nulle part", ""),
     ]:
-        save_job_posting(title, category, cog_code=cog_code)
-    for title, postal_code in [
-        ("Quimper", "29000"),
-        ("Porto-Vecchio", "20137"),
-        ("Bastia", "20200"),
-        ("Saint-Pierre", "97410"),
-    ]:
-        save_job_posting(title, category, postal_code=postal_code)
+        save_job_posting(title, category, department_code=department)
 
     assert listed_titles(client.get(INDEX_JOB_POSTINGS_URL, query)) == expected
 
 
 @pytest.mark.django_db
 @override_switch("internships", active=True)
-def test_index_job_postings_offers_every_domain(client):
-    html = client.get(INDEX_JOB_POSTINGS_URL).content.decode()
+@pytest.mark.parametrize(
+    "category, offers_apec_domains",
+    [
+        ("higher_ed_internship", True),
+        ("apprenticeship", True),
+        ("first_job", True),
+        ("seconde_internship", False),
+        ("troisieme_internship", False),
+    ],
+)
+def test_index_job_postings_offers_the_domains_of_the_category(
+    client, category, offers_apec_domains
+):
+    html = client.get(INDEX_JOB_POSTINGS_URL, {"category": category}).content.decode()
 
     for domain in JobPosting.Domain:
-        assert f'value="{domain.value}"' in html
-        assert str(domain.label) in html
+        offered = offers_apec_domains or domain not in JobPosting.APEC_DOMAINS
+        assert (f'value="{domain.value}"' in html) == offered
+        assert (str(domain.label) in html) == offered
+
+
+@pytest.mark.django_db
+@override_switch("internships", active=True)
+def test_index_job_postings_ignores_an_apec_domain_ticked_on_a_pupils_tab(client):
+    category = JobPosting.Category.TROISIEME_INTERNSHIP
+    save_job_posting("Création", category, domains=[JobPosting.Domain.CREATION])
+    save_job_posting("Électro", category, domains=[JobPosting.Domain.ELECTRONIQUE])
+
+    response = client.get(INDEX_JOB_POSTINGS_URL, {"category": category, "domain": "creation"})
+
+    assert listed_titles(response) == {"Création", "Électro"}
 
 
 @pytest.mark.django_db

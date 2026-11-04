@@ -25,8 +25,9 @@ def test_an_offer_is_mapped_onto_a_job_posting(myfuture_record):
     assert posting.description == "<p>Explorez le métier d’électricien.</p>"
     assert posting.postal_code == "32110"
     assert posting.cog_code == "32094"
+    assert posting.department_code == "32"
     assert posting.city == "Caupenne-d'Armagnac"
-    assert posting.domains == ["électrotechnique"]
+    assert posting.domains == [JobPosting.Domain.ELECTROTECHNIQUE]
     assert posting.duration == ""
     assert posting.company_logo == ""
     assert posting.category == Category.TROISIEME_INTERNSHIP
@@ -160,7 +161,10 @@ def test_only_the_sub_domains_we_follow_become_domains(myfuture_record):
 
     UpsertMyFutureJobPostings(records=[record])
 
-    assert JobPosting.objects.get().domains == ["systèmes et réseaux", "mathématiques"]
+    assert JobPosting.objects.get().domains == [
+        JobPosting.Domain.SYSTEMES_ET_RESEAUX,
+        JobPosting.Domain.MATHEMATIQUES,
+    ]
 
 
 def test_the_description_keeps_its_layout_but_loses_whatever_could_run(myfuture_record):

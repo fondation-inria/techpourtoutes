@@ -12,7 +12,7 @@ class Region(NamedTuple):
     departments: tuple[Department, ...]
 
 
-# INSEE codes.
+# INSEE codes, but for the overseas collectivities, which make up no region.
 REGIONS = (
     Region(
         "84",
@@ -193,10 +193,39 @@ REGIONS = (
     Region("03", "Guyane", (Department("973", "Guyane"),)),
     Region("04", "La Réunion", (Department("974", "La Réunion"),)),
     Region("06", "Mayotte", (Department("976", "Mayotte"),)),
+    Region(
+        "com",
+        "Collectivités d’outre-mer",
+        (
+            Department("975", "Saint-Pierre-et-Miquelon"),
+            Department("977", "Saint-Barthélemy"),
+            Department("978", "Saint-Martin"),
+            Department("986", "Wallis-et-Futuna"),
+            Department("987", "Polynésie française"),
+            Department("988", "Nouvelle-Calédonie"),
+        ),
+    ),
     Region("99", "Pays étranger", (Department("99", "Pays étranger"),)),
 )
 
 DEPARTMENT_CODES = {department.code for region in REGIONS for department in region.departments}
 
 # Corsica's postal codes all start with 20 rather than with their department's code.
-CORSICA_POSTAL_CODES = {"2A": r"^20[01]", "2B": r"^20[2-6]"}
+CORSICA_POSTAL_CODES = {
+    "200": "2A",
+    "201": "2A",
+    "202": "2B",
+    "203": "2B",
+    "204": "2B",
+    "205": "2B",
+    "206": "2B",
+}
+
+
+def department_code(cog_code, postal_code):
+    """Both a COG and a postal code start with their department's code: three characters long
+    overseas, two elsewhere; 99 stands for any foreign country in a COG. Blank when neither
+    gives a department we list."""
+    code = cog_code or CORSICA_POSTAL_CODES.get(postal_code[:3], postal_code)
+    department = code[:3] if code.startswith(("97", "98")) else code[:2]
+    return department if department in DEPARTMENT_CODES else ""
