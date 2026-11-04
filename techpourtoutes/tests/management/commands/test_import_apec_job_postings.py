@@ -60,7 +60,7 @@ def test_if_empty_runs_the_import_when_only_other_sources_are_in():
         company_name="Didier Ducom",
         description="…",
         city="Caupenne-d'Armagnac",
-        domains=["électrotechnique"],
+        domains=[JobPosting.Domain.ELECTROTECHNIQUE],
         category=JobPosting.Category.TROISIEME_INTERNSHIP,
         published_at=datetime(2026, 1, 1, tzinfo=UTC),
         url="https://myfutu.re/internships/offers/22NisRqehckrMvEu3",
