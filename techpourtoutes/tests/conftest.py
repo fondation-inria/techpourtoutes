@@ -366,6 +366,43 @@ def myfuture_record():
 
 
 @pytest.fixture
+def apec_record():
+    """One offer of the Apec export, keyed by the names of its tags."""
+
+    def build(external_id="179254673W", **overrides):
+        return {
+            "Reference_apec": external_id,
+            "Date_parution": "11/08/2026 16:39:57",
+            "Intitule": "Développeur BI F/H",
+            "Oqa": "Non",
+            "Nombre_postes": "1",
+            "Type_contrat": "CDD",
+            "Duree_contrat": "12",
+            "Statut": "Agent de maîtrise / Technicien",
+            "Niveau_experience": "Minimum 3 ans",
+            "Salaire_affiche": "A partir de 38 k€ brut annuel",
+            "JOB_fonction": "06F",
+            "Libelle_fonction": "Maîtrise d'ouvrage et fonctionnel",
+            "NAF_secteur": "4931Z",
+            "Libelle_secteur": "TRANSPORTS URBAINS ET SUBURBAINS DE VOYAGEURS",
+            "Texte_offre": '<p title="description_offre"><p>D&eacute;veloppeur BI</p></p>',
+            "Nom_entreprise": "TRANSPORTS DE L'AGGLOMÉRATION",
+            "Logo_entreprise": "/media_entreprise/804755/logo_B-HIVE_804755_1282656.png",
+            "URL": (
+                "https://www.apec.fr/candidat/recherche-emploi.html/emploi/detail-offre/"
+                f"{external_id}?xtor=#at_medium=affiliate&at_campaign=Export_offres_techpourtoutes"
+                "&at_type=partenaire_export"
+            ),
+            "Zone_deplacement": "Pas de déplacement",
+            "COG_lieu": "75101",
+            "Libelle_lieu": "PARIS 01",
+            **overrides,
+        }
+
+    return build
+
+
+@pytest.fixture
 def valid_pro_model_data():
     return {
         "civility": "Madame",

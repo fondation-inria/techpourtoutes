@@ -4,6 +4,7 @@ from django.utils.dateparse import parse_datetime
 
 from techpourtoutes.models import JobPosting
 from techpourtoutes.services.base import BaseService
+from techpourtoutes.utils.job_posting import DESCRIPTION_ATTRIBUTES, DESCRIPTION_TAGS
 from techpourtoutes.utils.myfuture import SUB_DOMAINS
 from techpourtoutes.utils.territories import department_code
 
@@ -17,10 +18,6 @@ CATEGORIES = {
     "apprenticeship": JobPosting.Category.APPRENTICESHIP,
     "pmsmp": JobPosting.Category.FIRST_JOB,
 }
-
-# HTML tags the descriptions use to lay themselves out; everything else is dropped, its text kept.
-DESCRIPTION_TAGS = {"p", "br", "h2", "h3", "h4", "ul", "ol", "li", "strong", "em", "u", "sup", "a"}
-DESCRIPTION_ATTRIBUTES = {"a": {"href"}}
 
 MAPPED_FIELDS = [
     "title",
