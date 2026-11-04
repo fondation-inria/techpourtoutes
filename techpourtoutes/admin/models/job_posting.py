@@ -1,4 +1,5 @@
 from django.contrib import admin
+from django.templatetags.static import static
 from django.utils.html import format_html
 from django.utils.safestring import mark_safe
 from django.utils.translation import gettext_lazy as _
@@ -10,8 +11,8 @@ from ..read_only import ReadOnlyAdminMixin
 
 @admin.register(JobPosting)
 class JobPostingAdmin(ReadOnlyAdminMixin, admin.ModelAdmin):
-    list_display = ("title", "company_name", "source", "category", "contract_type")
-    list_display_links = list_display
+    list_display_links = ("title", "company_name", "source", "category", "contract_type")
+    list_display = (*list_display_links, "offer_link")
     search_fields = ("title", "company_name")
     list_filter = ("source", "category", "contract_type")
     fieldsets = (
@@ -63,6 +64,18 @@ class JobPostingAdmin(ReadOnlyAdminMixin, admin.ModelAdmin):
     def description(self, job_posting):
         """Sanitised by the import, down to the tags it lays itself out with."""
         return mark_safe(job_posting.description)
+
+    @admin.display(description=_("lien"))
+    def offer_link(self, job_posting):
+        return format_html(
+            '<a href="{}" target="_blank" rel="noopener noreferrer" title="{label}"'
+            ' aria-label="{label}">'
+            '<svg width="16" height="16" aria-hidden="true" focusable="false">'
+            '<use href="{}#external-link"></use></svg></a>',
+            job_posting.url,
+            static("svg/sprite.svg"),
+            label="Voir l’offre (nouvelle fenêtre)",
+        )
 
     @admin.display(description=_("aperçu du logo"))
     def company_logo_preview(self, job_posting):
