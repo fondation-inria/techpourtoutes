@@ -57,6 +57,8 @@ NEVER_LISTED_URL_NAMES = {
     # Redirects
     "a_propos",
     "informations_legales",
+    # 404 until the internships switch is on
+    "index_job_postings",
 }
 
 

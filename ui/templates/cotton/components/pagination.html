@@ -1,5 +1,5 @@
 {% load pagination %}
-<c-vars page="" anchor="" class="" />
+<c-vars page="" anchor="" query="" class="" />
 
 {% if page.paginator.num_pages > 1 %}
     <nav aria-label="Pagination"
@@ -9,13 +9,13 @@
             {% if number == page.paginator.ELLIPSIS %}
                 <span class="join-item btn btn-disabled border-x-0! bg-white font-normal text-black">{{ number }}</span>
             {% elif number == page.number %}
-                <a href="?page={{ number }}{% if anchor %}#{{ anchor }}{% endif %}"
-                   {% if anchor %}hx-get="?page={{ number }}"{% endif %}
+                <a href="?{% if query %}{{ query }}&{% endif %}page={{ number }}{% if anchor %}#{{ anchor }}{% endif %}"
+                   {% if anchor %}hx-get="?{% if query %}{{ query }}&{% endif %}page={{ number }}"{% endif %}
                    aria-current="page"
                    class="join-item btn bg-yellow-500 font-medium text-neutral-950">{{ number }}</a>
             {% else %}
-                <a href="?page={{ number }}{% if anchor %}#{{ anchor }}{% endif %}"
-                   {% if anchor %}hx-get="?page={{ number }}"{% endif %}
+                <a href="?{% if query %}{{ query }}&{% endif %}page={{ number }}{% if anchor %}#{{ anchor }}{% endif %}"
+                   {% if anchor %}hx-get="?{% if query %}{{ query }}&{% endif %}page={{ number }}"{% endif %}
                    class="join-item btn bg-neutral-0 font-normal text-black hover:bg-yellow-500/20">{{ number }}</a>
             {% endif %}
         {% endfor %}

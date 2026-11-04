@@ -1,12 +1,47 @@
+import operator
+from functools import reduce
+
+from django.contrib.postgres.fields import ArrayField
 from django.db import models
 from django.utils.translation import gettext_lazy as _
 
-from techpourtoutes.models.base import BaseModel
+from techpourtoutes.models.base import BaseModel, BaseQuerySet
+from techpourtoutes.utils.territories import CORSICA_POSTAL_CODES
+
+
+class JobPostingQuerySet(BaseQuerySet):
+    def in_domains(self, domains):
+        """No ticked domain means no filter, not an empty list."""
+        if not domains:
+            return self
+        return self.filter(domains__overlap=domains)
+
+    def with_contract_types(self, contract_types):
+        if not contract_types:
+            return self
+        return self.filter(contract_type__in=contract_types)
+
+    def in_departments(self, codes):
+        """A posting gives either its COG or its postal code, and both start with its
+        department's code: two characters long in mainland France, three overseas; 99 stands
+        for any foreign country in a COG. Corsica's postal codes all start with 20 instead."""
+        if not codes:
+            return self
+        return self.filter(reduce(operator.or_, map(_in_department, codes)))
+
+
+def _in_department(code):
+    postal_code = (
+        models.Q(postal_code__regex=CORSICA_POSTAL_CODES[code])
+        if code in CORSICA_POSTAL_CODES
+        else models.Q(postal_code__startswith=code)
+    )
+    return models.Q(cog_code__startswith=code) | postal_code
 
 
 class JobPosting(BaseModel):
     class Category(models.TextChoices):
-        HIGHER_ED_INTERNSHIP = "higher_ed_internship", _("Stage du supérieur")
+        HIGHER_ED_INTERNSHIP = "higher_ed_internship", _("Stage dans le supérieur")
         APPRENTICESHIP = "apprenticeship", _("Alternance")
         SECONDE_INTERNSHIP = "seconde_internship", _("Stage de seconde")
         TROISIEME_INTERNSHIP = "troisieme_internship", _("Stage de troisième")
@@ -19,9 +54,47 @@ class JobPosting(BaseModel):
         APPRENTICESHIP = "apprenticeship", _("Contrat d'apprentissage")
         PROFESSIONALIZATION = "professionalization", _("Contrat de professionnalisation")
 
+    class Domain(models.TextChoices):
+        ELECTRONIQUE = "electronique", _("Électronique")
+        ELECTROTECHNIQUE = "electrotechnique", _("Électrotechnique")
+        TELECOMMUNICATIONS = "telecommunications", _("Télécommunications")
+        DEVELOPPEMENT = "developpement", _("Développement, programmation, logiciel")
+        INFORMATIQUE_DE_GESTION = "informatique_de_gestion", _("Informatique de gestion")
+        INFORMATIQUE_GENERALITES = "informatique_generalites", _("Informatique (généralités)")
+        INFORMATIQUE_INDUSTRIELLE = (
+            "informatique_industrielle",
+            _("Informatique industrielle et technologique"),
+        )
+        INFORMATIQUE_POUR_LA_RECHERCHE = (
+            "informatique_pour_la_recherche",
+            _("Informatique pour la recherche"),
+        )
+        DIRECTION_INFORMATIQUE = "direction_informatique", _("Direction informatique")
+        EXPLOITATION_MAINTENANCE = (
+            "exploitation_maintenance",
+            _("Exploitation, maintenance informatique"),
+        )
+        MAITRISE_D_OUVRAGE = "maitrise_d_ouvrage", _("Maîtrise d’ouvrage et fonctionnel")
+        SYSTEME_RESEAUX_DONNEES = "systeme_reseaux_donnees", _("Système, réseaux, données")
+        MATHEMATIQUES = "mathematiques", _("Mathématiques")
+        SCIENCES_DE_L_UNIVERS = "sciences_de_l_univers", _("Sciences de l’univers")
+
     class Source(models.TextChoices):
         APEC = "apec", _("Apec")
         MYFUTURE = "myfuture", _("MyFuture")
+
+    CATEGORY_CONTRACT_TYPES = {
+        Category.FIRST_JOB: [ContractType.CDD, ContractType.CDI, ContractType.INTERIM],
+        Category.APPRENTICESHIP: [ContractType.APPRENTICESHIP, ContractType.PROFESSIONALIZATION],
+    }
+
+    CATEGORY_COLORS = {
+        Category.HIGHER_ED_INTERNSHIP: "purple",
+        Category.APPRENTICESHIP: "orange",
+        Category.SECONDE_INTERNSHIP: "green",
+        Category.TROISIEME_INTERNSHIP: "blue",
+        Category.FIRST_JOB: "yellow",
+    }
 
     source = models.CharField(
         max_length=20, choices=Source.choices, verbose_name=_("source de l'offre")
@@ -33,7 +106,9 @@ class JobPosting(BaseModel):
     postal_code = models.CharField(max_length=10, blank=True, verbose_name=_("code postal"))
     cog_code = models.CharField(max_length=10, blank=True, verbose_name=_("COG"))
     city = models.CharField(max_length=100, verbose_name=_("ville"))
-    domain = models.CharField(max_length=255, verbose_name=_("domaine"))
+    domains = ArrayField(
+        models.CharField(max_length=255, choices=Domain.choices), verbose_name=_("domaines")
+    )
     duration = models.CharField(blank=True, max_length=255, verbose_name=_("durée"))
     company_logo = models.URLField(
         max_length=500, blank=True, verbose_name=_("logo de l'entreprise")
@@ -50,6 +125,8 @@ class JobPosting(BaseModel):
     )
     url = models.URLField(verbose_name=_("lien de l'offre"))
 
+    objects = JobPostingQuerySet.as_manager()
+
     class Meta:
         verbose_name = _("offre")
         verbose_name_plural = _("offres")
@@ -61,3 +138,11 @@ class JobPosting(BaseModel):
 
     def __str__(self):
         return self.title
+
+    @property
+    def category_color(self):
+        return self.CATEGORY_COLORS[self.category]
+
+    @property
+    def domain_labels(self):
+        return [self.Domain(domain).label for domain in self.domains]

@@ -6,10 +6,12 @@ from django.contrib.auth.decorators import login_required
 from django.core.exceptions import ValidationError
 from django.core.paginator import Paginator
 from django.db.models import Exists, OuterRef, Value
+from django.db.models.functions import Coalesce
 from django.http import Http404
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
 from django.views.decorators.http import require_POST
+from waffle.decorators import waffle_switch
 
 from ..forms import (
     BeneficiaryHigherEducationTrainingExperienceForm,
@@ -18,12 +20,14 @@ from ..forms import (
     StudyStatus,
     UpcomingFeatureNotificationForm,
 )
-from ..models import Event, MakeuseProject, SavedEvent
+from ..models import Event, JobPosting, MakeuseProject, SavedEvent
 from ..tasks import create_upcoming_feature_notification_task
 from ..utils.dates import compute_age
+from ..utils.territories import DEPARTMENT_CODES, REGIONS
 
 EVENTS_PER_PAGE = 18
 MAKEUSE_PROJECTS_PER_PAGE = 6
+JOB_POSTINGS_PER_PAGE = 20
 
 # ------------------- pages -------------------
 
@@ -198,6 +202,47 @@ def show_participation_modal(request, pk):
 
 def _render_upcoming_feature_notification_form(request, form):
     return render(request, "beneficiary/new_upcoming_feature_notification.html", {"form": form})
+
+
+@waffle_switch("internships")
+def index_job_postings(request):
+    category = request.GET.get("category")
+    if category not in JobPosting.Category.values:
+        category = JobPosting.Category.HIGHER_ED_INTERNSHIP
+    ticked_domains = _ticked(request, "domain", JobPosting.Domain.values)
+    ticked_departments = _ticked(request, "department", DEPARTMENT_CODES)
+    contract_types = JobPosting.CATEGORY_CONTRACT_TYPES.get(category, [])
+    ticked_contract_types = _ticked(request, "contract_type", contract_types)
+    query = request.GET.copy()
+    query.pop("page", None)
+    return render(
+        request,
+        "beneficiary/index_job_postings.html",
+        {
+            "category": category,
+            "query": query.urlencode(),
+            "domains": JobPosting.Domain.choices,
+            "ticked_domains": ticked_domains,
+            "regions": REGIONS,
+            "ticked_departments": ticked_departments,
+            "contract_types": [
+                (contract_type, contract_type.label) for contract_type in contract_types
+            ],
+            "ticked_contract_types": ticked_contract_types,
+            "job_postings": Paginator(
+                JobPosting.objects.filter(category=category)
+                .in_domains(ticked_domains)
+                .in_departments(ticked_departments)
+                .with_contract_types(ticked_contract_types)
+                .order_by(Coalesce("source_updated_at", "published_at").desc()),
+                JOB_POSTINGS_PER_PAGE,
+            ).get_page(request.GET.get("page")),
+        },
+    )
+
+
+def _ticked(request, name, allowed):
+    return [value for value in request.GET.getlist(name) if value in allowed]
 
 
 # ------------------- events -------------------
