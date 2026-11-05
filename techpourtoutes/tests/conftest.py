@@ -1,5 +1,6 @@
 from datetime import date, time, timedelta
 from decimal import Decimal
+from xml.sax.saxutils import escape
 
 import boto3
 import httpx
@@ -398,6 +399,26 @@ def apec_record():
             "Libelle_lieu": "PARIS 01",
             **overrides,
         }
+
+    return build
+
+
+@pytest.fixture
+def apec_export():
+    """The export Apec's SFTP server would serve today, listing these offers."""
+
+    def build(*records):
+        offers = "".join(
+            "<Offre_emploi>"
+            + "".join(f"<{tag}>{escape(text)}</{tag}>" for tag, text in record.items())
+            + "</Offre_emploi>"
+            for record in records
+        )
+        exported_at = f"{timezone.localtime():%d/%m/%Y %H:%M:%S}"
+        return (
+            f"<Export_offres><Export><Date_export>{exported_at}</Date_export></Export>"
+            f"{offers}</Export_offres>"
+        ).encode()
 
     return build
 

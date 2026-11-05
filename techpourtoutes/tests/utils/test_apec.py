@@ -1,7 +1,10 @@
 from datetime import date
 from io import BytesIO
+from xml.etree.ElementTree import ParseError
 
-from techpourtoutes.utils.apec import APEC_SAMPLE_PATH, read_apec_xml
+import pytest
+
+from techpourtoutes.utils.apec import APEC_SAMPLE_PATH, read_apec_export_date, read_apec_offers
 
 EXPORT = b"""<?xml version='1.0' encoding='UTF-8'?>
 <Export_offres>
@@ -29,13 +32,17 @@ EXPORT = b"""<?xml version='1.0' encoding='UTF-8'?>
 
 
 def test_the_day_apec_wrote_the_export_is_read():
-    exported_on, _ = read_apec_xml(BytesIO(EXPORT))
+    assert read_apec_export_date(BytesIO(EXPORT)) == date(2026, 11, 2)
 
-    assert exported_on == date(2026, 11, 2)
+
+def test_an_export_cut_short_gives_no_date_though_its_date_came_first():
+    """Read to its end: a download cut short fails there, before any offer is written."""
+    with pytest.raises(ParseError):
+        read_apec_export_date(BytesIO(EXPORT[:-40]))
 
 
 def test_every_offer_is_read_keyed_by_its_tags_out_of_their_cdata():
-    _, (first, second) = read_apec_xml(BytesIO(EXPORT))
+    first, second = read_apec_offers(BytesIO(EXPORT))
 
     assert first == {
         "Reference_apec": "179254673W",
@@ -47,8 +54,17 @@ def test_every_offer_is_read_keyed_by_its_tags_out_of_their_cdata():
     assert second == {"Reference_apec": "179334000W", "Type_contrat": "CDI"}
 
 
+def test_the_offers_are_handed_over_one_at_a_time():
+    """The export weighs some 60 MB: an offer is handed over before the next one is read."""
+    offers = read_apec_offers(BytesIO(EXPORT[:-40]))
+
+    assert next(offers)["Reference_apec"] == "179254673W"
+    with pytest.raises(ParseError):
+        next(offers)
+
+
 def test_the_committed_sample_is_an_export_like_the_others():
-    _, records = read_apec_xml(APEC_SAMPLE_PATH)
+    records = list(read_apec_offers(APEC_SAMPLE_PATH))
 
     assert len(records) == 40
     assert all(record["Reference_apec"] for record in records)

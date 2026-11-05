@@ -8,6 +8,7 @@ class TechpourtoutesConfig(AppConfig):
         from .models import Beneficiary, Pro, User
         from .signals import (
             connect_brevo_sync,
+            connect_lost_task_reporting,
             connect_mentoring_to_legal_representative_authorization,
             connect_staff_flag_sync,
             connect_updated_at_triggers,
@@ -18,3 +19,4 @@ class TechpourtoutesConfig(AppConfig):
         connect_staff_flag_sync(User)
         connect_mentoring_to_legal_representative_authorization()
         connect_updated_at_triggers(self)
+        connect_lost_task_reporting()

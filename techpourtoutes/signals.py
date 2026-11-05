@@ -1,3 +1,6 @@
+import sentry_sdk
+from billiard.exceptions import WorkerLostError
+from celery.signals import task_failure
 from django.conf import settings
 from django.db import connections, transaction
 from django.db.models.signals import m2m_changed, post_migrate, post_save, pre_delete
@@ -72,6 +75,23 @@ def _on_user_groups_changed(instance, action, reverse, **kwargs):
 def _register_mentoree(sender, authorization, **kwargs):
     """A minor's mentoring was only waiting for her legal representative's signature."""
     create_mentoree_task.delay(beneficiary_pk=str(authorization.beneficiary.pk))
+
+
+def _report_lost_task(sender, exception, **kwargs):
+    """A worker process killed mid-task, out of memory say, cannot report anything itself: the
+    worker's main process does, naming the task. A task that raised is the Celery integration's."""
+    if not isinstance(exception, WorkerLostError):
+        return
+    sentry_sdk.capture_message(
+        f"{sender.name} did not complete: {exception}",
+        level="error",
+        fingerprint=["celery-worker-lost", sender.name],
+        tags={"celery_task": sender.name},
+    )
+
+
+def connect_lost_task_reporting():
+    task_failure.connect(_report_lost_task, weak=False)
 
 
 def connect_staff_flag_sync(model_cls):

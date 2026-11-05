@@ -1,12 +1,17 @@
 from unittest.mock import patch
 
 import pytest
+from billiard.exceptions import WorkerLostError
+from celery.signals import task_failure
 from django.core.management.sql import emit_post_migrate_signal
 from django.db import connection, transaction
 from django.test import override_settings
 
 from techpourtoutes.models import LegalRepresentativeAuthorization, Pro
 from techpourtoutes.signals import legal_representative_authorization_signed
+from techpourtoutes.tasks import import_apec_job_postings_task
+
+APEC_TASK = "techpourtoutes.tasks.import_apec_job_postings.import_apec_job_postings_task"
 
 
 @pytest.fixture
@@ -199,3 +204,29 @@ def test_the_update_date_triggers_are_installed_after_every_migration():
         emit_post_migrate_signal(verbosity=0, interactive=False, db="default")
 
     install.assert_called_once_with(connection)
+
+
+def test_a_task_whose_worker_process_died_is_reported_to_sentry_by_its_name():
+    """Killed mid-task, the process cannot report anything: the worker's main process does."""
+    with patch("techpourtoutes.signals.sentry_sdk.capture_message") as capture:
+        task_failure.send(
+            sender=import_apec_job_postings_task,
+            task_id="261f7130",
+            exception=WorkerLostError("Worker exited prematurely: signal 9 (SIGKILL) Job: 2."),
+        )
+
+    capture.assert_called_once_with(
+        f"{APEC_TASK} did not complete: Worker exited prematurely: signal 9 (SIGKILL) Job: 2.",
+        level="error",
+        fingerprint=["celery-worker-lost", APEC_TASK],
+        tags={"celery_task": APEC_TASK},
+    )
+
+
+def test_a_task_that_raised_is_left_to_the_celery_integration():
+    with patch("techpourtoutes.signals.sentry_sdk.capture_message") as capture:
+        task_failure.send(
+            sender=import_apec_job_postings_task, task_id="261f7130", exception=RuntimeError()
+        )
+
+    capture.assert_not_called()
