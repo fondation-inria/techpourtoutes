@@ -1,3 +1,4 @@
+import tempfile
 from datetime import timedelta
 from unittest.mock import MagicMock, patch
 
@@ -30,20 +31,27 @@ def _serving(content):
     return lambda export: export.write(content.encode())
 
 
-@pytest.mark.parametrize("days_ago", [0, 1, 3])
-def test_the_export_is_downloaded_and_read(days_ago):
-    """Apec writes no export on Sundays and Mondays: Saturday's is read again, unchanged."""
-    with patch(DOWNLOAD, side_effect=_serving(_export(days_ago=days_ago))):
-        result = FetchApecJobPostings()
+def _fetch():
+    with tempfile.TemporaryFile() as export:
+        return FetchApecJobPostings(file=export)
 
-    assert result.success
-    assert result.apec_records == [{"Reference_apec": "179254673W"}]
+
+@pytest.mark.parametrize("days_ago", [0, 1, 3])
+def test_the_export_is_downloaded_into_the_file_handed_over(days_ago):
+    """Apec writes no export on Sundays and Mondays: Saturday's is read again, unchanged."""
+    export = _export(days_ago=days_ago)
+    with patch(DOWNLOAD, side_effect=_serving(export)), tempfile.TemporaryFile() as file:
+        result = FetchApecJobPostings(file=file)
+        file.seek(0)
+
+        assert result.success
+        assert file.read().decode() == export
 
 
 def test_an_export_left_unchanged_for_more_than_three_days_fails_for_good():
     """Apec has stopped writing it: someone has to find out why."""
     with patch(DOWNLOAD, side_effect=_serving(_export(days_ago=4))):
-        result = FetchApecJobPostings()
+        result = _fetch()
 
     assert result.failure
     assert result.error_kind is ErrorKind.PERMANENT
@@ -53,7 +61,16 @@ def test_an_export_declaring_entities_fails_for_good():
     """Apec declares none: a DTD would only be there to blow up or leak through the parser."""
     export = '<!DOCTYPE a [<!ENTITY x "y">]><Export_offres>&x;</Export_offres>'
     with patch(DOWNLOAD, side_effect=_serving(export)):
-        result = FetchApecJobPostings()
+        result = _fetch()
+
+    assert result.failure
+    assert result.error_kind is ErrorKind.PERMANENT
+
+
+def test_an_export_cut_short_fails_for_good():
+    """The upsert reads it offer by offer: the file is checked whole before a single one is."""
+    with patch(DOWNLOAD, side_effect=_serving(_export()[:-40])):
+        result = _fetch()
 
     assert result.failure
     assert result.error_kind is ErrorKind.PERMANENT
@@ -61,7 +78,7 @@ def test_an_export_declaring_entities_fails_for_good():
 
 def test_an_export_that_is_not_xml_fails_for_good():
     with patch(DOWNLOAD, side_effect=_serving("<Export_offres><Offre_emploi>")):
-        result = FetchApecJobPostings()
+        result = _fetch()
 
     assert result.failure
     assert result.error_kind is ErrorKind.PERMANENT
@@ -79,7 +96,7 @@ def test_an_export_that_is_not_xml_fails_for_good():
 def test_refused_credentials_another_host_key_or_a_missing_export_fail_for_good(error):
     """A host key that changed is someone posing as Apec until Apec says otherwise."""
     with patch(DOWNLOAD, side_effect=error):
-        result = FetchApecJobPostings()
+        result = _fetch()
 
     assert result.failure
     assert result.error_kind is ErrorKind.PERMANENT
@@ -90,7 +107,7 @@ def test_refused_credentials_another_host_key_or_a_missing_export_fail_for_good(
 )
 def test_a_server_out_of_reach_or_a_download_cut_short_is_worth_trying_again(error):
     with patch(DOWNLOAD, side_effect=error):
-        result = FetchApecJobPostings()
+        result = _fetch()
 
     assert result.failure
     assert result.error_kind is ErrorKind.TRANSIENT

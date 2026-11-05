@@ -1,4 +1,3 @@
-import tempfile
 from datetime import timedelta
 from xml.etree.ElementTree import ParseError
 
@@ -8,7 +7,7 @@ from django.utils import timezone
 
 from techpourtoutes.clients.apec import ApecSftpClient
 from techpourtoutes.services.base_api import BaseApiService
-from techpourtoutes.utils.apec import read_apec_xml
+from techpourtoutes.utils.apec import read_apec_export_date
 
 AUTHENTICATION_ERROR_MESSAGE = "Le serveur SFTP de l'Apec a refusé nos identifiants."
 HOST_KEY_ERROR_MESSAGE = (
@@ -24,23 +23,24 @@ MAX_EXPORT_AGE = timedelta(days=3)
 
 
 class FetchApecJobPostings(BaseApiService):
-    """Download the export and read its offers, failing once Apec has stopped writing it.
+    """Download the export into `file` and check it whole, failing once Apec has stopped
+    writing it.
 
     It is downloaded every morning, written or not that day: the upsert only touches what
-    changed. The file weighs some 60 MB: it is streamed to disk rather than held in memory.
+    changed. The file weighs some 60 MB: it is streamed to disk rather than held in memory, and
+    its offers are left for the upsert to read one at a time.
     """
 
-    def perform(self) -> None:
-        with tempfile.TemporaryFile() as export:
-            self._download(export)
-            export.seek(0)
-            exported_on, self._records = self._read(export)
+    def perform(self, *, file) -> None:
+        self._download(file)
+        file.seek(0)
+        exported_on = self._read_date(file)
         if timezone.localdate() - exported_on > MAX_EXPORT_AGE:
             self.fail(STALE_EXPORT_MESSAGE.format(date=exported_on.strftime("%d/%m/%Y")))
 
-    def _read(self, export):
+    def _read_date(self, export):
         try:
-            return read_apec_xml(export)
+            return read_apec_export_date(export)
         except ParseError, DefusedXmlException:
             self.fail(PAYLOAD_ERROR_MESSAGE)
 
@@ -56,7 +56,3 @@ class FetchApecJobPostings(BaseApiService):
         except paramiko.SSHException, OSError:
             self.network_error = True
             self.fail(NETWORK_ERROR_MESSAGE)
-
-    @property
-    def apec_records(self) -> list:
-        return getattr(self, "_records", [])

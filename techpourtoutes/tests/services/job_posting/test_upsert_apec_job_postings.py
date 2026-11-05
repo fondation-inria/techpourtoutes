@@ -1,4 +1,5 @@
 from datetime import UTC, datetime, timedelta
+from unittest.mock import patch
 from zoneinfo import ZoneInfo
 
 import pytest
@@ -267,6 +268,17 @@ def test_an_export_without_any_offer_to_keep_fails_and_deletes_nothing(apec_reco
 
     assert result.failure
     assert JobPosting.objects.count() == 1
+
+
+def test_an_offer_that_cannot_be_read_leaves_the_batches_before_it_unwritten(apec_record):
+    """The offers are written a batch at a time, but all of them or none."""
+    with (
+        patch("techpourtoutes.utils.job_posting.BATCH_SIZE", 1),
+        pytest.raises(KeyError),
+    ):
+        UpsertApecJobPostings(records=iter([apec_record("a"), {"Niveau_experience": None}]))
+
+    assert not JobPosting.objects.exists()
 
 
 def test_the_other_sources_offers_are_left_alone(apec_record):

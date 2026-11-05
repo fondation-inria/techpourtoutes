@@ -75,13 +75,11 @@ def test_if_empty_runs_the_import_when_only_other_sources_are_in():
     service.assert_called_once_with(sample=False)
 
 
-def test_the_command_reports_how_many_offers_are_in(capsys, myfuture_record):
-    with patch(
-        "techpourtoutes.services.job_posting.import_myfuture_job_postings.FetchMyFutureJobPostings"
-    ) as fetch:
-        fetch.return_value.failure = False
-        fetch.return_value.myfuture_records = [myfuture_record("a"), myfuture_record("b")]
-        call_command("import_myfuture_job_postings")
+def test_the_command_reports_how_many_offers_are_in(capsys, httpx_mock, myfuture_record):
+    httpx_mock.add_response(json=[myfuture_record("a"), myfuture_record("b")])
+    httpx_mock.add_response(json=[])
+
+    call_command("import_myfuture_job_postings")
 
     assert "2 offres MyFuture" in capsys.readouterr().out
 

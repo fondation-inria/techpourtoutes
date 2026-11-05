@@ -1,10 +1,15 @@
 import nh3
+from django.db import transaction
 from django.utils import timezone
 from django.utils.dateparse import parse_datetime
 
 from techpourtoutes.models import JobPosting
 from techpourtoutes.services.base import BaseService
-from techpourtoutes.utils.job_posting import DESCRIPTION_ATTRIBUTES, DESCRIPTION_TAGS
+from techpourtoutes.utils.job_posting import (
+    DESCRIPTION_ATTRIBUTES,
+    DESCRIPTION_TAGS,
+    upsert_in_batches,
+)
 from techpourtoutes.utils.myfuture import SUB_DOMAINS
 from techpourtoutes.utils.territories import department_code
 
@@ -44,21 +49,16 @@ class UpsertMyFutureJobPostings(BaseService):
     periods that have passed.
     """
 
+    @transaction.atomic
     def perform(self, *, records) -> None:
-        postings = [
+        postings = (
             self._posting(record)
             for record in records
             if _category(record) and record["address"].get("city") and not _expired(record)
-        ]
-        JobPosting.objects.bulk_create(
-            postings,
-            update_conflicts=True,
-            unique_fields=["source", "external_id"],
-            update_fields=MAPPED_FIELDS,
-            batch_size=1000,
         )
+        kept = upsert_in_batches(postings, update_fields=MAPPED_FIELDS)
         JobPosting.all_objects.filter(source=JobPosting.Source.MYFUTURE).exclude(
-            external_id__in=[posting.external_id for posting in postings]
+            external_id__in=kept
         ).delete()
 
     def _posting(self, record):

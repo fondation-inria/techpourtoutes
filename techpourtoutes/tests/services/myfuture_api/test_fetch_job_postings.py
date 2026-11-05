@@ -1,3 +1,5 @@
+import json
+import tempfile
 from unittest.mock import patch
 
 from techpourtoutes.services.myfuture_api.fetch_job_postings import FetchMyFutureJobPostings
@@ -8,16 +10,24 @@ def _offers(*ids):
     return [{"_id": external_id} for external_id in ids]
 
 
+def _fetch():
+    """The service, and the offers it wrote down, one JSON document per line."""
+    with tempfile.TemporaryFile("w+", encoding="utf-8") as file:
+        result = FetchMyFutureJobPostings(file=file)
+        file.seek(0)
+        return result, [json.loads(line) for line in file]
+
+
 def test_both_endpoints_are_walked_until_a_short_page(httpx_mock):
     httpx_mock.add_response(json=_offers("a", "b"))
     httpx_mock.add_response(json=_offers("c"))
     httpx_mock.add_response(json=_offers("d"))
 
     with patch.object(FetchMyFutureJobPostings, "PAGE_SIZE", 2):
-        result = FetchMyFutureJobPostings()
+        result, records = _fetch()
 
     assert result.success
-    assert [record["_id"] for record in result.myfuture_records] == ["a", "b", "c", "d"]
+    assert [record["_id"] for record in records] == ["a", "b", "c", "d"]
     requests = httpx_mock.get_requests()
     assert [request.url.path for request in requests] == [
         "/api/offers",
@@ -31,16 +41,16 @@ def test_an_offer_listed_on_both_endpoints_comes_back_once(httpx_mock):
     httpx_mock.add_response(json=_offers("a", "b"))
     httpx_mock.add_response(json=_offers("b"))
 
-    result = FetchMyFutureJobPostings()
+    _, records = _fetch()
 
-    assert [record["_id"] for record in result.myfuture_records] == ["a", "b"]
+    assert [record["_id"] for record in records] == ["a", "b"]
 
 
 def test_only_the_sub_domains_we_follow_are_asked_for(httpx_mock):
     httpx_mock.add_response(json=[])
     httpx_mock.add_response(json=[])
 
-    FetchMyFutureJobPostings()
+    _fetch()
 
     for request in httpx_mock.get_requests():
         assert request.url.params["subDomainKeys"].split(",") == list(SUB_DOMAINS)
@@ -50,7 +60,7 @@ def test_information_technologies_are_not_asked_for(httpx_mock):
     httpx_mock.add_response(json=[])
     httpx_mock.add_response(json=[])
 
-    FetchMyFutureJobPostings()
+    _fetch()
 
     for request in httpx_mock.get_requests():
         assert "information-communication-audiovisueltechnologies-de-linformation" not in (
@@ -63,7 +73,7 @@ def test_a_page_that_fails_stops_the_walk(httpx_mock):
     httpx_mock.add_response(status_code=503)
 
     with patch.object(FetchMyFutureJobPostings, "PAGE_SIZE", 2):
-        result = FetchMyFutureJobPostings()
+        result, _ = _fetch()
 
     assert result.failure
     assert len(httpx_mock.get_requests()) == 2

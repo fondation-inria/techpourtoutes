@@ -1,3 +1,5 @@
+import json
+
 from techpourtoutes.utils.myfuture import SUB_DOMAINS
 
 from .base_service import MyFutureApiBaseService
@@ -6,13 +8,15 @@ ENDPOINTS = ("offers", "internships")
 
 
 class FetchMyFutureJobPostings(MyFutureApiBaseService):
-    """Both endpoints, every page. They overlap: an offer listed on both comes back once."""
+    """Both endpoints, every page, written to `file` one JSON offer per line as each page comes,
+    so that memory never holds more than a page. The endpoints overlap: an offer listed on both
+    is written once."""
 
     # The API's maximum. It announces no page count, so a shorter page is the last one.
     PAGE_SIZE = 1000
 
-    def perform(self) -> None:
-        self._records = {}
+    def perform(self, *, file) -> None:
+        self._file, self._written = file, set()
         for endpoint in ENDPOINTS:
             self._walk(endpoint)
 
@@ -26,11 +30,13 @@ class FetchMyFutureJobPostings(MyFutureApiBaseService):
                 offset=offset,
                 limit=self.PAGE_SIZE,
             )
-            self._records.update((record["_id"], record) for record in page)
+            self._write(page)
             if len(page) < self.PAGE_SIZE:
                 return
             offset += self.PAGE_SIZE
 
-    @property
-    def myfuture_records(self) -> list:
-        return list(getattr(self, "_records", {}).values())
+    def _write(self, page) -> None:
+        for record in page:
+            if record["_id"] not in self._written:
+                self._written.add(record["_id"])
+                self._file.write(json.dumps(record) + "\n")
