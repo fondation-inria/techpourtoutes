@@ -1,6 +1,7 @@
 <c-vars :sort_by_date=False form="" />
 
 <div x-data="{ open: false }"
+     @reset-filters.window="$el.remove()"
      @click.outside="open = false"
      @focusout="if ($event.relatedTarget && !$el.contains($event.relatedTarget) && !$event.relatedTarget.contains($el)) open = false"
      @keydown.escape="if (open) { open = false; $refs.button.focus() }"
