@@ -222,28 +222,46 @@ def test_searching_narrows_the_list_and_reveals_the_sort_which_keeps_the_focus(p
 
 
 @override_switch("internships", active=True)
-def test_the_search_cross_clears_the_field_and_gives_the_focus_back(page, live_server):
+def test_the_search_cross_clears_the_search_and_gives_the_focus_back(page, live_server):
     category = JobPosting.Category.HIGHER_ED_INTERNSHIP
     save_job_posting("Stage web", category)
     save_job_posting("Stage en design", category)
     page.goto(f"{live_server.url}/stages-alternances-emplois/?q=web")
     search = page.get_by_label("Rechercher une offre")
     clear = page.get_by_role("button", name="Effacer la recherche")
+    count = page.locator("#job_posting_count")
 
     clear.click()
 
     expect(search).to_have_value("")
+    expect(count).to_have_text("2\xa0offres")
     expect(search).to_be_focused()
     expect(clear).to_be_hidden()
 
     search.fill("web")
     search.press("Enter")
 
-    expect(page.locator("#job_posting_count")).to_have_text("1\xa0offre")
+    expect(count).to_have_text("1\xa0offre")
     clear.click()
 
     expect(search).to_have_value("")
+    expect(count).to_have_text("2\xa0offres")
     expect(search).to_be_focused()
+
+
+@override_switch("internships", active=True)
+def test_the_search_cross_sends_nothing_when_no_search_was_made(page, live_server):
+    page.goto(f"{live_server.url}/stages-alternances-emplois/")
+    search = page.get_by_label("Rechercher une offre")
+    urls = []
+    page.on("request", lambda request: urls.append(request.url))
+
+    search.fill("web")
+    page.get_by_role("button", name="Effacer la recherche").click()
+
+    expect(search).to_have_value("")
+    page.wait_for_timeout(200)
+    assert [url for url in urls if "stages-alternances" in url] == []
 
 
 @override_switch("internships", active=True)
@@ -253,16 +271,16 @@ def test_a_too_short_search_shows_an_error_and_still_filters(page, live_server):
     save_job_posting("Stage web", category)
     page.goto(f"{live_server.url}/stages-alternances-emplois/")
     search = page.get_by_label("Rechercher une offre")
-    error = page.get_by_role("alert").filter(has_text="Saisis au moins 3 caractères")
+    error = page.get_by_role("alert").filter(has_text="Saisis au moins 2 caractères")
 
-    search.fill("we")
+    search.fill("w")
     search.press("Enter")
 
     expect(error).to_be_visible()
     expect(page.locator("#job_posting_count")).to_have_text("2\xa0offres")
     expect(search).to_be_focused()
     expect(search).to_have_attribute("aria-invalid", "true")
-    expect(search).to_have_accessible_description(re.compile("Saisis au moins 3 caractères"))
+    expect(search).to_have_accessible_description(re.compile("Saisis au moins 2 caractères"))
 
     page.get_by_role("button", name="Domaine").click()
     page.locator("#job_posting_domain_panel").get_by_text("Mathématiques", exact=True).click()

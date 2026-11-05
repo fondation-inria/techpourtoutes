@@ -28,7 +28,7 @@ from ..utils.territories import DEPARTMENT_CODES, REGIONS
 EVENTS_PER_PAGE = 18
 MAKEUSE_PROJECTS_PER_PAGE = 6
 JOB_POSTINGS_PER_PAGE = 20
-JOB_POSTING_SEARCH_MIN_LENGTH = 3
+JOB_POSTING_SEARCH_MIN_LENGTH = 2
 
 # ------------------- pages -------------------
 

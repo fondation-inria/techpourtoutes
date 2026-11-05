@@ -2,13 +2,13 @@
 
 <div class="w-full">
     <label for="{{ id }}" class="sr-only">{{ label }}</label>
-    <div x-data="{ query: '' }" class="flex md:w-[70%] rounded-sm overflow-hidden bg-neutral-0 text-black border border-black shadow-bottom-and-right shadow-black has-[input:focus-visible]:outline-2 has-[input:focus-visible]:outline-blue-500 has-[input:focus-visible]:outline-offset-2">
+    <div x-data="{ query: '', searched: '' }" class="flex md:w-[70%] rounded-sm overflow-hidden bg-neutral-0 text-black border border-black shadow-bottom-and-right shadow-black has-[input:focus-visible]:outline-2 has-[input:focus-visible]:outline-blue-500 has-[input:focus-visible]:outline-offset-2">
         <div class="relative flex-1 min-w-0">
-            <input type="search" id="{{ id }}" name="{{ name }}" value="{{ value }}" x-init="query = $el.value" x-model="query" placeholder="{{ placeholder }}" aria-describedby="{{ id }}_error" {% if errors %}aria-invalid="true"{% endif %}
+            <input type="search" id="{{ id }}" name="{{ name }}" value="{{ value }}" x-init="query = searched = $el.value" x-model="query" placeholder="{{ placeholder }}" aria-describedby="{{ id }}_error" {% if errors %}aria-invalid="true"{% endif %}
                    class="w-full pl-4 pr-8 py-3 text-base sm:text-sm leading-[1.4] bg-transparent placeholder:text-neutral-500 outline-none [&::-webkit-search-cancel-button]:appearance-none">
-            <button type="button" x-show="query" x-cloak @click="query = ''; document.getElementById('{{ id }}').focus()"
+            <button type="button" x-show="query" x-cloak @click="query = ''; document.getElementById('{{ id }}').focus(); if (searched) $nextTick(() => htmx.trigger($el.closest('form'), 'submit'))"
                     aria-label="Effacer la recherche"
-                    class="absolute right-2 top-1/2 -translate-y-1/2 rounded-full p-0.5 hover:bg-black/10 focus-visible:outline-2 focus-visible:outline-blue-500 cursor-pointer">
+                    class="absolute right-2 top-1/2 -translate-y-1/2 rounded-xs p-1 hover:bg-purple-500/20 active:bg-purple-500/40 focus-visible:outline-2 focus-visible:outline-blue-500 cursor-pointer">
                 <c-components.icon name="close" class="w-3 h-3" />
             </button>
         </div>

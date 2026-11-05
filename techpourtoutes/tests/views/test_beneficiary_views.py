@@ -571,9 +571,9 @@ def test_index_job_postings_sorts_a_search_by_date_on_request(client, cybersecur
 
 
 @pytest.mark.django_db
-@pytest.mark.parametrize("q", ["cy", " cy  ", "   "])
+@pytest.mark.parametrize("q", ["c", " c  ", "   "])
 @override_switch("internships", active=True)
-def test_index_job_postings_ignores_a_search_under_three_characters(client, q):
+def test_index_job_postings_ignores_a_search_under_two_characters(client, q):
     save_job_posting("Stage en design", JobPosting.Category.HIGHER_ED_INTERNSHIP)
 
     response = client.get(INDEX_JOB_POSTINGS_URL, {"q": q})
@@ -586,19 +586,19 @@ def test_index_job_postings_ignores_a_search_under_three_characters(client, q):
 @pytest.mark.parametrize(
     "query, invalid",
     [
-        ({"q": "cy"}, True),
-        ({"q": " cy  "}, True),
-        ({"q": "web"}, False),
+        ({"q": "c"}, True),
+        ({"q": " c  "}, True),
+        ({"q": "ia"}, False),
         ({"q": "   "}, False),
         ({}, False),
     ],
     ids=["too_short", "too_short_once_trimmed", "long_enough", "blank", "absent"],
 )
 @override_switch("internships", active=True)
-def test_index_job_postings_shows_an_error_under_three_characters(client, query, invalid):
+def test_index_job_postings_shows_an_error_under_two_characters(client, query, invalid):
     html = client.get(INDEX_JOB_POSTINGS_URL, query).content.decode()
 
-    assert ("Saisis au moins 3 caractères" in html) == invalid
+    assert ("Saisis au moins 2 caractères" in html) == invalid
     assert ('aria-invalid="true"' in html) == invalid
 
 
