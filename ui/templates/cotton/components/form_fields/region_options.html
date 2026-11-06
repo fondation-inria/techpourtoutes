@@ -11,7 +11,7 @@
         <label for="{{ id }}_search" class="sr-only">Rechercher une région ou un département</label>
         <div class="relative">
             <input type="search" id="{{ id }}_search" x-ref="search" x-model="query" @keydown.enter.prevent
-                   placeholder="Rechercher" autocomplete="off"
+                   placeholder="Rechercher" autocomplete="off" size="1"
                    class="field-base field-default pr-8 [&::-webkit-search-cancel-button]:appearance-none">
             <button type="button" x-show="query" x-cloak @click="query = ''; $refs.search.focus()"
                     aria-label="Effacer la recherche"
