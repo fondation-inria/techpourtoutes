@@ -103,4 +103,9 @@ urlpatterns = [
         name="show_event",
     ),
     path("stages-alternances-emplois/", views.index_job_postings, name="index_job_postings"),
+    path(
+        "stages-alternances-emplois/<uuid:pk>/",
+        views.show_job_posting,
+        name="show_job_posting",
+    ),
 ]

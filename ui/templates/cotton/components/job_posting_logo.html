@@ -1,0 +1,12 @@
+<c-vars job_posting=None class="" size="" />
+{% load static %}
+
+{# A logo that fails to load gives way to the placeholder, filled with the colour of the category. #}
+{% static 'images/job-posting-placeholder.png' as placeholder %}
+{% if job_posting.company_logo %}
+    <img src="{{ job_posting.company_logo }}" alt="" width="{{ size }}" height="{{ size }}" loading="lazy"
+         onerror="this.onerror = null; this.src = '{{ placeholder }}'; this.classList.replace('bg-neutral-0', 'bg-{{ job_posting.category_color }}-500')"
+         class="{{ class }} bg-neutral-0" />
+{% else %}
+    <img src="{{ placeholder }}" alt="" width="{{ size }}" height="{{ size }}" class="{{ class }} bg-{{ job_posting.category_color }}-500" />
+{% endif %}

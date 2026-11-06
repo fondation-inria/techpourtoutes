@@ -9,6 +9,12 @@ DESCRIPTION_ATTRIBUTES = {"a": {"href"}}
 BATCH_SIZE = 1000
 
 
+def city_name(city: str) -> str:
+    """Title-case a city the partner spelled in capitals; keep the others as spelled, since
+    `str.title` would also capitalise the `sur` and `l'` of `Aire-sur-l'Adour`."""
+    return city.title() if city.isupper() else city
+
+
 def upsert_in_batches(postings, *, update_fields) -> list[str]:
     """Create or update the postings a batch at a time, so that only one batch is ever held in
     memory, and hand back their ids. The caller makes it all or nothing."""

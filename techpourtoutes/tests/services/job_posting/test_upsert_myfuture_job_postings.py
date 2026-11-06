@@ -31,13 +31,25 @@ def test_an_offer_is_mapped_onto_a_job_posting(myfuture_record):
     assert posting.department_code == "32"
     assert posting.city == "Caupenne-d'Armagnac"
     assert posting.domains == [JobPosting.Domain.ELECTROTECHNIQUE]
-    assert posting.duration == ""
+    assert posting.duration_months is None
     assert posting.company_logo == ""
     assert posting.category == Category.TROISIEME_INTERNSHIP
     assert posting.contract_type == ""
     assert posting.published_at == datetime(2025, 1, 6, 8, 21, 32, 994000, tzinfo=UTC)
     assert posting.source_updated_at == datetime(2025, 3, 11, 13, 56, 31, 694000, tzinfo=UTC)
     assert posting.url == "https://myfutu.re/internships/offers/22NisRqehckrMvEu3"
+
+
+@pytest.mark.parametrize(
+    ("city", "name"),
+    [("BONCHAMP LES LAVAL", "Bonchamp Les Laval"), ("Aire-sur-l'Adour", "Aire-sur-l'Adour")],
+)
+def test_a_city_spelled_in_capitals_is_title_cased(myfuture_record, city, name):
+    record = myfuture_record(address={"postalCode": "53960", "city": city})
+
+    UpsertMyFutureJobPostings(records=[record])
+
+    assert JobPosting.objects.get().city == name
 
 
 def test_the_optional_address_fields_and_the_logo_are_read_when_present(myfuture_record):
@@ -291,3 +303,69 @@ def _period(*, days_from_now):
         "from": (end - timedelta(days=4)).isoformat().replace("+00:00", "Z"),
         "to": end.isoformat().replace("+00:00", "Z"),
     }
+
+
+def test_the_details_shown_on_the_posting_page_are_imported(myfuture_record):
+    record = myfuture_record(
+        nafCode="4321A", secteurOcapiat="Secteur agricole - Services associés"
+    )
+
+    UpsertMyFutureJobPostings(records=[record])
+
+    posting = JobPosting.objects.get()
+    assert posting.street == "CURATS, LD CANTIRAN"
+    # Ocapiat's sector is the branch it follows, not the company's trade: only NAF tells that.
+    assert posting.sector == "Travaux d'installation électrique dans tous locaux"
+    assert (posting.position_status, posting.experience_level, posting.salary) == ("", "", "")
+
+
+def test_an_offer_without_a_street_or_a_sector_is_imported(myfuture_record):
+    record = myfuture_record(address={"postalCode": "32110", "city": "Caupenne-d'Armagnac"})
+
+    UpsertMyFutureJobPostings(records=[record])
+
+    posting = JobPosting.objects.get()
+    assert (posting.street, posting.sector) == ("", "")
+
+
+def test_an_offer_without_a_period_has_no_dates(myfuture_record):
+    UpsertMyFutureJobPostings(records=[myfuture_record()])
+
+    posting = JobPosting.objects.get()
+    assert (posting.starts_on, posting.ends_on) == (None, None)
+
+
+def test_the_dates_are_those_of_the_next_period_not_yet_over(myfuture_record):
+    periods = [
+        _period(days_from_now=40),
+        _period(days_from_now=-10),
+        _period(days_from_now=2),
+    ]
+
+    UpsertMyFutureJobPostings(records=[myfuture_record(periods=periods)])
+
+    posting = JobPosting.objects.get()
+    today = timezone.localdate()
+    assert (posting.starts_on, posting.ends_on) == (
+        today - timedelta(days=2),
+        today + timedelta(days=2),
+    )
+
+
+def test_an_offer_whose_naf_code_is_unknown_has_no_sector(myfuture_record):
+    UpsertMyFutureJobPostings(records=[myfuture_record(nafCode="9999Z")])
+
+    assert JobPosting.objects.get().sector == ""
+
+
+def test_the_street_is_spaced_with_plain_single_spaces(myfuture_record):
+    """Words glued by no-break spaces would make the whole street a single word, too wide to
+    wrap."""
+    street = " Hôtel\xa0de\xa0Région\xa0-\t27  place Jules Guesde "
+    record = myfuture_record(
+        address={"street": street, "postalCode": "13001", "city": "Marseille"}
+    )
+
+    UpsertMyFutureJobPostings(records=[record])
+
+    assert JobPosting.objects.get().street == "Hôtel de Région - 27 place Jules Guesde"

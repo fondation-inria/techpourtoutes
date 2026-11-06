@@ -1,5 +1,5 @@
 import re
-from datetime import time, timedelta
+from datetime import date, time, timedelta
 from unittest.mock import patch
 
 import pytest
@@ -180,7 +180,7 @@ INDEX_JOB_POSTINGS_URL = "/stages-alternances-emplois/"
 
 
 def save_job_posting(title, category, **overrides):
-    JobPosting(
+    job_posting = JobPosting(
         **{
             "source": JobPosting.Source.APEC,
             "external_id": title,
@@ -194,7 +194,9 @@ def save_job_posting(title, category, **overrides):
             "url": "https://www.apec.fr/offre",
             **overrides,
         }
-    ).save()
+    )
+    job_posting.save()
+    return job_posting
 
 
 @pytest.fixture
@@ -450,6 +452,75 @@ def test_index_job_postings_offers_the_duration_filter_but_to_pupils(client, cat
     html = client.get(INDEX_JOB_POSTINGS_URL, {"category": category}).content.decode()
 
     assert ('id="job_posting_duration"' in html) == offered
+    assert re.findall(r'name="duration"\s+value="([^"]*)"', html) == (
+        JobPosting.Duration.values if offered else []
+    )
+
+
+@pytest.mark.django_db
+@pytest.mark.parametrize(
+    "query, expected",
+    [
+        ({"duration": "3_to_6_months"}, {"6 mois", "Sans durée"}),
+        ({"duration": ["under_3_months", "over_12_months"]}, {"2 mois", "24 mois", "Sans durée"}),
+        ({"duration": "inconnue"}, {"2 mois", "6 mois", "24 mois", "Sans durée"}),
+        ({}, {"2 mois", "6 mois", "24 mois", "Sans durée"}),
+    ],
+)
+@override_switch("internships", active=True)
+def test_index_job_postings_keeps_the_postings_of_any_ticked_duration_and_those_without_one(
+    client, query, expected
+):
+    for title, months in [("2 mois", 2), ("6 mois", 6), ("24 mois", 24), ("Sans durée", None)]:
+        save_job_posting(title, JobPosting.Category.APPRENTICESHIP, duration_months=months)
+
+    response = client.get(INDEX_JOB_POSTINGS_URL, {"category": "apprenticeship", **query})
+
+    assert listed_titles(response) == expected
+
+
+@pytest.mark.django_db
+@override_switch("internships", active=True)
+def test_index_job_postings_shows_the_duration_on_the_card(client):
+    save_job_posting("Alternance", JobPosting.Category.APPRENTICESHIP, duration_months=24)
+
+    html = client.get(INDEX_JOB_POSTINGS_URL, {"category": "apprenticeship"}).content.decode()
+
+    assert re.search(r"<span>\s*24 mois\s*</span>", html)
+
+
+@pytest.mark.django_db
+@override_switch("internships", active=True)
+def test_index_job_postings_hides_and_ignores_the_duration_filter_when_cdi_alone_is_ticked(
+    client,
+):
+    """A CDI lasts as long as it lasts: alone, it leaves no duration to choose from."""
+    save_job_posting("CDI", JobPosting.Category.FIRST_JOB, contract_type="cdi", duration_months=2)
+
+    response = client.get(
+        INDEX_JOB_POSTINGS_URL,
+        {"category": "first_job", "contract_type": "cdi", "duration": "over_12_months"},
+    )
+
+    assert listed_titles(response) == {"CDI"}
+    html = response.content.decode()
+    assert re.search(r'id="job_posting_duration_filter"[^>]*style="display: none"', html)
+    assert not re.search(r'name="duration"\s+value="[^"]*"\s+checked', html)
+
+
+@pytest.mark.django_db
+@override_switch("internships", active=True)
+def test_index_job_postings_keeps_the_duration_filter_when_cdi_comes_with_another_contract(
+    client,
+):
+    response = client.get(
+        INDEX_JOB_POSTINGS_URL,
+        {"category": "first_job", "contract_type": ["cdi", "cdd"], "duration": "over_12_months"},
+    )
+
+    html = response.content.decode()
+    assert not re.search(r'id="job_posting_duration_filter"[^>]*style="display: none"', html)
+    assert re.findall(r'name="duration"\s+value="([^"]*)"\s+checked', html) == ["over_12_months"]
 
 
 @pytest.mark.django_db
@@ -522,6 +593,286 @@ def test_index_job_postings_serves_the_page_asked_for(client, twenty_one_apprent
 
     assert response.context["job_postings"].number == 2
     assert len(response.context["job_postings"].object_list) == 1
+
+
+def show_job_posting_url(job_posting):
+    return reverse("show_job_posting", args=[job_posting.pk])
+
+
+@pytest.mark.django_db
+@override_switch("internships", active=False)
+def test_show_job_posting_not_found_when_switch_inactive(client):
+    job_posting = save_job_posting("Stage", JobPosting.Category.HIGHER_ED_INTERNSHIP)
+
+    assert client.get(show_job_posting_url(job_posting)).status_code == 404
+
+
+@pytest.mark.django_db
+@override_switch("internships", active=True)
+def test_show_job_posting_not_found_once_unpublished(client):
+    job_posting = save_job_posting("Stage", JobPosting.Category.HIGHER_ED_INTERNSHIP, hidden=True)
+
+    assert client.get(show_job_posting_url(job_posting)).status_code == 404
+
+
+@pytest.mark.django_db
+@override_switch("internships", active=True)
+def test_show_job_posting_renders_the_posting(client):
+    job_posting = save_job_posting(
+        "Développeuse BI",
+        JobPosting.Category.FIRST_JOB,
+        contract_type=JobPosting.ContractType.CDD,
+        description="<p>Tu <strong>développes</strong> des tableaux de bord.</p>",
+        domains=[JobPosting.Domain.SYSTEMES_ET_RESEAUX],
+        position_status="Cadre du secteur privé",
+        experience_level="Minimum 2 ans",
+        salary="36 - 44 k€ brut annuel",
+        duration_months=6,
+        sector="Activités informatiques",
+        street="12 rue de la Mer",
+        postal_code="80000",
+    )
+
+    html = client.get(show_job_posting_url(job_posting)).content.decode()
+
+    assert "Développeuse BI" in html
+    assert "<p>Tu <strong>développes</strong> des tableaux de bord.</p>" in html
+    for shown in [
+        "Systèmes et réseaux",
+        "CDD",
+        "Cadre du secteur privé",
+        "Minimum 2 ans",
+        "36 - 44 k€ brut annuel",
+        "6 mois",
+        "Activités informatiques",
+        "12 rue de la Mer, 80000 Amiens",
+    ]:
+        assert shown in html
+    assert "non indiqué" not in html
+
+
+@pytest.mark.django_db
+@override_switch("internships", active=True)
+def test_show_job_posting_sizes_the_logo_without_a_stylesheet(client):
+    job_posting = save_job_posting("Stage", JobPosting.Category.HIGHER_ED_INTERNSHIP)
+
+    html = client.get(show_job_posting_url(job_posting)).content.decode()
+
+    assert re.search(
+        r'<img src="[^"]*job-posting-placeholder[^"]*"[^>]*width="70" height="70"', html
+    )
+
+
+@pytest.mark.django_db
+@override_switch("internships", active=True)
+def test_show_job_posting_puts_the_buttons_right_below_the_title(client):
+    """On a phone everything stacks in the order of the page: the buttons come before the
+    cards, and a screen reader reads them in the order they are shown."""
+    job_posting = save_job_posting("Stage", JobPosting.Category.HIGHER_ED_INTERNSHIP)
+
+    html = client.get(show_job_posting_url(job_posting)).content.decode()
+
+    assert html.index("Postuler sur") < html.index("Enregistrer") < html.index("Statut du poste")
+
+
+@pytest.mark.django_db
+@override_switch("internships", active=True)
+def test_show_job_posting_says_what_the_partner_did_not_give(client):
+    job_posting = save_job_posting("Alternance", JobPosting.Category.APPRENTICESHIP)
+
+    html = client.get(show_job_posting_url(job_posting)).content.decode()
+
+    for label in [
+        "Statut du poste",
+        "Durée",
+        "Niveau d’expérience",
+        "Salaire",
+        "Secteur",
+    ]:
+        assert re.search(rf"{label}&nbsp;:\s*</dt>\s*<dd[^>]*>\s*non indiqué", html), label
+
+
+@pytest.mark.django_db
+@pytest.mark.parametrize(
+    "category, mention",
+    [
+        ("higher_ed_internship", "Numeum cherche une stagiaire au poste de&nbsp;:"),
+        ("apprenticeship", "Numeum cherche une alternante au poste de&nbsp;:"),
+        ("first_job", "Numeum recrute au poste de&nbsp;:"),
+        ("seconde_internship", "Numeum propose un stage d’observation"),
+        ("troisieme_internship", "Numeum propose un stage d’observation"),
+    ],
+)
+@override_switch("internships", active=True)
+def test_show_job_posting_introduces_the_company_according_to_the_category(
+    client, category, mention
+):
+    job_posting = save_job_posting("Offre", category)
+
+    html = client.get(show_job_posting_url(job_posting)).content.decode()
+
+    assert mention in html
+    assert f"bg-{JobPosting.CATEGORY_COLORS[category]}-500" in html
+
+
+@pytest.mark.django_db
+@pytest.mark.parametrize("category", ["seconde_internship", "troisieme_internship"])
+@override_switch("internships", active=True)
+def test_show_job_posting_shows_a_pupil_the_period_and_nothing_about_the_job(client, category):
+    job_posting = save_job_posting(
+        "Stage", category, starts_on=date(2027, 6, 12), ends_on=date(2027, 6, 19)
+    )
+
+    html = client.get(show_job_posting_url(job_posting)).content.decode()
+
+    assert re.search(r"Date&nbsp;:\s*</dt>\s*<dd[^>]*>\s*du 12 juin 2027 au 19 juin 2027", html)
+    for label in ["Statut du poste", "Durée", "Salaire", "Secteur", "Date de début"]:
+        assert label not in html
+
+
+@pytest.mark.django_db
+@pytest.mark.parametrize("category", ["higher_ed_internship", "apprenticeship", "first_job"])
+@override_switch("internships", active=True)
+def test_show_job_posting_leaves_out_the_start_date(client, category):
+    job_posting = save_job_posting("Offre", category, starts_on=date(2027, 1, 1))
+
+    html = client.get(show_job_posting_url(job_posting)).content.decode()
+
+    assert "Date de début" not in html
+    assert "01/01/2027" not in html
+
+
+@pytest.mark.django_db
+@pytest.mark.parametrize(
+    "contract_type, shown",
+    [(JobPosting.ContractType.CDI, False), (JobPosting.ContractType.CDD, True)],
+)
+@override_switch("internships", active=True)
+def test_show_job_posting_leaves_out_the_duration_of_a_cdi(client, contract_type, shown):
+    job_posting = save_job_posting(
+        "Développeuse", JobPosting.Category.FIRST_JOB, contract_type=contract_type
+    )
+
+    html = client.get(show_job_posting_url(job_posting)).content.decode()
+
+    assert ("Durée" in html) == shown
+
+
+@pytest.mark.django_db
+@override_switch("internships", active=True)
+def test_show_job_posting_says_when_it_was_published(client):
+    job_posting = save_job_posting(
+        "Stage",
+        JobPosting.Category.HIGHER_ED_INTERNSHIP,
+        published_at=timezone.make_aware(timezone.datetime(2026, 10, 12, 10)),
+    )
+
+    html = client.get(show_job_posting_url(job_posting)).content.decode()
+
+    assert "Offre publiée le 12 octobre 2026" in html
+
+
+@pytest.mark.django_db
+@override_switch("internships", active=True)
+def test_show_job_posting_says_when_it_was_last_updated(client):
+    job_posting = save_job_posting(
+        "Stage",
+        JobPosting.Category.HIGHER_ED_INTERNSHIP,
+        source_updated_at=timezone.make_aware(timezone.datetime(2026, 10, 14, 10)),
+    )
+
+    html = client.get(show_job_posting_url(job_posting)).content.decode()
+
+    assert "Offre mise à jour le 14 octobre 2026" in html
+    assert "Offre publiée le" not in html
+
+
+@pytest.mark.django_db
+@pytest.mark.parametrize(
+    "source, logo",
+    [("apec", "images/apec_logo.jpg"), ("myfuture", "images/myfuture_logo.png")],
+)
+@override_switch("internships", active=True)
+def test_show_job_posting_shows_the_logo_of_the_partner(client, source, logo):
+    """The sentence beside it names the partner: the logo adds nothing for a screen reader."""
+    job_posting = save_job_posting("Stage", JobPosting.Category.APPRENTICESHIP, source=source)
+
+    html = client.get(show_job_posting_url(job_posting)).content.decode()
+
+    assert re.search(rf'<img src="/static/{logo}" alt=""', html)
+
+
+@pytest.mark.django_db
+@pytest.mark.parametrize(
+    "source, partner",
+    [("apec", "l’Apec"), ("myfuture", "MyFuture")],
+)
+@override_switch("internships", active=True)
+def test_show_job_posting_sends_her_to_the_partner_to_apply(client, source, partner):
+    job_posting = save_job_posting(
+        "Stage",
+        JobPosting.Category.HIGHER_ED_INTERNSHIP,
+        source=source,
+        external_id="563753",
+        published_at=timezone.make_aware(timezone.datetime(2026, 10, 13, 10)),
+    )
+
+    html = client.get(show_job_posting_url(job_posting)).content.decode()
+
+    assert re.search(
+        r'<a href="https://www\.apec\.fr/offre"[^>]*target="_blank"[^>]*>\s*<div[^>]*>'
+        rf"\s*<svg[^>]*>.*?</svg>\s*Postuler sur {partner}",
+        html,
+        re.S,
+    )
+    assert (
+        "Cette offre ID 563753 a été publiée le 13 octobre 2026 sur le site de notre "
+        f"partenaire, {partner}."
+    ) in html
+
+
+@pytest.mark.django_db
+@override_switch("internships", active=True)
+def test_show_job_posting_goes_back_to_the_listing_she_came_from(client):
+    job_posting = save_job_posting("Stage", JobPosting.Category.APPRENTICESHIP)
+    listing = f"{INDEX_JOB_POSTINGS_URL}?category=apprenticeship&page=2"
+
+    response = client.get(show_job_posting_url(job_posting), HTTP_REFERER=listing)
+
+    assert response.context["back_url"] == listing
+
+
+@pytest.mark.django_db
+@override_switch("internships", active=True)
+def test_index_job_postings_dates_a_posting_we_updated_by_its_update(client):
+    job_posting = save_job_posting(
+        "Stage",
+        JobPosting.Category.HIGHER_ED_INTERNSHIP,
+        published_at=timezone.now() - timedelta(days=10),
+    )
+    # The trigger moves `updated_at` along: the row changed after its creation.
+    JobPosting.objects.filter(pk=job_posting.pk).update(
+        created_at=timezone.now() - timedelta(days=10)
+    )
+
+    html = client.get(INDEX_JOB_POSTINGS_URL).content.decode()
+
+    assert "Il y a 0\xa0minute" in html
+    assert "Il y a 1\xa0semaine" not in html
+
+
+@pytest.mark.django_db
+@override_switch("internships", active=True)
+def test_index_job_postings_links_each_posting_to_its_page_by_its_title(client):
+    """The title is the link, stretched over the card: its name is the text she sees."""
+    job_posting = save_job_posting("Stage", JobPosting.Category.HIGHER_ED_INTERNSHIP)
+
+    html = client.get(INDEX_JOB_POSTINGS_URL).content.decode()
+
+    assert re.search(
+        rf'<h3[^>]*>\s*<a href="{show_job_posting_url(job_posting)}"[^>]*>\s*Stage\s*</a>', html
+    )
+    assert 'aria-label="Voir l’offre' not in html
 
 
 @pytest.mark.django_db

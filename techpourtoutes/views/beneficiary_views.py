@@ -6,7 +6,6 @@ from django.contrib.auth.decorators import login_required
 from django.core.exceptions import ValidationError
 from django.core.paginator import Paginator
 from django.db.models import Exists, OuterRef, Value
-from django.db.models.functions import Coalesce
 from django.http import Http404
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
@@ -214,6 +213,10 @@ def index_job_postings(request):
     ticked_departments = _ticked(request, "department", DEPARTMENT_CODES)
     contract_types = JobPosting.CATEGORY_CONTRACT_TYPES.get(category, [])
     ticked_contract_types = _ticked(request, "contract_type", contract_types)
+    # A CDI lasts as long as it lasts: ticked alone, it leaves no duration to choose from.
+    only_cdi = ticked_contract_types == [JobPosting.ContractType.CDI]
+    durations = [] if category in JobPosting.PUPIL_CATEGORIES else list(JobPosting.Duration)
+    ticked_durations = [] if only_cdi else _ticked(request, "duration", durations)
     query = request.GET.copy()
     query.pop("page", None)
     return render(
@@ -230,14 +233,30 @@ def index_job_postings(request):
                 (contract_type, contract_type.label) for contract_type in contract_types
             ],
             "ticked_contract_types": ticked_contract_types,
+            "durations": [(duration, duration.label) for duration in durations],
+            "ticked_durations": ticked_durations,
+            "only_cdi": only_cdi,
             "job_postings": Paginator(
                 JobPosting.objects.filter(category=category)
                 .in_domains(ticked_domains)
                 .in_departments(ticked_departments)
                 .with_contract_types(ticked_contract_types)
-                .order_by(Coalesce("source_updated_at", "published_at").desc()),
+                .with_durations(ticked_durations)
+                .latest_first(),
                 JOB_POSTINGS_PER_PAGE,
             ).get_page(request.GET.get("page")),
+        },
+    )
+
+
+@waffle_switch("internships")
+def show_job_posting(request, pk):
+    return render(
+        request,
+        "beneficiary/show_job_posting.html",
+        {
+            "job_posting": get_object_or_404(JobPosting.objects.with_last_updated_at(), pk=pk),
+            "back_url": _back_to_listing(request, "index_job_postings"),
         },
     )
 

@@ -36,7 +36,7 @@ class JobPostingAdmin(admin.ModelAdmin):
                     "company_name",
                     "company_logo_preview",
                     "description",
-                    "duration",
+                    "duration_months",
                     "postal_code",
                     "cog_code",
                     "department_code",
