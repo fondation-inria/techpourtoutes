@@ -15,11 +15,12 @@
         </c-components.tabs>
         <c-components.card class="relative -mt-0.5 rounded-tl-none w-full z-10">
             <form id="job_posting_filters" action="{% url "index_job_postings" %}"
-                  hx-get="{% url "index_job_postings" %}" hx-trigger="change[target.type === 'checkbox'], submit"
+                  hx-get="{% url "index_job_postings" %}" hx-trigger="change[target.type === 'checkbox'], change from:#job_posting_sort, submit"
                   hx-select="#job_posting_results" hx-target="#job_posting_results" hx-swap="outerHTML"
-                  hx-select-oob="#job_posting_count:innerHTML" hx-push-url="true" hx-history="false"
+                  hx-select-oob="#job_posting_count:innerHTML,#job_posting_sort:innerHTML,#job_posting_search:outerHTML,#job_posting_search_error:innerHTML" hx-push-url="true" hx-history="false"
                   class="flex flex-wrap gap-4 mb-3">
                 <input type="hidden" name="category" value="{{ category }}">
+                <c-components.form_fields.search_bar id="job_posting_search" name="q" label="Rechercher une offre" placeholder="Métier, entreprise, etc." :value="search" :errors="search_errors" />
                 <c-components.form_fields.filter_select label="Région / Département" id="job_posting_location" icon="location" tint_class="bg-green-500/20" selection_target="#job_posting_selected_filters">
                     <c-components.form_fields.region_options :regions="regions" :ticked="ticked_departments" id="job_posting_location" />
                 </c-components.form_fields.filter_select>
@@ -38,9 +39,12 @@
                     Tout réinitialiser
                 </button>
             </div>
-            {% with job_posting_count=job_postings.paginator.count %}
-                <p id="job_posting_count" aria-live="polite" class="mb-3">{{ job_posting_count }}&nbsp;offre{% if job_posting_count > 1 %}s{% endif %} </p>
-            {% endwith %}
+            <div class="flex items-center justify-between gap-4 mb-3">
+                {% with job_posting_count=job_postings.paginator.count %}
+                    <p id="job_posting_count" aria-live="polite">{{ job_posting_count }}&nbsp;offre{% if job_posting_count > 1 %}s{% endif %} </p>
+                {% endwith %}
+                <div id="job_posting_sort" class="empty:hidden">{% if searching %}<c-components.job_posting_sort :sort_by_date="sort_by_date" form="job_posting_filters" />{% endif %}</div>
+            </div>
             <div id="job_posting_results">
             <div class="grid gap-4">
                 {% for job_posting in job_postings %}
