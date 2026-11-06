@@ -73,12 +73,12 @@ def test_if_empty_runs_the_import_when_only_other_sources_are_in():
     service.assert_called_once_with(sample=False)
 
 
-def test_the_command_reports_how_many_offers_are_in(capsys, apec_record):
+def test_the_command_reports_how_many_offers_are_in(capsys, apec_record, apec_export):
+    export = apec_export(apec_record("a"), apec_record("b"))
     with patch(
-        "techpourtoutes.services.job_posting.import_apec_job_postings.FetchApecJobPostings"
-    ) as fetch:
-        fetch.return_value.failure = False
-        fetch.return_value.apec_records = [apec_record("a"), apec_record("b")]
+        "techpourtoutes.services.apec_sftp.fetch_job_postings.ApecSftpClient.download_export",
+        side_effect=lambda file: file.write(export),
+    ):
         call_command("import_apec_job_postings")
 
     assert "2 offres Apec" in capsys.readouterr().out
