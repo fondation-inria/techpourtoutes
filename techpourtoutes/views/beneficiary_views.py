@@ -6,7 +6,6 @@ from django.contrib.auth.decorators import login_required
 from django.core.exceptions import ValidationError
 from django.core.paginator import Paginator
 from django.db.models import Exists, OuterRef, Value
-from django.db.models.functions import Coalesce
 from django.http import Http404
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
@@ -215,6 +214,10 @@ def index_job_postings(request):
     ticked_departments = _ticked(request, "department", DEPARTMENT_CODES)
     contract_types = JobPosting.CATEGORY_CONTRACT_TYPES.get(category, [])
     ticked_contract_types = _ticked(request, "contract_type", contract_types)
+    # A CDI lasts as long as it lasts: ticked alone, it leaves no duration to choose from.
+    only_cdi = ticked_contract_types == [JobPosting.ContractType.CDI]
+    durations = [] if category in JobPosting.PUPIL_CATEGORIES else list(JobPosting.Duration)
+    ticked_durations = [] if only_cdi else _ticked(request, "duration", durations)
     search = request.GET.get("q", "").strip()
     searching = len(search) >= JOB_POSTING_SEARCH_MIN_LENGTH
     sort_by_date = request.GET.get("sort") == "date"
@@ -240,12 +243,16 @@ def index_job_postings(request):
                 (contract_type, contract_type.label) for contract_type in contract_types
             ],
             "ticked_contract_types": ticked_contract_types,
+            "durations": [(duration, duration.label) for duration in durations],
+            "ticked_durations": ticked_durations,
+            "only_cdi": only_cdi,
             "job_postings": Paginator(
                 _searched_and_sorted(
                     JobPosting.objects.filter(category=category)
                     .in_domains(ticked_domains)
                     .in_departments(ticked_departments)
-                    .with_contract_types(ticked_contract_types),
+                    .with_contract_types(ticked_contract_types)
+                    .with_durations(ticked_durations),
                     search if searching else None,
                     sort_by_date,
                 ),
@@ -255,20 +262,27 @@ def index_job_postings(request):
     )
 
 
+@waffle_switch("internships")
+def show_job_posting(request, pk):
+    return render(
+        request,
+        "beneficiary/show_job_posting.html",
+        {
+            "job_posting": get_object_or_404(JobPosting.objects.with_last_updated_at(), pk=pk),
+            "back_url": _back_to_listing(request, "index_job_postings"),
+        },
+    )
+
+
 def _ticked(request, name, allowed):
     return [value for value in request.GET.getlist(name) if value in allowed]
 
 
 def _searched_and_sorted(job_postings, search, sort_by_date):
-    latest_first = Coalesce("source_updated_at", "published_at").desc()
     if not search:
-        return job_postings.order_by(latest_first)
+        return job_postings.latest_first()
     found = job_postings.search(search)
-    return (
-        found.order_by(latest_first)
-        if sort_by_date
-        else found.order_by("-relevance", latest_first)
-    )
+    return found.latest_first() if sort_by_date else found.most_relevant_first()
 
 
 # ------------------- events -------------------

@@ -10,8 +10,10 @@ from techpourtoutes.services.base import BaseService
 from techpourtoutes.utils.job_posting import (
     DESCRIPTION_ATTRIBUTES,
     DESCRIPTION_TAGS,
+    city_name,
     upsert_in_batches,
 )
+from techpourtoutes.utils.naf import naf_label
 from techpourtoutes.utils.territories import department_code
 
 # The Apec functions we import: design, research and development, IT.
@@ -66,10 +68,13 @@ MAPPED_FIELDS = [
     "department_code",
     "city",
     "domains",
-    "duration",
+    "duration_months",
     "company_logo",
     "category",
     "contract_type",
+    "experience_level",
+    "salary",
+    "sector",
     "published_at",
     "source_updated_at",
     "url",
@@ -117,12 +122,15 @@ class UpsertApecJobPostings(BaseService):
             ),
             cog_code=record["COG_lieu"],
             department_code=department_code(record["COG_lieu"], ""),
-            city=_plain(record["Libelle_lieu"]).title(),
+            city=city_name(_plain(record["Libelle_lieu"])),
             domains=[FUNCTION_DOMAINS[record["JOB_fonction"]]],
-            duration=f"{months} mois" if months else "",
+            duration_months=int(months) if months else None,
             company_logo=f"{LOGO_BASE_URL}{logo}" if logo else "",
             category=_category(record),
             contract_type=CONTRACT_TYPES.get(record["Type_contrat"], ""),
+            experience_level=record["Niveau_experience"],
+            salary=_plain(record.get("Salaire_affiche", "")),
+            sector=naf_label(record.get("NAF_secteur")),
             published_at=timezone.make_aware(
                 datetime.strptime(record["Date_parution"], "%d/%m/%Y %H:%M:%S")
             ),

@@ -22,7 +22,7 @@ def _job_posting(**overrides):
             "department_code": "75",
             "city": "Paris",
             "domains": ["informatique"],
-            "duration": "12 mois",
+            "duration_months": 12,
             "category": Category.APPRENTICESHIP,
             "contract_type": JobPosting.ContractType.APPRENTICESHIP,
             "published_at": datetime(2026, 1, 1, tzinfo=UTC),
@@ -74,17 +74,29 @@ def test_job_posting_changelist_shows_title_company_source_and_type(
 
 
 @pytest.mark.django_db
-def test_job_posting_changelist_links_each_offer_on_its_source(verified_admin_client):
-    _job_posting()
+def test_job_posting_changelist_links_each_offer_to_its_page_on_the_site(verified_admin_client):
+    job_posting = _job_posting()
 
     content = verified_admin_client.get(reverse(CHANGELIST)).content.decode()
 
     assert (
-        '<a href="https://www.myfuture.fr/offre/1" target="_blank" rel="noopener noreferrer"'
-        ' title="Voir l’offre (nouvelle fenêtre)" aria-label="Voir l’offre (nouvelle fenêtre)">'
-        in content
-    )
+        f'<a href="{reverse("show_job_posting", args=[job_posting.pk])}" target="_blank"'
+        ' rel="noopener noreferrer" title="Voir l’offre (nouvelle fenêtre)"'
+        ' aria-label="Voir l’offre (nouvelle fenêtre)">'
+    ) in content
     assert "svg/sprite.svg#external-link" in content
+    assert "https://www.myfuture.fr/offre/1" not in content
+
+
+@pytest.mark.django_db
+def test_job_posting_changelist_links_no_unpublished_offer(verified_admin_client):
+    """The site answers a 404 for it."""
+    job_posting = _job_posting(hidden=True)
+
+    content = verified_admin_client.get(reverse(CHANGELIST)).content.decode()
+
+    assert reverse("show_job_posting", args=[job_posting.pk]) not in content
+    assert "Voir l’offre" not in content
 
 
 @pytest.mark.django_db
@@ -137,7 +149,7 @@ def test_job_posting_page_shows_every_field_read_only_but_hidden(
         "75111",
         "Code du département",
         "informatique",
-        "12 mois",
+        "Durée (en mois)",
         "Alternance",
         "https://www.myfuture.fr/offre/1",
         "Créé le",

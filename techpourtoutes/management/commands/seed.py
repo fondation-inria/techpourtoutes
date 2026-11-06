@@ -861,7 +861,7 @@ JOB_POSTING_SEEDS = [
             "city": city,
             "postal_code": postal_code,
             "domains": domains,
-            "duration": duration,
+            "duration_months": duration,
         }
         for title, company_name, city, postal_code, domains, duration in [
             (
@@ -870,7 +870,7 @@ JOB_POSTING_SEEDS = [
                 "Paris",
                 "75011",
                 [JobPosting.Domain.DEVELOPPEMENT],
-                "6 mois",
+                6,
             ),
             (
                 "Stage data analyst",
@@ -878,7 +878,7 @@ JOB_POSTING_SEEDS = [
                 "Lyon",
                 "69003",
                 [JobPosting.Domain.SYSTEMES_ET_RESEAUX, JobPosting.Domain.MATHEMATIQUES],
-                "6 mois",
+                6,
             ),
             (
                 "Stage analyste SOC",
@@ -886,7 +886,7 @@ JOB_POSTING_SEEDS = [
                 "Rennes",
                 "35000",
                 [JobPosting.Domain.SYSTEMES_ET_RESEAUX],
-                "4 mois",
+                4,
             ),
             (
                 "Stage UX designer",
@@ -894,7 +894,7 @@ JOB_POSTING_SEEDS = [
                 "Nantes",
                 "44000",
                 [JobPosting.Domain.INFORMATIQUE],
-                "5 mois",
+                5,
             ),
             (
                 "Stage ingénieure DevOps",
@@ -902,7 +902,7 @@ JOB_POSTING_SEEDS = [
                 "Roubaix",
                 "59100",
                 [JobPosting.Domain.SYSTEMES_ET_RESEAUX, JobPosting.Domain.TELECOMMUNICATIONS],
-                "6 mois",
+                6,
             ),
             (
                 "Stage data scientist",
@@ -913,7 +913,7 @@ JOB_POSTING_SEEDS = [
                     JobPosting.Domain.INFORMATIQUE_POUR_LA_RECHERCHE,
                     JobPosting.Domain.SYSTEMES_ET_RESEAUX,
                 ],
-                "6 mois",
+                6,
             ),
             (
                 "Stage développeuse mobile",
@@ -921,7 +921,7 @@ JOB_POSTING_SEEDS = [
                 "Bordeaux",
                 "33000",
                 [JobPosting.Domain.DEVELOPPEMENT],
-                "4 mois",
+                4,
             ),
             (
                 "Stage cheffe de projet digital",
@@ -929,7 +929,7 @@ JOB_POSTING_SEEDS = [
                 "Lille",
                 "59000",
                 [JobPosting.Domain.MAITRISE_D_OUVRAGE, JobPosting.Domain.INFORMATIQUE],
-                "6 mois",
+                6,
             ),
             (
                 "Stage ingénieure systèmes embarqués",
@@ -937,7 +937,7 @@ JOB_POSTING_SEEDS = [
                 "Toulouse",
                 "31000",
                 [JobPosting.Domain.INFORMATIQUE_INDUSTRIELLE, JobPosting.Domain.ELECTRONIQUE],
-                "6 mois",
+                6,
             ),
             (
                 "Stage développeuse back-end",
@@ -945,7 +945,7 @@ JOB_POSTING_SEEDS = [
                 "Paris",
                 "75009",
                 [JobPosting.Domain.DEVELOPPEMENT],
-                "6 mois",
+                6,
             ),
             (
                 "Stage administratrice réseaux",
@@ -953,7 +953,7 @@ JOB_POSTING_SEEDS = [
                 "Strasbourg",
                 "67000",
                 [JobPosting.Domain.TELECOMMUNICATIONS],
-                "3 mois",
+                3,
             ),
             (
                 "Stage product owner",
@@ -961,7 +961,7 @@ JOB_POSTING_SEEDS = [
                 "Marseille",
                 "13002",
                 [JobPosting.Domain.MAITRISE_D_OUVRAGE],
-                "6 mois",
+                6,
             ),
             (
                 "Stage pentesteuse",
@@ -969,7 +969,7 @@ JOB_POSTING_SEEDS = [
                 "Paris",
                 "75015",
                 [JobPosting.Domain.SYSTEMES_ET_RESEAUX],
-                "6 mois",
+                6,
             ),
             (
                 "Stage ingénieure machine learning",
@@ -977,7 +977,7 @@ JOB_POSTING_SEEDS = [
                 "Saclay",
                 "91190",
                 [JobPosting.Domain.INFORMATIQUE_POUR_LA_RECHERCHE],
-                "6 mois",
+                6,
             ),
             (
                 "Stage développeuse front-end",
@@ -985,7 +985,7 @@ JOB_POSTING_SEEDS = [
                 "Montpellier",
                 "34000",
                 [JobPosting.Domain.DEVELOPPEMENT],
-                "5 mois",
+                5,
             ),
             (
                 "Stage data engineer",
@@ -993,7 +993,7 @@ JOB_POSTING_SEEDS = [
                 "Nantes",
                 "44200",
                 [JobPosting.Domain.SYSTEMES_ET_RESEAUX],
-                "6 mois",
+                6,
             ),
             (
                 "Stage testeuse logiciel",
@@ -1001,7 +1001,7 @@ JOB_POSTING_SEEDS = [
                 "Lyon",
                 "69007",
                 [JobPosting.Domain.DEVELOPPEMENT],
-                "4 mois",
+                4,
             ),
             (
                 "Stage webdesigner",
@@ -1009,7 +1009,7 @@ JOB_POSTING_SEEDS = [
                 "Rennes",
                 "35200",
                 [JobPosting.Domain.INFORMATIQUE],
-                "3 mois",
+                3,
             ),
             (
                 "Stage ingénieure cloud",
@@ -1017,7 +1017,7 @@ JOB_POSTING_SEEDS = [
                 "Sophia Antipolis",
                 "06560",
                 [JobPosting.Domain.SYSTEMES_ET_RESEAUX],
-                "6 mois",
+                6,
             ),
             (
                 "Stage développeuse jeux vidéo",
@@ -1025,7 +1025,7 @@ JOB_POSTING_SEEDS = [
                 "Angoulême",
                 "16000",
                 [JobPosting.Domain.DEVELOPPEMENT],
-                "6 mois",
+                6,
             ),
             (
                 "Stage business analyst",
@@ -1033,7 +1033,7 @@ JOB_POSTING_SEEDS = [
                 "Paris",
                 "75002",
                 [JobPosting.Domain.INFORMATIQUE_DE_GESTION],
-                "6 mois",
+                6,
             ),
             (
                 "Stage ingénieure robotique",
@@ -1041,7 +1041,7 @@ JOB_POSTING_SEEDS = [
                 "Clermont-Ferrand",
                 "63000",
                 [JobPosting.Domain.ELECTRONIQUE],
-                "6 mois",
+                6,
             ),
             (
                 "Stage développeuse full stack",
@@ -1049,7 +1049,7 @@ JOB_POSTING_SEEDS = [
                 "Toulouse",
                 "31400",
                 [JobPosting.Domain.DEVELOPPEMENT],
-                "6 mois",
+                6,
             ),
         ]
     ),
@@ -1060,7 +1060,7 @@ JOB_POSTING_SEEDS = [
         "city": "Paris",
         "postal_code": "75009",
         "domains": [JobPosting.Domain.DEVELOPPEMENT],
-        "duration": "24 mois",
+        "duration_months": 24,
         "contract_type": JobPosting.ContractType.APPRENTICESHIP,
     },
     {
@@ -1070,7 +1070,7 @@ JOB_POSTING_SEEDS = [
         "city": "Strasbourg",
         "postal_code": "67000",
         "domains": [JobPosting.Domain.EXPLOITATION_MAINTENANCE],
-        "duration": "12 mois",
+        "duration_months": 12,
         "contract_type": JobPosting.ContractType.PROFESSIONALIZATION,
     },
     {
@@ -1083,7 +1083,7 @@ JOB_POSTING_SEEDS = [
             JobPosting.Domain.SYSTEMES_ET_RESEAUX,
             JobPosting.Domain.INFORMATIQUE_POUR_LA_RECHERCHE,
         ],
-        "duration": "24 mois",
+        "duration_months": 24,
         "contract_type": JobPosting.ContractType.APPRENTICESHIP,
     },
     {
@@ -1105,7 +1105,7 @@ JOB_POSTING_SEEDS = [
             JobPosting.Domain.SYSTEMES_ET_RESEAUX,
             JobPosting.Domain.TELECOMMUNICATIONS,
         ],
-        "duration": "12 mois",
+        "duration_months": 12,
         "contract_type": JobPosting.ContractType.CDD,
     },
     {
@@ -1115,7 +1115,7 @@ JOB_POSTING_SEEDS = [
         "city": "Roubaix",
         "postal_code": "59100",
         "domains": [JobPosting.Domain.TELECOMMUNICATIONS],
-        "duration": "6 mois",
+        "duration_months": 6,
         "contract_type": JobPosting.ContractType.INTERIM,
     },
     {
@@ -1125,7 +1125,7 @@ JOB_POSTING_SEEDS = [
         "city": "Montpellier",
         "postal_code": "34000",
         "domains": [JobPosting.Domain.DEVELOPPEMENT],
-        "duration": "1 semaine",
+        "duration_months": None,
     },
     {
         "category": JobPosting.Category.TROISIEME_INTERNSHIP,
@@ -1134,7 +1134,7 @@ JOB_POSTING_SEEDS = [
         "city": "Paris",
         "postal_code": "75015",
         "domains": [JobPosting.Domain.SYSTEMES_ET_RESEAUX],
-        "duration": "1 semaine",
+        "duration_months": None,
     },
     {
         "category": JobPosting.Category.TROISIEME_INTERNSHIP,
@@ -1143,6 +1143,6 @@ JOB_POSTING_SEEDS = [
         "city": "Clermont-Ferrand",
         "postal_code": "63000",
         "domains": [JobPosting.Domain.ELECTRONIQUE],
-        "duration": "1 semaine",
+        "duration_months": None,
     },
 ]

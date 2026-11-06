@@ -34,6 +34,12 @@
                   hx-get="{% url "index_job_postings" %}" hx-trigger="change[target.type === 'checkbox'], change from:#job_posting_sort, submit"
                   hx-select="#job_posting_results" hx-target="#job_posting_results" hx-swap="outerHTML"
                   hx-select-oob="#job_posting_count:innerHTML,#job_posting_sort:innerHTML,#job_posting_search:outerHTML,#job_posting_search_error:innerHTML" hx-push-url="true" hx-history="false"
+                  x-data="{ onlyCdi: {{ only_cdi|yesno:'true,false' }} }"
+                  @reset-filters.window="onlyCdi = false"
+                  @change="if ($event.target.name === 'contract_type') {
+                      onlyCdi = [...$el.querySelectorAll('[name=contract_type]:checked')].map(box => box.value).join() === 'cdi';
+                      if (onlyCdi) $dispatch('reset-filter', 'job_posting_duration');
+                  }"
                   class="flex flex-wrap gap-4 mb-3">
                 <input type="hidden" name="category" value="{{ category }}">
                 <c-components.form_fields.search_bar id="job_posting_search" name="q" label="Rechercher une offre" placeholder="Métier, entreprise, etc." :value="search" :errors="search_errors">
@@ -46,8 +52,11 @@
                     <c-components.form_fields.region_options :regions="regions" :ticked="ticked_departments" id="job_posting_location" />
                 </c-components.form_fields.filter_select>
                 <c-components.form_fields.filter_select label="Domaine" name="domain" id="job_posting_domain" icon="job-domain" :options="domains" :ticked="ticked_domains" selection_target="#job_posting_selected_filters" />
-                {% if category != "seconde_internship" and category != "troisieme_internship" %}
-                    <c-components.form_fields.filter_select label="Durée" name="duration" id="job_posting_duration" icon="job-duration" tint_class="bg-orange-500/20" selection_target="#job_posting_selected_filters" />
+                {% if durations %}
+                    {# A CDI lasts as long as it lasts: ticked alone, it takes the duration filter away. #}
+                    <div id="job_posting_duration_filter" x-show="!onlyCdi" {% if only_cdi %}style="display: none"{% endif %}>
+                        <c-components.form_fields.filter_select label="Durée" name="duration" id="job_posting_duration" icon="job-duration" :options="durations" :ticked="ticked_durations" tint_class="bg-orange-500/20" selection_target="#job_posting_selected_filters" />
+                    </div>
                 {% endif %}
                 {% if contract_types %}
                     <c-components.form_fields.filter_select label="Type de contrat" name="contract_type" id="job_posting_contract_type" icon="job-category" :options="contract_types" :ticked="ticked_contract_types" tint_class="bg-yellow-500/20" selection_target="#job_posting_selected_filters" />

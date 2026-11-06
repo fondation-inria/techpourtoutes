@@ -1,6 +1,7 @@
 from django.contrib import admin
 from django.contrib.admin.utils import flatten_fieldsets
 from django.templatetags.static import static
+from django.urls import reverse
 from django.utils.html import format_html
 from django.utils.safestring import mark_safe
 from django.utils.translation import gettext_lazy as _
@@ -36,7 +37,7 @@ class JobPostingAdmin(admin.ModelAdmin):
                     "company_name",
                     "company_logo_preview",
                     "description",
-                    "duration",
+                    "duration_months",
                     "postal_code",
                     "cog_code",
                     "department_code",
@@ -79,12 +80,15 @@ class JobPostingAdmin(admin.ModelAdmin):
 
     @admin.display(description=_("lien"))
     def offer_link(self, job_posting):
+        """An unpublished offer answers a 404 on the site."""
+        if job_posting.hidden:
+            return "-"
         return format_html(
             '<a href="{}" target="_blank" rel="noopener noreferrer" title="{label}"'
             ' aria-label="{label}">'
             '<svg width="16" height="16" aria-hidden="true" focusable="false">'
             '<use href="{}#external-link"></use></svg></a>',
-            job_posting.url,
+            reverse("show_job_posting", args=[job_posting.pk]),
             static("svg/sprite.svg"),
             label="Voir l’offre (nouvelle fenêtre)",
         )

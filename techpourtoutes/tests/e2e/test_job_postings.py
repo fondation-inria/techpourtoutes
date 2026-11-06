@@ -90,6 +90,20 @@ def test_resetting_unticks_every_filter_at_once(page, live_server):
 
 
 @override_switch("internships", active=True)
+def test_resetting_brings_back_the_duration_filter_a_lone_cdi_took_away(page, live_server):
+    page.goto(f"{live_server.url}/stages-alternances-emplois/?category=first_job")
+    duration = page.get_by_role("button", name="Durée")
+    page.get_by_role("button", name="Type de contrat").click()
+    page.locator("#job_posting_contract_type_panel").get_by_text("CDI", exact=True).click()
+    expect(duration).to_be_hidden()
+    page.keyboard.press("Escape")
+
+    page.get_by_role("button", name="Tout réinitialiser").click()
+
+    expect(duration).to_be_visible()
+
+
+@override_switch("internships", active=True)
 def test_ticking_a_filter_narrows_the_list_without_reloading_the_page(page, live_server):
     category = JobPosting.Category.HIGHER_ED_INTERNSHIP
     save_job_posting("Stage à Brest", category, department_code="29")
@@ -175,6 +189,30 @@ def test_searching_a_place_shows_the_matches_under_their_region(page, live_serve
     search.fill("2A")
 
     expect(page.get_by_text("Corse-du-Sud (2A)", exact=True)).to_be_visible()
+
+
+@override_switch("internships", active=True)
+def test_back_from_a_posting_returns_where_she_was_in_the_listing(page, live_server):
+    for index in range(20):
+        save_job_posting(f"Stage {index}", JobPosting.Category.APPRENTICESHIP)
+    page.goto(f"{live_server.url}/stages-alternances-emplois/?category=apprenticeship")
+    page.get_by_role("button", name="Domaine").click()
+    page.locator("#job_posting_domain_panel").get_by_text(
+        "Développement - programmation - logiciel", exact=True
+    ).click()
+    expect(page).to_have_url(re.compile(r"domain=developpement"))
+    listing = page.url
+    page.keyboard.press("Escape")
+    last_card = page.get_by_role("link", name="Stage 0", exact=True)
+    last_card.scroll_into_view_if_needed()
+    scrolled = page.evaluate("window.scrollY")
+    assert scrolled > 0
+
+    last_card.click()
+    page.get_by_role("link", name="Retour").click()
+
+    expect(page).to_have_url(listing)
+    page.wait_for_function(f"Math.abs(window.scrollY - {scrolled}) < 2")
 
 
 @override_switch("internships", active=True)
