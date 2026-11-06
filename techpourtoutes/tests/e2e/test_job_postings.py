@@ -58,7 +58,11 @@ def test_a_ticked_region_stands_for_its_departments_until_one_is_unticked(page, 
 
 @override_switch("internships", active=True)
 def test_resetting_unticks_every_filter_at_once(page, live_server):
-    page.goto(f"{live_server.url}/stages-alternances-emplois/")
+    category = JobPosting.Category.HIGHER_ED_INTERNSHIP
+    save_job_posting("Stage web", category)
+    save_job_posting("Stage en design", category)
+    page.goto(f"{live_server.url}/stages-alternances-emplois/?q=web&sort=date")
+    expect(page.locator("#job_posting_count")).to_have_text("1\xa0offre")
     location = page.get_by_role("button", name="Région / Département")
     location.click()
     page.get_by_role("button", name="Départements de Bretagne").click()
@@ -78,6 +82,11 @@ def test_resetting_unticks_every_filter_at_once(page, live_server):
     expect(finistere).not_to_be_checked()
     bretagne = page.get_by_role("checkbox", name="Bretagne", include_hidden=True)
     assert not bretagne.evaluate("box => box.indeterminate")
+    expect(page.get_by_label("Rechercher une offre")).to_have_value("")
+    expect(page.locator("#job_posting_count")).to_have_text("2\xa0offres")
+    expect(page.get_by_role("button", name="Trier par")).to_be_hidden()
+    assert "q=web" not in page.url
+    assert "sort=date" not in page.url
 
 
 @override_switch("internships", active=True)
@@ -262,6 +271,73 @@ def test_the_search_cross_sends_nothing_when_no_search_was_made(page, live_serve
     expect(search).to_have_value("")
     page.wait_for_timeout(200)
     assert [url for url in urls if "stages-alternances" in url] == []
+
+
+@override_switch("internships", active=True)
+def test_resetting_the_search_clears_the_filters_and_the_text_and_shows_every_posting(
+    page, live_server
+):
+    category = JobPosting.Category.APPRENTICESHIP
+    save_job_posting("Alternance web", category)
+    save_job_posting("Alternance design", category)
+    save_job_posting("Stage web", JobPosting.Category.HIGHER_ED_INTERNSHIP)
+    page.goto(f"{live_server.url}/stages-alternances-emplois/?category=apprenticeship")
+    search = page.get_by_label("Rechercher une offre")
+    page.get_by_role("button", name="Domaine").click()
+    page.locator("#job_posting_domain_panel").get_by_text("Électronique", exact=True).click()
+    expect(page.locator("#job_posting_count")).to_have_text("0\xa0offre")
+    page.keyboard.press("Escape")
+    search.fill("introuvable")
+    search.press("Enter")
+    expect(page).to_have_url(re.compile("q=introuvable"))
+
+    page.get_by_role("link", name="Réinitialiser la recherche").click()
+
+    expect(page.locator("#job_posting_count")).to_have_text("2\xa0offres")
+    expect(page.get_by_text("Filtres sélectionnés")).to_be_hidden()
+    expect(page.get_by_role("button", name="Domaine")).not_to_contain_text("1")
+    expect(search).to_have_value("")
+    expect(page.get_by_role("button", name="Région / Département")).to_be_focused()
+    assert "category=apprenticeship" in page.url
+    assert "q=introuvable" not in page.url
+    assert "domain=" not in page.url
+
+
+@override_switch("internships", active=True)
+def test_the_reset_button_shows_once_a_search_is_launched_without_the_filters_label(
+    page, live_server
+):
+    page.goto(f"{live_server.url}/stages-alternances-emplois/")
+    reset = page.get_by_role("button", name="Tout réinitialiser")
+    search = page.get_by_label("Rechercher une offre")
+    expect(reset).to_be_hidden()
+
+    search.fill("web")
+
+    expect(reset).to_be_hidden()
+
+    page.get_by_role("button", name="Rechercher").click()
+
+    expect(reset).to_be_visible()
+    expect(page.get_by_text("Filtres sélectionnés")).to_be_hidden()
+    search_box = page.get_by_role("button", name="Rechercher").bounding_box()
+    reset_box = reset.bounding_box()
+    assert search_box["y"] <= reset_box["y"] <= search_box["y"] + search_box["height"]
+
+    page.get_by_role("button", name="Effacer la recherche").click()
+
+    expect(reset).to_be_hidden()
+
+    page.get_by_role("button", name="Domaine").click()
+    page.locator("#job_posting_domain_panel").get_by_text("Électronique", exact=True).click()
+
+    expect(reset).to_be_visible()
+    expect(page.get_by_text("Filtres sélectionnés")).to_be_visible()
+
+    page.keyboard.press("Escape")
+    page.get_by_role("button", name="Retirer le filtre Électronique").click()
+
+    expect(reset).to_be_hidden()
 
 
 @override_switch("internships", active=True)
