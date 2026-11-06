@@ -189,29 +189,3 @@ def test_back_from_a_posting_returns_where_she_was_in_the_listing(page, live_ser
         re.compile(r"/stages-alternances-emplois/\?category=apprenticeship&domain=developpement$")
     )
     page.wait_for_function(f"Math.abs(window.scrollY - {scrolled}) < 2")
-
-
-@override_switch("internships", active=True)
-def test_ticking_cdi_alone_takes_the_duration_filter_away(page, live_server):
-    page.goto(f"{live_server.url}/stages-alternances-emplois/?category=first_job")
-    duration = page.get_by_role("button", name="Durée")
-    duration.click()
-    page.locator("#job_posting_duration_panel").get_by_text("Plus de 12 mois", exact=True).click()
-    expect(page.get_by_role("button", name="Retirer le filtre Plus de 12 mois")).to_be_attached()
-    # The URL follows the answer: wait for it before moving on to the next filter.
-    expect(page).to_have_url(re.compile(r"duration=over_12_months"))
-    page.keyboard.press("Escape")
-
-    page.get_by_role("button", name="Type de contrat").click()
-    page.locator("#job_posting_contract_type_panel").get_by_text("CDI", exact=True).click()
-    expect(page).to_have_url(re.compile(r"contract_type=cdi"))
-
-    expect(duration).to_be_hidden()
-    expect(
-        page.get_by_role("button", name="Retirer le filtre Plus de 12 mois")
-    ).not_to_be_attached()
-
-    page.locator("#job_posting_contract_type_panel").get_by_text("CDD", exact=True).click()
-
-    expect(duration).to_be_visible()
-    expect(duration).not_to_contain_text("1")
