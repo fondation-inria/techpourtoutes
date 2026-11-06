@@ -38,7 +38,10 @@ class JobPostingQuerySet(BaseQuerySet):
 
     def search(self, terms):
         query = SearchQuery(
-            " & ".join(f"{_masculine(word)}:*" for word in re.findall(r"\w+", terms.lower())),
+            " & ".join(
+                _any_spelling(_masculine(word))
+                for word in terms.replace("\x00", "").lower().split()
+            ),
             search_type="raw",
             config=SEARCH_CONFIG,
         )
@@ -49,8 +52,23 @@ class JobPostingQuerySet(BaseQuerySet):
 
 def _masculine(word):
     for feminine, masculine in MASCULINE_OF_FEMININE:
-        word = re.sub(rf"{feminine}(s?)$", rf"{masculine}\1", word)
+        word = re.sub(rf"{feminine}(s?)\b", rf"{masculine}\1", word)
     return word
+
+
+def _any_spelling(word):
+    """Matches "node.js" as typed, "nodejs" and "node js", but not "node" and "js" far apart."""
+    parts = re.findall(r"\w+", word)
+    if len(parts) < 2:
+        return _prefix(word)
+    spellings = [_prefix(word), _prefix("".join(parts))]
+    if all(len(part) > 1 for part in parts):
+        spellings.append(" <-> ".join(_prefix(part) for part in parts))
+    return "(" + " | ".join(spellings) + ")"
+
+
+def _prefix(word):
+    return "'" + word.replace("\\", "\\\\").replace("'", "''") + "':*"
 
 
 def _masculine_text(field):

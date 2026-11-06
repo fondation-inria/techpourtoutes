@@ -185,6 +185,28 @@ def test_search_requires_every_word():
 
 
 @pytest.mark.django_db
+def test_search_finds_a_dotted_name_however_it_is_spelled():
+    _save_searchable_posting("Développeur Node.js")
+    _save_searchable_posting("Développeur NodeJS")
+    _save_searchable_posting("Développeur Node JS")
+    _save_searchable_posting("Développeur Java")
+
+    assert set(_titles_found_by("node.js")) == {
+        "Développeur Node.js",
+        "Développeur NodeJS",
+        "Développeur Node JS",
+    }
+
+
+@pytest.mark.django_db
+def test_search_leaves_out_the_parts_of_a_dotted_name_far_apart():
+    _save_searchable_posting("Stage Vue.js")
+    _save_searchable_posting("Stage avec vue sur la mer", description="Début en juin")
+
+    assert _titles_found_by("vue.js") == ["Stage Vue.js"]
+
+
+@pytest.mark.django_db
 @pytest.mark.parametrize("terms", ["c++ & (web", "d'alternance", "web:* | !", "'\\", "\x00web"])
 def test_search_does_not_break_on_punctuation(terms):
     _save_searchable_posting("Développeur web")
