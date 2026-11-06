@@ -316,7 +316,7 @@ def test_the_details_shown_on_the_posting_page_are_imported(myfuture_record):
     assert posting.street == "CURATS, LD CANTIRAN"
     # Ocapiat's sector is the branch it follows, not the company's trade: only NAF tells that.
     assert posting.sector == "Travaux d'installation électrique dans tous locaux"
-    assert (posting.position_status, posting.experience_level, posting.salary) == ("", "", "")
+    assert (posting.experience_level, posting.salary) == ("", "")
 
 
 def test_an_offer_without_a_street_or_a_sector_is_imported(myfuture_record):

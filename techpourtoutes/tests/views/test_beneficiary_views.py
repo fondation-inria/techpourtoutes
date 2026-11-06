@@ -624,7 +624,6 @@ def test_show_job_posting_renders_the_posting(client):
         contract_type=JobPosting.ContractType.CDD,
         description="<p>Tu <strong>développes</strong> des tableaux de bord.</p>",
         domains=[JobPosting.Domain.SYSTEMES_ET_RESEAUX],
-        position_status="Cadre du secteur privé",
         experience_level="Minimum 2 ans",
         salary="36 - 44 k€ brut annuel",
         duration_months=6,
@@ -640,7 +639,6 @@ def test_show_job_posting_renders_the_posting(client):
     for shown in [
         "Systèmes et réseaux",
         "CDD",
-        "Cadre du secteur privé",
         "Minimum 2 ans",
         "36 - 44 k€ brut annuel",
         "6 mois",
@@ -649,6 +647,18 @@ def test_show_job_posting_renders_the_posting(client):
     ]:
         assert shown in html
     assert "non indiqué" not in html
+
+
+@pytest.mark.django_db
+@pytest.mark.parametrize("category", ["higher_ed_internship", "apprenticeship", "first_job"])
+@override_switch("internships", active=True)
+def test_show_job_posting_leaves_out_the_position_status(client, category):
+    """Apec says « Cadre du secteur privé » nearly every time, and an internship is a « Stage »."""
+    job_posting = save_job_posting("Offre", category)
+
+    html = client.get(show_job_posting_url(job_posting)).content.decode()
+
+    assert "Statut du poste" not in html
 
 
 @pytest.mark.django_db
@@ -672,7 +682,7 @@ def test_show_job_posting_puts_the_buttons_right_below_the_title(client):
 
     html = client.get(show_job_posting_url(job_posting)).content.decode()
 
-    assert html.index("Postuler sur") < html.index("Enregistrer") < html.index("Statut du poste")
+    assert html.index("Postuler sur") < html.index("Enregistrer") < html.index("Salaire")
 
 
 @pytest.mark.django_db
@@ -683,7 +693,6 @@ def test_show_job_posting_says_what_the_partner_did_not_give(client):
     html = client.get(show_job_posting_url(job_posting)).content.decode()
 
     for label in [
-        "Statut du poste",
         "Durée",
         "Niveau d’expérience",
         "Salaire",
@@ -726,7 +735,7 @@ def test_show_job_posting_shows_a_pupil_the_period_and_nothing_about_the_job(cli
     html = client.get(show_job_posting_url(job_posting)).content.decode()
 
     assert re.search(r"Date&nbsp;:\s*</dt>\s*<dd[^>]*>\s*du 12 juin 2027 au 19 juin 2027", html)
-    for label in ["Statut du poste", "Durée", "Salaire", "Secteur", "Date de début"]:
+    for label in ["Durée", "Salaire", "Secteur", "Date de début"]:
         assert label not in html
 
 

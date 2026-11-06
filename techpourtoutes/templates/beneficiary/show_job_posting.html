@@ -70,7 +70,6 @@
                                 <dd class="min-w-0">{% if job_posting.starts_on %}du {{ job_posting.starts_on|date:"j F Y" }} au {{ job_posting.ends_on|date:"j F Y" }}{% else %}non indiqué{% endif %}</dd>
                             </div>
                         {% else %}
-                            <div><dt class="inline font-bold">Statut du poste&nbsp;:</dt> <dd class="inline">{{ job_posting.position_status|default:"non indiqué" }}</dd></div>
                             {# A CDI lasts as long as it lasts. #}
                             {% if job_posting.contract_type != "cdi" %}
                                 <div><dt class="inline font-bold">Durée&nbsp;:</dt> <dd class="inline">{% if job_posting.duration_months %}{{ job_posting.duration_months }} mois{% else %}non indiqué{% endif %}</dd></div>

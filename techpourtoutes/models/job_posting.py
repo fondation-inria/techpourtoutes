@@ -181,9 +181,6 @@ class JobPosting(BaseModel):
     contract_type = models.CharField(
         max_length=20, blank=True, choices=ContractType.choices, verbose_name=_("type de contrat")
     )
-    position_status = models.CharField(
-        max_length=255, blank=True, verbose_name=_("statut du poste")
-    )
     experience_level = models.CharField(
         max_length=255, blank=True, verbose_name=_("niveau d'expérience")
     )

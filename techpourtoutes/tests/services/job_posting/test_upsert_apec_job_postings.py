@@ -304,7 +304,6 @@ def test_the_details_shown_on_the_posting_page_are_imported(apec_record):
     UpsertApecJobPostings(records=[apec_record()])
 
     posting = JobPosting.objects.get()
-    assert posting.position_status == "Agent de maîtrise / Technicien"
     assert posting.experience_level == "Minimum 3 ans"
     assert posting.salary == "A partir de 38 k€ brut annuel"
     assert posting.sector == "Transports urbains et suburbains de voyageurs"
@@ -323,11 +322,11 @@ def test_the_sector_is_the_insee_label_of_the_naf_code(apec_record):
     assert JobPosting.objects.get().sector == "Activités des agences de placement de main-d'œuvre"
 
 
-def test_an_offer_without_a_salary_status_or_sector_is_imported(apec_record):
+def test_an_offer_without_a_salary_or_sector_is_imported(apec_record):
     record = apec_record()
-    del record["Salaire_affiche"], record["Statut"], record["NAF_secteur"]
+    del record["Salaire_affiche"], record["NAF_secteur"]
 
     UpsertApecJobPostings(records=[record])
 
     posting = JobPosting.objects.get()
-    assert (posting.salary, posting.position_status, posting.sector) == ("", "", "")
+    assert (posting.salary, posting.sector) == ("", "")
