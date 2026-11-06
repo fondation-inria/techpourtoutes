@@ -1,11 +1,13 @@
 # Whenever a row really changes and the caller did not write `updated_at` itself, the trigger
 # does. `save()` always writes it, as Django does: a pro's own fields live in another table than
-# her `updated_at`, so her row in that one would look unchanged.
+# her `updated_at`, so her row in that one would look unchanged. Postgres only computes a generated
+# column such as `search_vector` after this trigger, so it would always look changed.
 SET_UPDATED_AT = """
 CREATE OR REPLACE FUNCTION techpourtoutes_set_updated_at() RETURNS trigger AS $$
 BEGIN
     IF NEW.updated_at IS NOT DISTINCT FROM OLD.updated_at
-        AND (to_jsonb(NEW) - 'updated_at') IS DISTINCT FROM (to_jsonb(OLD) - 'updated_at')
+        AND (to_jsonb(NEW) - 'updated_at' - 'search_vector')
+            IS DISTINCT FROM (to_jsonb(OLD) - 'updated_at' - 'search_vector')
     THEN
         NEW.updated_at := clock_timestamp();
     END IF;

@@ -257,6 +257,21 @@ def test_index_job_postings_shows_every_domain_of_a_posting(client):
 
 @pytest.mark.django_db
 @override_switch("internships", active=True)
+def test_index_job_postings_decodes_the_description_and_still_escapes_it(client):
+    save_job_posting(
+        "Stage",
+        JobPosting.Category.HIGHER_ED_INTERNSHIP,
+        description="<p>Stage&nbsp;: R&amp;D &eacute;quipe</p>"
+        "&lt;script&gt;alert(1)&lt;/script&gt;",
+    )
+
+    html = client.get(INDEX_JOB_POSTINGS_URL).content.decode()
+
+    assert "Stage\xa0: R&amp;D équipe&lt;script&gt;alert(1)&lt;/script&gt;" in html
+
+
+@pytest.mark.django_db
+@override_switch("internships", active=True)
 def test_index_job_postings_lists_the_latest_update_or_publication_first(client):
     now = timezone.now()
     category = JobPosting.Category.HIGHER_ED_INTERNSHIP
@@ -882,6 +897,130 @@ def test_index_job_postings_links_each_posting_to_its_page_by_its_title(client):
         rf'<h3[^>]*>\s*<a href="{show_job_posting_url(job_posting)}"[^>]*>\s*Stage\s*</a>', html
     )
     assert 'aria-label="Voir l’offre' not in html
+
+
+@pytest.fixture
+def cybersecurity_postings():
+    now = timezone.now()
+    category = JobPosting.Category.HIGHER_ED_INTERNSHIP
+    save_job_posting("Stage en cybersécurité", category, published_at=now - timedelta(days=5))
+    save_job_posting(
+        "Stage en réseaux", category, published_at=now, description="Un peu de cybersécurité"
+    )
+    save_job_posting("Stage en design", category, published_at=now)
+
+
+def ordered_titles(response):
+    return [job_posting.title for job_posting in response.context["job_postings"]]
+
+
+@pytest.mark.django_db
+@override_switch("internships", active=True)
+def test_index_job_postings_searches_by_relevance_by_default(client, cybersecurity_postings):
+    response = client.get(INDEX_JOB_POSTINGS_URL, {"q": "cybersécurité"})
+
+    assert ordered_titles(response) == ["Stage en cybersécurité", "Stage en réseaux"]
+
+
+@pytest.mark.django_db
+@override_switch("internships", active=True)
+def test_index_job_postings_sorts_a_search_by_date_on_request(client, cybersecurity_postings):
+    response = client.get(INDEX_JOB_POSTINGS_URL, {"q": "cybersécurité", "sort": "date"})
+
+    assert ordered_titles(response) == ["Stage en réseaux", "Stage en cybersécurité"]
+
+
+@pytest.mark.django_db
+@pytest.mark.parametrize("q", ["c", " c  ", "   "])
+@override_switch("internships", active=True)
+def test_index_job_postings_ignores_a_search_under_two_characters(client, q):
+    save_job_posting("Stage en design", JobPosting.Category.HIGHER_ED_INTERNSHIP)
+
+    response = client.get(INDEX_JOB_POSTINGS_URL, {"q": q})
+
+    assert listed_titles(response) == {"Stage en design"}
+    assert 'name="sort"' not in response.content.decode()
+
+
+@pytest.mark.django_db
+@pytest.mark.parametrize(
+    "query, invalid",
+    [
+        ({"q": "c"}, True),
+        ({"q": " c  "}, True),
+        ({"q": "ia"}, False),
+        ({"q": "   "}, False),
+        ({}, False),
+    ],
+    ids=["too_short", "too_short_once_trimmed", "long_enough", "blank", "absent"],
+)
+@override_switch("internships", active=True)
+def test_index_job_postings_shows_an_error_under_two_characters(client, query, invalid):
+    html = client.get(INDEX_JOB_POSTINGS_URL, query).content.decode()
+
+    assert ("Saisis au moins 2 caractères" in html) == invalid
+    assert ('aria-invalid="true"' in html) == invalid
+
+
+@pytest.mark.django_db
+@override_switch("internships", active=True)
+def test_index_job_postings_searches_within_the_category_and_the_filters(client):
+    save_job_posting("Stage web", JobPosting.Category.HIGHER_ED_INTERNSHIP)
+    save_job_posting(
+        "Stage web en maths", JobPosting.Category.HIGHER_ED_INTERNSHIP, domains=["mathematiques"]
+    )
+    save_job_posting("Alternance web", JobPosting.Category.APPRENTICESHIP)
+
+    response = client.get(INDEX_JOB_POSTINGS_URL, {"q": "web", "domain": "mathematiques"})
+
+    assert listed_titles(response) == {"Stage web en maths"}
+
+
+@pytest.mark.django_db
+@override_switch("internships", active=True)
+def test_index_job_postings_offers_the_sort_only_once_she_searched(client):
+    without_search = client.get(INDEX_JOB_POSTINGS_URL).content.decode()
+    with_search = client.get(INDEX_JOB_POSTINGS_URL, {"q": "web"}).content.decode()
+
+    assert 'name="sort"' not in without_search
+    assert 'name="sort"' in with_search
+
+
+@pytest.mark.django_db
+@pytest.mark.parametrize(
+    "query, selected",
+    [({"q": "web"}, "relevance"), ({"q": "web", "sort": "date"}, "date")],
+    ids=["default", "asked_for"],
+)
+@override_switch("internships", active=True)
+def test_index_job_postings_selects_the_sort_in_use(client, query, selected):
+    html = client.get(INDEX_JOB_POSTINGS_URL, query).content.decode()
+
+    assert re.findall(r'name="sort" value="([^"]*)"\s+checked', html) == [selected]
+
+
+@pytest.mark.django_db
+@override_switch("internships", active=True)
+def test_index_job_postings_shows_the_search_in_its_field(client):
+    html = client.get(INDEX_JOB_POSTINGS_URL, {"q": '"web'}).content.decode()
+
+    assert 'value="&quot;web"' in html
+
+
+@pytest.mark.django_db
+@override_switch("internships", active=True)
+def test_index_job_postings_keeps_the_search_and_the_sort_in_the_link_to_the_next_page(
+    client, twenty_one_apprenticeships
+):
+    response = client.get(
+        INDEX_JOB_POSTINGS_URL,
+        {"category": "apprenticeship", "q": "alternance", "sort": "date"},
+    )
+
+    assert (
+        b'href="?category=apprenticeship&amp;q=alternance&amp;sort=date&page=2"'
+        in response.content
+    )
 
 
 @pytest.mark.django_db

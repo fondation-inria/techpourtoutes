@@ -6,7 +6,7 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('techpourtoutes', '0073_jobposting_hidden'),
+        ('techpourtoutes', '0074_jobposting_search_vector'),
     ]
 
     operations = [
