@@ -8,6 +8,9 @@ from django.utils.translation import gettext_lazy as _
 
 from techpourtoutes.models import JobPosting
 
+from .clicked_job_posting import JobPostingClickedByInline
+from .saved_job_posting import JobPostingSavedByInline
+
 
 @admin.register(JobPosting)
 class JobPostingAdmin(admin.ModelAdmin):
@@ -17,6 +20,7 @@ class JobPostingAdmin(admin.ModelAdmin):
     list_display = (*list_display_links, "offer_link")
     search_fields = ("title", "company_name")
     list_filter = ("source", "category", "contract_type", "hidden")
+    inlines = [JobPostingSavedByInline, JobPostingClickedByInline]
     fieldsets = (
         (
             "Informations générales",
