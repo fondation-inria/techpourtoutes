@@ -15,7 +15,7 @@ from ..models import User
 from ..ratelimit import rate_limit
 from ..services.jobirl_api.refresh_access_token import RefreshAccessToken
 from ..utils.text import mask_email
-from .beneficiary_views import save_pending_event
+from .beneficiary_views import save_pending_event, save_pending_job_posting
 
 
 @rate_limit("RATELIMIT_LOGIN", keys=("email",))
@@ -36,6 +36,7 @@ def login_request(request):
             request.session["login_email"] = email
             request.session["login_next"] = next_url
             request.session["login_saved_event"] = request.POST.get("saved_event", "")
+            request.session["login_saved_job_posting"] = request.POST.get("saved_job_posting", "")
 
             url = reverse("login_code")
             if back_url:
@@ -60,6 +61,7 @@ def login_request(request):
             "next": next_url,
             "back": back_url,
             "saved_event": request.GET.get("saved_event", ""),
+            "saved_job_posting": request.GET.get("saved_job_posting", ""),
         },
     )
 
@@ -80,12 +82,16 @@ def login_code(request):
             request.session.pop("login_email", None)
             request.session.pop("login_next", None)
             saved_event = request.session.pop("login_saved_event", "")
+            saved_job_posting = request.session.pop("login_saved_job_posting", "")
             # the following line required because django-axes is configured
             user.backend = "django.contrib.auth.backends.ModelBackend"
             login(request, user)
             messages.success(request, f"Bienvenue sur le compte {user.email} !")
             if save_pending_event(request, saved_event):
                 return redirect(reverse("index_beneficiary_events"))
+            job_posting = save_pending_job_posting(request, saved_job_posting)
+            if job_posting is not None:
+                return redirect(reverse("show_job_posting", args=[job_posting.pk]))
             return redirect(next_url or reverse("show_account"))
         form.add_error("code", "Code invalide ou expiré.")
 

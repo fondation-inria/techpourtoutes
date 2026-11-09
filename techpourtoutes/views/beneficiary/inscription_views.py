@@ -28,6 +28,7 @@ from ..beneficiary_views import (
     relay_errors,
     require_legal_representative,
     save_pending_event,
+    save_pending_job_posting,
     training_experience_context,
 )
 
@@ -43,6 +44,7 @@ def new_beneficiary_inscription_funnel(request):
         wants_mentor=request.GET.get("wants_mentor") == "1",
         wants_training_ambassador=request.GET.get("wants_training_ambassador") == "1",
         saved_event=request.GET.get("saved_event", ""),
+        saved_job_posting=request.GET.get("saved_job_posting", ""),
         submits_makeuse_project=request.GET.get("submits_makeuse_project") == "1",
     )
     return redirect(reverse("beneficiary_inscription_funnel"))
@@ -154,7 +156,11 @@ def _create_beneficiary(request):
         return _render_step(request, _FUNNEL.last(answers))
     _funnel(request).clear()
     return _render_step(
-        request, "code", email=result.beneficiary.email, saved_event=answers.get("saved_event", "")
+        request,
+        "code",
+        email=result.beneficiary.email,
+        saved_event=answers.get("saved_event", ""),
+        saved_job_posting=answers.get("saved_job_posting", ""),
     )
 
 
@@ -194,12 +200,27 @@ def _handle_code(request):
         user.backend = "django.contrib.auth.backends.ModelBackend"
         login(request, user)
         request.session["show_welcome_modal"] = True
-        saved_event = save_pending_event(request, request.POST.get("saved_event", ""))
-        landing = "index_beneficiary_events" if saved_event else "show_account"
-        return HttpResponse(headers={"HX-Redirect": reverse(landing)})
+        return HttpResponse(headers={"HX-Redirect": _landing_after_code(request)})
     messages.error(request, _CODE_ERROR)
+    return _render_code_step(request, email)
+
+
+def _landing_after_code(request):
+    if save_pending_event(request, request.POST.get("saved_event", "")):
+        return reverse("index_beneficiary_events")
+    job_posting = save_pending_job_posting(request, request.POST.get("saved_job_posting", ""))
+    if job_posting is not None:
+        return reverse("show_job_posting", args=[job_posting.pk])
+    return reverse("show_account")
+
+
+def _render_code_step(request, email):
     return _render_step(
-        request, "code", email=email, saved_event=request.POST.get("saved_event", "")
+        request,
+        "code",
+        email=email,
+        saved_event=request.POST.get("saved_event", ""),
+        saved_job_posting=request.POST.get("saved_job_posting", ""),
     )
 
 
@@ -210,9 +231,7 @@ def _handle_resend(request):
     if user is not None:
         AuthMailer.login_code(user=user, code=user.issue_login_code())
     messages.success(request, _RESEND_NOTICE)
-    return _render_step(
-        request, "code", email=email, saved_event=request.POST.get("saved_event", "")
-    )
+    return _render_code_step(request, email)
 
 
 # ------------------- validation -------------------
@@ -292,6 +311,7 @@ def _login_redirect_for_existing_email(request, email, answers):
         "back": back_url,
         "next": next_url,
         "saved_event": answers.get("saved_event", ""),
+        "saved_job_posting": answers.get("saved_job_posting", ""),
     }
     login_url = f"{reverse('login_request')}?{urlencode(params)}"
     _funnel(request).clear()

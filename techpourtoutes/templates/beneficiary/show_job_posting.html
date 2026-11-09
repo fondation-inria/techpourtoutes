@@ -15,7 +15,9 @@
                 </span>
             </c-components.button>
             {% if bookmark_action %}
-                <c-components.button variant="secondary" label="Enregistrer" icon="bookmark_outline" icon_position="start" class="whitespace-nowrap mt-3 mr-4 md:hidden" />
+                <div class="mt-3 mr-4 md:hidden">
+                    {% include "beneficiary/partials/update_saved_job_posting.html" %}
+                </div>
             {% endif %}
         </div>
         <div class="relative grid grid-cols-[70px_minmax(0,1fr)] gap-4 @min-[41.5rem]:items-center mt-13.5 max-md:mt-17 mb-6">
@@ -48,11 +50,18 @@
 
             {# Below md, the bar fixed at the bottom of the screen and the band at the top hold them instead. #}
             <div class="min-w-0 self-start flex flex-col items-end gap-3 max-md:hidden @min-[41.5rem]:col-start-3 @min-[41.5rem]:row-start-1 @min-[41.5rem]:row-span-2">
-                <c-components.button href="{{ job_posting.url }}" target="_blank" rel="noopener noreferrer" icon="external-link" icon_position="start" class="whitespace-nowrap">
-                    Postuler sur {% if job_posting.source == "apec" %}l’{% endif %}{{ job_posting.get_source_display }}<span class="sr-only"> (nouvelle fenêtre)</span>
+                <c-components.button
+                    icon="external-link"
+                    icon_position="start"
+                    class="whitespace-nowrap"
+                    hx-get="{% url "show_job_posting_application_modal" job_posting.pk %}"
+                    hx-target="#modal-container"
+                    hx-swap="innerHTML"
+                >
+                    Postuler sur {% if job_posting.source == "apec" %}l’{% endif %}{{ job_posting.get_source_display }}
                 </c-components.button>
                 {% if bookmark_action %}
-                    <c-components.button variant="secondary" label="Enregistrer" icon="bookmark_outline" icon_position="start" class="whitespace-nowrap" />
+                    {% include "beneficiary/partials/update_saved_job_posting.html" %}
                 {% endif %}
             </div>
 
@@ -149,9 +158,21 @@
         </div>
     </c-components.card>
 
+    <div id="modal-container"></div>
+    {% if show_welcome_modal %}
+        {% include "beneficiary/partials/welcome_modal.html" %}
+    {% endif %}
+
     <c-slot name="mobile_cta">
-        <c-components.button href="{{ job_posting.url }}" target="_blank" rel="noopener noreferrer" icon="external-link" icon_position="start" class="whitespace-nowrap">
-            Postuler sur {% if job_posting.source == "apec" %}l’{% endif %}{{ job_posting.get_source_display }}<span class="sr-only"> (nouvelle fenêtre)</span>
+        <c-components.button
+            icon="external-link"
+            icon_position="start"
+            class="whitespace-nowrap"
+            hx-get="{% url "show_job_posting_application_modal" job_posting.pk %}"
+            hx-target="#modal-container"
+            hx-swap="innerHTML"
+        >
+            Postuler sur {% if job_posting.source == "apec" %}l’{% endif %}{{ job_posting.get_source_display }}
         </c-components.button>
     </c-slot>
 </c-layout.base>

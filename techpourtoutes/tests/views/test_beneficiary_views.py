@@ -10,7 +10,16 @@ from django.urls import reverse
 from django.utils import timezone
 from waffle.testutils import override_switch
 
-from techpourtoutes.models import Event, JobPosting, MakeuseProject, Pro, SavedEvent, User
+from techpourtoutes.models import (
+    ClickedJobPosting,
+    Event,
+    JobPosting,
+    MakeuseProject,
+    Pro,
+    SavedEvent,
+    SavedJobPosting,
+    User,
+)
 from techpourtoutes.utils.territories import REGIONS
 
 from ..models.test_event import build_event
@@ -855,12 +864,14 @@ def test_show_job_posting_sends_her_to_the_partner_to_apply(client, source, part
 
     html = client.get(show_job_posting_url(job_posting)).content.decode()
 
+    application_modal_url = reverse("show_job_posting_application_modal", args=[job_posting.pk])
     assert re.search(
-        r'<a href="https://www\.apec\.fr/offre"[^>]*target="_blank"[^>]*>\s*<div[^>]*>'
+        rf'<button[^>]*hx-get="{application_modal_url}"[^>]*>\s*<div[^>]*>'
         rf"\s*<svg[^>]*>.*?</svg>\s*Postuler sur {partner}",
         html,
         re.S,
     )
+    assert "https://www.apec.fr/offre" not in html
     assert (
         "Cette offre ID 563753 a été publiée le 13 octobre 2026 sur le site de notre "
         f"partenaire, {partner}."
@@ -876,6 +887,310 @@ def test_show_job_posting_goes_back_to_the_listing_she_came_from(client):
     response = client.get(show_job_posting_url(job_posting), HTTP_REFERER=listing)
 
     assert response.context["back_url"] == listing
+
+
+@pytest.mark.django_db
+@override_switch("internships", active=True)
+def test_show_job_posting_bookmark_posts_to_update_saved_job_posting(
+    client, beneficiary, job_posting
+):
+    client.force_login(beneficiary)
+
+    content = client.get(show_job_posting_url(job_posting)).content.decode()
+
+    assert reverse("update_saved_job_posting", args=[job_posting.pk]) in content
+    assert 'aria-pressed="false"' in content
+
+
+@pytest.mark.django_db
+@override_switch("internships", active=True)
+def test_show_job_posting_marks_an_already_saved_posting(client, beneficiary, job_posting):
+    SavedJobPosting.objects.toggle(job_posting=job_posting, beneficiary=beneficiary)
+    client.force_login(beneficiary)
+
+    content = client.get(show_job_posting_url(job_posting)).content.decode()
+
+    assert 'aria-pressed="true"' in content
+
+
+@pytest.mark.django_db
+@override_switch("internships", active=True)
+def test_show_job_posting_anonymous_bookmark_opens_the_signup_modal(client, job_posting):
+    content = client.get(show_job_posting_url(job_posting)).content.decode()
+
+    assert reverse("create_saved_job_posting_modal", args=[job_posting.pk]) in content
+    assert reverse("update_saved_job_posting", args=[job_posting.pk]) not in content
+
+
+@pytest.mark.django_db
+@override_switch("internships", active=True)
+def test_show_job_posting_gives_a_connected_pro_no_bookmark_at_all(client, pro, job_posting):
+    client.force_login(pro)
+
+    content = client.get(show_job_posting_url(job_posting)).content.decode()
+
+    assert reverse("update_saved_job_posting", args=[job_posting.pk]) not in content
+    assert reverse("create_saved_job_posting_modal", args=[job_posting.pk]) not in content
+
+
+@pytest.mark.django_db
+@override_switch("internships", active=True)
+def test_show_job_posting_welcomes_her_to_the_club_once(client, beneficiary, job_posting):
+    """Signing up to save an offer lands her back on it: the welcome waits for her there."""
+    client.force_login(beneficiary)
+    session = client.session
+    session["show_welcome_modal"] = True
+    session.save()
+
+    assert "Bienvenue au club" in client.get(show_job_posting_url(job_posting)).content.decode()
+    assert (
+        "Bienvenue au club" not in client.get(show_job_posting_url(job_posting)).content.decode()
+    )
+
+
+def application_modal_url(job_posting):
+    return reverse("show_job_posting_application_modal", args=[job_posting.pk])
+
+
+@pytest.mark.django_db
+@override_switch("internships", active=True)
+def test_show_job_posting_application_modal_names_the_posting_and_sends_her_to_the_partner(
+    client, job_posting
+):
+    content = client.get(application_modal_url(job_posting)).content.decode()
+
+    assert "Tu vas être redirigée pour candidater" in content
+    assert re.search(r"Opportunité&nbsp;:\s*<strong>Développeuse web</strong>", content)
+    assert re.search(r"Entreprise&nbsp;:\s*<strong>Octo</strong>", content)
+    assert re.search(
+        r'<a href="https://www\.myfuture\.fr/offre/1"[^>]*target="_blank"[^>]*>.*?'
+        r"Continuer sur le site externe",
+        content,
+        re.S,
+    )
+
+
+@pytest.mark.django_db
+@override_switch("internships", active=True)
+def test_show_job_posting_application_modal_offers_an_anonymous_visitor_to_save_the_posting(
+    client, job_posting
+):
+    content = client.get(application_modal_url(job_posting)).content.decode()
+
+    assert "Enregistrer l’opportunité" in content
+    assert reverse("create_saved_job_posting_modal", args=[job_posting.pk]) in content
+    assert reverse("create_clicked_job_posting", args=[job_posting.pk]) not in content
+    assert "automatiquement enregistrée" not in content
+
+
+@pytest.mark.django_db
+@override_switch("internships", active=True)
+def test_show_job_posting_application_modal_records_the_click_of_a_beneficiary(
+    client, beneficiary, job_posting
+):
+    client.force_login(beneficiary)
+
+    content = client.get(application_modal_url(job_posting)).content.decode()
+
+    assert "L’opportunité sera automatiquement enregistrée dans ton compte." in content
+    assert reverse("create_clicked_job_posting", args=[job_posting.pk]) in content
+    assert reverse("update_saved_job_posting", args=[job_posting.pk]) not in content
+
+
+@pytest.mark.django_db
+@override_switch("internships", active=True)
+def test_show_job_posting_application_modal_neither_saves_nor_records_for_a_pro(
+    client, pro, job_posting
+):
+    client.force_login(pro)
+
+    content = client.get(application_modal_url(job_posting)).content.decode()
+
+    assert "Continuer sur le site externe" in content
+    assert "automatiquement enregistrée" not in content
+    assert reverse("create_clicked_job_posting", args=[job_posting.pk]) not in content
+    assert reverse("create_saved_job_posting_modal", args=[job_posting.pk]) not in content
+
+
+@pytest.mark.django_db
+@override_switch("internships", active=True)
+def test_show_job_posting_application_modal_ignores_an_unpublished_posting(client):
+    job_posting = save_job_posting("Stage", JobPosting.Category.HIGHER_ED_INTERNSHIP, hidden=True)
+
+    assert client.get(application_modal_url(job_posting)).status_code == 404
+
+
+@pytest.mark.django_db
+@override_switch("internships", active=False)
+def test_show_job_posting_application_modal_not_found_when_switch_inactive(client, job_posting):
+    assert client.get(application_modal_url(job_posting)).status_code == 404
+
+
+@pytest.mark.django_db
+@override_switch("internships", active=True)
+def test_update_saved_job_posting_saves_the_posting_for_the_beneficiary(
+    client, beneficiary, job_posting
+):
+    client.force_login(beneficiary)
+
+    response = client.post(reverse("update_saved_job_posting", args=[job_posting.pk]))
+
+    assert response.status_code == 200
+    assert list(beneficiary.saved_job_postings.all()) == [job_posting]
+    content = response.content.decode()
+    assert 'aria-pressed="true"' in content
+    assert "Offre enregistrée" in content
+
+
+@pytest.mark.django_db
+@override_switch("internships", active=True)
+def test_update_saved_job_posting_twice_takes_the_posting_back_out(
+    client, beneficiary, job_posting
+):
+    client.force_login(beneficiary)
+    url = reverse("update_saved_job_posting", args=[job_posting.pk])
+    client.post(url)
+
+    response = client.post(url)
+
+    assert SavedJobPosting.objects.count() == 0
+    content = response.content.decode()
+    assert 'aria-pressed="false"' in content
+    assert "Offre retirée" in content
+
+
+@pytest.mark.django_db
+@override_switch("internships", active=True)
+def test_update_saved_job_posting_swaps_every_bookmark_of_the_posting(
+    client, beneficiary, job_posting
+):
+    """The page and the application modal each show the bookmark: one toggle from either has
+    to leave the other in the same state."""
+    client.force_login(beneficiary)
+
+    content = client.post(reverse("update_saved_job_posting", args=[job_posting.pk])).content
+
+    assert f"hx-swap-oob='outerHTML:[data-bookmark=\"{job_posting.pk}\"]'" in content.decode()
+
+
+@pytest.mark.django_db
+@override_switch("internships", active=True)
+def test_update_saved_job_posting_rejects_a_get(client, beneficiary, job_posting):
+    client.force_login(beneficiary)
+
+    response = client.get(reverse("update_saved_job_posting", args=[job_posting.pk]))
+
+    assert response.status_code == 405
+
+
+@pytest.mark.django_db
+@override_switch("internships", active=True)
+def test_update_saved_job_posting_requires_a_login(client, job_posting):
+    response = client.post(reverse("update_saved_job_posting", args=[job_posting.pk]))
+
+    assert response.status_code == 302
+    assert reverse("login_request") in response["Location"]
+
+
+@pytest.mark.django_db
+@override_switch("internships", active=True)
+def test_update_saved_job_posting_is_closed_to_pros(client, pro, job_posting):
+    client.force_login(pro)
+
+    response = client.post(reverse("update_saved_job_posting", args=[job_posting.pk]))
+
+    assert response.status_code == 404
+    assert SavedJobPosting.objects.count() == 0
+
+
+@pytest.mark.django_db
+@override_switch("internships", active=True)
+def test_update_saved_job_posting_ignores_an_unpublished_posting(client, beneficiary):
+    job_posting = save_job_posting("Stage", JobPosting.Category.HIGHER_ED_INTERNSHIP, hidden=True)
+    client.force_login(beneficiary)
+
+    response = client.post(reverse("update_saved_job_posting", args=[job_posting.pk]))
+
+    assert response.status_code == 404
+    assert SavedJobPosting.objects.count() == 0
+
+
+@pytest.mark.django_db
+@override_switch("internships", active=True)
+def test_create_saved_job_posting_modal_carries_the_posting_into_both_ways_in(client, job_posting):
+    content = client.get(
+        reverse("create_saved_job_posting_modal", args=[job_posting.pk])
+    ).content.decode()
+
+    assert "Rejoins le club TechPourToutes" in content
+    assert (
+        f"{reverse('new_beneficiary_inscription_funnel')}?saved_job_posting={job_posting.pk}"
+        in content
+    )
+    assert f"{reverse('login_request')}?saved_job_posting={job_posting.pk}" in content
+
+
+@pytest.mark.django_db
+@override_switch("internships", active=True)
+def test_create_saved_job_posting_modal_ignores_an_unpublished_posting(client):
+    job_posting = save_job_posting("Stage", JobPosting.Category.HIGHER_ED_INTERNSHIP, hidden=True)
+
+    response = client.get(reverse("create_saved_job_posting_modal", args=[job_posting.pk]))
+
+    assert response.status_code == 404
+
+
+@pytest.mark.django_db
+@override_switch("internships", active=True)
+def test_create_clicked_job_posting_records_the_click(client, beneficiary, job_posting):
+    client.force_login(beneficiary)
+
+    response = client.post(reverse("create_clicked_job_posting", args=[job_posting.pk]))
+
+    assert response.status_code == 204
+    assert list(beneficiary.clicked_job_postings.all()) == [job_posting]
+
+
+@pytest.mark.django_db
+@override_switch("internships", active=True)
+def test_create_clicked_job_posting_twice_keeps_the_click(client, beneficiary, job_posting):
+    client.force_login(beneficiary)
+    url = reverse("create_clicked_job_posting", args=[job_posting.pk])
+    client.post(url)
+
+    client.post(url)
+
+    assert list(beneficiary.clicked_job_postings.all()) == [job_posting]
+
+
+@pytest.mark.django_db
+@override_switch("internships", active=True)
+def test_create_clicked_job_posting_rejects_a_get(client, beneficiary, job_posting):
+    client.force_login(beneficiary)
+
+    response = client.get(reverse("create_clicked_job_posting", args=[job_posting.pk]))
+
+    assert response.status_code == 405
+
+
+@pytest.mark.django_db
+@override_switch("internships", active=True)
+def test_create_clicked_job_posting_requires_a_login(client, job_posting):
+    response = client.post(reverse("create_clicked_job_posting", args=[job_posting.pk]))
+
+    assert response.status_code == 302
+    assert ClickedJobPosting.objects.count() == 0
+
+
+@pytest.mark.django_db
+@override_switch("internships", active=True)
+def test_create_clicked_job_posting_is_closed_to_pros(client, pro, job_posting):
+    client.force_login(pro)
+
+    response = client.post(reverse("create_clicked_job_posting", args=[job_posting.pk]))
+
+    assert response.status_code == 404
+    assert ClickedJobPosting.objects.count() == 0
 
 
 @pytest.mark.django_db

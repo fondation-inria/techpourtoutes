@@ -6,7 +6,7 @@ from django.contrib.auth.decorators import login_required
 from django.core.exceptions import ValidationError
 from django.core.paginator import Paginator
 from django.db.models import Exists, OuterRef, Value
-from django.http import Http404
+from django.http import Http404, HttpResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
 from django.views.decorators.http import require_POST
@@ -19,7 +19,14 @@ from ..forms import (
     StudyStatus,
     UpcomingFeatureNotificationForm,
 )
-from ..models import Event, JobPosting, MakeuseProject, SavedEvent
+from ..models import (
+    ClickedJobPosting,
+    Event,
+    JobPosting,
+    MakeuseProject,
+    SavedEvent,
+    SavedJobPosting,
+)
 from ..tasks import create_upcoming_feature_notification_task
 from ..utils.dates import compute_age
 from ..utils.territories import DEPARTMENT_CODES, REGIONS
@@ -264,17 +271,68 @@ def index_job_postings(request):
 
 @waffle_switch("internships")
 def show_job_posting(request, pk):
+    beneficiary = getattr(request.user, "beneficiary", None)
+    job_posting = get_object_or_404(JobPosting.objects.with_last_updated_at(), pk=pk)
     return render(
         request,
         "beneficiary/show_job_posting.html",
         {
-            "job_posting": get_object_or_404(JobPosting.objects.with_last_updated_at(), pk=pk),
-            "bookmark_action": _bookmark_action(
-                request.user, getattr(request.user, "beneficiary", None)
-            ),
+            "job_posting": job_posting,
+            "saved": _is_job_posting_saved(beneficiary, job_posting),
+            "bookmark_action": _bookmark_action(request.user, beneficiary),
             "back_url": _back_to_listing(request, "index_job_postings"),
+            "show_welcome_modal": request.session.pop("show_welcome_modal", False),
         },
     )
+
+
+@waffle_switch("internships")
+def show_job_posting_application_modal(request, pk):
+    beneficiary = getattr(request.user, "beneficiary", None)
+    job_posting = get_object_or_404(JobPosting, pk=pk)
+    return render(
+        request,
+        "beneficiary/partials/show_job_posting_application_modal.html",
+        {
+            "job_posting": job_posting,
+            "saved": _is_job_posting_saved(beneficiary, job_posting),
+            "bookmark_action": _bookmark_action(request.user, beneficiary),
+        },
+    )
+
+
+@waffle_switch("internships")
+@require_POST
+@login_required
+def update_saved_job_posting(request, pk):
+    beneficiary = _beneficiary_or_404(request)
+    job_posting = get_object_or_404(JobPosting, pk=pk)
+    saved = SavedJobPosting.objects.toggle(job_posting=job_posting, beneficiary=beneficiary)
+    messages.success(request, "Offre enregistrée" if saved else "Offre retirée")
+    return render(
+        request,
+        "beneficiary/partials/update_saved_job_posting.html",
+        {"job_posting": job_posting, "saved": saved, "bookmark_action": "toggle", "oob": True},
+    )
+
+
+@waffle_switch("internships")
+def create_saved_job_posting_modal(request, pk):
+    return render(
+        request,
+        "beneficiary/partials/create_saved_job_posting_modal.html",
+        {"job_posting": get_object_or_404(JobPosting, pk=pk)},
+    )
+
+
+@waffle_switch("internships")
+@require_POST
+@login_required
+def create_clicked_job_posting(request, pk):
+    beneficiary = _beneficiary_or_404(request)
+    job_posting = get_object_or_404(JobPosting, pk=pk)
+    ClickedJobPosting.objects.get_or_create(job_posting=job_posting, beneficiary=beneficiary)
+    return HttpResponse(status=204)
 
 
 def _ticked(request, name, allowed):
@@ -303,6 +361,21 @@ def save_pending_event(request, event_pk):
     SavedEvent.objects.get_or_create(event=event, beneficiary=beneficiary)
     messages.success(request, "Événement enregistré")
     return True
+
+
+def save_pending_job_posting(request, job_posting_pk):
+    """Save the job posting that sent the user to the login or the signup screen once logged
+    in. Returns the posting to land her back on, or None."""
+    beneficiary = getattr(request.user, "beneficiary", None)
+    if beneficiary is None or not job_posting_pk:
+        return None
+    try:
+        job_posting = JobPosting.objects.get(pk=job_posting_pk)
+    except JobPosting.DoesNotExist, ValidationError:
+        return None
+    SavedJobPosting.objects.get_or_create(job_posting=job_posting, beneficiary=beneficiary)
+    messages.success(request, "Offre enregistrée")
+    return job_posting
 
 
 def _events_context(request, page):
@@ -360,6 +433,15 @@ def _is_saved(beneficiary, event):
     return (
         beneficiary is not None
         and SavedEvent.objects.filter(event=event, beneficiary=beneficiary).exists()
+    )
+
+
+def _is_job_posting_saved(beneficiary, job_posting):
+    return (
+        beneficiary is not None
+        and SavedJobPosting.objects.filter(
+            job_posting=job_posting, beneficiary=beneficiary
+        ).exists()
     )
 
 

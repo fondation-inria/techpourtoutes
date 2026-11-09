@@ -1115,6 +1115,81 @@ def test_email_step_hands_the_bookmarked_event_over_when_the_account_already_exi
 
 
 @pytest.mark.django_db
+def test_beneficiary_inscription_funnel_carries_the_saved_job_posting_through_every_step(
+    client, job_posting
+):
+    client.get(NEW_FUNNEL_URL, {"saved_job_posting": str(job_posting.pk)})
+
+    assert _funnel(client).answers["saved_job_posting"] == str(job_posting.pk)
+
+
+@pytest.mark.django_db
+def test_account_creation_step_carries_the_saved_job_posting_onto_the_code_screen(
+    client, higher_ed_school, higher_ed_formation, job_posting
+):
+    _seed_until_training(
+        client, "higher_education", values={"saved_job_posting": str(job_posting.pk)}
+    )
+
+    response = _post_step(
+        client,
+        "training_experience",
+        _higher_education_training(higher_ed_school, higher_ed_formation),
+    )
+
+    assert f'name="saved_job_posting" value="{job_posting.pk}"'.encode() in response.content
+
+
+@pytest.mark.django_db
+def test_code_step_saves_the_job_posting_and_lands_on_it(client, job_posting):
+    beneficiary = Beneficiary.objects.create(
+        username="oceane@example.com",
+        email="oceane@example.com",
+        first_name="Océane",
+        last_name="Durand",
+    )
+    code = beneficiary.issue_login_code()
+
+    response = client.post(
+        FUNNEL_URL,
+        {
+            "action": "code",
+            "email": beneficiary.email,
+            "code": code,
+            "saved_job_posting": str(job_posting.pk),
+        },
+    )
+
+    assert list(beneficiary.saved_job_postings.all()) == [job_posting]
+    assert response["HX-Redirect"] == reverse("show_job_posting", args=[job_posting.pk])
+
+
+@pytest.mark.django_db
+def test_resend_step_keeps_the_saved_job_posting(client, beneficiary, job_posting):
+    response = client.post(
+        FUNNEL_URL,
+        {
+            "action": "resend",
+            "email": beneficiary.email,
+            "saved_job_posting": str(job_posting.pk),
+        },
+    )
+
+    assert f'name="saved_job_posting" value="{job_posting.pk}"'.encode() in response.content
+
+
+@pytest.mark.django_db
+def test_email_step_hands_the_saved_job_posting_over_when_the_account_already_exists(
+    client, job_posting, beneficiary
+):
+    client.get(NEW_FUNNEL_URL, {"saved_job_posting": str(job_posting.pk)})
+
+    response = _post_step(client, "email", {"email": beneficiary.email})
+
+    assert f"saved_job_posting={job_posting.pk}" in response["HX-Redirect"]
+
+
+@pytest.mark.django_db
 def test_code_step_with_invalid_code_shows_error(client):
     beneficiary = Beneficiary.objects.create(
         username="oceane@example.com",

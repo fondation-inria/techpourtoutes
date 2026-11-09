@@ -11,7 +11,7 @@ from django.test import override_settings
 from django.urls import reverse
 from django.utils import timezone
 
-from techpourtoutes.models import Event, SavedEvent
+from techpourtoutes.models import Event, SavedEvent, SavedJobPosting
 from techpourtoutes.models.user import VERIFICATION_CODE_MAX_ATTEMPTS
 from techpourtoutes.tests.models.test_event import build_event
 
@@ -631,6 +631,77 @@ def test_login_code_prefers_her_saved_events_over_the_page_she_was_headed_to(
 @pytest.mark.django_db
 def test_login_code_leaves_a_pro_on_her_account_page(client, pro, approved_salon):
     code = _ask_for_a_code(client, pro, saved_event=str(approved_salon.pk))
+
+    response = client.post(reverse("login_code"), data={"code": code})
+
+    assert response["Location"] == reverse("show_account")
+
+
+# ------------------- the job posting a visitor saved before logging in -------------------
+
+
+def _ask_for_a_code_saving(client, user, job_posting):
+    """Go through the login request the modal sends her to, then read the code it mailed."""
+    client.post(
+        reverse("login_request"),
+        data={"email": user.email, "saved_job_posting": str(job_posting.pk)},
+    )
+    return user.issue_login_code()
+
+
+@pytest.mark.django_db
+def test_login_request_carries_the_saved_job_posting_onto_its_form(client, job_posting):
+    response = client.get(reverse("login_request"), {"saved_job_posting": str(job_posting.pk)})
+
+    assert f'name="saved_job_posting" value="{job_posting.pk}"' in response.content.decode()
+
+
+@pytest.mark.django_db
+def test_login_code_saves_the_job_posting_saved_before_the_login(client, beneficiary, job_posting):
+    code = _ask_for_a_code_saving(client, beneficiary, job_posting)
+
+    client.post(reverse("login_code"), data={"code": code})
+
+    assert list(beneficiary.saved_job_postings.all()) == [job_posting]
+    assert "login_saved_job_posting" not in client.session
+
+
+@pytest.mark.django_db
+def test_login_code_lands_on_the_saved_job_posting(client, beneficiary, job_posting):
+    code = _ask_for_a_code_saving(client, beneficiary, job_posting)
+
+    response = client.post(reverse("login_code"), data={"code": code})
+
+    assert response["Location"] == reverse("show_job_posting", args=[job_posting.pk])
+    assert "Offre enregistrée" in [str(message) for message in get_messages(response.wsgi_request)]
+
+
+@pytest.mark.django_db
+def test_login_code_keeps_a_job_posting_already_saved(client, beneficiary, job_posting):
+    SavedJobPosting.objects.toggle(job_posting=job_posting, beneficiary=beneficiary)
+    code = _ask_for_a_code_saving(client, beneficiary, job_posting)
+
+    client.post(reverse("login_code"), data={"code": code})
+
+    assert SavedJobPosting.objects.count() == 1
+
+
+@pytest.mark.django_db
+def test_login_code_saves_no_job_posting_for_a_pro(client, pro, job_posting):
+    code = _ask_for_a_code_saving(client, pro, job_posting)
+
+    response = client.post(reverse("login_code"), data={"code": code})
+
+    assert SavedJobPosting.objects.count() == 0
+    assert response["Location"] == reverse("show_account")
+
+
+@pytest.mark.django_db
+def test_login_code_shrugs_off_a_saved_job_posting_that_is_not_one(client, beneficiary):
+    client.post(
+        reverse("login_request"), data={"email": beneficiary.email, "saved_job_posting": "banane"}
+    )
+    code = beneficiary.issue_login_code()
 
     response = client.post(reverse("login_code"), data={"code": code})
 

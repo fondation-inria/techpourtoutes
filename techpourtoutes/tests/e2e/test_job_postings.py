@@ -459,3 +459,50 @@ def test_unfolding_the_domains_from_the_keyboard_moves_the_focus_to_reduire(page
     page.keyboard.press("Enter")
 
     expect(stack).to_be_focused()
+
+
+@override_switch("internships", active=True)
+def test_saving_from_the_page_marks_the_posting_saved(page, live_server, beneficiary, job_posting):
+    page.goto(f"{live_server.url}/se-connecter/token/{beneficiary.issue_login_token()}/")
+    page.goto(f"{live_server.url}/stages-alternances-emplois/{job_posting.pk}/")
+
+    page.get_by_role("button", name="Enregistrer", exact=True).click()
+
+    saved = page.get_by_role("button", name="Enregistrée", exact=True)
+    expect(saved).to_have_attribute("aria-pressed", "true")
+    expect(page.get_by_text("Offre enregistrée")).to_be_visible()
+    assert list(beneficiary.saved_job_postings.all()) == [job_posting]
+
+
+@override_switch("internships", active=True)
+def test_continuing_to_the_partner_records_the_click_and_opens_its_site(
+    page, live_server, beneficiary, job_posting
+):
+    page.context.route("https://www.myfuture.fr/**", lambda route: route.fulfill(body="MyFuture"))
+    page.goto(f"{live_server.url}/se-connecter/token/{beneficiary.issue_login_token()}/")
+    page.goto(f"{live_server.url}/stages-alternances-emplois/{job_posting.pk}/")
+    page.get_by_role("button", name="Postuler sur MyFuture").click()
+    dialog = page.locator("dialog")
+    expect(dialog.get_by_text("automatiquement enregistrée dans ton compte")).to_be_visible()
+
+    with page.expect_response(re.compile("/candidature/$")), page.expect_popup() as popup:
+        dialog.get_by_role("link", name="Continuer sur le site externe").click()
+
+    assert popup.value.url == job_posting.url
+    assert list(beneficiary.clicked_job_postings.all()) == [job_posting]
+
+
+@override_switch("internships", active=True)
+def test_an_anonymous_visitor_is_invited_to_sign_up_to_save_from_the_application_modal(
+    page, live_server, job_posting
+):
+    page.goto(f"{live_server.url}/stages-alternances-emplois/{job_posting.pk}/")
+    page.get_by_role("button", name="Postuler sur MyFuture").click()
+    dialog = page.locator("dialog")
+
+    dialog.get_by_role("button", name="Enregistrer l’opportunité").click()
+
+    expect(
+        page.get_by_text("Rejoins le club TechPourToutes pour enregistrer cette offre")
+    ).to_be_visible()
+    expect(page.locator("dialog")).to_have_count(1)
