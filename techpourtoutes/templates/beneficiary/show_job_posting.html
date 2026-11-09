@@ -15,9 +15,9 @@
                 </span>
             </c-components.button>
         </div>
-        <div class="relative flex items-center gap-4 mt-13.5 mb-6">
-            <c-components.job-posting-logo :job_posting="job_posting" size="70" class="w-[70px] h-[70px] shrink-0 object-contain border border-black shadow-bottom-and-right shadow-black" />
-            <div class="min-w-0 wrap-anywhere">
+        <div class="relative grid grid-cols-[70px_minmax(0,1fr)] gap-4 @min-[41.5rem]:items-center mt-13.5 mb-6">
+            <c-components.job-posting-logo :job_posting="job_posting" size="70" class="w-[70px] h-[70px] object-contain border border-black shadow-bottom-and-right shadow-black" />
+            <div class="contents wrap-anywhere @min-[41.5rem]:block @min-[41.5rem]:min-w-0">
                 <p class="font-medium">
                     {% if job_posting.category == "higher_ed_internship" %}
                         {{ job_posting.company_name }} cherche une stagiaire au poste de&nbsp;:
@@ -29,7 +29,7 @@
                         {{ job_posting.company_name }} propose un stage d’observation
                     {% endif %}
                 </p>
-                <c-components.title title="{{ job_posting.title }}" />
+                <c-components.title title="{{ job_posting.title }}" class="col-span-2" />
             </div>
         </div>
     </div>
@@ -37,16 +37,17 @@
     {# Stacked, the page reads in its own order: the badges, the buttons, then the two cards. Once #}
     {# two columns of 20rem fit, the buttons and the company move to the right one, and each card #}
     {# sinks to the bottom of its column, so that side by side both cards end on the same line. #}
+    {# The right half is split in two, the buttons' width and the rest, so that the badges take #}
+    {# all the width the buttons leave while both cards keep half each. #}
     <div class="@container w-full mt-1">
-        <div class="grid gap-4 @min-[41.5rem]:grid-cols-2 @min-[41.5rem]:gap-x-6">
-            <div class="min-w-0 self-start flex flex-wrap items-center gap-2 @min-[41.5rem]:col-start-1 @min-[41.5rem]:row-start-1">
+        <div class="grid gap-4 @min-[41.5rem]:grid-cols-[calc(50%-0.75rem)_minmax(0,1fr)_auto] @min-[41.5rem]:gap-x-6">
+            <div class="min-w-0 self-start flex flex-wrap items-center gap-2 @min-[41.5rem]:col-start-1 @min-[41.5rem]:col-span-2 @min-[41.5rem]:row-start-1">
                 {% for domain in job_posting.domain_labels %}
                     <c-components.badge label="{{ domain }}" background_color="bg-neutral-0" />
                 {% endfor %}
-                <c-components.badge label="{{ job_posting.city }}" background_color="bg-neutral-0" />
             </div>
 
-            <div class="min-w-0 self-start flex flex-col items-end gap-3 @min-[41.5rem]:col-start-2 @min-[41.5rem]:row-start-1 @min-[41.5rem]:row-span-2">
+            <div class="min-w-0 self-start flex flex-col items-end gap-3 @min-[41.5rem]:col-start-3 @min-[41.5rem]:row-start-1 @min-[41.5rem]:row-span-2">
                 <c-components.button href="{{ job_posting.url }}" target="_blank" rel="noopener noreferrer" icon="external-link" icon_position="start" class="whitespace-nowrap">
                     Postuler sur {% if job_posting.source == "apec" %}l’{% endif %}{{ job_posting.get_source_display }}<span class="sr-only"> (nouvelle fenêtre)</span>
                 </c-components.button>
@@ -54,51 +55,75 @@
             </div>
 
             <c-components.card class="min-w-0 self-end @min-[41.5rem]:col-start-1 @min-[41.5rem]:row-start-2 @min-[41.5rem]:row-span-2">
-                <div class="flex flex-col gap-3">
+                <div class="flex flex-col gap-4 text-sm">
                     <p class="text-xs">Offre {% if job_posting.last_updated_at %}mise à jour le {{ job_posting.last_updated_at|date:"j F Y" }}{% else %}publiée le {{ job_posting.published_at|date:"j F Y" }}{% endif %}</p>
-                    <p class="flex items-center gap-2">
-                        <c-components.icon name="job-category" class="w-5 h-5 shrink-0" />
-                        {% if job_posting.contract_type %}{{ job_posting.get_contract_type_display }}{% else %}{{ job_posting.get_category_display }}{% endif %}
-                    </p>
-                    <dl class="flex flex-col gap-3">
+                    {# As on an event, each label sits above its value, its icon in the margin. #}
+                    <dl class="flex flex-col gap-4">
+                        <div class="relative pl-9">
+                            <dt class="font-bold text-lg">
+                                <c-components.icon name="job-category" class="absolute left-0 top-0 w-6 h-6" />
+                                Type d’offre
+                            </dt>
+                            <dd>{% if job_posting.contract_type %}{{ job_posting.get_contract_type_display }}{% else %}{{ job_posting.get_category_display }}{% endif %}</dd>
+                        </div>
                         {% if job_posting.category in job_posting.PUPIL_CATEGORIES %}
-                            <div class="flex gap-1">
-                                <dt class="flex items-center gap-2 shrink-0 font-bold">
-                                    <c-components.icon name="job-duration" class="w-5 h-5 shrink-0" />
-                                    Date&nbsp;:
+                            <div class="relative pl-9">
+                                <dt class="font-bold text-lg">
+                                    <c-components.icon name="job-duration" class="absolute left-0 top-0 w-6 h-6" />
+                                    Date
                                 </dt>
-                                <dd class="min-w-0">{% if job_posting.starts_on %}du {{ job_posting.starts_on|date:"j F Y" }} au {{ job_posting.ends_on|date:"j F Y" }}{% else %}non indiqué{% endif %}</dd>
+                                <dd>{% if job_posting.starts_on %}du {{ job_posting.starts_on|date:"j F Y" }} au {{ job_posting.ends_on|date:"j F Y" }}{% else %}non indiqué{% endif %}</dd>
                             </div>
                         {% else %}
-                            {# A CDI lasts as long as it lasts. #}
                             {% if job_posting.contract_type != "cdi" %}
-                                <div><dt class="inline font-bold">Durée&nbsp;:</dt> <dd class="inline">{% if job_posting.duration_months %}{{ job_posting.duration_months }} mois{% else %}non indiqué{% endif %}</dd></div>
+                                <div class="relative pl-9">
+                                    <dt class="font-bold text-lg">
+                                        <c-components.icon name="job-duration" class="absolute left-0 top-0 w-6 h-6" />
+                                        Durée
+                                    </dt>
+                                    <dd>{% if job_posting.duration_months %}{{ job_posting.duration_months }} mois{% else %}non indiqué{% endif %}</dd>
+                                </div>
                             {% endif %}
-                            <div><dt class="inline font-bold">Niveau d’expérience&nbsp;:</dt> <dd class="inline">{{ job_posting.experience_level|default:"non indiqué" }}</dd></div>
-                            <div><dt class="inline font-bold">Salaire&nbsp;:</dt> <dd class="inline">{{ job_posting.salary|default:"non indiqué" }}</dd></div>
+                            <div class="relative pl-9">
+                                <dt class="font-bold text-lg">Niveau d’expérience</dt>
+                                <dd>{{ job_posting.experience_level|default:"non indiqué" }}</dd>
+                            </div>
+                            <div class="relative pl-9">
+                                <dt class="font-bold text-lg">
+                                    <c-components.icon name="euro-solid" class="absolute left-0 top-0 w-6 h-6" />
+                                    Salaire
+                                </dt>
+                                <dd>{{ job_posting.salary|default:"non indiqué" }}</dd>
+                            </div>
                         {% endif %}
                     </dl>
                 </div>
             </c-components.card>
 
-            <c-components.card class="min-w-0 self-end @min-[41.5rem]:col-start-2 @min-[41.5rem]:row-start-3">
-                <dl class="flex flex-col gap-3">
-                    <div class="flex gap-1">
-                        <dt class="flex items-center gap-2 shrink-0 font-bold">
-                            <c-components.icon name="organizer" class="w-5 h-5 shrink-0" />
-                            Entreprise&nbsp;:
+            <c-components.card class="min-w-0 self-end @min-[41.5rem]:col-start-2 @min-[41.5rem]:col-span-2 @min-[41.5rem]:row-start-3">
+                <dl class="flex flex-col gap-4 text-sm">
+                    <div class="relative pl-9">
+                        <dt class="font-bold text-lg">
+                            <c-components.icon name="organizer" class="absolute left-0 top-0 w-6 h-6" />
+                            Entreprise
                         </dt>
-                        <dd class="min-w-0 wrap-anywhere">{{ job_posting.company_name }}</dd>
+                        <dd class="wrap-anywhere">{{ job_posting.company_name }}</dd>
                     </div>
                     {% if job_posting.category not in job_posting.PUPIL_CATEGORIES %}
-                        <div><dt class="inline font-bold">Secteur&nbsp;:</dt> <dd class="inline">{{ job_posting.sector|default:"non indiqué" }}</dd></div>
+                        <div class="relative pl-9">
+                            <dt class="font-bold text-lg">
+                                <c-components.icon name="job-domain" class="absolute left-0 top-0 w-6 h-6" />
+                                Secteur
+                            </dt>
+                            <dd>{{ job_posting.sector|default:"non indiqué" }}</dd>
+                        </div>
                     {% endif %}
-                    <div class="flex items-center gap-2">
-                        <dt class="shrink-0">
-                            <c-components.icon name="location" class="w-5 h-5" />
-                            <span class="sr-only">Adresse&nbsp;:</span>
+                    <div class="relative pl-9">
+                        <dt class="font-bold text-lg">
+                            <c-components.icon name="location" class="absolute left-0 top-0 w-6 h-6" />
+                            Adresse
                         </dt>
-                        <dd class="min-w-0 wrap-anywhere">{{ job_posting.address_label }}</dd>
+                        <dd class="wrap-anywhere">{{ job_posting.address_label }}</dd>
                     </div>
                 </dl>
             </c-components.card>

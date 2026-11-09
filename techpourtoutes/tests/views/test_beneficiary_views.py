@@ -713,7 +713,7 @@ def test_show_job_posting_says_what_the_partner_did_not_give(client):
         "Salaire",
         "Secteur",
     ]:
-        assert re.search(rf"{label}&nbsp;:\s*</dt>\s*<dd[^>]*>\s*non indiqué", html), label
+        assert re.search(rf"{label}\s*</dt>\s*<dd[^>]*>\s*non indiqué", html), label
 
 
 @pytest.mark.django_db
@@ -749,7 +749,7 @@ def test_show_job_posting_shows_a_pupil_the_period_and_nothing_about_the_job(cli
 
     html = client.get(show_job_posting_url(job_posting)).content.decode()
 
-    assert re.search(r"Date&nbsp;:\s*</dt>\s*<dd[^>]*>\s*du 12 juin 2027 au 19 juin 2027", html)
+    assert re.search(r"Date\s*</dt>\s*<dd[^>]*>\s*du 12 juin 2027 au 19 juin 2027", html)
     for label in ["Durée", "Salaire", "Secteur", "Date de début"]:
         assert label not in html
 
