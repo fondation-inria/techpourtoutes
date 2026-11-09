@@ -26,7 +26,7 @@ def test_new_upcoming_feature_notification_get_returns_200(client):
 
 
 @pytest.mark.django_db
-@override_settings(BREVO_SYNC_ENABLED=True)
+@override_settings(BREVO_SYNC_ENABLED=True, BREVO_EMAIL_NOTIFICATION_LIST_ID=18)
 def test_create_upcoming_feature_notification_valid_pushes_brevo_contact_and_redirects(client):
     with patch(
         "techpourtoutes.views.beneficiary_views.create_upcoming_feature_notification_task"
@@ -37,7 +37,7 @@ def test_create_upcoming_feature_notification_valid_pushes_brevo_contact_and_red
 
     assert response.status_code == 302
     assert response.url == NEW_UPCOMING_FEATURE_NOTIFICATION_URL
-    mock_task.delay.assert_called_once_with(email="hedy@example.com")
+    mock_task.delay.assert_called_once_with(email="hedy@example.com", list_id=18)
 
 
 @pytest.mark.django_db
@@ -410,6 +410,8 @@ def test_index_job_postings_keeps_the_postings_of_any_ticked_department(client, 
 def test_index_job_postings_offers_the_domains_of_the_category(
     client, category, offers_apec_domains
 ):
+    save_job_posting("Offre", category)
+
     html = client.get(INDEX_JOB_POSTINGS_URL, {"category": category}).content.decode()
 
     for domain in JobPosting.Domain:
@@ -465,6 +467,113 @@ def test_index_job_postings_offers_the_duration_filter_but_to_pupils(client, cat
     html = client.get(INDEX_JOB_POSTINGS_URL, {"category": category}).content.decode()
 
     assert ('id="job_posting_duration"' in html) == offered
+
+
+@pytest.mark.django_db
+@pytest.mark.parametrize(
+    "query, pupil_empty_state",
+    [
+        ({"category": "seconde_internship"}, True),
+        ({"category": "troisieme_internship"}, True),
+        ({"category": "troisieme_internship", "q": "web"}, False),
+        ({"category": "troisieme_internship", "domain": "developpement"}, False),
+        ({"category": "troisieme_internship", "department": "29"}, False),
+        ({"category": "apprenticeship"}, False),
+    ],
+)
+@override_switch("internships", active=True)
+def test_index_job_postings_shows_a_pupil_empty_state_when_the_tab_has_no_offer(
+    client, query, pupil_empty_state
+):
+    html = client.get(INDEX_JOB_POSTINGS_URL, query).content.decode()
+
+    assert ("bientot-disponible-background" in html) == pupil_empty_state
+    assert ('id="job_posting_filters"' in html) != pupil_empty_state
+    assert ("Aucune offre ne correspond à ta recherche" in html) != pupil_empty_state
+    notification_action = (
+        f'action="/stages-alternances-emplois/notification/?category={query["category"]}"'
+    )
+    assert (notification_action in html) == pupil_empty_state
+
+
+@pytest.mark.django_db
+@override_switch("internships", active=True)
+def test_index_job_postings_shows_no_pupil_empty_state_when_the_tab_has_an_offer(client):
+    category = JobPosting.Category.TROISIEME_INTERNSHIP
+    save_job_posting("Stage d'observation", category)
+
+    html = client.get(INDEX_JOB_POSTINGS_URL, {"category": category}).content.decode()
+
+    assert "bientot-disponible-background" not in html
+    assert 'id="job_posting_filters"' in html
+
+
+CREATE_JOB_POSTING_NOTIFICATION_URL = "/stages-alternances-emplois/notification/"
+
+
+@pytest.mark.django_db
+@pytest.mark.parametrize(
+    "category, list_id", [("seconde_internship", 21), ("troisieme_internship", 22)]
+)
+@override_settings(
+    BREVO_SYNC_ENABLED=True,
+    BREVO_SECONDE_INTERNSHIP_NOTIFICATION_LIST_ID=21,
+    BREVO_TROISIEME_INTERNSHIP_NOTIFICATION_LIST_ID=22,
+)
+@override_switch("internships", active=True)
+def test_create_job_posting_notification_valid_pushes_brevo_contact_and_redirects_to_the_tab(
+    client, category, list_id
+):
+    with patch(
+        "techpourtoutes.views.beneficiary_views.create_upcoming_feature_notification_task"
+    ) as mock_task:
+        response = client.post(
+            f"{CREATE_JOB_POSTING_NOTIFICATION_URL}?category={category}",
+            data={"email": "hedy@example.com"},
+            follow=True,
+        )
+
+    assert response.redirect_chain == [(f"{INDEX_JOB_POSTINGS_URL}?category={category}", 302)]
+    mock_task.delay.assert_called_once_with(email="hedy@example.com", list_id=list_id)
+    assert [str(message) for message in response.context["messages"]] == [
+        "Merci, nous te préviendrons dès que les offres de stage seront disponibles."
+    ]
+
+
+@pytest.mark.django_db
+@override_switch("internships", active=True)
+def test_create_job_posting_notification_invalid_rerenders_the_tab_with_errors(client):
+    with patch(
+        "techpourtoutes.views.beneficiary_views.create_upcoming_feature_notification_task"
+    ) as mock_task:
+        response = client.post(
+            f"{CREATE_JOB_POSTING_NOTIFICATION_URL}?category=seconde_internship",
+            data={"email": "not-an-email"},
+        )
+
+    assert response.status_code == 200
+    assert response.context["category"] == "seconde_internship"
+    assert "Saisis une adresse mail valide." in response.content.decode()
+    mock_task.delay.assert_not_called()
+
+
+@pytest.mark.django_db
+@override_switch("internships", active=True)
+def test_create_job_posting_notification_not_found_for_a_tab_without_mailing_list(client):
+    response = client.post(
+        f"{CREATE_JOB_POSTING_NOTIFICATION_URL}?category=apprenticeship",
+        data={"email": "hedy@example.com"},
+    )
+
+    assert response.status_code == 404
+
+
+@pytest.mark.django_db
+@override_switch("internships", active=False)
+def test_create_job_posting_notification_not_found_when_switch_inactive(client):
+    response = client.post(CREATE_JOB_POSTING_NOTIFICATION_URL, data={"email": "hedy@example.com"})
+
+    assert response.status_code == 404
 
 
 @pytest.mark.django_db

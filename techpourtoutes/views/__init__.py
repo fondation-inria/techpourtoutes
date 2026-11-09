@@ -40,6 +40,7 @@ from .beneficiary.training_ambassador_request_views import (
 )
 from .beneficiary_views import (
     beneficiary_home,
+    create_job_posting_notification,
     create_saved_event_modal,
     create_upcoming_feature_notification,
     index_events,
@@ -124,6 +125,7 @@ __all__ = [
     "create_user_email_code",
     "create_beneficiary_training_experience",
     "create_manifeste_signature",
+    "create_job_posting_notification",
     "create_saved_event_modal",
     "create_training_ambassador_request",
     "create_makeuse_project_submission",

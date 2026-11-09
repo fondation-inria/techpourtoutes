@@ -53,7 +53,9 @@ def create_upcoming_feature_notification(request):
         return _render_upcoming_feature_notification_form(request, form)
 
     if settings.BREVO_SYNC_ENABLED:
-        create_upcoming_feature_notification_task.delay(email=form.cleaned_data["email"])
+        create_upcoming_feature_notification_task.delay(
+            email=form.cleaned_data["email"], list_id=settings.BREVO_EMAIL_NOTIFICATION_LIST_ID
+        )
     messages.success(
         request,
         "Merci, nous te préviendrons dès que cette fonctionnalité sera disponible.",
@@ -207,9 +209,54 @@ def _render_upcoming_feature_notification_form(request, form):
 
 @waffle_switch("internships")
 def index_job_postings(request):
+    return _render_job_postings(request, UpcomingFeatureNotificationForm())
+
+
+@waffle_switch("internships")
+@require_POST
+def create_job_posting_notification(request):
+    category = _job_posting_category(request)
+    if category not in JobPosting.PUPIL_CATEGORIES:
+        raise Http404
+    form = UpcomingFeatureNotificationForm(data=request.POST)
+    if not form.is_valid():
+        messages.error(
+            request,
+            "Des erreurs empêchent la validation du formulaire, "
+            "merci de les corriger et de réessayer à nouveau.",
+        )
+        return _render_job_postings(request, form)
+
+    if settings.BREVO_SYNC_ENABLED:
+        create_upcoming_feature_notification_task.delay(
+            email=form.cleaned_data["email"], list_id=_internship_notification_list_id(category)
+        )
+    messages.success(
+        request, "Merci, nous te préviendrons dès que les offres de stage seront disponibles."
+    )
+    return redirect(f"{reverse('index_job_postings')}?category={category}")
+
+
+def _job_posting_category(request):
     category = request.GET.get("category")
     if category not in JobPosting.Category.values:
-        category = JobPosting.Category.HIGHER_ED_INTERNSHIP
+        return JobPosting.Category.HIGHER_ED_INTERNSHIP
+    return category
+
+
+def _internship_notification_list_id(category):
+    return {
+        JobPosting.Category.SECONDE_INTERNSHIP: (
+            settings.BREVO_SECONDE_INTERNSHIP_NOTIFICATION_LIST_ID
+        ),
+        JobPosting.Category.TROISIEME_INTERNSHIP: (
+            settings.BREVO_TROISIEME_INTERNSHIP_NOTIFICATION_LIST_ID
+        ),
+    }[category]
+
+
+def _render_job_postings(request, notification_form):
+    category = _job_posting_category(request)
     domains = JobPosting.domains_for(category)
     ticked_domains = _ticked(request, "domain", domains)
     ticked_departments = _ticked(request, "department", DEPARTMENT_CODES)
@@ -225,9 +272,12 @@ def index_job_postings(request):
         "beneficiary/index_job_postings.html",
         {
             "category": category,
+            "form": notification_form,
             "query": query.urlencode(),
             "search": search,
             "searching": searching,
+            "pupil_tab_unfiltered": category in JobPosting.PUPIL_CATEGORIES
+            and not (searching or ticked_domains or ticked_departments),
             "sort_by_date": sort_by_date,
             "search_errors": [f"Saisis au moins {JOB_POSTING_SEARCH_MIN_LENGTH} caractères"]
             if search and not searching
