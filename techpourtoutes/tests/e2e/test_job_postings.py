@@ -1,6 +1,9 @@
 import re
 from datetime import timedelta
 
+import pytest
+from django.core import mail
+from django.urls import reverse
 from django.utils import timezone
 from playwright.sync_api import expect
 from waffle.testutils import override_switch
@@ -90,6 +93,20 @@ def test_resetting_unticks_every_filter_at_once(page, live_server):
 
 
 @override_switch("internships", active=True)
+def test_resetting_brings_back_the_duration_filter_a_lone_cdi_took_away(page, live_server):
+    page.goto(f"{live_server.url}/stages-alternances-emplois/?category=first_job")
+    duration = page.get_by_role("button", name="Durée")
+    page.get_by_role("button", name="Type de contrat").click()
+    page.locator("#job_posting_contract_type_panel").get_by_text("CDI", exact=True).click()
+    expect(duration).to_be_hidden()
+    page.keyboard.press("Escape")
+
+    page.get_by_role("button", name="Tout réinitialiser").click()
+
+    expect(duration).to_be_visible()
+
+
+@override_switch("internships", active=True)
 def test_ticking_a_filter_narrows_the_list_without_reloading_the_page(page, live_server):
     category = JobPosting.Category.HIGHER_ED_INTERNSHIP
     save_job_posting("Stage à Brest", category, department_code="29")
@@ -175,6 +192,30 @@ def test_searching_a_place_shows_the_matches_under_their_region(page, live_serve
     search.fill("2A")
 
     expect(page.get_by_text("Corse-du-Sud (2A)", exact=True)).to_be_visible()
+
+
+@override_switch("internships", active=True)
+def test_back_from_a_posting_returns_where_she_was_in_the_listing(page, live_server):
+    for index in range(20):
+        save_job_posting(f"Stage {index}", JobPosting.Category.APPRENTICESHIP)
+    page.goto(f"{live_server.url}/stages-alternances-emplois/?category=apprenticeship")
+    page.get_by_role("button", name="Domaine").click()
+    page.locator("#job_posting_domain_panel").get_by_text(
+        "Développement - programmation - logiciel", exact=True
+    ).click()
+    expect(page).to_have_url(re.compile(r"domain=developpement"))
+    listing = page.url
+    page.keyboard.press("Escape")
+    last_card = page.get_by_role("link", name="Stage 0", exact=True)
+    last_card.scroll_into_view_if_needed()
+    scrolled = page.evaluate("window.scrollY")
+    assert scrolled > 0
+
+    last_card.click()
+    page.get_by_role("link", name="Retour").click()
+
+    expect(page).to_have_url(listing)
+    page.wait_for_function(f"Math.abs(window.scrollY - {scrolled}) < 2")
 
 
 @override_switch("internships", active=True)
@@ -371,3 +412,149 @@ def test_a_too_short_search_shows_an_error_and_still_filters(page, live_server):
     expect(error).to_be_hidden()
     expect(search).not_to_have_attribute("aria-invalid", "true")
     expect(search).to_be_focused()
+
+
+def _save_posting_with_three_domains():
+    return save_job_posting(
+        "Stage",
+        JobPosting.Category.HIGHER_ED_INTERNSHIP,
+        domains=[
+            JobPosting.Domain.DEVELOPPEMENT,
+            JobPosting.Domain.MATHEMATIQUES,
+            JobPosting.Domain.SYSTEMES_ET_RESEAUX,
+        ],
+    )
+
+
+@override_switch("internships", active=True)
+def test_clicking_the_stacked_domains_unfolds_them_and_reduire_folds_them_back(page, live_server):
+    job_posting = _save_posting_with_three_domains()
+    page.goto(f"{live_server.url}{reverse('show_job_posting', args=[job_posting.pk])}")
+    stack = page.get_by_role("button", name=re.compile("\\+2 autres domaines"))
+    maths = page.get_by_text("Mathématiques", exact=True)
+    expect(maths).to_be_hidden()
+
+    # Its centre is the first badge, not the counter in the corner.
+    stack.click()
+
+    expect(maths).to_be_visible()
+    expect(page.get_by_text("Systèmes et réseaux", exact=True)).to_be_visible()
+    expect(stack).to_be_hidden()
+
+    page.get_by_role("button", name="Réduire").click()
+
+    expect(maths).to_be_hidden()
+    expect(stack).to_be_visible()
+
+
+@override_switch("internships", active=True)
+def test_unfolding_the_domains_from_the_keyboard_moves_the_focus_to_reduire(page, live_server):
+    job_posting = _save_posting_with_three_domains()
+    page.goto(f"{live_server.url}{reverse('show_job_posting', args=[job_posting.pk])}")
+    stack = page.get_by_role("button", name=re.compile("\\+2 autres domaines"))
+    stack.focus()
+
+    page.keyboard.press("Enter")
+
+    expect(page.get_by_role("button", name="Réduire")).to_be_focused()
+
+    page.keyboard.press("Enter")
+
+    expect(stack).to_be_focused()
+
+
+@override_switch("internships", active=True)
+def test_saving_from_the_page_marks_the_posting_saved(page, live_server, beneficiary, job_posting):
+    page.goto(f"{live_server.url}/se-connecter/token/{beneficiary.issue_login_token()}/")
+    page.goto(f"{live_server.url}/stages-alternances-emplois/{job_posting.pk}/")
+
+    page.get_by_role("button", name="Enregistrer", exact=True).click()
+
+    saved = page.get_by_role("button", name="Enregistrée", exact=True)
+    expect(saved).to_have_attribute("aria-pressed", "true")
+    expect(page.get_by_text("Offre enregistrée")).to_be_visible()
+    assert list(beneficiary.saved_job_postings.all()) == [job_posting]
+
+
+@override_switch("internships", active=True)
+def test_continuing_to_the_partner_records_the_click_and_opens_its_site(
+    page, live_server, beneficiary, job_posting
+):
+    page.context.route("https://www.myfuture.fr/**", lambda route: route.fulfill(body="MyFuture"))
+    page.goto(f"{live_server.url}/se-connecter/token/{beneficiary.issue_login_token()}/")
+    page.goto(f"{live_server.url}/stages-alternances-emplois/{job_posting.pk}/")
+    page.get_by_role("button", name="Postuler sur MyFuture").click()
+    dialog = page.locator("dialog")
+    expect(dialog.get_by_text("automatiquement enregistrée dans ton compte")).to_be_visible()
+
+    with page.expect_response(re.compile("/candidature/$")), page.expect_popup() as popup:
+        dialog.get_by_role("link", name="Continuer sur le site externe").click()
+
+    assert popup.value.url == job_posting.url
+    assert list(beneficiary.clicked_job_postings.all()) == [job_posting]
+
+
+@override_switch("internships", active=True)
+def test_an_anonymous_visitor_is_invited_to_sign_up_to_save_from_the_application_modal(
+    page, live_server, job_posting
+):
+    page.goto(f"{live_server.url}/stages-alternances-emplois/{job_posting.pk}/")
+    page.get_by_role("button", name="Postuler sur MyFuture").click()
+    dialog = page.locator("dialog")
+
+    dialog.get_by_role("button", name="Enregistrer l’opportunité").click()
+
+    expect(
+        page.get_by_text("Rejoins le club TechPourToutes pour enregistrer cette offre")
+    ).to_be_visible()
+    expect(page.locator("dialog")).to_have_count(1)
+
+
+@override_switch("internships", active=True)
+@pytest.mark.parametrize("way_in", ["Créer un compte", "Se connecter"])
+def test_closing_the_funnel_opened_to_save_a_posting_brings_her_back_to_it_and_its_listing(
+    page, live_server, way_in
+):
+    for index in range(20):
+        save_job_posting(f"Stage web {index}", JobPosting.Category.HIGHER_ED_INTERNSHIP)
+    page.goto(f"{live_server.url}/stages-alternances-emplois/?q=web")
+    listing = page.url
+    page.get_by_role("link", name="Stage web 0", exact=True).click()
+    posting = page.url
+    page.get_by_role("button", name="Enregistrer", exact=True).click()
+
+    page.locator("dialog").get_by_role("link", name=way_in).click()
+    page.get_by_role("link", name="Fermer").click()
+
+    expect(page).to_have_url(re.compile(f"^{re.escape(posting)}\\?back="))
+    page.get_by_role("link", name="Retour").click()
+
+    # Her listing, scrolled down to the posting she had opened.
+    expect(page).to_have_url(re.compile(f"^{re.escape(listing)}#offre-"))
+    card = page.get_by_role("link", name="Stage web 0", exact=True)
+    expect(card).to_be_in_viewport()
+    assert page.evaluate("window.scrollY") > 0
+
+
+@override_switch("internships", active=True)
+def test_logging_in_to_save_a_posting_lands_back_on_it_and_its_listing(
+    page, live_server, beneficiary
+):
+    for index in range(20):
+        save_job_posting(f"Stage web {index}", JobPosting.Category.HIGHER_ED_INTERNSHIP)
+    page.goto(f"{live_server.url}/stages-alternances-emplois/?q=web")
+    listing = page.url
+    page.get_by_role("link", name="Stage web 0", exact=True).click()
+    page.get_by_role("button", name="Enregistrer", exact=True).click()
+    page.locator("dialog").get_by_role("link", name="Se connecter").click()
+    page.fill('input[name="email"]', beneficiary.email)
+    page.get_by_role("button", name="Continuer").click()
+
+    page.fill('input[name="code"]', re.search(r"\b(\d{6})\b", mail.outbox[-1].body).group(1))
+    page.get_by_role("button", name="Continuer").click()
+
+    expect(page.get_by_text("Offre enregistrée")).to_be_visible()
+    page.get_by_role("link", name="Retour").click()
+    expect(page).to_have_url(re.compile(f"^{re.escape(listing)}#offre-"))
+    expect(page.get_by_role("link", name="Stage web 0", exact=True)).to_be_in_viewport()
+    assert page.evaluate("window.scrollY") > 0

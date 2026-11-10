@@ -19,6 +19,7 @@ def test_a_saved_event_is_reachable_from_both_sides(event, beneficiary):
 
     assert list(beneficiary.saved_events.all()) == [event]
     assert list(event.saves.all()) == [save]
+    assert list(beneficiary.event_saves.all()) == [save]
     assert save.created_at is not None
     assert str(save) == "Jade PETIT – Salon des métiers du numérique"
 

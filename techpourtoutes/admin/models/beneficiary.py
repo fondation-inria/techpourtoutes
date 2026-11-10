@@ -3,8 +3,10 @@ from django.contrib import admin
 from techpourtoutes.models import Beneficiary
 
 from ..filters import MentoringStatusFilter
+from .clicked_job_posting import BeneficiaryClickedJobPostingInline
 from .legal_representative_authorization import LegalRepresentativeAuthorizationInline
 from .saved_event import BeneficiarySavedEventInline
+from .saved_job_posting import BeneficiarySavedJobPostingInline
 from .training_experience import TrainingExperienceInline
 from .user import PERSONAL_FIELDS, AccountCreationFieldsMixin
 
@@ -53,5 +55,7 @@ class BeneficiaryAdmin(AccountCreationFieldsMixin, admin.ModelAdmin):
     inlines = [
         TrainingExperienceInline,
         BeneficiarySavedEventInline,
+        BeneficiarySavedJobPostingInline,
+        BeneficiaryClickedJobPostingInline,
         LegalRepresentativeAuthorizationInline,
     ]

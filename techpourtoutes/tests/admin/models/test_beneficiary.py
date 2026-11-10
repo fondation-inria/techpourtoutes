@@ -1,7 +1,7 @@
 import pytest
 from django.urls import reverse
 
-from techpourtoutes.models import SavedEvent
+from techpourtoutes.models import ClickedJobPosting, SavedEvent, SavedJobPosting
 
 
 @pytest.mark.django_db
@@ -23,6 +23,32 @@ def test_beneficiary_page_lists_the_events_she_saved(verified_admin_client, bene
 
     assert "Salon des métiers du numérique" in content
     assert "Événements sauvegardés" in content
+
+
+@pytest.mark.django_db
+def test_beneficiary_page_lists_the_job_postings_she_saved(
+    verified_admin_client, beneficiary, job_posting
+):
+    SavedJobPosting.objects.toggle(job_posting=job_posting, beneficiary=beneficiary)
+
+    url = reverse("admin:techpourtoutes_beneficiary_change", args=[beneficiary.pk])
+    content = verified_admin_client.get(url).content.decode()
+
+    assert "Développeuse web" in content
+    assert "Offres d&#x27;emploi sauvegardées" in content
+
+
+@pytest.mark.django_db
+def test_beneficiary_page_lists_the_job_postings_she_clicked(
+    verified_admin_client, beneficiary, job_posting
+):
+    ClickedJobPosting(job_posting=job_posting, beneficiary=beneficiary).save()
+
+    url = reverse("admin:techpourtoutes_beneficiary_change", args=[beneficiary.pk])
+    content = verified_admin_client.get(url).content.decode()
+
+    assert "Développeuse web" in content
+    assert "Offres d&#x27;emploi cliquées" in content
 
 
 @pytest.mark.django_db

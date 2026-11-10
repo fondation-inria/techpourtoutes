@@ -34,6 +34,7 @@
      }"
      x-init="$refs.panel.querySelectorAll('[data-group-member]:first-child input').forEach(input => cascade(input)); sync()"
      @reset-filters.window="reset()"
+     @reset-filter.window="if ($event.detail === '{{ id }}') reset()"
      @click.outside="open = false"
      @focusout="if ($event.relatedTarget && !$el.contains($event.relatedTarget) && !$event.relatedTarget.contains($el)) open = false"
      @keydown.escape="if (open) { open = false; $refs.button.focus() }"

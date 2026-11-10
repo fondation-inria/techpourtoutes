@@ -1,0 +1,29 @@
+<c-vars job_posting=None class="" />
+
+{% with domains=job_posting.domain_labels %}
+    <div x-data="{ unfolded: false }" class="flex flex-wrap items-center gap-2 {{ class }}">
+        {% if domains|length > 2 %}
+            <div x-show="!unfolded" class="relative isolate mt-2 mr-5 mb-2">
+                <span aria-hidden="true" class="absolute inset-0 -z-10 translate-x-1 translate-y-1 rounded-full border border-black bg-neutral-0"></span>
+                <span aria-hidden="true" class="absolute inset-0 -z-20 translate-x-2 translate-y-2 rounded-full border border-black bg-neutral-0"></span>
+                <c-components.badge label="{{ domains.0 }}" background_color="bg-neutral-0" />
+                <button type="button" x-ref="stack" aria-expanded="false"
+                        x-on:click="unfolded = true; $nextTick(() => $refs.fold.focus())"
+                        class="absolute top-0 left-0 -right-2 -bottom-2 rounded-full cursor-pointer focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-500">
+                    <span class="absolute -top-2.5 -right-1 flex items-center justify-center min-w-6.5 h-6.5 px-1.5 rounded-full border-2 border-neutral-0 bg-black text-neutral-0 text-xs font-semibold tabular-nums">+{{ domains|length|add:"-1" }}<span class="sr-only"> autres domaines</span></span>
+                </button>
+            </div>
+            <div x-show="unfolded" x-cloak class="contents">
+                {% for domain in domains %}
+                    <c-components.badge label="{{ domain }}" background_color="bg-neutral-0" />
+                {% endfor %}
+                <c-components.button variant="link" label="Réduire" class="text-sm!" aria-expanded="true" x-ref="fold"
+                                     x-on:click="unfolded = false; $nextTick(() => $refs.stack.focus())" />
+            </div>
+        {% else %}
+            {% for domain in domains %}
+                <c-components.badge label="{{ domain }}" background_color="bg-neutral-0" />
+            {% endfor %}
+        {% endif %}
+    </div>
+{% endwith %}

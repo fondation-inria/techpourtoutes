@@ -4,7 +4,7 @@ from unittest.mock import patch
 import pytest
 
 from techpourtoutes.models import JobPosting
-from techpourtoutes.utils.job_posting import upsert_in_batches
+from techpourtoutes.utils.job_posting import city_name, upsert_in_batches
 
 pytestmark = pytest.mark.django_db
 
@@ -43,3 +43,16 @@ def test_a_posting_already_written_is_updated_in_place():
 def test_the_ids_written_are_handed_back():
     """What the source still lists: the caller deletes the rest."""
     assert upsert_in_batches([_posting("a"), _posting("b")], update_fields=["title"]) == ["a", "b"]
+
+
+@pytest.mark.parametrize(
+    ("city", "name"),
+    [
+        ("ST GRATIEN", "St Gratien"),
+        ("PARIS 01", "Paris 01"),
+        ("Aire-sur-l'Adour", "Aire-sur-l'Adour"),
+        ("Pont-l'Abbé", "Pont-l'Abbé"),
+    ],
+)
+def test_city_name_title_cases_only_a_city_spelled_in_capitals(city, name):
+    assert city_name(city) == name
