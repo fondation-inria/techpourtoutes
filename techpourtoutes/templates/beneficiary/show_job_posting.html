@@ -84,7 +84,7 @@
                                     <dd class="inline">{% if job_posting.duration_months %}{{ job_posting.duration_months }} mois{% else %}non indiqué{% endif %}</dd>
                                 </div>
                             {% endif %}
-                            <div class="relative pl-9">
+                            <div class="relative">
                                 <dt class="inline font-bold">Niveau d’expérience&nbsp;:</dt>
                                 <dd class="inline">{{ job_posting.experience_level|default:"non indiqué" }}</dd>
                             </div>
@@ -108,17 +108,16 @@
                         <dd class="inline wrap-anywhere">{{ job_posting.company_name }}</dd>
                     </div>
                     {% if job_posting.category not in job_posting.PUPIL_CATEGORIES %}
-                        <div class="relative pl-9">
+                        <div class="relative">
                             <dt class="inline font-bold">
-                                <c-components.icon name="job-domain" class="absolute left-0 -top-0.5 w-6 h-6" />
                                 Secteur&nbsp;:</dt>
                             <dd class="inline">{{ job_posting.sector|default:"non indiqué" }}</dd>
                         </div>
                     {% endif %}
                     <div class="relative pl-9">
-                        <dt class="inline font-bold">
+                        <dt class="inline">
                             <c-components.icon name="location" class="absolute left-0 -top-0.5 w-6 h-6" />
-                            Adresse&nbsp;:</dt>
+                            <span class="sr-only">Adresse</span></dt>
                         <dd class="inline wrap-anywhere">{{ job_posting.address_label }}</dd>
                     </div>
                 </dl>
