@@ -1,4 +1,4 @@
-from urllib.parse import urlparse
+from urllib.parse import urlencode, urlparse
 
 from django.conf import settings
 from django.contrib import messages
@@ -30,6 +30,7 @@ from ..models import (
 from ..tasks import create_upcoming_feature_notification_task
 from ..utils.dates import compute_age
 from ..utils.territories import DEPARTMENT_CODES, REGIONS
+from ..utils.urls import safe_url
 
 EVENTS_PER_PAGE = 18
 MAKEUSE_PROJECTS_PER_PAGE = 6
@@ -150,6 +151,13 @@ def index_events(request):
 def show_event(request, slug):
     beneficiary = getattr(request.user, "beneficiary", None)
     event = get_object_or_404(Event.objects.visible_to(request.user), slug=slug)
+    back_url = _back_to_listing(
+        request,
+        "index_events",
+        "index_beneficiary_events",
+        "index_pro_events",
+        anchor=f"evenement-{event.slug}",
+    )
     return render(
         request,
         "beneficiary/show_event.html",
@@ -157,9 +165,8 @@ def show_event(request, slug):
             "event": event,
             "saved": _is_saved(beneficiary, event),
             "bookmark_action": _bookmark_action(request.user, beneficiary),
-            "back_url": _back_to_listing(
-                request, "index_events", "index_beneficiary_events", "index_pro_events"
-            ),
+            "back_url": back_url,
+            "page_url": _with_way_back(request.path, back_url),
             "is_organizer": event.is_organized_by(request.user),
         },
     )
@@ -188,7 +195,11 @@ def update_saved_event(request, pk):
 
 def create_saved_event_modal(request, pk):
     event = get_object_or_404(Event.objects.approved(), pk=pk)
-    return render(request, "beneficiary/partials/create_saved_event_modal.html", {"event": event})
+    return render(
+        request,
+        "beneficiary/partials/create_saved_event_modal.html",
+        {"event": event, "way_back": _way_back(request, reverse("show_event", args=[event.slug]))},
+    )
 
 
 def show_participation_modal(request, pk):
@@ -273,6 +284,7 @@ def index_job_postings(request):
 def show_job_posting(request, pk):
     beneficiary = getattr(request.user, "beneficiary", None)
     job_posting = get_object_or_404(JobPosting.objects.with_last_updated_at(), pk=pk)
+    back_url = _back_to_listing(request, "index_job_postings", anchor=f"offre-{job_posting.pk}")
     return render(
         request,
         "beneficiary/show_job_posting.html",
@@ -280,7 +292,8 @@ def show_job_posting(request, pk):
             "job_posting": job_posting,
             "saved": _is_job_posting_saved(beneficiary, job_posting),
             "bookmark_action": _bookmark_action(request.user, beneficiary),
-            "back_url": _back_to_listing(request, "index_job_postings"),
+            "back_url": back_url,
+            "page_url": _with_way_back(request.path, back_url),
             "show_welcome_modal": request.session.pop("show_welcome_modal", False),
         },
     )
@@ -297,6 +310,7 @@ def show_job_posting_application_modal(request, pk):
             "job_posting": job_posting,
             "saved": _is_job_posting_saved(beneficiary, job_posting),
             "bookmark_action": _bookmark_action(request.user, beneficiary),
+            "page_url": safe_url(request, request.GET.get("back", "")),
         },
     )
 
@@ -318,10 +332,14 @@ def update_saved_job_posting(request, pk):
 
 @waffle_switch("internships")
 def create_saved_job_posting_modal(request, pk):
+    job_posting = get_object_or_404(JobPosting, pk=pk)
     return render(
         request,
         "beneficiary/partials/create_saved_job_posting_modal.html",
-        {"job_posting": get_object_or_404(JobPosting, pk=pk)},
+        {
+            "job_posting": job_posting,
+            "way_back": _way_back(request, reverse("show_job_posting", args=[job_posting.pk])),
+        },
     )
 
 
@@ -420,6 +438,22 @@ def _authorized_back_url(request, url, listings):
     ):
         return None
     return parsed.path + (f"?{parsed.query}" if parsed.query else "")
+
+
+def _with_way_back(url, back_url):
+    """The page with its own way back, so that coming back to it later keeps the listing."""
+    return f"{url}?{urlencode({'back': back_url})}"
+
+
+def _way_back(request, fallback):
+    """Where closing the sign-up or login funnel a modal leads to brings her back: the page the
+    modal was told, else the one htmx says it was opened from — a listing keeps its filters."""
+    opened_from = urlparse(safe_url(request, request.headers.get("HX-Current-URL", "")))
+    return (
+        safe_url(request, request.GET.get("back", ""))
+        or opened_from._replace(scheme="", netloc="").geturl()
+        or fallback
+    )
 
 
 def _bookmark_action(user, beneficiary):

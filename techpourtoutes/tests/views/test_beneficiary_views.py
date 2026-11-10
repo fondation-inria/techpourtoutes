@@ -1,6 +1,7 @@
 import re
 from datetime import date, time, timedelta
 from unittest.mock import patch
+from urllib.parse import quote, urlencode
 
 import pytest
 from django.db import connection
@@ -866,7 +867,7 @@ def test_show_job_posting_sends_her_to_the_partner_to_apply(client, source, part
 
     application_modal_url = reverse("show_job_posting_application_modal", args=[job_posting.pk])
     assert re.search(
-        rf'<button[^>]*hx-get="{application_modal_url}"[^>]*>\s*<div[^>]*>'
+        rf'<button[^>]*hx-get="{application_modal_url}\?back=[^"]*"[^>]*>\s*<div[^>]*>'
         rf"\s*<svg[^>]*>.*?</svg>\s*Postuler sur {partner}",
         html,
         re.S,
@@ -886,7 +887,27 @@ def test_show_job_posting_goes_back_to_the_listing_she_came_from(client):
 
     response = client.get(show_job_posting_url(job_posting), HTTP_REFERER=listing)
 
-    assert response.context["back_url"] == listing
+    assert response.context["back_url"] == f"{listing}#offre-{job_posting.pk}"
+
+
+@pytest.mark.django_db
+@override_switch("internships", active=True)
+def test_show_job_posting_goes_back_to_the_top_of_the_listing_without_one_to_return_to(client):
+    job_posting = save_job_posting("Stage", JobPosting.Category.APPRENTICESHIP)
+
+    response = client.get(show_job_posting_url(job_posting))
+
+    assert response.context["back_url"] == INDEX_JOB_POSTINGS_URL
+
+
+@pytest.mark.django_db
+@override_switch("internships", active=True)
+def test_index_job_postings_anchors_each_card_for_the_way_back(client):
+    job_posting = save_job_posting("Stage", JobPosting.Category.HIGHER_ED_INTERNSHIP)
+
+    content = client.get(INDEX_JOB_POSTINGS_URL).content.decode()
+
+    assert f'id="offre-{job_posting.pk}"' in content
 
 
 @pytest.mark.django_db
@@ -1128,6 +1149,95 @@ def test_create_saved_job_posting_modal_carries_the_posting_into_both_ways_in(cl
         in content
     )
     assert f"{reverse('login_request')}?saved_job_posting={job_posting.pk}" in content
+
+
+def _signed_in_on(client, user, url):
+    """Sign in through the code mailed, as from a page: she lands on it with a welcome message."""
+    client.post(reverse("login_request"), data={"email": user.email, "next": url})
+    code = user.issue_login_code()
+    return client.post(reverse("login_code"), data={"code": code}, follow=True)
+
+
+@pytest.mark.django_db
+@override_switch("internships", active=True)
+def test_show_job_posting_shows_a_pending_message_once(client, beneficiary, job_posting):
+    response = _signed_in_on(client, beneficiary, show_job_posting_url(job_posting))
+
+    assert response.content.decode().count("Bienvenue sur le compte") == 1
+
+
+JOB_POSTINGS_LISTING = "/stages-alternances-emplois/?q=data"
+
+
+def _with_way_back(url, back):
+    return f"{url}?{urlencode({'back': back})}"
+
+
+def _assert_both_ways_in_go_back_to(content, saved, pk, back):
+    """Closing the sign-up or the login funnel brings her back to `back`."""
+    query = f"?{saved}={pk}&back={quote(back, safe='')}"
+    assert f"{reverse('new_beneficiary_inscription_funnel')}{query}" in content
+    assert f"{reverse('login_request')}{query}" in content
+
+
+@pytest.mark.django_db
+@override_switch("internships", active=True)
+def test_show_job_posting_hands_the_page_and_its_listing_to_both_modals(client, job_posting):
+    page_url = _with_way_back(
+        show_job_posting_url(job_posting), f"{JOB_POSTINGS_LISTING}#offre-{job_posting.pk}"
+    )
+
+    content = client.get(
+        show_job_posting_url(job_posting), HTTP_REFERER=f"http://testserver{JOB_POSTINGS_LISTING}"
+    ).content.decode()
+
+    back = f"?back={quote(page_url, safe='')}"
+    application_modal = reverse("show_job_posting_application_modal", args=[job_posting.pk])
+    assert content.count(f"{application_modal}{back}") == 2
+    save_modal = reverse("create_saved_job_posting_modal", args=[job_posting.pk])
+    assert content.count(f"{save_modal}{back}") == 2
+
+
+@pytest.mark.django_db
+@override_switch("internships", active=True)
+def test_show_job_posting_application_modal_hands_its_way_back_to_the_save_modal(
+    client, job_posting
+):
+    page_url = _with_way_back(show_job_posting_url(job_posting), JOB_POSTINGS_LISTING)
+
+    content = client.get(
+        reverse("show_job_posting_application_modal", args=[job_posting.pk]), {"back": page_url}
+    ).content.decode()
+
+    save_modal = reverse("create_saved_job_posting_modal", args=[job_posting.pk])
+    assert f"{save_modal}?back={quote(page_url, safe='')}" in content
+
+
+@pytest.mark.django_db
+@override_switch("internships", active=True)
+def test_create_saved_job_posting_modal_carries_the_way_back_it_is_given(client, job_posting):
+    page_url = _with_way_back(show_job_posting_url(job_posting), JOB_POSTINGS_LISTING)
+
+    content = client.get(
+        reverse("create_saved_job_posting_modal", args=[job_posting.pk]), {"back": page_url}
+    ).content.decode()
+
+    _assert_both_ways_in_go_back_to(content, "saved_job_posting", job_posting.pk, page_url)
+
+
+@pytest.mark.django_db
+@override_switch("internships", active=True)
+@pytest.mark.parametrize("query", [{}, {"back": "https://evil.example/"}])
+def test_create_saved_job_posting_modal_goes_back_to_the_posting_by_default(
+    client, job_posting, query
+):
+    content = client.get(
+        reverse("create_saved_job_posting_modal", args=[job_posting.pk]), query
+    ).content.decode()
+
+    _assert_both_ways_in_go_back_to(
+        content, "saved_job_posting", job_posting.pk, show_job_posting_url(job_posting)
+    )
 
 
 @pytest.mark.django_db
@@ -1665,6 +1775,62 @@ def test_create_saved_event_modal_carries_the_event_into_both_ways_in(client, sa
     assert f"{reverse('login_request')}?saved_event={salon.pk}" in content
 
 
+EVENTS_LISTING = f"{INDEX_EVENTS_URL}?page=2"
+
+
+@pytest.mark.django_db
+def test_show_event_hands_the_page_and_its_listing_to_the_save_modal(client, salon):
+    show_event_url = reverse("show_event", args=[salon.slug])
+    page_url = _with_way_back(show_event_url, f"{EVENTS_LISTING}#evenement-{salon.slug}")
+
+    content = client.get(
+        show_event_url, HTTP_REFERER=f"http://testserver{EVENTS_LISTING}"
+    ).content.decode()
+
+    save_modal = reverse("create_saved_event_modal", args=[salon.pk])
+    assert content.count(f"{save_modal}?back={quote(page_url, safe='')}") == 2
+
+
+@pytest.mark.django_db
+def test_create_saved_event_modal_carries_the_way_back_it_is_given(client, salon):
+    page_url = _with_way_back(reverse("show_event", args=[salon.slug]), EVENTS_LISTING)
+
+    content = client.get(
+        reverse("create_saved_event_modal", args=[salon.pk]), {"back": page_url}
+    ).content.decode()
+
+    _assert_both_ways_in_go_back_to(content, "saved_event", salon.pk, page_url)
+
+
+@pytest.mark.django_db
+def test_create_saved_event_modal_goes_back_to_the_listing_it_was_opened_from(client, salon):
+    content = client.get(
+        reverse("create_saved_event_modal", args=[salon.pk]),
+        HTTP_HX_CURRENT_URL=f"http://testserver{EVENTS_LISTING}",
+    ).content.decode()
+
+    _assert_both_ways_in_go_back_to(content, "saved_event", salon.pk, EVENTS_LISTING)
+
+
+@pytest.mark.django_db
+@pytest.mark.parametrize(
+    ("query", "current_url"),
+    [({}, ""), ({"back": "https://evil.example/"}, "https://evil.example/evenements/")],
+)
+def test_create_saved_event_modal_goes_back_to_the_event_by_default(
+    client, salon, query, current_url
+):
+    content = client.get(
+        reverse("create_saved_event_modal", args=[salon.pk]),
+        query,
+        HTTP_HX_CURRENT_URL=current_url,
+    ).content.decode()
+
+    _assert_both_ways_in_go_back_to(
+        content, "saved_event", salon.pk, reverse("show_event", args=[salon.slug])
+    )
+
+
 @pytest.mark.django_db
 def test_create_saved_event_modal_ignores_an_event_awaiting_validation(client, event):
     assert client.get(reverse("create_saved_event_modal", args=[event.pk])).status_code == 404
@@ -1676,6 +1842,13 @@ def test_show_event_renders_the_event(client, salon):
 
     assert response.status_code == 200
     assert salon.title.encode() in response.content
+
+
+@pytest.mark.django_db
+def test_show_event_shows_a_pending_message_once(client, beneficiary, salon):
+    response = _signed_in_on(client, beneficiary, reverse("show_event", args=[salon.slug]))
+
+    assert response.content.decode().count("Bienvenue sur le compte") == 1
 
 
 @pytest.mark.django_db
@@ -2114,7 +2287,10 @@ def test_show_event_back_link_keeps_the_listing_page_and_filters(client, salon):
         HTTP_REFERER=f"http://testserver{INDEX_EVENTS_URL}?page=3&q=hackathon",
     )
 
-    assert response.context["back_url"] == f"{INDEX_EVENTS_URL}?page=3&q=hackathon"
+    assert (
+        response.context["back_url"]
+        == f"{INDEX_EVENTS_URL}?page=3&q=hackathon#evenement-{salon.slug}"
+    )
 
 
 @pytest.mark.django_db
@@ -2131,7 +2307,7 @@ def test_show_event_back_link_keeps_the_pro_events_page(client, salon):
         HTTP_REFERER=f"http://testserver{reverse('index_pro_events')}",
     )
 
-    assert response.context["back_url"] == reverse("index_pro_events")
+    assert response.context["back_url"] == f"{reverse('index_pro_events')}#evenement-{salon.slug}"
 
 
 @pytest.mark.django_db
@@ -2142,7 +2318,14 @@ def test_show_event_back_link_trusts_a_back_param_from_the_pro_events_page(clien
         reverse("show_event", args=[salon.slug]), {"back": reverse("index_pro_events")}
     )
 
-    assert response.context["back_url"] == reverse("index_pro_events")
+    assert response.context["back_url"] == f"{reverse('index_pro_events')}#evenement-{salon.slug}"
+
+
+@pytest.mark.django_db
+def test_index_events_anchors_each_card_for_the_way_back(client, salon):
+    content = client.get(INDEX_EVENTS_URL).content.decode()
+
+    assert f'id="evenement-{salon.slug}"' in content
 
 
 @pytest.mark.django_db

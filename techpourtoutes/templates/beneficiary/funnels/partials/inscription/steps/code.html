@@ -2,6 +2,7 @@
     <input type="hidden" name="email" value="{{ email }}">
     <input type="hidden" name="saved_event" value="{{ saved_event }}">
     <input type="hidden" name="saved_job_posting" value="{{ saved_job_posting }}">
+    <input type="hidden" name="back" value="{{ back }}">
     <p>
         Un code à 6 chiffres t'a été envoyé par mail à
         <span class="font-medium break-all">{{ email }}</span>
@@ -20,6 +21,7 @@
             <input type="hidden" name="email" value="{{ email }}">
             <input type="hidden" name="saved_event" value="{{ saved_event }}">
             <input type="hidden" name="saved_job_posting" value="{{ saved_job_posting }}">
+            <input type="hidden" name="back" value="{{ back }}">
             <c-components.button type="submit" variant="tertiary" label="Je n'ai pas reçu de code" />
         </c-patterns.form>
     </c-slot>

@@ -30,7 +30,7 @@
             icon="bookmark_outline"
             icon_size_class="w-5 h-5 text-black"
             class="whitespace-nowrap"
-            hx-get="{% url "create_saved_job_posting_modal" job_posting.pk %}"
+            hx-get="{% url "create_saved_job_posting_modal" job_posting.pk %}{% if page_url %}?back={{ page_url|urlencode:"" }}{% endif %}"
             hx-target="#modal-container"
             hx-swap="innerHTML"
         >
@@ -39,6 +39,6 @@
         </c-components.button>
     {% endif %}
 </div>
-{% if messages %}
+{% if oob and messages %}
     <c-layout.partials.messages oob_swap="true" />
 {% endif %}

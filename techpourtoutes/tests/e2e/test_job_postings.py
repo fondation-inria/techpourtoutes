@@ -1,6 +1,8 @@
 import re
 from datetime import timedelta
 
+import pytest
+from django.core import mail
 from django.urls import reverse
 from django.utils import timezone
 from playwright.sync_api import expect
@@ -506,3 +508,53 @@ def test_an_anonymous_visitor_is_invited_to_sign_up_to_save_from_the_application
         page.get_by_text("Rejoins le club TechPourToutes pour enregistrer cette offre")
     ).to_be_visible()
     expect(page.locator("dialog")).to_have_count(1)
+
+
+@override_switch("internships", active=True)
+@pytest.mark.parametrize("way_in", ["Créer un compte", "Se connecter"])
+def test_closing_the_funnel_opened_to_save_a_posting_brings_her_back_to_it_and_its_listing(
+    page, live_server, way_in
+):
+    for index in range(20):
+        save_job_posting(f"Stage web {index}", JobPosting.Category.HIGHER_ED_INTERNSHIP)
+    page.goto(f"{live_server.url}/stages-alternances-emplois/?q=web")
+    listing = page.url
+    page.get_by_role("link", name="Stage web 0", exact=True).click()
+    posting = page.url
+    page.get_by_role("button", name="Enregistrer", exact=True).click()
+
+    page.locator("dialog").get_by_role("link", name=way_in).click()
+    page.get_by_role("link", name="Fermer").click()
+
+    expect(page).to_have_url(re.compile(f"^{re.escape(posting)}\\?back="))
+    page.get_by_role("link", name="Retour").click()
+
+    # Her listing, scrolled down to the posting she had opened.
+    expect(page).to_have_url(re.compile(f"^{re.escape(listing)}#offre-"))
+    card = page.get_by_role("link", name="Stage web 0", exact=True)
+    expect(card).to_be_in_viewport()
+    assert page.evaluate("window.scrollY") > 0
+
+
+@override_switch("internships", active=True)
+def test_logging_in_to_save_a_posting_lands_back_on_it_and_its_listing(
+    page, live_server, beneficiary
+):
+    for index in range(20):
+        save_job_posting(f"Stage web {index}", JobPosting.Category.HIGHER_ED_INTERNSHIP)
+    page.goto(f"{live_server.url}/stages-alternances-emplois/?q=web")
+    listing = page.url
+    page.get_by_role("link", name="Stage web 0", exact=True).click()
+    page.get_by_role("button", name="Enregistrer", exact=True).click()
+    page.locator("dialog").get_by_role("link", name="Se connecter").click()
+    page.fill('input[name="email"]', beneficiary.email)
+    page.get_by_role("button", name="Continuer").click()
+
+    page.fill('input[name="code"]', re.search(r"\b(\d{6})\b", mail.outbox[-1].body).group(1))
+    page.get_by_role("button", name="Continuer").click()
+
+    expect(page.get_by_text("Offre enregistrée")).to_be_visible()
+    page.get_by_role("link", name="Retour").click()
+    expect(page).to_have_url(re.compile(f"^{re.escape(listing)}#offre-"))
+    expect(page.get_by_role("link", name="Stage web 0", exact=True)).to_be_in_viewport()
+    assert page.evaluate("window.scrollY") > 0

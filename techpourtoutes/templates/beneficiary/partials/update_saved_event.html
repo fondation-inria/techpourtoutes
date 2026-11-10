@@ -25,7 +25,7 @@
             icon_size_class="w-5 h-5 text-black"
             label="Ajouter à mes événements"
             aria-label="Enregistrer cet événement"
-            hx-get="{% url "create_saved_event_modal" event.pk %}"
+            hx-get="{% url "create_saved_event_modal" event.pk %}{% if page_url %}?back={{ page_url|urlencode:"" }}{% endif %}"
             hx-target="#modal-container"
             hx-swap="innerHTML"
         />
@@ -40,7 +40,7 @@
                     hx-disabled-elt="this"
                     hx-headers='{"X-CSRFToken": "{{ csrf_token }}"}'
                 {% else %}
-                    hx-get="{% url "create_saved_event_modal" event.pk %}"
+                    hx-get="{% url "create_saved_event_modal" event.pk %}{% if page_url %}?back={{ page_url|urlencode:"" }}{% endif %}"
                     hx-target="#modal-container"
                     hx-swap="innerHTML"
                 {% endif %}>
@@ -53,6 +53,6 @@
         </button>
     {% endif %}
 </div>
-{% if messages %}
+{% if oob and messages %}
     <c-layout.partials.messages oob_swap="true" />
 {% endif %}

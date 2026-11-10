@@ -22,6 +22,7 @@ from ...ratelimit import rate_limit
 from ...services.beneficiary.upsert_beneficiary import UpsertBeneficiary
 from ...utils.dates import compute_age
 from ...utils.funnel import FunnelSession, FunnelSteps
+from ...utils.urls import safe_url
 from ..beneficiary_views import (
     TRAINING_EXPERIENCE_FORMS,
     is_minor,
@@ -46,6 +47,7 @@ def new_beneficiary_inscription_funnel(request):
         saved_event=request.GET.get("saved_event", ""),
         saved_job_posting=request.GET.get("saved_job_posting", ""),
         submits_makeuse_project=request.GET.get("submits_makeuse_project") == "1",
+        back=safe_url(request, request.GET.get("back", "")),
     )
     return redirect(reverse("beneficiary_inscription_funnel"))
 
@@ -90,7 +92,11 @@ def _resume(request):
     return render(
         request,
         "beneficiary/funnels/beneficiary_inscription_funnel.html",
-        {**_step_context(request, step), "messages_in_layout": True},
+        {
+            **_step_context(request, step),
+            "messages_in_layout": True,
+            "back": _funnel(request).answers.get("back", ""),
+        },
     )
 
 
@@ -161,6 +167,7 @@ def _create_beneficiary(request):
         email=result.beneficiary.email,
         saved_event=answers.get("saved_event", ""),
         saved_job_posting=answers.get("saved_job_posting", ""),
+        back=answers.get("back", ""),
     )
 
 
@@ -210,7 +217,9 @@ def _landing_after_code(request):
         return reverse("index_beneficiary_events")
     job_posting = save_pending_job_posting(request, request.POST.get("saved_job_posting", ""))
     if job_posting is not None:
-        return reverse("show_job_posting", args=[job_posting.pk])
+        return safe_url(request, request.POST.get("back", "")) or reverse(
+            "show_job_posting", args=[job_posting.pk]
+        )
     return reverse("show_account")
 
 
@@ -221,6 +230,7 @@ def _render_code_step(request, email):
         email=email,
         saved_event=request.POST.get("saved_event", ""),
         saved_job_posting=request.POST.get("saved_job_posting", ""),
+        back=request.POST.get("back", ""),
     )
 
 
@@ -305,7 +315,7 @@ def _login_redirect_for_existing_email(request, email, answers):
     if user is None:
         return None
     messages.error(request, "Un compte existe déjà avec cet email.")
-    back_url = reverse("coalition_home" if hasattr(user, "pro") else "home")
+    back_url = answers.get("back") or reverse("coalition_home" if hasattr(user, "pro") else "home")
     next_url = reverse(_destination_view_for_existing_user(user, answers))
     params = {
         "back": back_url,

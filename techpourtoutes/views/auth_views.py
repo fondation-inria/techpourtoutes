@@ -6,7 +6,6 @@ from django.contrib.auth import REDIRECT_FIELD_NAME, login, logout
 from django.contrib.auth.decorators import login_required
 from django.shortcuts import redirect, render
 from django.urls import reverse
-from django.utils.http import url_has_allowed_host_and_scheme
 from django.views.decorators.http import require_POST
 
 from ..forms import LoginRequestForm, VerificationCodeForm
@@ -15,19 +14,20 @@ from ..models import User
 from ..ratelimit import rate_limit
 from ..services.jobirl_api.refresh_access_token import RefreshAccessToken
 from ..utils.text import mask_email
+from ..utils.urls import safe_url
 from .beneficiary_views import save_pending_event, save_pending_job_posting
 
 
 @rate_limit("RATELIMIT_LOGIN", keys=("email",))
 def login_request(request):
     if request.user.is_authenticated:
-        next_url = _safe_next(request, request.GET.get(REDIRECT_FIELD_NAME, ""))
+        next_url = safe_url(request, request.GET.get(REDIRECT_FIELD_NAME, ""))
         return redirect(next_url or reverse("show_account"))
 
     if request.method == "POST":
         form = LoginRequestForm(data=request.POST)
-        next_url = _safe_next(request, request.POST.get(REDIRECT_FIELD_NAME, ""))
-        back_url = _safe_next(request, request.POST.get("back", ""))
+        next_url = safe_url(request, request.POST.get(REDIRECT_FIELD_NAME, ""))
+        back_url = safe_url(request, request.POST.get("back", ""))
         if form.is_valid():
             email = form.cleaned_data["email"]
             user = User.objects.filter(email=email, is_active=True).first()
@@ -50,8 +50,8 @@ def login_request(request):
             return redirect(url)
     else:
         form = LoginRequestForm()
-        next_url = _safe_next(request, request.GET.get(REDIRECT_FIELD_NAME, ""))
-        back_url = _safe_next(request, request.GET.get("back", ""))
+        next_url = safe_url(request, request.GET.get(REDIRECT_FIELD_NAME, ""))
+        back_url = safe_url(request, request.GET.get("back", ""))
 
     return render(
         request,
@@ -72,8 +72,8 @@ def login_code(request):
     email = request.session.get("login_email")
     if not email:
         return redirect("login_request")
-    back_url = _safe_next(request, request.GET.get("back", ""))
-    next_url = _safe_next(request, request.session.get("login_next", ""))
+    back_url = safe_url(request, request.GET.get("back", ""))
+    next_url = safe_url(request, request.session.get("login_next", ""))
     user = User.objects.filter(email=email, is_active=True).first()
 
     form = VerificationCodeForm(request.POST or None)
@@ -91,7 +91,7 @@ def login_code(request):
                 return redirect(reverse("index_beneficiary_events"))
             job_posting = save_pending_job_posting(request, saved_job_posting)
             if job_posting is not None:
-                return redirect(reverse("show_job_posting", args=[job_posting.pk]))
+                return redirect(back_url or reverse("show_job_posting", args=[job_posting.pk]))
             return redirect(next_url or reverse("show_account"))
         form.add_error("code", "Code invalide ou expiré.")
 
@@ -110,7 +110,7 @@ def login_code(request):
 def login_verify(request, token):
     if request.user.is_authenticated:
         logout(request)
-    next_url = _safe_next(request, request.GET.get(REDIRECT_FIELD_NAME, ""))
+    next_url = safe_url(request, request.GET.get(REDIRECT_FIELD_NAME, ""))
     user = User.consume_login_token(plaintext=token)
     if user is None:
         messages.error(
@@ -147,16 +147,3 @@ def destroy_session(request):
     logout(request)
     messages.success(request, "Au revoir - Déconnexion réalisée avec succès")
     return redirect("/")
-
-
-# --------------------- private ----------------
-
-
-def _safe_next(request, candidate):
-    if candidate and url_has_allowed_host_and_scheme(
-        candidate,
-        allowed_hosts={request.get_host()},
-        require_https=request.is_secure(),
-    ):
-        return candidate
-    return ""

@@ -1,6 +1,6 @@
 from datetime import timedelta
 from unittest.mock import patch
-from urllib.parse import quote
+from urllib.parse import quote, urlencode
 
 import pytest
 from django.conf import settings
@@ -674,6 +674,29 @@ def test_login_code_lands_on_the_saved_job_posting(client, beneficiary, job_post
 
     assert response["Location"] == reverse("show_job_posting", args=[job_posting.pk])
     assert "Offre enregistrée" in [str(message) for message in get_messages(response.wsgi_request)]
+
+
+_WAY_BACK = "/stages-alternances-emplois/1/?back=%2Fstages-alternances-emplois%2F%3Fq%3Dweb"
+
+
+@pytest.mark.django_db
+def test_login_code_form_keeps_the_way_back(client, beneficiary):
+    client.post(reverse("login_request"), data={"email": beneficiary.email, "back": _WAY_BACK})
+
+    content = client.get(reverse("login_code"), {"back": _WAY_BACK}).content.decode()
+
+    assert f'action="{reverse("login_code")}?back={quote(_WAY_BACK, safe="")}"' in content
+
+
+@pytest.mark.django_db
+def test_login_code_lands_back_where_she_saved_the_job_posting(client, beneficiary, job_posting):
+    code = _ask_for_a_code_saving(client, beneficiary, job_posting)
+
+    response = client.post(
+        f"{reverse('login_code')}?{urlencode({'back': _WAY_BACK})}", {"code": code}
+    )
+
+    assert response["Location"] == _WAY_BACK
 
 
 @pytest.mark.django_db
