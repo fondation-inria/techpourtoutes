@@ -6,7 +6,7 @@
 />
 {% load date_filters %}
 
-<div id="offre-{{ job_posting.pk }}" class="relative flex w-full wrap-anywhere scroll-mt-4 bg-neutral-0 border border-black shadow-box {{ class }}">
+<div id="offre-{{ job_posting.pk }}" class="relative flex w-full wrap-anywhere scroll-mt-4 bg-neutral-0 border border-black shadow-box hover:shadow-bottom-and-right hover:shadow-{{ job_posting.category_color }}-500 {{ class }}">
     <div class="flex-1 min-w-0 p-4">
         <div class="flex items-center gap-4">
             <c-components.job-posting-logo :job_posting="job_posting" class="{{ logo_class }}" size="65" />
