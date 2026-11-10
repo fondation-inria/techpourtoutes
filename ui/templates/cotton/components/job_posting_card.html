@@ -6,7 +6,7 @@
 />
 {% load date_filters static %}
 
-<div class="flex w-full wrap-anywhere bg-neutral-0 border border-black shadow-box {{ class }}">
+<div class="flex w-full wrap-anywhere bg-neutral-0 border border-black shadow-box hover:shadow-bottom-and-right hover:shadow-{{ job_posting.category_color }}-500 {{ class }}">
     <div class="flex-1 min-w-0 p-4">
         <div class="flex items-center gap-4">
             {% static 'images/job-posting-placeholder.png' as placeholder %}
