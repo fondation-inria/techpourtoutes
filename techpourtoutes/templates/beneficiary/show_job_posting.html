@@ -63,40 +63,36 @@
                     <p class="text-xs">Offre {% if job_posting.last_updated_at %}mise à jour le {{ job_posting.last_updated_at|date:"j F Y" }}{% else %}publiée le {{ job_posting.published_at|date:"j F Y" }}{% endif %}</p>
                     <dl class="flex flex-col gap-4">
                         <div class="relative pl-9">
-                            <dt class="font-bold text-lg">
-                                <c-components.icon name="job-category" class="absolute left-0 top-0 w-6 h-6" />
-                                Type d’offre
-                            </dt>
-                            <dd>{% if job_posting.contract_type %}{{ job_posting.get_contract_type_display }}{% else %}{{ job_posting.get_category_display }}{% endif %}</dd>
+                            <dt class="inline font-bold">
+                                <c-components.icon name="job-category" class="absolute left-0 -top-0.5 w-6 h-6" />
+                                Type d’offre&nbsp;:</dt>
+                            <dd class="inline">{% if job_posting.contract_type %}{{ job_posting.get_contract_type_display }}{% else %}{{ job_posting.get_category_display }}{% endif %}</dd>
                         </div>
                         {% if job_posting.category in job_posting.PUPIL_CATEGORIES %}
                             <div class="relative pl-9">
-                                <dt class="font-bold text-lg">
-                                    <c-components.icon name="job-duration" class="absolute left-0 top-0 w-6 h-6" />
-                                    Date
-                                </dt>
-                                <dd>{% if job_posting.starts_on %}du {{ job_posting.starts_on|date:"j F Y" }} au {{ job_posting.ends_on|date:"j F Y" }}{% else %}non indiqué{% endif %}</dd>
+                                <dt class="inline font-bold">
+                                    <c-components.icon name="job-duration" class="absolute left-0 -top-0.5 w-6 h-6" />
+                                    Date&nbsp;:</dt>
+                                <dd class="inline">{% if job_posting.starts_on %}du {{ job_posting.starts_on|date:"j F Y" }} au {{ job_posting.ends_on|date:"j F Y" }}{% else %}non indiqué{% endif %}</dd>
                             </div>
                         {% else %}
                             {% if job_posting.contract_type != "cdi" %}
                                 <div class="relative pl-9">
-                                    <dt class="font-bold text-lg">
-                                        <c-components.icon name="job-duration" class="absolute left-0 top-0 w-6 h-6" />
-                                        Durée
-                                    </dt>
-                                    <dd>{% if job_posting.duration_months %}{{ job_posting.duration_months }} mois{% else %}non indiqué{% endif %}</dd>
+                                    <dt class="inline font-bold">
+                                        <c-components.icon name="job-duration" class="absolute left-0 -top-0.5 w-6 h-6" />
+                                        Durée&nbsp;:</dt>
+                                    <dd class="inline">{% if job_posting.duration_months %}{{ job_posting.duration_months }} mois{% else %}non indiqué{% endif %}</dd>
                                 </div>
                             {% endif %}
                             <div class="relative pl-9">
-                                <dt class="font-bold text-lg">Niveau d’expérience</dt>
-                                <dd>{{ job_posting.experience_level|default:"non indiqué" }}</dd>
+                                <dt class="inline font-bold">Niveau d’expérience&nbsp;:</dt>
+                                <dd class="inline">{{ job_posting.experience_level|default:"non indiqué" }}</dd>
                             </div>
                             <div class="relative pl-9">
-                                <dt class="font-bold text-lg">
-                                    <c-components.icon name="euro-solid" class="absolute left-0 top-0 w-6 h-6" />
-                                    Salaire
-                                </dt>
-                                <dd>{{ job_posting.salary|default:"non indiqué" }}</dd>
+                                <dt class="inline font-bold">
+                                    <c-components.icon name="euro-solid" class="absolute left-0 -top-0.5 w-6 h-6" />
+                                    Salaire&nbsp;:</dt>
+                                <dd class="inline">{{ job_posting.salary|default:"non indiqué" }}</dd>
                             </div>
                         {% endif %}
                     </dl>
@@ -106,27 +102,24 @@
             <c-components.card class="min-w-0 self-end @min-[41.5rem]:col-start-2 @min-[41.5rem]:col-span-2 @min-[41.5rem]:row-start-3">
                 <dl class="flex flex-col gap-4 text-sm">
                     <div class="relative pl-9">
-                        <dt class="font-bold text-lg">
-                            <c-components.icon name="organizer" class="absolute left-0 top-0 w-6 h-6" />
-                            Entreprise
-                        </dt>
-                        <dd class="wrap-anywhere">{{ job_posting.company_name }}</dd>
+                        <dt class="inline font-bold">
+                            <c-components.icon name="organizer" class="absolute left-0 -top-0.5 w-6 h-6" />
+                            Entreprise&nbsp;:</dt>
+                        <dd class="inline wrap-anywhere">{{ job_posting.company_name }}</dd>
                     </div>
                     {% if job_posting.category not in job_posting.PUPIL_CATEGORIES %}
                         <div class="relative pl-9">
-                            <dt class="font-bold text-lg">
-                                <c-components.icon name="job-domain" class="absolute left-0 top-0 w-6 h-6" />
-                                Secteur
-                            </dt>
-                            <dd>{{ job_posting.sector|default:"non indiqué" }}</dd>
+                            <dt class="inline font-bold">
+                                <c-components.icon name="job-domain" class="absolute left-0 -top-0.5 w-6 h-6" />
+                                Secteur&nbsp;:</dt>
+                            <dd class="inline">{{ job_posting.sector|default:"non indiqué" }}</dd>
                         </div>
                     {% endif %}
                     <div class="relative pl-9">
-                        <dt class="font-bold text-lg">
-                            <c-components.icon name="location" class="absolute left-0 top-0 w-6 h-6" />
-                            Adresse
-                        </dt>
-                        <dd class="wrap-anywhere">{{ job_posting.address_label }}</dd>
+                        <dt class="inline font-bold">
+                            <c-components.icon name="location" class="absolute left-0 -top-0.5 w-6 h-6" />
+                            Adresse&nbsp;:</dt>
+                        <dd class="inline wrap-anywhere">{{ job_posting.address_label }}</dd>
                     </div>
                 </dl>
             </c-components.card>
