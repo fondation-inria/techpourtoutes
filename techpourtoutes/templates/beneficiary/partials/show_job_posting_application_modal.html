@@ -1,0 +1,23 @@
+<c-components.modal title="Tu vas être redirigée pour candidater" closable=True>
+    <br>
+    <p class="text-center text-sm">
+        Opportunité&nbsp;: <strong>{{ job_posting.title }}</strong><br>
+        Entreprise&nbsp;: <strong>{{ job_posting.company_name }}</strong>
+    </p>
+    {% if bookmark_action == "toggle" %}
+        <br>
+        <p class="text-center text-sm">L’opportunité sera automatiquement enregistrée dans ton compte.</p>
+    {% endif %}
+    <br>
+    <div class="flex flex-col items-center gap-4">
+        {# The click is recorded from here: on the link itself, htmx would cancel the navigation. #}
+        <div {% if bookmark_action == "toggle" %}hx-post="{% url "create_clicked_job_posting" job_posting.pk %}" hx-trigger="click" hx-swap="none" hx-headers='{"X-CSRFToken": "{{ csrf_token }}"}'{% endif %}>
+            <c-components.button href="{{ job_posting.url }}" target="_blank" rel="noopener noreferrer" icon="external-link" icon_position="start">
+                Continuer sur le site externe<span class="sr-only"> (nouvelle fenêtre)</span>
+            </c-components.button>
+        </div>
+        {% if bookmark_action == "signup" %}
+            {% include "beneficiary/partials/update_saved_job_posting.html" %}
+        {% endif %}
+    </div>
+</c-components.modal>

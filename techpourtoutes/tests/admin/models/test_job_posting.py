@@ -3,10 +3,16 @@ from datetime import UTC, datetime
 import pytest
 from django.urls import reverse
 
-from techpourtoutes.models import JobPosting
+from techpourtoutes.models import ClickedJobPosting, JobPosting, SavedJobPosting
 
 CHANGELIST = "admin:techpourtoutes_jobposting_changelist"
 Category = JobPosting.Category
+NO_INLINE_ROWS = {
+    "saves-TOTAL_FORMS": "0",
+    "saves-INITIAL_FORMS": "0",
+    "clicks-TOTAL_FORMS": "0",
+    "clicks-INITIAL_FORMS": "0",
+}
 
 
 def _job_posting(**overrides):
@@ -22,7 +28,7 @@ def _job_posting(**overrides):
             "department_code": "75",
             "city": "Paris",
             "domains": ["informatique"],
-            "duration": "12 mois",
+            "duration_months": 12,
             "category": Category.APPRENTICESHIP,
             "contract_type": JobPosting.ContractType.APPRENTICESHIP,
             "published_at": datetime(2026, 1, 1, tzinfo=UTC),
@@ -74,17 +80,29 @@ def test_job_posting_changelist_shows_title_company_source_and_type(
 
 
 @pytest.mark.django_db
-def test_job_posting_changelist_links_each_offer_on_its_source(verified_admin_client):
-    _job_posting()
+def test_job_posting_changelist_links_each_offer_to_its_page_on_the_site(verified_admin_client):
+    job_posting = _job_posting()
 
     content = verified_admin_client.get(reverse(CHANGELIST)).content.decode()
 
     assert (
-        '<a href="https://www.myfuture.fr/offre/1" target="_blank" rel="noopener noreferrer"'
-        ' title="Voir l’offre (nouvelle fenêtre)" aria-label="Voir l’offre (nouvelle fenêtre)">'
-        in content
-    )
+        f'<a href="{reverse("show_job_posting", args=[job_posting.pk])}" target="_blank"'
+        ' rel="noopener noreferrer" title="Voir l’offre (nouvelle fenêtre)"'
+        ' aria-label="Voir l’offre (nouvelle fenêtre)">'
+    ) in content
     assert "svg/sprite.svg#external-link" in content
+    assert "https://www.myfuture.fr/offre/1" not in content
+
+
+@pytest.mark.django_db
+def test_job_posting_changelist_links_no_unpublished_offer(verified_admin_client):
+    """The site answers a 404 for it."""
+    job_posting = _job_posting(hidden=True)
+
+    content = verified_admin_client.get(reverse(CHANGELIST)).content.decode()
+
+    assert reverse("show_job_posting", args=[job_posting.pk]) not in content
+    assert "Voir l’offre" not in content
 
 
 @pytest.mark.django_db
@@ -137,7 +155,7 @@ def test_job_posting_page_shows_every_field_read_only_but_hidden(
         "75111",
         "Code du département",
         "informatique",
-        "12 mois",
+        "Durée (en mois)",
         "Alternance",
         "https://www.myfuture.fr/offre/1",
         "Créé le",
@@ -152,7 +170,7 @@ def test_job_posting_page_unpublishes_the_offer_and_nothing_else(verified_admin_
     job_posting = _job_posting()
     url = reverse("admin:techpourtoutes_jobposting_change", args=[job_posting.pk])
 
-    verified_admin_client.post(url, {"hidden": "on", "title": "Titre réécrit"})
+    verified_admin_client.post(url, {**NO_INLINE_ROWS, "hidden": "on", "title": "Titre réécrit"})
 
     job_posting.refresh_from_db()
     assert job_posting.hidden
@@ -164,7 +182,7 @@ def test_job_posting_page_republishes_the_offer(verified_admin_client):
     job_posting = _job_posting(hidden=True)
     url = reverse("admin:techpourtoutes_jobposting_change", args=[job_posting.pk])
 
-    verified_admin_client.post(url, {})
+    verified_admin_client.post(url, NO_INLINE_ROWS)
 
     job_posting.refresh_from_db()
     assert not job_posting.hidden
@@ -190,3 +208,29 @@ def test_job_posting_page_without_a_logo_previews_nothing(verified_admin_client)
 
     assert "Aperçu du logo" in content
     assert "logos/" not in content
+
+
+@pytest.mark.django_db
+def test_job_posting_page_lists_the_beneficiaries_who_saved_it(verified_admin_client, beneficiary):
+    job_posting = _job_posting()
+    SavedJobPosting.objects.toggle(job_posting=job_posting, beneficiary=beneficiary)
+    url = reverse("admin:techpourtoutes_jobposting_change", args=[job_posting.pk])
+
+    content = verified_admin_client.get(url).content.decode()
+
+    assert "Jade" in content
+    assert "Offres d&#x27;emploi sauvegardées" in content
+
+
+@pytest.mark.django_db
+def test_job_posting_page_lists_the_beneficiaries_who_clicked_it(
+    verified_admin_client, beneficiary
+):
+    job_posting = _job_posting()
+    ClickedJobPosting(job_posting=job_posting, beneficiary=beneficiary).save()
+    url = reverse("admin:techpourtoutes_jobposting_change", args=[job_posting.pk])
+
+    content = verified_admin_client.get(url).content.decode()
+
+    assert "Jade" in content
+    assert "Offres d&#x27;emploi cliquées" in content

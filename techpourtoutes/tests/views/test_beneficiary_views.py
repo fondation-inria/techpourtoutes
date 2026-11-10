@@ -1,6 +1,7 @@
 import re
-from datetime import time, timedelta
+from datetime import date, time, timedelta
 from unittest.mock import patch
+from urllib.parse import quote, urlencode
 
 import pytest
 from django.db import connection
@@ -10,7 +11,16 @@ from django.urls import reverse
 from django.utils import timezone
 from waffle.testutils import override_switch
 
-from techpourtoutes.models import Event, JobPosting, MakeuseProject, Pro, SavedEvent, User
+from techpourtoutes.models import (
+    ClickedJobPosting,
+    Event,
+    JobPosting,
+    MakeuseProject,
+    Pro,
+    SavedEvent,
+    SavedJobPosting,
+    User,
+)
 from techpourtoutes.utils.territories import REGIONS
 
 from ..models.test_event import build_event
@@ -180,7 +190,7 @@ INDEX_JOB_POSTINGS_URL = "/stages-alternances-emplois/"
 
 
 def save_job_posting(title, category, **overrides):
-    JobPosting(
+    job_posting = JobPosting(
         **{
             "source": JobPosting.Source.APEC,
             "external_id": title,
@@ -194,7 +204,9 @@ def save_job_posting(title, category, **overrides):
             "url": "https://www.apec.fr/offre",
             **overrides,
         }
-    ).save()
+    )
+    job_posting.save()
+    return job_posting
 
 
 @pytest.fixture
@@ -467,6 +479,75 @@ def test_index_job_postings_offers_the_duration_filter_but_to_pupils(client, cat
     html = client.get(INDEX_JOB_POSTINGS_URL, {"category": category}).content.decode()
 
     assert ('id="job_posting_duration"' in html) == offered
+    assert re.findall(r'name="duration"\s+value="([^"]*)"', html) == (
+        JobPosting.Duration.values if offered else []
+    )
+
+
+@pytest.mark.django_db
+@pytest.mark.parametrize(
+    "query, expected",
+    [
+        ({"duration": "3_to_6_months"}, {"6 mois", "Sans durée"}),
+        ({"duration": ["under_3_months", "over_12_months"]}, {"2 mois", "24 mois", "Sans durée"}),
+        ({"duration": "inconnue"}, {"2 mois", "6 mois", "24 mois", "Sans durée"}),
+        ({}, {"2 mois", "6 mois", "24 mois", "Sans durée"}),
+    ],
+)
+@override_switch("internships", active=True)
+def test_index_job_postings_keeps_the_postings_of_any_ticked_duration_and_those_without_one(
+    client, query, expected
+):
+    for title, months in [("2 mois", 2), ("6 mois", 6), ("24 mois", 24), ("Sans durée", None)]:
+        save_job_posting(title, JobPosting.Category.APPRENTICESHIP, duration_months=months)
+
+    response = client.get(INDEX_JOB_POSTINGS_URL, {"category": "apprenticeship", **query})
+
+    assert listed_titles(response) == expected
+
+
+@pytest.mark.django_db
+@override_switch("internships", active=True)
+def test_index_job_postings_shows_the_duration_on_the_card(client):
+    save_job_posting("Alternance", JobPosting.Category.APPRENTICESHIP, duration_months=24)
+
+    html = client.get(INDEX_JOB_POSTINGS_URL, {"category": "apprenticeship"}).content.decode()
+
+    assert re.search(r"<span>\s*24 mois\s*</span>", html)
+
+
+@pytest.mark.django_db
+@override_switch("internships", active=True)
+def test_index_job_postings_hides_and_ignores_the_duration_filter_when_cdi_alone_is_ticked(
+    client,
+):
+    """A CDI lasts as long as it lasts: alone, it leaves no duration to choose from."""
+    save_job_posting("CDI", JobPosting.Category.FIRST_JOB, contract_type="cdi", duration_months=2)
+
+    response = client.get(
+        INDEX_JOB_POSTINGS_URL,
+        {"category": "first_job", "contract_type": "cdi", "duration": "over_12_months"},
+    )
+
+    assert listed_titles(response) == {"CDI"}
+    html = response.content.decode()
+    assert re.search(r'id="job_posting_duration_filter"[^>]*style="display: none"', html)
+    assert not re.search(r'name="duration"\s+value="[^"]*"\s+checked', html)
+
+
+@pytest.mark.django_db
+@override_switch("internships", active=True)
+def test_index_job_postings_keeps_the_duration_filter_when_cdi_comes_with_another_contract(
+    client,
+):
+    response = client.get(
+        INDEX_JOB_POSTINGS_URL,
+        {"category": "first_job", "contract_type": ["cdi", "cdd"], "duration": "over_12_months"},
+    )
+
+    html = response.content.decode()
+    assert not re.search(r'id="job_posting_duration_filter"[^>]*style="display: none"', html)
+    assert re.findall(r'name="duration"\s+value="([^"]*)"\s+checked', html) == ["over_12_months"]
 
 
 @pytest.mark.django_db
@@ -646,6 +727,722 @@ def test_index_job_postings_serves_the_page_asked_for(client, twenty_one_apprent
 
     assert response.context["job_postings"].number == 2
     assert len(response.context["job_postings"].object_list) == 1
+
+
+def show_job_posting_url(job_posting):
+    return reverse("show_job_posting", args=[job_posting.pk])
+
+
+@pytest.mark.django_db
+@override_switch("internships", active=False)
+def test_show_job_posting_not_found_when_switch_inactive(client):
+    job_posting = save_job_posting("Stage", JobPosting.Category.HIGHER_ED_INTERNSHIP)
+
+    assert client.get(show_job_posting_url(job_posting)).status_code == 404
+
+
+@pytest.mark.django_db
+@override_switch("internships", active=True)
+def test_show_job_posting_not_found_once_unpublished(client):
+    job_posting = save_job_posting("Stage", JobPosting.Category.HIGHER_ED_INTERNSHIP, hidden=True)
+
+    assert client.get(show_job_posting_url(job_posting)).status_code == 404
+
+
+@pytest.mark.django_db
+@override_switch("internships", active=True)
+def test_show_job_posting_renders_the_posting(client):
+    job_posting = save_job_posting(
+        "Développeuse BI",
+        JobPosting.Category.FIRST_JOB,
+        contract_type=JobPosting.ContractType.CDD,
+        description="<p>Tu <strong>développes</strong> des tableaux de bord.</p>",
+        domains=[JobPosting.Domain.SYSTEMES_ET_RESEAUX],
+        experience_level="Minimum 2 ans",
+        salary="36 - 44 k€ brut annuel",
+        duration_months=6,
+        sector="Activités informatiques",
+        street="12 rue de la Mer",
+        postal_code="80000",
+    )
+
+    html = client.get(show_job_posting_url(job_posting)).content.decode()
+
+    assert "Développeuse BI" in html
+    assert "<p>Tu <strong>développes</strong> des tableaux de bord.</p>" in html
+    for shown in [
+        "Systèmes et réseaux",
+        "CDD",
+        "Minimum 2 ans",
+        "36 - 44 k€ brut annuel",
+        "6 mois",
+        "Activités informatiques",
+        "12 rue de la Mer, 80000 Amiens",
+    ]:
+        assert shown in html
+    assert "non indiqué" not in html
+
+
+@pytest.mark.django_db
+@pytest.mark.parametrize("category", ["higher_ed_internship", "apprenticeship", "first_job"])
+@override_switch("internships", active=True)
+def test_show_job_posting_leaves_out_the_position_status(client, category):
+    """Apec says « Cadre du secteur privé » nearly every time, and an internship is a « Stage »."""
+    job_posting = save_job_posting("Offre", category)
+
+    html = client.get(show_job_posting_url(job_posting)).content.decode()
+
+    assert "Statut du poste" not in html
+
+
+@pytest.mark.django_db
+@override_switch("internships", active=True)
+def test_show_job_posting_sizes_the_logo_without_a_stylesheet(client):
+    job_posting = save_job_posting("Stage", JobPosting.Category.HIGHER_ED_INTERNSHIP)
+
+    html = client.get(show_job_posting_url(job_posting)).content.decode()
+
+    assert re.search(
+        r'<img src="[^"]*job-posting-placeholder[^"]*"[^>]*width="70" height="70"', html
+    )
+
+
+@pytest.mark.django_db
+@override_switch("internships", active=True)
+def test_show_job_posting_puts_save_beside_back_and_apply_at_the_bottom_on_a_phone(client):
+    """On a phone the save button sits beside the back one, above the title, and the apply one
+    in the bar fixed at the bottom: a screen reader reads them in the order they are shown."""
+    job_posting = save_job_posting("Stage", JobPosting.Category.HIGHER_ED_INTERNSHIP)
+
+    html = client.get(show_job_posting_url(job_posting)).content.decode()
+
+    assert html.index("Retour") < html.index("Enregistrer") < html.index("cherche une stagiaire")
+    assert html.rindex("Postuler sur") > html.index("Descriptif de l’offre")
+
+
+@pytest.mark.django_db
+@override_switch("internships", active=True)
+def test_show_job_posting_offers_no_save_button_to_a_signed_in_pro(client, pro):
+    job_posting = save_job_posting("Stage", JobPosting.Category.HIGHER_ED_INTERNSHIP)
+    assert "Enregistrer" in client.get(show_job_posting_url(job_posting)).content.decode()
+
+    client.force_login(pro)
+
+    assert "Enregistrer" not in client.get(show_job_posting_url(job_posting)).content.decode()
+
+
+@pytest.mark.django_db
+@override_switch("internships", active=True)
+def test_show_job_posting_says_what_the_partner_did_not_give(client):
+    job_posting = save_job_posting("Alternance", JobPosting.Category.APPRENTICESHIP)
+
+    html = client.get(show_job_posting_url(job_posting)).content.decode()
+
+    for label in [
+        "Durée",
+        "Niveau d’expérience",
+        "Salaire",
+        "Secteur",
+    ]:
+        assert re.search(rf"{label}&nbsp;:</dt>\s*<dd[^>]*>\s*non indiqué", html), label
+
+
+@pytest.mark.django_db
+@pytest.mark.parametrize(
+    "category, mention",
+    [
+        ("higher_ed_internship", "Numeum cherche une stagiaire au poste de&nbsp;:"),
+        ("apprenticeship", "Numeum cherche une alternante au poste de&nbsp;:"),
+        ("first_job", "Numeum recrute au poste de&nbsp;:"),
+        ("seconde_internship", "Numeum propose un stage d’observation"),
+        ("troisieme_internship", "Numeum propose un stage d’observation"),
+    ],
+)
+@override_switch("internships", active=True)
+def test_show_job_posting_introduces_the_company_according_to_the_category(
+    client, category, mention
+):
+    job_posting = save_job_posting("Offre", category)
+
+    html = client.get(show_job_posting_url(job_posting)).content.decode()
+
+    assert mention in html
+    assert f"bg-{JobPosting.CATEGORY_COLORS[category]}-500" in html
+
+
+@pytest.mark.django_db
+@pytest.mark.parametrize("category", ["seconde_internship", "troisieme_internship"])
+@override_switch("internships", active=True)
+def test_show_job_posting_shows_a_pupil_the_period_and_nothing_about_the_job(client, category):
+    job_posting = save_job_posting(
+        "Stage", category, starts_on=date(2027, 6, 12), ends_on=date(2027, 6, 19)
+    )
+
+    html = client.get(show_job_posting_url(job_posting)).content.decode()
+
+    assert re.search(r"Date&nbsp;:</dt>\s*<dd[^>]*>\s*du 12 juin 2027 au 19 juin 2027", html)
+    for label in ["Durée", "Salaire", "Secteur", "Date de début"]:
+        assert label not in html
+
+
+@pytest.mark.django_db
+@pytest.mark.parametrize("category", ["higher_ed_internship", "apprenticeship", "first_job"])
+@override_switch("internships", active=True)
+def test_show_job_posting_leaves_out_the_start_date(client, category):
+    job_posting = save_job_posting("Offre", category, starts_on=date(2027, 1, 1))
+
+    html = client.get(show_job_posting_url(job_posting)).content.decode()
+
+    assert "Date de début" not in html
+    assert "01/01/2027" not in html
+
+
+@pytest.mark.django_db
+@pytest.mark.parametrize(
+    "contract_type, shown",
+    [(JobPosting.ContractType.CDI, False), (JobPosting.ContractType.CDD, True)],
+)
+@override_switch("internships", active=True)
+def test_show_job_posting_leaves_out_the_duration_of_a_cdi(client, contract_type, shown):
+    job_posting = save_job_posting(
+        "Développeuse", JobPosting.Category.FIRST_JOB, contract_type=contract_type
+    )
+
+    html = client.get(show_job_posting_url(job_posting)).content.decode()
+
+    assert ("Durée" in html) == shown
+
+
+@pytest.mark.django_db
+@override_switch("internships", active=True)
+def test_show_job_posting_says_when_it_was_published(client):
+    job_posting = save_job_posting(
+        "Stage",
+        JobPosting.Category.HIGHER_ED_INTERNSHIP,
+        published_at=timezone.make_aware(timezone.datetime(2026, 10, 12, 10)),
+    )
+
+    html = client.get(show_job_posting_url(job_posting)).content.decode()
+
+    assert "Offre publiée le 12 octobre 2026" in html
+
+
+@pytest.mark.django_db
+@override_switch("internships", active=True)
+def test_show_job_posting_says_when_it_was_last_updated(client):
+    job_posting = save_job_posting(
+        "Stage",
+        JobPosting.Category.HIGHER_ED_INTERNSHIP,
+        source_updated_at=timezone.make_aware(timezone.datetime(2026, 10, 14, 10)),
+    )
+
+    html = client.get(show_job_posting_url(job_posting)).content.decode()
+
+    assert "Offre mise à jour le 14 octobre 2026" in html
+    assert "Offre publiée le" not in html
+
+
+@pytest.mark.django_db
+@pytest.mark.parametrize(
+    "source, logo",
+    [("apec", "images/apec_logo.jpg"), ("myfuture", "images/myfuture_logo.png")],
+)
+@override_switch("internships", active=True)
+def test_show_job_posting_shows_the_logo_of_the_partner(client, source, logo):
+    """The sentence beside it names the partner: the logo adds nothing for a screen reader."""
+    job_posting = save_job_posting("Stage", JobPosting.Category.APPRENTICESHIP, source=source)
+
+    html = client.get(show_job_posting_url(job_posting)).content.decode()
+
+    assert re.search(rf'<img src="/static/{logo}" alt=""', html)
+
+
+@pytest.mark.django_db
+@pytest.mark.parametrize(
+    "source, partner",
+    [("apec", "l’Apec"), ("myfuture", "MyFuture")],
+)
+@override_switch("internships", active=True)
+def test_show_job_posting_sends_her_to_the_partner_to_apply(client, source, partner):
+    job_posting = save_job_posting(
+        "Stage",
+        JobPosting.Category.HIGHER_ED_INTERNSHIP,
+        source=source,
+        external_id="563753",
+        published_at=timezone.make_aware(timezone.datetime(2026, 10, 13, 10)),
+    )
+
+    html = client.get(show_job_posting_url(job_posting)).content.decode()
+
+    application_modal_url = reverse("show_job_posting_application_modal", args=[job_posting.pk])
+    assert re.search(
+        rf'<button[^>]*hx-get="{application_modal_url}\?back=[^"]*"[^>]*>\s*<div[^>]*>'
+        rf"\s*<svg[^>]*>.*?</svg>\s*Postuler sur {partner}",
+        html,
+        re.S,
+    )
+    assert "https://www.apec.fr/offre" not in html
+    assert (
+        "Cette offre ID 563753 a été publiée le 13 octobre 2026 sur le site de notre "
+        f"partenaire, {partner}."
+    ) in html
+
+
+@pytest.mark.django_db
+@override_switch("internships", active=True)
+def test_show_job_posting_goes_back_to_the_listing_she_came_from(client):
+    job_posting = save_job_posting("Stage", JobPosting.Category.APPRENTICESHIP)
+    listing = f"{INDEX_JOB_POSTINGS_URL}?category=apprenticeship&page=2"
+
+    response = client.get(show_job_posting_url(job_posting), HTTP_REFERER=listing)
+
+    assert response.context["back_url"] == f"{listing}#offre-{job_posting.pk}"
+
+
+@pytest.mark.django_db
+@override_switch("internships", active=True)
+def test_show_job_posting_goes_back_to_the_top_of_the_listing_without_one_to_return_to(client):
+    job_posting = save_job_posting("Stage", JobPosting.Category.APPRENTICESHIP)
+
+    response = client.get(show_job_posting_url(job_posting))
+
+    assert response.context["back_url"] == INDEX_JOB_POSTINGS_URL
+
+
+@pytest.mark.django_db
+@override_switch("internships", active=True)
+def test_index_job_postings_anchors_each_card_for_the_way_back(client):
+    job_posting = save_job_posting("Stage", JobPosting.Category.HIGHER_ED_INTERNSHIP)
+
+    content = client.get(INDEX_JOB_POSTINGS_URL).content.decode()
+
+    assert f'id="offre-{job_posting.pk}"' in content
+
+
+@pytest.mark.django_db
+@override_switch("internships", active=True)
+def test_show_job_posting_bookmark_posts_to_update_saved_job_posting(
+    client, beneficiary, job_posting
+):
+    client.force_login(beneficiary)
+
+    content = client.get(show_job_posting_url(job_posting)).content.decode()
+
+    assert reverse("update_saved_job_posting", args=[job_posting.pk]) in content
+    assert 'aria-pressed="false"' in content
+
+
+@pytest.mark.django_db
+@override_switch("internships", active=True)
+def test_show_job_posting_marks_an_already_saved_posting(client, beneficiary, job_posting):
+    SavedJobPosting.objects.toggle(job_posting=job_posting, beneficiary=beneficiary)
+    client.force_login(beneficiary)
+
+    content = client.get(show_job_posting_url(job_posting)).content.decode()
+
+    assert 'aria-pressed="true"' in content
+
+
+@pytest.mark.django_db
+@override_switch("internships", active=True)
+def test_show_job_posting_anonymous_bookmark_opens_the_signup_modal(client, job_posting):
+    content = client.get(show_job_posting_url(job_posting)).content.decode()
+
+    assert reverse("create_saved_job_posting_modal", args=[job_posting.pk]) in content
+    assert reverse("update_saved_job_posting", args=[job_posting.pk]) not in content
+
+
+@pytest.mark.django_db
+@override_switch("internships", active=True)
+def test_show_job_posting_gives_a_connected_pro_no_bookmark_at_all(client, pro, job_posting):
+    client.force_login(pro)
+
+    content = client.get(show_job_posting_url(job_posting)).content.decode()
+
+    assert reverse("update_saved_job_posting", args=[job_posting.pk]) not in content
+    assert reverse("create_saved_job_posting_modal", args=[job_posting.pk]) not in content
+
+
+@pytest.mark.django_db
+@override_switch("internships", active=True)
+def test_show_job_posting_welcomes_her_to_the_club_once(client, beneficiary, job_posting):
+    """Signing up to save an offer lands her back on it: the welcome waits for her there."""
+    client.force_login(beneficiary)
+    session = client.session
+    session["show_welcome_modal"] = True
+    session.save()
+
+    assert "Bienvenue au club" in client.get(show_job_posting_url(job_posting)).content.decode()
+    assert (
+        "Bienvenue au club" not in client.get(show_job_posting_url(job_posting)).content.decode()
+    )
+
+
+def application_modal_url(job_posting):
+    return reverse("show_job_posting_application_modal", args=[job_posting.pk])
+
+
+@pytest.mark.django_db
+@override_switch("internships", active=True)
+def test_show_job_posting_application_modal_names_the_posting_and_sends_her_to_the_partner(
+    client, job_posting
+):
+    content = client.get(application_modal_url(job_posting)).content.decode()
+
+    assert "Tu vas être redirigée pour candidater" in content
+    assert re.search(r"Opportunité&nbsp;:\s*<strong>Développeuse web</strong>", content)
+    assert re.search(r"Entreprise&nbsp;:\s*<strong>Octo</strong>", content)
+    assert re.search(
+        r'<a href="https://www\.myfuture\.fr/offre/1"[^>]*target="_blank"[^>]*>.*?'
+        r"Continuer sur le site externe",
+        content,
+        re.S,
+    )
+
+
+@pytest.mark.django_db
+@override_switch("internships", active=True)
+def test_show_job_posting_application_modal_offers_an_anonymous_visitor_to_save_the_posting(
+    client, job_posting
+):
+    content = client.get(application_modal_url(job_posting)).content.decode()
+
+    assert "Enregistrer l’opportunité" in content
+    assert reverse("create_saved_job_posting_modal", args=[job_posting.pk]) in content
+    assert reverse("create_clicked_job_posting", args=[job_posting.pk]) not in content
+    assert "automatiquement enregistrée" not in content
+
+
+@pytest.mark.django_db
+@override_switch("internships", active=True)
+def test_show_job_posting_application_modal_records_the_click_of_a_beneficiary(
+    client, beneficiary, job_posting
+):
+    client.force_login(beneficiary)
+
+    content = client.get(application_modal_url(job_posting)).content.decode()
+
+    assert "L’opportunité sera automatiquement enregistrée dans ton compte." in content
+    assert reverse("create_clicked_job_posting", args=[job_posting.pk]) in content
+    assert reverse("update_saved_job_posting", args=[job_posting.pk]) not in content
+
+
+@pytest.mark.django_db
+@override_switch("internships", active=True)
+def test_show_job_posting_application_modal_neither_saves_nor_records_for_a_pro(
+    client, pro, job_posting
+):
+    client.force_login(pro)
+
+    content = client.get(application_modal_url(job_posting)).content.decode()
+
+    assert "Continuer sur le site externe" in content
+    assert "automatiquement enregistrée" not in content
+    assert reverse("create_clicked_job_posting", args=[job_posting.pk]) not in content
+    assert reverse("create_saved_job_posting_modal", args=[job_posting.pk]) not in content
+
+
+@pytest.mark.django_db
+@override_switch("internships", active=True)
+def test_show_job_posting_application_modal_ignores_an_unpublished_posting(client):
+    job_posting = save_job_posting("Stage", JobPosting.Category.HIGHER_ED_INTERNSHIP, hidden=True)
+
+    assert client.get(application_modal_url(job_posting)).status_code == 404
+
+
+@pytest.mark.django_db
+@override_switch("internships", active=False)
+def test_show_job_posting_application_modal_not_found_when_switch_inactive(client, job_posting):
+    assert client.get(application_modal_url(job_posting)).status_code == 404
+
+
+@pytest.mark.django_db
+@override_switch("internships", active=True)
+def test_update_saved_job_posting_saves_the_posting_for_the_beneficiary(
+    client, beneficiary, job_posting
+):
+    client.force_login(beneficiary)
+
+    response = client.post(reverse("update_saved_job_posting", args=[job_posting.pk]))
+
+    assert response.status_code == 200
+    assert list(beneficiary.saved_job_postings.all()) == [job_posting]
+    content = response.content.decode()
+    assert 'aria-pressed="true"' in content
+    assert "Offre enregistrée" in content
+
+
+@pytest.mark.django_db
+@override_switch("internships", active=True)
+def test_update_saved_job_posting_twice_takes_the_posting_back_out(
+    client, beneficiary, job_posting
+):
+    client.force_login(beneficiary)
+    url = reverse("update_saved_job_posting", args=[job_posting.pk])
+    client.post(url)
+
+    response = client.post(url)
+
+    assert SavedJobPosting.objects.count() == 0
+    content = response.content.decode()
+    assert 'aria-pressed="false"' in content
+    assert "Offre retirée" in content
+
+
+@pytest.mark.django_db
+@override_switch("internships", active=True)
+def test_update_saved_job_posting_swaps_every_bookmark_of_the_posting(
+    client, beneficiary, job_posting
+):
+    """The page and the application modal each show the bookmark: one toggle from either has
+    to leave the other in the same state."""
+    client.force_login(beneficiary)
+
+    content = client.post(reverse("update_saved_job_posting", args=[job_posting.pk])).content
+
+    assert f"hx-swap-oob='outerHTML:[data-bookmark=\"{job_posting.pk}\"]'" in content.decode()
+
+
+@pytest.mark.django_db
+@override_switch("internships", active=True)
+def test_update_saved_job_posting_rejects_a_get(client, beneficiary, job_posting):
+    client.force_login(beneficiary)
+
+    response = client.get(reverse("update_saved_job_posting", args=[job_posting.pk]))
+
+    assert response.status_code == 405
+
+
+@pytest.mark.django_db
+@override_switch("internships", active=True)
+def test_update_saved_job_posting_requires_a_login(client, job_posting):
+    response = client.post(reverse("update_saved_job_posting", args=[job_posting.pk]))
+
+    assert response.status_code == 302
+    assert reverse("login_request") in response["Location"]
+
+
+@pytest.mark.django_db
+@override_switch("internships", active=True)
+def test_update_saved_job_posting_is_closed_to_pros(client, pro, job_posting):
+    client.force_login(pro)
+
+    response = client.post(reverse("update_saved_job_posting", args=[job_posting.pk]))
+
+    assert response.status_code == 404
+    assert SavedJobPosting.objects.count() == 0
+
+
+@pytest.mark.django_db
+@override_switch("internships", active=True)
+def test_update_saved_job_posting_ignores_an_unpublished_posting(client, beneficiary):
+    job_posting = save_job_posting("Stage", JobPosting.Category.HIGHER_ED_INTERNSHIP, hidden=True)
+    client.force_login(beneficiary)
+
+    response = client.post(reverse("update_saved_job_posting", args=[job_posting.pk]))
+
+    assert response.status_code == 404
+    assert SavedJobPosting.objects.count() == 0
+
+
+@pytest.mark.django_db
+@override_switch("internships", active=True)
+def test_create_saved_job_posting_modal_carries_the_posting_into_both_ways_in(client, job_posting):
+    content = client.get(
+        reverse("create_saved_job_posting_modal", args=[job_posting.pk])
+    ).content.decode()
+
+    assert "Rejoins le club TechPourToutes" in content
+    assert (
+        f"{reverse('new_beneficiary_inscription_funnel')}?saved_job_posting={job_posting.pk}"
+        in content
+    )
+    assert f"{reverse('login_request')}?saved_job_posting={job_posting.pk}" in content
+
+
+def _signed_in_on(client, user, url):
+    """Sign in through the code mailed, as from a page: she lands on it with a welcome message."""
+    client.post(reverse("login_request"), data={"email": user.email, "next": url})
+    code = user.issue_login_code()
+    return client.post(reverse("login_code"), data={"code": code}, follow=True)
+
+
+@pytest.mark.django_db
+@override_switch("internships", active=True)
+def test_show_job_posting_shows_a_pending_message_once(client, beneficiary, job_posting):
+    response = _signed_in_on(client, beneficiary, show_job_posting_url(job_posting))
+
+    assert response.content.decode().count("Bienvenue sur le compte") == 1
+
+
+JOB_POSTINGS_LISTING = "/stages-alternances-emplois/?q=data"
+
+
+def _with_way_back(url, back):
+    return f"{url}?{urlencode({'back': back})}"
+
+
+def _assert_both_ways_in_go_back_to(content, saved, pk, back):
+    """Closing the sign-up or the login funnel brings her back to `back`."""
+    query = f"?{saved}={pk}&back={quote(back, safe='')}"
+    assert f"{reverse('new_beneficiary_inscription_funnel')}{query}" in content
+    assert f"{reverse('login_request')}{query}" in content
+
+
+@pytest.mark.django_db
+@override_switch("internships", active=True)
+def test_show_job_posting_hands_the_page_and_its_listing_to_both_modals(client, job_posting):
+    page_url = _with_way_back(
+        show_job_posting_url(job_posting), f"{JOB_POSTINGS_LISTING}#offre-{job_posting.pk}"
+    )
+
+    content = client.get(
+        show_job_posting_url(job_posting), HTTP_REFERER=f"http://testserver{JOB_POSTINGS_LISTING}"
+    ).content.decode()
+
+    back = f"?back={quote(page_url, safe='')}"
+    application_modal = reverse("show_job_posting_application_modal", args=[job_posting.pk])
+    assert content.count(f"{application_modal}{back}") == 2
+    save_modal = reverse("create_saved_job_posting_modal", args=[job_posting.pk])
+    assert content.count(f"{save_modal}{back}") == 2
+
+
+@pytest.mark.django_db
+@override_switch("internships", active=True)
+def test_show_job_posting_application_modal_hands_its_way_back_to_the_save_modal(
+    client, job_posting
+):
+    page_url = _with_way_back(show_job_posting_url(job_posting), JOB_POSTINGS_LISTING)
+
+    content = client.get(
+        reverse("show_job_posting_application_modal", args=[job_posting.pk]), {"back": page_url}
+    ).content.decode()
+
+    save_modal = reverse("create_saved_job_posting_modal", args=[job_posting.pk])
+    assert f"{save_modal}?back={quote(page_url, safe='')}" in content
+
+
+@pytest.mark.django_db
+@override_switch("internships", active=True)
+def test_create_saved_job_posting_modal_carries_the_way_back_it_is_given(client, job_posting):
+    page_url = _with_way_back(show_job_posting_url(job_posting), JOB_POSTINGS_LISTING)
+
+    content = client.get(
+        reverse("create_saved_job_posting_modal", args=[job_posting.pk]), {"back": page_url}
+    ).content.decode()
+
+    _assert_both_ways_in_go_back_to(content, "saved_job_posting", job_posting.pk, page_url)
+
+
+@pytest.mark.django_db
+@override_switch("internships", active=True)
+@pytest.mark.parametrize("query", [{}, {"back": "https://evil.example/"}])
+def test_create_saved_job_posting_modal_goes_back_to_the_posting_by_default(
+    client, job_posting, query
+):
+    content = client.get(
+        reverse("create_saved_job_posting_modal", args=[job_posting.pk]), query
+    ).content.decode()
+
+    _assert_both_ways_in_go_back_to(
+        content, "saved_job_posting", job_posting.pk, show_job_posting_url(job_posting)
+    )
+
+
+@pytest.mark.django_db
+@override_switch("internships", active=True)
+def test_create_saved_job_posting_modal_ignores_an_unpublished_posting(client):
+    job_posting = save_job_posting("Stage", JobPosting.Category.HIGHER_ED_INTERNSHIP, hidden=True)
+
+    response = client.get(reverse("create_saved_job_posting_modal", args=[job_posting.pk]))
+
+    assert response.status_code == 404
+
+
+@pytest.mark.django_db
+@override_switch("internships", active=True)
+def test_create_clicked_job_posting_records_the_click(client, beneficiary, job_posting):
+    client.force_login(beneficiary)
+
+    response = client.post(reverse("create_clicked_job_posting", args=[job_posting.pk]))
+
+    assert response.status_code == 204
+    assert list(beneficiary.clicked_job_postings.all()) == [job_posting]
+
+
+@pytest.mark.django_db
+@override_switch("internships", active=True)
+def test_create_clicked_job_posting_twice_keeps_the_click(client, beneficiary, job_posting):
+    client.force_login(beneficiary)
+    url = reverse("create_clicked_job_posting", args=[job_posting.pk])
+    client.post(url)
+
+    client.post(url)
+
+    assert list(beneficiary.clicked_job_postings.all()) == [job_posting]
+
+
+@pytest.mark.django_db
+@override_switch("internships", active=True)
+def test_create_clicked_job_posting_rejects_a_get(client, beneficiary, job_posting):
+    client.force_login(beneficiary)
+
+    response = client.get(reverse("create_clicked_job_posting", args=[job_posting.pk]))
+
+    assert response.status_code == 405
+
+
+@pytest.mark.django_db
+@override_switch("internships", active=True)
+def test_create_clicked_job_posting_requires_a_login(client, job_posting):
+    response = client.post(reverse("create_clicked_job_posting", args=[job_posting.pk]))
+
+    assert response.status_code == 302
+    assert ClickedJobPosting.objects.count() == 0
+
+
+@pytest.mark.django_db
+@override_switch("internships", active=True)
+def test_create_clicked_job_posting_is_closed_to_pros(client, pro, job_posting):
+    client.force_login(pro)
+
+    response = client.post(reverse("create_clicked_job_posting", args=[job_posting.pk]))
+
+    assert response.status_code == 404
+    assert ClickedJobPosting.objects.count() == 0
+
+
+@pytest.mark.django_db
+@override_switch("internships", active=True)
+def test_index_job_postings_dates_a_posting_we_updated_by_its_update(client):
+    job_posting = save_job_posting(
+        "Stage",
+        JobPosting.Category.HIGHER_ED_INTERNSHIP,
+        published_at=timezone.now() - timedelta(days=10),
+    )
+    # The trigger moves `updated_at` along: the row changed after its creation.
+    JobPosting.objects.filter(pk=job_posting.pk).update(
+        created_at=timezone.now() - timedelta(days=10)
+    )
+
+    html = client.get(INDEX_JOB_POSTINGS_URL).content.decode()
+
+    assert "Il y a 0\xa0minute" in html
+    assert "Il y a 1\xa0semaine" not in html
+
+
+@pytest.mark.django_db
+@override_switch("internships", active=True)
+def test_index_job_postings_links_each_posting_to_its_page_by_its_title(client):
+    """The title is the link, stretched over the card: its name is the text she sees."""
+    job_posting = save_job_posting("Stage", JobPosting.Category.HIGHER_ED_INTERNSHIP)
+
+    html = client.get(INDEX_JOB_POSTINGS_URL).content.decode()
+
+    assert re.search(
+        rf'<h3[^>]*>\s*<a href="{show_job_posting_url(job_posting)}"[^>]*>\s*Stage\s*</a>', html
+    )
+    assert 'aria-label="Voir l’offre' not in html
 
 
 @pytest.fixture
@@ -1087,6 +1884,62 @@ def test_create_saved_event_modal_carries_the_event_into_both_ways_in(client, sa
     assert f"{reverse('login_request')}?saved_event={salon.pk}" in content
 
 
+EVENTS_LISTING = f"{INDEX_EVENTS_URL}?page=2"
+
+
+@pytest.mark.django_db
+def test_show_event_hands_the_page_and_its_listing_to_the_save_modal(client, salon):
+    show_event_url = reverse("show_event", args=[salon.slug])
+    page_url = _with_way_back(show_event_url, f"{EVENTS_LISTING}#evenement-{salon.slug}")
+
+    content = client.get(
+        show_event_url, HTTP_REFERER=f"http://testserver{EVENTS_LISTING}"
+    ).content.decode()
+
+    save_modal = reverse("create_saved_event_modal", args=[salon.pk])
+    assert content.count(f"{save_modal}?back={quote(page_url, safe='')}") == 2
+
+
+@pytest.mark.django_db
+def test_create_saved_event_modal_carries_the_way_back_it_is_given(client, salon):
+    page_url = _with_way_back(reverse("show_event", args=[salon.slug]), EVENTS_LISTING)
+
+    content = client.get(
+        reverse("create_saved_event_modal", args=[salon.pk]), {"back": page_url}
+    ).content.decode()
+
+    _assert_both_ways_in_go_back_to(content, "saved_event", salon.pk, page_url)
+
+
+@pytest.mark.django_db
+def test_create_saved_event_modal_goes_back_to_the_listing_it_was_opened_from(client, salon):
+    content = client.get(
+        reverse("create_saved_event_modal", args=[salon.pk]),
+        HTTP_HX_CURRENT_URL=f"http://testserver{EVENTS_LISTING}",
+    ).content.decode()
+
+    _assert_both_ways_in_go_back_to(content, "saved_event", salon.pk, EVENTS_LISTING)
+
+
+@pytest.mark.django_db
+@pytest.mark.parametrize(
+    ("query", "current_url"),
+    [({}, ""), ({"back": "https://evil.example/"}, "https://evil.example/evenements/")],
+)
+def test_create_saved_event_modal_goes_back_to_the_event_by_default(
+    client, salon, query, current_url
+):
+    content = client.get(
+        reverse("create_saved_event_modal", args=[salon.pk]),
+        query,
+        HTTP_HX_CURRENT_URL=current_url,
+    ).content.decode()
+
+    _assert_both_ways_in_go_back_to(
+        content, "saved_event", salon.pk, reverse("show_event", args=[salon.slug])
+    )
+
+
 @pytest.mark.django_db
 def test_create_saved_event_modal_ignores_an_event_awaiting_validation(client, event):
     assert client.get(reverse("create_saved_event_modal", args=[event.pk])).status_code == 404
@@ -1098,6 +1951,13 @@ def test_show_event_renders_the_event(client, salon):
 
     assert response.status_code == 200
     assert salon.title.encode() in response.content
+
+
+@pytest.mark.django_db
+def test_show_event_shows_a_pending_message_once(client, beneficiary, salon):
+    response = _signed_in_on(client, beneficiary, reverse("show_event", args=[salon.slug]))
+
+    assert response.content.decode().count("Bienvenue sur le compte") == 1
 
 
 @pytest.mark.django_db
@@ -1536,7 +2396,10 @@ def test_show_event_back_link_keeps_the_listing_page_and_filters(client, salon):
         HTTP_REFERER=f"http://testserver{INDEX_EVENTS_URL}?page=3&q=hackathon",
     )
 
-    assert response.context["back_url"] == f"{INDEX_EVENTS_URL}?page=3&q=hackathon"
+    assert (
+        response.context["back_url"]
+        == f"{INDEX_EVENTS_URL}?page=3&q=hackathon#evenement-{salon.slug}"
+    )
 
 
 @pytest.mark.django_db
@@ -1553,7 +2416,7 @@ def test_show_event_back_link_keeps_the_pro_events_page(client, salon):
         HTTP_REFERER=f"http://testserver{reverse('index_pro_events')}",
     )
 
-    assert response.context["back_url"] == reverse("index_pro_events")
+    assert response.context["back_url"] == f"{reverse('index_pro_events')}#evenement-{salon.slug}"
 
 
 @pytest.mark.django_db
@@ -1564,7 +2427,14 @@ def test_show_event_back_link_trusts_a_back_param_from_the_pro_events_page(clien
         reverse("show_event", args=[salon.slug]), {"back": reverse("index_pro_events")}
     )
 
-    assert response.context["back_url"] == reverse("index_pro_events")
+    assert response.context["back_url"] == f"{reverse('index_pro_events')}#evenement-{salon.slug}"
+
+
+@pytest.mark.django_db
+def test_index_events_anchors_each_card_for_the_way_back(client, salon):
+    content = client.get(INDEX_EVENTS_URL).content.decode()
+
+    assert f'id="evenement-{salon.slug}"' in content
 
 
 @pytest.mark.django_db
@@ -1813,3 +2683,29 @@ def test_show_makeuse_project_back_link_ignores_a_referer_from_anywhere_else(cli
     )
 
     assert response.context["back_url"] == reverse("index_makeuses")
+
+
+@pytest.mark.django_db
+@pytest.mark.parametrize(
+    "domains, stacked",
+    [
+        ([JobPosting.Domain.DEVELOPPEMENT, JobPosting.Domain.MATHEMATIQUES], False),
+        (
+            [
+                JobPosting.Domain.DEVELOPPEMENT,
+                JobPosting.Domain.MATHEMATIQUES,
+                JobPosting.Domain.ELECTRONIQUE,
+            ],
+            True,
+        ),
+    ],
+)
+@override_switch("internships", active=True)
+def test_show_job_posting_stacks_the_domains_from_three_on(client, domains, stacked):
+    category = JobPosting.Category.HIGHER_ED_INTERNSHIP
+    job_posting = save_job_posting("Stage", category, domains=domains)
+
+    html = client.get(show_job_posting_url(job_posting)).content.decode()
+
+    assert ("autres domaines" in html) == stacked
+    assert ("Réduire" in html) == stacked

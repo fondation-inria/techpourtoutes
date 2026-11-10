@@ -5,7 +5,6 @@ from django.core.exceptions import ValidationError
 from django.http import Http404, HttpResponse, JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
-from django.utils.http import url_has_allowed_host_and_scheme
 from django.views.decorators.http import require_POST
 
 from ..decorators import beneficiary_required, pro_required
@@ -20,6 +19,7 @@ from ..models import Event
 from ..services.event.create_event import CreateEvent
 from ..services.event.update_event import UpdateEvent
 from ..services.storage.create_presigned_upload import TOO_LARGE, CreatePresignedUpload
+from ..utils.urls import safe_url
 
 # The funnel steps in order — the single source of truth navigation is derived from.
 _STEPS = ("subcategory", "details", "location")
@@ -104,7 +104,7 @@ def edit_event(request, pk):
     if not request.user.pro.structure_type:
         return _complete_profile_first(request)
     answers = _answers_from(event)
-    back = _safe_back(request, request.GET.get("back", ""))
+    back = safe_url(request, request.GET.get("back", ""))
     if back:
         answers["back"] = back
     return _render(
@@ -164,7 +164,7 @@ def _complete_profile_first(request):
 
 
 def _next_page(request):
-    return _safe_back(request, request.GET.get("next", ""))
+    return safe_url(request, request.GET.get("next", ""))
 
 
 def _render_additional_information(request, template, form):
@@ -244,21 +244,13 @@ def _update(request):
 
     UpdateEvent(event=event, forms=forms)
     messages.success(request, "Votre événement a bien été modifié.")
-    back = _safe_back(request, request.POST.get("back", ""))
+    back = safe_url(request, request.POST.get("back", ""))
     return HttpResponse(headers={"HX-Redirect": _show_event_url(event, back)})
 
 
 def _show_event_url(event, back):
     url = reverse("show_event", args=[event.slug])
     return f"{url}?{urlencode({'back': back or reverse('index_pro_events')})}"
-
-
-def _safe_back(request, candidate):
-    if candidate and url_has_allowed_host_and_scheme(
-        candidate, allowed_hosts={request.get_host()}, require_https=request.is_secure()
-    ):
-        return candidate
-    return ""
 
 
 def _validated_answers(request):

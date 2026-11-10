@@ -1,0 +1,44 @@
+{# The page and the application modal share this bookmark, swapped as one: the modal's longer #}
+{# label only shows inside the dialog. #}
+<div data-bookmark="{{ job_posting.pk }}"
+     {% if oob %}hx-swap-oob='outerHTML:[data-bookmark="{{ job_posting.pk }}"]'{% endif %}>
+    {% if bookmark_action == "toggle" %}
+        <c-components.button
+            variant="secondary"
+            icon_position="start"
+            icon="{% if saved %}bookmark{% else %}bookmark_outline{% endif %}"
+            icon_size_class="w-5 h-5 {% if saved %}text-blue-500{% else %}text-black{% endif %}"
+            class="whitespace-nowrap"
+            aria-pressed="{{ saved|yesno:"true,false" }}"
+            hx-post="{% url "update_saved_job_posting" job_posting.pk %}"
+            hx-swap="none"
+            hx-disabled-elt="this"
+            hx-headers='{"X-CSRFToken": "{{ csrf_token }}"}'
+        >
+            {% if saved %}
+                <span class="in-[dialog]:hidden">Enregistrée</span>
+                <span class="hidden in-[dialog]:inline">Opportunité enregistrée</span>
+            {% else %}
+                <span class="in-[dialog]:hidden">Enregistrer</span>
+                <span class="hidden in-[dialog]:inline">Enregistrer l’opportunité</span>
+            {% endif %}
+        </c-components.button>
+    {% else %}
+        <c-components.button
+            variant="secondary"
+            icon_position="start"
+            icon="bookmark_outline"
+            icon_size_class="w-5 h-5 text-black"
+            class="whitespace-nowrap"
+            hx-get="{% url "create_saved_job_posting_modal" job_posting.pk %}{% if page_url %}?back={{ page_url|urlencode:"" }}{% endif %}"
+            hx-target="#modal-container"
+            hx-swap="innerHTML"
+        >
+            <span class="in-[dialog]:hidden">Enregistrer</span>
+            <span class="hidden in-[dialog]:inline">Enregistrer l’opportunité</span>
+        </c-components.button>
+    {% endif %}
+</div>
+{% if oob and messages %}
+    <c-layout.partials.messages oob_swap="true" />
+{% endif %}

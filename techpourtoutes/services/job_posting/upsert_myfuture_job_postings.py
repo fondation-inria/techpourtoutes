@@ -8,9 +8,11 @@ from techpourtoutes.services.base import BaseService
 from techpourtoutes.utils.job_posting import (
     DESCRIPTION_ATTRIBUTES,
     DESCRIPTION_TAGS,
+    city_name,
     upsert_in_batches,
 )
 from techpourtoutes.utils.myfuture import SUB_DOMAINS
+from techpourtoutes.utils.naf import naf_label
 from techpourtoutes.utils.territories import department_code
 
 # Lowercased, because MyFuture spells some of them several ways (`PMSMP`, `3einternship`).
@@ -32,10 +34,14 @@ MAPPED_FIELDS = [
     "cog_code",
     "department_code",
     "city",
+    "street",
     "domains",
     "company_logo",
     "category",
     "contract_type",
+    "sector",
+    "starts_on",
+    "ends_on",
     "published_at",
     "source_updated_at",
     "url",
@@ -66,6 +72,7 @@ class UpsertMyFutureJobPostings(BaseService):
         category = _category(record)
         postal_code = address.get("postalCode") or ""
         cog_code = address.get("inseeCode") or ""
+        period = _next_period(record)
         return JobPosting(
             source=JobPosting.Source.MYFUTURE,
             external_id=record["_id"],
@@ -79,7 +86,9 @@ class UpsertMyFutureJobPostings(BaseService):
             postal_code=postal_code,
             cog_code=cog_code,
             department_code=department_code(cog_code, postal_code),
-            city=address["city"],
+            city=city_name(address["city"]),
+            # Some streets are spaced with no-break spaces, tabs or doubled spaces.
+            street=" ".join((address.get("street") or "").split()),
             domains=[SUB_DOMAINS[key] for key in record["subDomainKeys"] if key in SUB_DOMAINS],
             company_logo=record["owner_logo"] or "",
             category=category,
@@ -88,6 +97,9 @@ class UpsertMyFutureJobPostings(BaseService):
                 if category == JobPosting.Category.APPRENTICESHIP
                 else ""
             ),
+            sector=naf_label(record.get("nafCode")),
+            starts_on=period and _local_date(period["from"]),
+            ends_on=period and _local_date(period["to"]),
             published_at=parse_datetime(record["createdAt"]),
             source_updated_at=parse_datetime(record["updatedAt"]),
             url=record["canonicalUrl"],
@@ -97,6 +109,18 @@ class UpsertMyFutureJobPostings(BaseService):
 def _category(record):
     types = {internship_type.lower() for internship_type in record["internshipTypes"]}
     return next((category for type_, category in CATEGORIES.items() if type_ in types), None)
+
+
+def _next_period(record):
+    """The earliest period not over yet: an offer often lists several."""
+    upcoming = [
+        period for period in record["periods"] if parse_datetime(period["to"]) >= timezone.now()
+    ]
+    return min(upcoming, key=lambda period: parse_datetime(period["from"]), default=None)
+
+
+def _local_date(timestamp):
+    return timezone.localdate(parse_datetime(timestamp))
 
 
 def _expired(record) -> bool:

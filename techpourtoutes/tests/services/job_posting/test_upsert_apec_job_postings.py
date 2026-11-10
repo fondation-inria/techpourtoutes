@@ -31,7 +31,7 @@ def test_an_offer_is_mapped_onto_a_job_posting(apec_record):
     assert posting.department_code == "75"
     assert posting.city == "Paris 01"
     assert posting.domains == [JobPosting.Domain.MAITRISE_D_OUVRAGE]
-    assert posting.duration == "12 mois"
+    assert posting.duration_months == 12
     assert posting.company_logo == (
         "https://www.apec.fr/files/live/mounts/images"
         "/media_entreprise/804755/logo_B-HIVE_804755_1282656.png"
@@ -82,7 +82,7 @@ def test_an_offer_without_a_duration_or_a_logo_is_imported(apec_record):
     UpsertApecJobPostings(records=[record])
 
     posting = JobPosting.objects.get()
-    assert posting.duration == ""
+    assert posting.duration_months is None
     assert posting.company_logo == ""
 
 
@@ -298,3 +298,35 @@ def test_the_other_sources_offers_are_left_alone(apec_record):
     UpsertApecJobPostings(records=[apec_record()])
 
     assert JobPosting.objects.filter(source=JobPosting.Source.MYFUTURE).exists()
+
+
+def test_the_details_shown_on_the_posting_page_are_imported(apec_record):
+    UpsertApecJobPostings(records=[apec_record()])
+
+    posting = JobPosting.objects.get()
+    assert posting.experience_level == "Minimum 3 ans"
+    assert posting.salary == "A partir de 38 k€ brut annuel"
+    assert posting.sector == "Transports urbains et suburbains de voyageurs"
+    assert posting.street == ""
+    assert posting.starts_on is None
+
+
+def test_the_sector_is_the_insee_label_of_the_naf_code(apec_record):
+    record = apec_record(
+        NAF_secteur="7810Z",
+        Libelle_secteur="ACTIVITÉS DES AGENCES DE PLACEMENT DE MAIN-D'OEUVRE",
+    )
+
+    UpsertApecJobPostings(records=[record])
+
+    assert JobPosting.objects.get().sector == "Activités des agences de placement de main-d'œuvre"
+
+
+def test_an_offer_without_a_salary_or_sector_is_imported(apec_record):
+    record = apec_record()
+    del record["Salaire_affiche"], record["NAF_secteur"]
+
+    UpsertApecJobPostings(records=[record])
+
+    posting = JobPosting.objects.get()
+    assert (posting.salary, posting.sector) == ("", "")

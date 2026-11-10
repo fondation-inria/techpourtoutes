@@ -1,0 +1,162 @@
+{% load static %}
+
+<c-layout.base
+    title="{{ job_posting.title }} - TechPourToutes"
+    description="{{ job_posting.description|striptags|truncatechars:160 }}"
+>
+    <div class="relative w-full -mt-8 {% if job_posting.category_color == "blue" %}text-neutral-0 [&_h1]:text-neutral-0{% else %}text-neutral-950{% endif %}">
+        <div class="absolute inset-y-0 left-1/2 w-[100cqw] -ml-[50cqw] bg-{{ job_posting.category_color }}-500 flex items-start justify-between">
+            <c-components.button href="{{ back_url }}" variant="tertiary" class="w-fit m-2 p-4 bg-{{ job_posting.category_color }}-500! hover:bg-white/20! active:bg-black/20! text-inherit! font-normal"
+                                 x-data x-on:click="if (history.length > 1 && document.referrer === location.origin + '{{ back_url|escapejs }}'.split('#')[0]) { $event.preventDefault(); history.back() }">
+                <span class="flex items-center gap-1">
+                    <c-components.icon name="chevron-down" class="w-4 h-4 rotate-90" />
+                    Retour
+                </span>
+            </c-components.button>
+            {% if bookmark_action %}
+                <div class="mt-3 mr-4 md:hidden">
+                    {% include "beneficiary/partials/update_saved_job_posting.html" %}
+                </div>
+            {% endif %}
+        </div>
+        <div class="relative grid grid-cols-[70px_minmax(0,1fr)] gap-4 @min-[41.5rem]:items-center mt-13.5 max-md:mt-17 mb-6">
+            <c-components.job-posting-logo :job_posting="job_posting" size="70" class="w-[70px] h-[70px] object-contain border border-black shadow-bottom-and-right shadow-black" />
+            <div class="contents wrap-anywhere @min-[41.5rem]:block @min-[41.5rem]:min-w-0">
+                <p class="font-medium">
+                    {% if job_posting.category == "higher_ed_internship" %}
+                        {{ job_posting.company_name }} cherche une stagiaire au poste de&nbsp;:
+                    {% elif job_posting.category == "apprenticeship" %}
+                        {{ job_posting.company_name }} cherche une alternante au poste de&nbsp;:
+                    {% elif job_posting.category == "first_job" %}
+                        {{ job_posting.company_name }} recrute au poste de&nbsp;:
+                    {% else %}
+                        {{ job_posting.company_name }} propose un stage d’observation
+                    {% endif %}
+                </p>
+                <c-components.title title="{{ job_posting.title }}" class="col-span-2" />
+            </div>
+        </div>
+    </div>
+
+    <div class="@container w-full mt-1">
+        <div class="grid gap-4 @min-[41.5rem]:grid-cols-[calc(50%-0.75rem)_minmax(0,1fr)_auto] @min-[41.5rem]:gap-x-6">
+            <c-components.job-posting-domains :job_posting="job_posting" class="min-w-0 self-start @min-[41.5rem]:col-start-1 @min-[41.5rem]:col-span-2 @min-[41.5rem]:row-start-1" />
+
+            <div class="min-w-0 self-start flex flex-col items-end gap-3 max-md:hidden @min-[41.5rem]:col-start-3 @min-[41.5rem]:row-start-1 @min-[41.5rem]:row-span-2">
+                <c-components.button
+                    icon="external-link"
+                    icon_position="start"
+                    class="whitespace-nowrap"
+                    hx-get="{% url "show_job_posting_application_modal" job_posting.pk %}?back={{ page_url|urlencode:"" }}"
+                    hx-target="#modal-container"
+                    hx-swap="innerHTML"
+                >
+                    Postuler sur {% if job_posting.source == "apec" %}l’{% endif %}{{ job_posting.get_source_display }}
+                </c-components.button>
+                {% if bookmark_action %}
+                    {% include "beneficiary/partials/update_saved_job_posting.html" %}
+                {% endif %}
+            </div>
+
+            <c-components.card class="min-w-0 self-end @min-[41.5rem]:col-start-1 @min-[41.5rem]:row-start-2 @min-[41.5rem]:row-span-2">
+                <div class="flex flex-col gap-4 text-sm">
+                    <p class="text-xs">Offre {% if job_posting.last_updated_at %}mise à jour le {{ job_posting.last_updated_at|date:"j F Y" }}{% else %}publiée le {{ job_posting.published_at|date:"j F Y" }}{% endif %}</p>
+                    <dl class="flex flex-col gap-4">
+                        <div class="relative pl-9">
+                            <dt class="inline font-bold">
+                                <c-components.icon name="job-category" class="absolute left-0 -top-0.5 w-6 h-6" />
+                                Type d’offre&nbsp;:</dt>
+                            <dd class="inline">{% if job_posting.contract_type %}{{ job_posting.get_contract_type_display }}{% else %}{{ job_posting.get_category_display }}{% endif %}</dd>
+                        </div>
+                        {% if job_posting.category in job_posting.PUPIL_CATEGORIES %}
+                            <div class="relative pl-9">
+                                <dt class="inline font-bold">
+                                    <c-components.icon name="job-duration" class="absolute left-0 -top-0.5 w-6 h-6" />
+                                    Date&nbsp;:</dt>
+                                <dd class="inline">{% if job_posting.starts_on %}du {{ job_posting.starts_on|date:"j F Y" }} au {{ job_posting.ends_on|date:"j F Y" }}{% else %}non indiqué{% endif %}</dd>
+                            </div>
+                        {% else %}
+                            {% if job_posting.contract_type != "cdi" %}
+                                <div class="relative pl-9">
+                                    <dt class="inline font-bold">
+                                        <c-components.icon name="job-duration" class="absolute left-0 -top-0.5 w-6 h-6" />
+                                        Durée&nbsp;:</dt>
+                                    <dd class="inline">{% if job_posting.duration_months %}{{ job_posting.duration_months }} mois{% else %}non indiqué{% endif %}</dd>
+                                </div>
+                            {% endif %}
+                            <div class="relative">
+                                <dt class="inline font-bold">Niveau d’expérience&nbsp;:</dt>
+                                <dd class="inline">{{ job_posting.experience_level|default:"non indiqué" }}</dd>
+                            </div>
+                            <div class="relative pl-9">
+                                <dt class="inline font-bold">
+                                    <c-components.icon name="euro-solid" class="absolute left-0 -top-0.5 w-6 h-6" />
+                                    Salaire&nbsp;:</dt>
+                                <dd class="inline">{{ job_posting.salary|default:"non indiqué" }}</dd>
+                            </div>
+                        {% endif %}
+                    </dl>
+                </div>
+            </c-components.card>
+
+            <c-components.card class="min-w-0 self-end @min-[41.5rem]:col-start-2 @min-[41.5rem]:col-span-2 @min-[41.5rem]:row-start-3">
+                <dl class="flex flex-col gap-4 text-sm">
+                    <div class="relative pl-9">
+                        <dt class="inline font-bold">
+                            <c-components.icon name="organizer" class="absolute left-0 -top-0.5 w-6 h-6" />
+                            Entreprise&nbsp;:</dt>
+                        <dd class="inline wrap-anywhere">{{ job_posting.company_name }}</dd>
+                    </div>
+                    {% if job_posting.category not in job_posting.PUPIL_CATEGORIES %}
+                        <div class="relative">
+                            <dt class="inline font-bold">
+                                Secteur&nbsp;:</dt>
+                            <dd class="inline">{{ job_posting.sector|default:"non indiqué" }}</dd>
+                        </div>
+                    {% endif %}
+                    <div class="relative pl-9">
+                        <dt class="inline">
+                            <c-components.icon name="location" class="absolute left-0 -top-0.5 w-6 h-6" />
+                            <span class="sr-only">Adresse</span></dt>
+                        <dd class="inline wrap-anywhere">{{ job_posting.address_label }}</dd>
+                    </div>
+                </dl>
+            </c-components.card>
+        </div>
+    </div>
+
+    <c-components.card class="w-full">
+        <h2 class="font-bold text-lg mb-3">Descriptif de l’offre</h2>
+        {# Sanitised on import: only layout tags and links are left. #}
+        <div class="wrap-anywhere text-sm [&_p]:mb-3 [&_h2]:font-bold [&_h3]:font-bold [&_h4]:font-bold [&_ul]:list-disc [&_ol]:list-decimal [&_ul,&_ol]:pl-6 [&_ul,&_ol]:mb-3 [&_a]:underline">{{ job_posting.description|safe }}</div>
+    </c-components.card>
+
+    <c-components.card class="w-full">
+        <div class="flex items-center justify-between gap-4">
+            <p class="text-xs">Cette offre ID {{ job_posting.external_id }} a été publiée le {{ job_posting.published_at|date:"j F Y" }} sur le site de notre partenaire, {% if job_posting.source == "apec" %}l’{% endif %}{{ job_posting.get_source_display }}.</p>
+            {% if job_posting.source == "apec" %}
+                <img src="{% static 'images/apec_logo.jpg' %}" alt="" class="h-8 w-auto shrink-0" />
+            {% else %}
+                <img src="{% static 'images/myfuture_logo.png' %}" alt="" class="h-8 w-auto shrink-0" />
+            {% endif %}
+        </div>
+    </c-components.card>
+
+    <div id="modal-container"></div>
+    {% if show_welcome_modal %}
+        {% include "beneficiary/partials/welcome_modal.html" %}
+    {% endif %}
+
+    <c-slot name="mobile_cta">
+        <c-components.button
+            icon="external-link"
+            icon_position="start"
+            class="whitespace-nowrap"
+            hx-get="{% url "show_job_posting_application_modal" job_posting.pk %}?back={{ page_url|urlencode:"" }}"
+            hx-target="#modal-container"
+            hx-swap="innerHTML"
+        >
+            Postuler sur {% if job_posting.source == "apec" %}l’{% endif %}{{ job_posting.get_source_display }}
+        </c-components.button>
+    </c-slot>
+</c-layout.base>

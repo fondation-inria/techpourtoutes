@@ -2,9 +2,10 @@
 @custom-variant dark (&:where(.dark, .dark *));
 
 /* Event, makeuse project and job posting category colours are composed in the templates —
-   `bg-{{ event.category_color }}-500` — so Tailwind never sees them in the source and would
-   not emit them. */
+   `bg-{{ event.category_color }}-500`, `hover:shadow-{{ job_posting.category_color }}-500` —
+   so Tailwind never sees them in the source and would not emit them. */
 @source inline("bg-{orange,yellow,green,purple,blue}-500{,!}");
+@source inline("hover:shadow-{orange,yellow,green,purple,blue}-500");
 
 @font-face {
   font-family: "Poppins";
