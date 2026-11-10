@@ -6,16 +6,17 @@
 >
     <div class="relative w-full -mt-8 {% if job_posting.category_color == "blue" %}text-neutral-0 [&_h1]:text-neutral-0{% else %}text-neutral-950{% endif %}">
         <div class="absolute inset-y-0 left-1/2 w-[100cqw] -ml-[50cqw] bg-{{ job_posting.category_color }}-500 flex items-start justify-between">
-            {# Coming from the listing, going back in history lands her where she was in it. #}
             <c-components.button href="{{ back_url }}" variant="tertiary" class="w-fit m-2 p-4 bg-{{ job_posting.category_color }}-500! hover:bg-white/20! active:bg-black/20! text-inherit! font-normal"
-                                 x-data x-on:click="if (history.length > 1 && document.referrer === location.origin + '{{ back_url|escapejs }}') { $event.preventDefault(); history.back() }">
+                                 x-data x-on:click="if (history.length > 1 && document.referrer === location.origin + '{{ back_url|escapejs }}'.split('#')[0]) { $event.preventDefault(); history.back() }">
                 <span class="flex items-center gap-1">
                     <c-components.icon name="chevron-down" class="w-4 h-4 rotate-90" />
                     Retour
                 </span>
             </c-components.button>
             {% if bookmark_action %}
-                <c-components.button variant="secondary" label="Enregistrer" icon="bookmark_outline" icon_position="start" class="whitespace-nowrap mt-3 mr-4 md:hidden" />
+                <div class="mt-3 mr-4 md:hidden">
+                    {% include "beneficiary/partials/update_saved_job_posting.html" %}
+                </div>
             {% endif %}
         </div>
         <div class="relative grid grid-cols-[70px_minmax(0,1fr)] gap-4 @min-[41.5rem]:items-center mt-13.5 max-md:mt-17 mb-6">
@@ -37,29 +38,29 @@
         </div>
     </div>
 
-    {# Stacked, the page reads in its own order: the badges, the buttons, then the two cards. Once #}
-    {# two columns of 20rem fit, the buttons and the company move to the right one, and each card #}
-    {# sinks to the bottom of its column, so that side by side both cards end on the same line. #}
-    {# The right half is split in two, the buttons' width and the rest, so that the badges take #}
-    {# all the width the buttons leave while both cards keep half each. #}
     <div class="@container w-full mt-1">
         <div class="grid gap-4 @min-[41.5rem]:grid-cols-[calc(50%-0.75rem)_minmax(0,1fr)_auto] @min-[41.5rem]:gap-x-6">
             <c-components.job-posting-domains :job_posting="job_posting" class="min-w-0 self-start @min-[41.5rem]:col-start-1 @min-[41.5rem]:col-span-2 @min-[41.5rem]:row-start-1" />
 
-            {# Below md, the bar fixed at the bottom of the screen and the band at the top hold them instead. #}
             <div class="min-w-0 self-start flex flex-col items-end gap-3 max-md:hidden @min-[41.5rem]:col-start-3 @min-[41.5rem]:row-start-1 @min-[41.5rem]:row-span-2">
-                <c-components.button href="{{ job_posting.url }}" target="_blank" rel="noopener noreferrer" icon="external-link" icon_position="start" class="whitespace-nowrap">
-                    Postuler sur {% if job_posting.source == "apec" %}l’{% endif %}{{ job_posting.get_source_display }}<span class="sr-only"> (nouvelle fenêtre)</span>
+                <c-components.button
+                    icon="external-link"
+                    icon_position="start"
+                    class="whitespace-nowrap"
+                    hx-get="{% url "show_job_posting_application_modal" job_posting.pk %}?back={{ page_url|urlencode:"" }}"
+                    hx-target="#modal-container"
+                    hx-swap="innerHTML"
+                >
+                    Postuler sur {% if job_posting.source == "apec" %}l’{% endif %}{{ job_posting.get_source_display }}
                 </c-components.button>
                 {% if bookmark_action %}
-                    <c-components.button variant="secondary" label="Enregistrer" icon="bookmark_outline" icon_position="start" class="whitespace-nowrap" />
+                    {% include "beneficiary/partials/update_saved_job_posting.html" %}
                 {% endif %}
             </div>
 
             <c-components.card class="min-w-0 self-end @min-[41.5rem]:col-start-1 @min-[41.5rem]:row-start-2 @min-[41.5rem]:row-span-2">
                 <div class="flex flex-col gap-4 text-sm">
                     <p class="text-xs">Offre {% if job_posting.last_updated_at %}mise à jour le {{ job_posting.last_updated_at|date:"j F Y" }}{% else %}publiée le {{ job_posting.published_at|date:"j F Y" }}{% endif %}</p>
-                    {# As on an event, each label sits above its value, its icon in the margin. #}
                     <dl class="flex flex-col gap-4">
                         <div class="relative pl-9">
                             <dt class="font-bold text-lg">
@@ -149,9 +150,21 @@
         </div>
     </c-components.card>
 
+    <div id="modal-container"></div>
+    {% if show_welcome_modal %}
+        {% include "beneficiary/partials/welcome_modal.html" %}
+    {% endif %}
+
     <c-slot name="mobile_cta">
-        <c-components.button href="{{ job_posting.url }}" target="_blank" rel="noopener noreferrer" icon="external-link" icon_position="start" class="whitespace-nowrap">
-            Postuler sur {% if job_posting.source == "apec" %}l’{% endif %}{{ job_posting.get_source_display }}<span class="sr-only"> (nouvelle fenêtre)</span>
+        <c-components.button
+            icon="external-link"
+            icon_position="start"
+            class="whitespace-nowrap"
+            hx-get="{% url "show_job_posting_application_modal" job_posting.pk %}?back={{ page_url|urlencode:"" }}"
+            hx-target="#modal-container"
+            hx-swap="innerHTML"
+        >
+            Postuler sur {% if job_posting.source == "apec" %}l’{% endif %}{{ job_posting.get_source_display }}
         </c-components.button>
     </c-slot>
 </c-layout.base>

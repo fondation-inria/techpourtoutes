@@ -3,7 +3,7 @@
 <c-layout.base variant="funnel" back="{{ back }}" hero>
     <div class="w-full flex flex-col gap-y-4 my-auto divide-y divide-neutral-200">
         <div>
-            <c-patterns.form url="{% url 'login_code' %}" class="mt-4">
+            <c-patterns.form url="{% url 'login_code' %}{% if back %}?back={{ back|urlencode:'' }}{% endif %}" class="mt-4">
                 <c-components.title title="Se connecter" variant="h1" />
                 <p class="">
                     Saisir le code à 6 chiffres envoyé par mail à {{ recipient_prefix }}<strong>{{ masked_recipient }}</strong>

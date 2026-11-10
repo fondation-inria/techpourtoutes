@@ -108,4 +108,24 @@ urlpatterns = [
         views.show_job_posting,
         name="show_job_posting",
     ),
+    path(
+        "stages-alternances-emplois/<uuid:pk>/postuler/",
+        views.show_job_posting_application_modal,
+        name="show_job_posting_application_modal",
+    ),
+    path(
+        "stages-alternances-emplois/<uuid:pk>/candidature/",
+        views.create_clicked_job_posting,
+        name="create_clicked_job_posting",
+    ),
+    path(
+        "stages-alternances-emplois/<uuid:pk>/rejoindre-le-club/",
+        views.create_saved_job_posting_modal,
+        name="create_saved_job_posting_modal",
+    ),
+    path(
+        "stages-alternances-emplois/<uuid:pk>/enregistrer/",
+        views.update_saved_job_posting,
+        name="update_saved_job_posting",
+    ),
 ]

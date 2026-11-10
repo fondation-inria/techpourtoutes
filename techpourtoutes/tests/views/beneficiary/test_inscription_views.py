@@ -1,7 +1,8 @@
+import re
 from datetime import timedelta
 from types import SimpleNamespace
 from unittest.mock import MagicMock, patch
-from urllib.parse import quote
+from urllib.parse import quote, urlencode
 
 import pytest
 from django.core import mail
@@ -200,6 +201,32 @@ def test_new_beneficiary_inscription_funnel_records_whether_a_mentor_is_wanted(
     client.get(f"{NEW_FUNNEL_URL}{query}")
 
     assert _funnel(client).answers["wants_mentor"] is flag
+
+
+def _close_link_target(response):
+    html = response.content.decode()
+    close_link_index = html.find('aria-label="Fermer"')
+    before_it = html[max(0, close_link_index - 700) : close_link_index]
+    return re.findall(r'href="([^"]*)"', before_it)[-1]
+
+
+@pytest.mark.django_db
+def test_beneficiary_inscription_funnel_closes_onto_the_page_she_came_from(client):
+    client.get(f"{NEW_FUNNEL_URL}?back=/stages-alternances-emplois/")
+
+    response = client.get(FUNNEL_URL)
+
+    assert _close_link_target(response) == "/stages-alternances-emplois/"
+
+
+@pytest.mark.django_db
+@pytest.mark.parametrize("back", ["", "https://evil.example/"])
+def test_beneficiary_inscription_funnel_closes_onto_home_without_a_safe_way_back(client, back):
+    client.get(f"{NEW_FUNNEL_URL}?{urlencode({'back': back})}")
+
+    response = client.get(FUNNEL_URL)
+
+    assert _close_link_target(response) == reverse("home")
 
 
 @pytest.mark.django_db
@@ -417,6 +444,17 @@ def test_existing_beneficiary_email_without_wants_mentor_redirects_to_home_back(
     assert "se-connecter" in response["HX-Redirect"]
     assert f"back={quote('/', safe='')}" in response["HX-Redirect"]
     assert f"next={quote('/', safe='')}" in response["HX-Redirect"]
+
+
+@pytest.mark.django_db
+def test_existing_beneficiary_email_carries_the_page_she_came_from_to_the_login(
+    client, beneficiary
+):
+    client.get(f"{NEW_FUNNEL_URL}?back=/stages-alternances-emplois/")
+
+    response = _post_step(client, "email", {"email": beneficiary.email})
+
+    assert f"back={quote('/stages-alternances-emplois/', safe='')}" in response["HX-Redirect"]
 
 
 @pytest.mark.django_db
@@ -1112,6 +1150,133 @@ def test_email_step_hands_the_bookmarked_event_over_when_the_account_already_exi
     response = _post_step(client, "email", {"email": beneficiary.email})
 
     assert f"saved_event={approved_salon.pk}" in response["HX-Redirect"]
+
+
+@pytest.mark.django_db
+def test_beneficiary_inscription_funnel_carries_the_saved_job_posting_through_every_step(
+    client, job_posting
+):
+    client.get(NEW_FUNNEL_URL, {"saved_job_posting": str(job_posting.pk)})
+
+    assert _funnel(client).answers["saved_job_posting"] == str(job_posting.pk)
+
+
+@pytest.mark.django_db
+def test_account_creation_step_carries_the_saved_job_posting_onto_the_code_screen(
+    client, higher_ed_school, higher_ed_formation, job_posting
+):
+    _seed_until_training(
+        client, "higher_education", values={"saved_job_posting": str(job_posting.pk)}
+    )
+
+    response = _post_step(
+        client,
+        "training_experience",
+        _higher_education_training(higher_ed_school, higher_ed_formation),
+    )
+
+    assert f'name="saved_job_posting" value="{job_posting.pk}"'.encode() in response.content
+
+
+# The page she saved the posting from, keeping the listing she had opened it from.
+_WAY_BACK = "/stages-alternances-emplois/1/?back=%2Fstages-alternances-emplois%2F%3Fq%3Dweb"
+
+
+@pytest.mark.django_db
+def test_account_creation_step_carries_the_way_back_onto_the_code_screen(
+    client, higher_ed_school, higher_ed_formation
+):
+    _seed_until_training(client, "higher_education", values={"back": _WAY_BACK})
+
+    response = _post_step(
+        client,
+        "training_experience",
+        _higher_education_training(higher_ed_school, higher_ed_formation),
+    )
+
+    assert f'name="back" value="{_WAY_BACK}"'.encode() in response.content
+
+
+@pytest.mark.django_db
+@pytest.mark.parametrize(
+    ("back", "lands_on_the_way_back"), [(_WAY_BACK, True), ("https://evil.example/", False)]
+)
+def test_code_step_lands_back_where_she_saved_the_job_posting(
+    client, beneficiary, job_posting, back, lands_on_the_way_back
+):
+    response = client.post(
+        FUNNEL_URL,
+        {
+            "action": "code",
+            "email": beneficiary.email,
+            "code": beneficiary.issue_login_code(),
+            "saved_job_posting": str(job_posting.pk),
+            "back": back,
+        },
+    )
+
+    expected = (
+        _WAY_BACK if lands_on_the_way_back else reverse("show_job_posting", args=[job_posting.pk])
+    )
+    assert response["HX-Redirect"] == expected
+
+
+@pytest.mark.django_db
+def test_resend_step_keeps_the_way_back(client, beneficiary):
+    response = client.post(
+        FUNNEL_URL, {"action": "resend", "email": beneficiary.email, "back": _WAY_BACK}
+    )
+
+    assert f'name="back" value="{_WAY_BACK}"'.encode() in response.content
+
+
+@pytest.mark.django_db
+def test_code_step_saves_the_job_posting_and_lands_on_it(client, job_posting):
+    beneficiary = Beneficiary.objects.create(
+        username="oceane@example.com",
+        email="oceane@example.com",
+        first_name="Océane",
+        last_name="Durand",
+    )
+    code = beneficiary.issue_login_code()
+
+    response = client.post(
+        FUNNEL_URL,
+        {
+            "action": "code",
+            "email": beneficiary.email,
+            "code": code,
+            "saved_job_posting": str(job_posting.pk),
+        },
+    )
+
+    assert list(beneficiary.saved_job_postings.all()) == [job_posting]
+    assert response["HX-Redirect"] == reverse("show_job_posting", args=[job_posting.pk])
+
+
+@pytest.mark.django_db
+def test_resend_step_keeps_the_saved_job_posting(client, beneficiary, job_posting):
+    response = client.post(
+        FUNNEL_URL,
+        {
+            "action": "resend",
+            "email": beneficiary.email,
+            "saved_job_posting": str(job_posting.pk),
+        },
+    )
+
+    assert f'name="saved_job_posting" value="{job_posting.pk}"'.encode() in response.content
+
+
+@pytest.mark.django_db
+def test_email_step_hands_the_saved_job_posting_over_when_the_account_already_exists(
+    client, job_posting, beneficiary
+):
+    client.get(NEW_FUNNEL_URL, {"saved_job_posting": str(job_posting.pk)})
+
+    response = _post_step(client, "email", {"email": beneficiary.email})
+
+    assert f"saved_job_posting={job_posting.pk}" in response["HX-Redirect"]
 
 
 @pytest.mark.django_db

@@ -1,4 +1,4 @@
-from urllib.parse import urlparse
+from urllib.parse import urlencode, urlparse
 
 from django.conf import settings
 from django.contrib import messages
@@ -6,7 +6,7 @@ from django.contrib.auth.decorators import login_required
 from django.core.exceptions import ValidationError
 from django.core.paginator import Paginator
 from django.db.models import Exists, OuterRef, Value
-from django.http import Http404
+from django.http import Http404, HttpResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
 from django.views.decorators.http import require_POST
@@ -19,10 +19,18 @@ from ..forms import (
     StudyStatus,
     UpcomingFeatureNotificationForm,
 )
-from ..models import Event, JobPosting, MakeuseProject, SavedEvent
+from ..models import (
+    ClickedJobPosting,
+    Event,
+    JobPosting,
+    MakeuseProject,
+    SavedEvent,
+    SavedJobPosting,
+)
 from ..tasks import create_upcoming_feature_notification_task
 from ..utils.dates import compute_age
 from ..utils.territories import DEPARTMENT_CODES, REGIONS
+from ..utils.urls import safe_url
 
 EVENTS_PER_PAGE = 18
 MAKEUSE_PROJECTS_PER_PAGE = 6
@@ -143,6 +151,13 @@ def index_events(request):
 def show_event(request, slug):
     beneficiary = getattr(request.user, "beneficiary", None)
     event = get_object_or_404(Event.objects.visible_to(request.user), slug=slug)
+    back_url = _back_to_listing(
+        request,
+        "index_events",
+        "index_beneficiary_events",
+        "index_pro_events",
+        anchor=f"evenement-{event.slug}",
+    )
     return render(
         request,
         "beneficiary/show_event.html",
@@ -150,9 +165,8 @@ def show_event(request, slug):
             "event": event,
             "saved": _is_saved(beneficiary, event),
             "bookmark_action": _bookmark_action(request.user, beneficiary),
-            "back_url": _back_to_listing(
-                request, "index_events", "index_beneficiary_events", "index_pro_events"
-            ),
+            "back_url": back_url,
+            "page_url": _with_way_back(request.path, back_url),
             "is_organizer": event.is_organized_by(request.user),
         },
     )
@@ -181,7 +195,11 @@ def update_saved_event(request, pk):
 
 def create_saved_event_modal(request, pk):
     event = get_object_or_404(Event.objects.approved(), pk=pk)
-    return render(request, "beneficiary/partials/create_saved_event_modal.html", {"event": event})
+    return render(
+        request,
+        "beneficiary/partials/create_saved_event_modal.html",
+        {"event": event, "way_back": _way_back(request, reverse("show_event", args=[event.slug]))},
+    )
 
 
 def show_participation_modal(request, pk):
@@ -264,17 +282,75 @@ def index_job_postings(request):
 
 @waffle_switch("internships")
 def show_job_posting(request, pk):
+    beneficiary = getattr(request.user, "beneficiary", None)
+    job_posting = get_object_or_404(JobPosting.objects.with_last_updated_at(), pk=pk)
+    back_url = _back_to_listing(request, "index_job_postings", anchor=f"offre-{job_posting.pk}")
     return render(
         request,
         "beneficiary/show_job_posting.html",
         {
-            "job_posting": get_object_or_404(JobPosting.objects.with_last_updated_at(), pk=pk),
-            "bookmark_action": _bookmark_action(
-                request.user, getattr(request.user, "beneficiary", None)
-            ),
-            "back_url": _back_to_listing(request, "index_job_postings"),
+            "job_posting": job_posting,
+            "saved": _is_job_posting_saved(beneficiary, job_posting),
+            "bookmark_action": _bookmark_action(request.user, beneficiary),
+            "back_url": back_url,
+            "page_url": _with_way_back(request.path, back_url),
+            "show_welcome_modal": request.session.pop("show_welcome_modal", False),
         },
     )
+
+
+@waffle_switch("internships")
+def show_job_posting_application_modal(request, pk):
+    beneficiary = getattr(request.user, "beneficiary", None)
+    job_posting = get_object_or_404(JobPosting, pk=pk)
+    return render(
+        request,
+        "beneficiary/partials/show_job_posting_application_modal.html",
+        {
+            "job_posting": job_posting,
+            "saved": _is_job_posting_saved(beneficiary, job_posting),
+            "bookmark_action": _bookmark_action(request.user, beneficiary),
+            "page_url": safe_url(request, request.GET.get("back", "")),
+        },
+    )
+
+
+@waffle_switch("internships")
+@require_POST
+@login_required
+def update_saved_job_posting(request, pk):
+    beneficiary = _beneficiary_or_404(request)
+    job_posting = get_object_or_404(JobPosting, pk=pk)
+    saved = SavedJobPosting.objects.toggle(job_posting=job_posting, beneficiary=beneficiary)
+    messages.success(request, "Offre enregistrée" if saved else "Offre retirée")
+    return render(
+        request,
+        "beneficiary/partials/update_saved_job_posting.html",
+        {"job_posting": job_posting, "saved": saved, "bookmark_action": "toggle", "oob": True},
+    )
+
+
+@waffle_switch("internships")
+def create_saved_job_posting_modal(request, pk):
+    job_posting = get_object_or_404(JobPosting, pk=pk)
+    return render(
+        request,
+        "beneficiary/partials/create_saved_job_posting_modal.html",
+        {
+            "job_posting": job_posting,
+            "way_back": _way_back(request, reverse("show_job_posting", args=[job_posting.pk])),
+        },
+    )
+
+
+@waffle_switch("internships")
+@require_POST
+@login_required
+def create_clicked_job_posting(request, pk):
+    beneficiary = _beneficiary_or_404(request)
+    job_posting = get_object_or_404(JobPosting, pk=pk)
+    ClickedJobPosting.objects.get_or_create(job_posting=job_posting, beneficiary=beneficiary)
+    return HttpResponse(status=204)
 
 
 def _ticked(request, name, allowed):
@@ -303,6 +379,21 @@ def save_pending_event(request, event_pk):
     SavedEvent.objects.get_or_create(event=event, beneficiary=beneficiary)
     messages.success(request, "Événement enregistré")
     return True
+
+
+def save_pending_job_posting(request, job_posting_pk):
+    """Save the job posting that sent the user to the login or the signup screen once logged
+    in. Returns the posting to land her back on, or None."""
+    beneficiary = getattr(request.user, "beneficiary", None)
+    if beneficiary is None or not job_posting_pk:
+        return None
+    try:
+        job_posting = JobPosting.objects.get(pk=job_posting_pk)
+    except JobPosting.DoesNotExist, ValidationError:
+        return None
+    SavedJobPosting.objects.get_or_create(job_posting=job_posting, beneficiary=beneficiary)
+    messages.success(request, "Offre enregistrée")
+    return job_posting
 
 
 def _events_context(request, page):
@@ -349,6 +440,22 @@ def _authorized_back_url(request, url, listings):
     return parsed.path + (f"?{parsed.query}" if parsed.query else "")
 
 
+def _with_way_back(url, back_url):
+    """The page with its own way back, so that coming back to it later keeps the listing."""
+    return f"{url}?{urlencode({'back': back_url})}"
+
+
+def _way_back(request, fallback):
+    """Where closing the sign-up or login funnel a modal leads to brings her back: the page the
+    modal was told, else the one htmx says it was opened from — a listing keeps its filters."""
+    opened_from = urlparse(safe_url(request, request.headers.get("HX-Current-URL", "")))
+    return (
+        safe_url(request, request.GET.get("back", ""))
+        or opened_from._replace(scheme="", netloc="").geturl()
+        or fallback
+    )
+
+
 def _bookmark_action(user, beneficiary):
     """Only a beneficiary can save an event or an offer; a signed-in pro is not invited to try."""
     if beneficiary is not None:
@@ -360,6 +467,15 @@ def _is_saved(beneficiary, event):
     return (
         beneficiary is not None
         and SavedEvent.objects.filter(event=event, beneficiary=beneficiary).exists()
+    )
+
+
+def _is_job_posting_saved(beneficiary, job_posting):
+    return (
+        beneficiary is not None
+        and SavedJobPosting.objects.filter(
+            job_posting=job_posting, beneficiary=beneficiary
+        ).exists()
     )
 
 

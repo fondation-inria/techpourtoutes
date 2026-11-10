@@ -40,7 +40,9 @@ from .beneficiary.training_ambassador_request_views import (
 )
 from .beneficiary_views import (
     beneficiary_home,
+    create_clicked_job_posting,
     create_saved_event_modal,
+    create_saved_job_posting_modal,
     create_upcoming_feature_notification,
     index_events,
     index_job_postings,
@@ -50,9 +52,11 @@ from .beneficiary_views import (
     new_upcoming_feature_notification,
     show_event,
     show_job_posting,
+    show_job_posting_application_modal,
     show_makeuse_project,
     show_participation_modal,
     update_saved_event,
+    update_saved_job_posting,
 )
 from .coalition_views import (
     coalition_home,
@@ -125,7 +129,9 @@ __all__ = [
     "create_user_email_code",
     "create_beneficiary_training_experience",
     "create_manifeste_signature",
+    "create_clicked_job_posting",
     "create_saved_event_modal",
+    "create_saved_job_posting_modal",
     "create_training_ambassador_request",
     "create_makeuse_project_submission",
     "create_upcoming_feature_notification",
@@ -188,6 +194,7 @@ __all__ = [
     "show_account",
     "show_event",
     "show_job_posting",
+    "show_job_posting_application_modal",
     "show_makeuse_project",
     "show_user",
     "show_user_email",
@@ -200,6 +207,7 @@ __all__ = [
     "show_manifeste_signature",
     "show_beneficiary_legal_rep",
     "update_saved_event",
+    "update_saved_job_posting",
     "update_user",
     "update_user_communication",
     "update_user_email",

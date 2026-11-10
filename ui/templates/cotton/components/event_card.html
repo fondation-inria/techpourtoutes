@@ -1,10 +1,7 @@
 <c-vars event="" bookmark_action="" category_color="bg-orange-500" />
 
-{# The whole card is a link: its ::after covers it, so the bookmark stays clickable at z-10. #}
-<div class="relative flex flex-col bg-neutral-0 border border-black shadow-box">
+<div id="evenement-{{ event.slug }}" class="relative flex flex-col scroll-mt-4 bg-neutral-0 border border-black shadow-box">
     <div class="flex flex-col gap-4 p-4 text-black {{ category_color }}">
-        {# Same rules as the event page: a letterboxed image fills what its ratio leaves in the colour #}
-        {# of its category, the default image gets no fill-in. #}
         <div data-event-image="card" class="relative self-center w-50 h-50 {% if event.image %}{{ category_color }}{% endif %}">
             <img src="{{ event.image_url }}" alt="{{ event.image_alt }}" width="200" height="200" loading="lazy"
                  class="w-full h-full object-contain {% if event.image %}border border-black{% endif %}">

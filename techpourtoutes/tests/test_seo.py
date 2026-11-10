@@ -73,3 +73,12 @@ def test_default_og_image_uses_coalition_cover(client):
 def test_notre_manifeste_og_image_uses_manifeste_cover(client):
     content = client.get(reverse("notre_manifeste")).content.decode()
     assert "manifeste-tpt-cover-white.png" in content
+
+
+@pytest.mark.django_db
+@pytest.mark.parametrize("weight", ["500", "700"])
+def test_base_template_preloads_the_italic_serif_shown_only_on_hover_or_in_a_modal(client, weight):
+    content = client.get(reverse("mentions_legales")).content.decode()
+
+    font = f"/static/fonts/newsreader/newsreader-latin-{weight}-italic.woff2"
+    assert f'<link rel="preload" href="{font}" as="font" type="font/woff2" crossorigin>' in content
