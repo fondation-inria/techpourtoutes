@@ -44,11 +44,7 @@
     {# all the width the buttons leave while both cards keep half each. #}
     <div class="@container w-full mt-1">
         <div class="grid gap-4 @min-[41.5rem]:grid-cols-[calc(50%-0.75rem)_minmax(0,1fr)_auto] @min-[41.5rem]:gap-x-6">
-            <div class="min-w-0 self-start flex flex-wrap items-center gap-2 @min-[41.5rem]:col-start-1 @min-[41.5rem]:col-span-2 @min-[41.5rem]:row-start-1">
-                {% for domain in job_posting.domain_labels %}
-                    <c-components.badge label="{{ domain }}" background_color="bg-neutral-0" />
-                {% endfor %}
-            </div>
+            <c-components.job-posting-domains :job_posting="job_posting" class="min-w-0 self-start @min-[41.5rem]:col-start-1 @min-[41.5rem]:col-span-2 @min-[41.5rem]:row-start-1" />
 
             {# Below md, the bar fixed at the bottom of the screen and the band at the top hold them instead. #}
             <div class="min-w-0 self-start flex flex-col items-end gap-3 max-md:hidden @min-[41.5rem]:col-start-3 @min-[41.5rem]:row-start-1 @min-[41.5rem]:row-span-2">

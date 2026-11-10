@@ -2076,3 +2076,29 @@ def test_show_makeuse_project_back_link_ignores_a_referer_from_anywhere_else(cli
     )
 
     assert response.context["back_url"] == reverse("index_makeuses")
+
+
+@pytest.mark.django_db
+@pytest.mark.parametrize(
+    "domains, stacked",
+    [
+        ([JobPosting.Domain.DEVELOPPEMENT, JobPosting.Domain.MATHEMATIQUES], False),
+        (
+            [
+                JobPosting.Domain.DEVELOPPEMENT,
+                JobPosting.Domain.MATHEMATIQUES,
+                JobPosting.Domain.ELECTRONIQUE,
+            ],
+            True,
+        ),
+    ],
+)
+@override_switch("internships", active=True)
+def test_show_job_posting_stacks_the_domains_from_three_on(client, domains, stacked):
+    category = JobPosting.Category.HIGHER_ED_INTERNSHIP
+    job_posting = save_job_posting("Stage", category, domains=domains)
+
+    html = client.get(show_job_posting_url(job_posting)).content.decode()
+
+    assert ("autres domaines" in html) == stacked
+    assert ("Réduire" in html) == stacked

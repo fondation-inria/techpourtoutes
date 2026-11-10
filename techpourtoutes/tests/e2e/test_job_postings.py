@@ -1,6 +1,7 @@
 import re
 from datetime import timedelta
 
+from django.urls import reverse
 from django.utils import timezone
 from playwright.sync_api import expect
 from waffle.testutils import override_switch
@@ -409,3 +410,52 @@ def test_a_too_short_search_shows_an_error_and_still_filters(page, live_server):
     expect(error).to_be_hidden()
     expect(search).not_to_have_attribute("aria-invalid", "true")
     expect(search).to_be_focused()
+
+
+def _save_posting_with_three_domains():
+    return save_job_posting(
+        "Stage",
+        JobPosting.Category.HIGHER_ED_INTERNSHIP,
+        domains=[
+            JobPosting.Domain.DEVELOPPEMENT,
+            JobPosting.Domain.MATHEMATIQUES,
+            JobPosting.Domain.SYSTEMES_ET_RESEAUX,
+        ],
+    )
+
+
+@override_switch("internships", active=True)
+def test_clicking_the_stacked_domains_unfolds_them_and_reduire_folds_them_back(page, live_server):
+    job_posting = _save_posting_with_three_domains()
+    page.goto(f"{live_server.url}{reverse('show_job_posting', args=[job_posting.pk])}")
+    stack = page.get_by_role("button", name=re.compile("\\+2 autres domaines"))
+    maths = page.get_by_text("Mathématiques", exact=True)
+    expect(maths).to_be_hidden()
+
+    # Its centre is the first badge, not the counter in the corner.
+    stack.click()
+
+    expect(maths).to_be_visible()
+    expect(page.get_by_text("Systèmes et réseaux", exact=True)).to_be_visible()
+    expect(stack).to_be_hidden()
+
+    page.get_by_role("button", name="Réduire").click()
+
+    expect(maths).to_be_hidden()
+    expect(stack).to_be_visible()
+
+
+@override_switch("internships", active=True)
+def test_unfolding_the_domains_from_the_keyboard_moves_the_focus_to_reduire(page, live_server):
+    job_posting = _save_posting_with_three_domains()
+    page.goto(f"{live_server.url}{reverse('show_job_posting', args=[job_posting.pk])}")
+    stack = page.get_by_role("button", name=re.compile("\\+2 autres domaines"))
+    stack.focus()
+
+    page.keyboard.press("Enter")
+
+    expect(page.get_by_role("button", name="Réduire")).to_be_focused()
+
+    page.keyboard.press("Enter")
+
+    expect(stack).to_be_focused()
