@@ -690,14 +690,26 @@ def test_show_job_posting_sizes_the_logo_without_a_stylesheet(client):
 
 @pytest.mark.django_db
 @override_switch("internships", active=True)
-def test_show_job_posting_puts_the_buttons_right_below_the_title(client):
-    """On a phone everything stacks in the order of the page: the buttons come before the
-    cards, and a screen reader reads them in the order they are shown."""
+def test_show_job_posting_puts_save_beside_back_and_apply_at_the_bottom_on_a_phone(client):
+    """On a phone the save button sits beside the back one, above the title, and the apply one
+    in the bar fixed at the bottom: a screen reader reads them in the order they are shown."""
     job_posting = save_job_posting("Stage", JobPosting.Category.HIGHER_ED_INTERNSHIP)
 
     html = client.get(show_job_posting_url(job_posting)).content.decode()
 
-    assert html.index("Postuler sur") < html.index("Enregistrer") < html.index("Salaire")
+    assert html.index("Retour") < html.index("Enregistrer") < html.index("cherche une stagiaire")
+    assert html.rindex("Postuler sur") > html.index("Descriptif de l’offre")
+
+
+@pytest.mark.django_db
+@override_switch("internships", active=True)
+def test_show_job_posting_offers_no_save_button_to_a_signed_in_pro(client, pro):
+    job_posting = save_job_posting("Stage", JobPosting.Category.HIGHER_ED_INTERNSHIP)
+    assert "Enregistrer" in client.get(show_job_posting_url(job_posting)).content.decode()
+
+    client.force_login(pro)
+
+    assert "Enregistrer" not in client.get(show_job_posting_url(job_posting)).content.decode()
 
 
 @pytest.mark.django_db

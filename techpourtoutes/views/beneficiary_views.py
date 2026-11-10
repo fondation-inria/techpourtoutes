@@ -269,6 +269,9 @@ def show_job_posting(request, pk):
         "beneficiary/show_job_posting.html",
         {
             "job_posting": get_object_or_404(JobPosting.objects.with_last_updated_at(), pk=pk),
+            "bookmark_action": _bookmark_action(
+                request.user, getattr(request.user, "beneficiary", None)
+            ),
             "back_url": _back_to_listing(request, "index_job_postings"),
         },
     )
@@ -347,7 +350,7 @@ def _authorized_back_url(request, url, listings):
 
 
 def _bookmark_action(user, beneficiary):
-    """Only a beneficiary can save an event; a signed-in pro is not invited to try."""
+    """Only a beneficiary can save an event or an offer; a signed-in pro is not invited to try."""
     if beneficiary is not None:
         return "toggle"
     return "" if user.is_authenticated else "signup"

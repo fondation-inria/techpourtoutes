@@ -5,7 +5,7 @@
     description="{{ job_posting.description|striptags|truncatechars:160 }}"
 >
     <div class="relative w-full -mt-8 {% if job_posting.category_color == "blue" %}text-neutral-0 [&_h1]:text-neutral-0{% else %}text-neutral-950{% endif %}">
-        <div class="absolute inset-y-0 left-1/2 w-[100cqw] -ml-[50cqw] bg-{{ job_posting.category_color }}-500">
+        <div class="absolute inset-y-0 left-1/2 w-[100cqw] -ml-[50cqw] bg-{{ job_posting.category_color }}-500 flex items-start justify-between">
             {# Coming from the listing, going back in history lands her where she was in it. #}
             <c-components.button href="{{ back_url }}" variant="tertiary" class="w-fit m-2 p-4 bg-{{ job_posting.category_color }}-500! hover:bg-white/20! active:bg-black/20! text-inherit! font-normal"
                                  x-data x-on:click="if (history.length > 1 && document.referrer === location.origin + '{{ back_url|escapejs }}') { $event.preventDefault(); history.back() }">
@@ -14,8 +14,11 @@
                     Retour
                 </span>
             </c-components.button>
+            {% if bookmark_action %}
+                <c-components.button variant="secondary" label="Enregistrer" icon="bookmark_outline" icon_position="start" class="whitespace-nowrap mt-3 mr-4 md:hidden" />
+            {% endif %}
         </div>
-        <div class="relative grid grid-cols-[70px_minmax(0,1fr)] gap-4 @min-[41.5rem]:items-center mt-13.5 mb-6">
+        <div class="relative grid grid-cols-[70px_minmax(0,1fr)] gap-4 @min-[41.5rem]:items-center mt-13.5 max-md:mt-17 mb-6">
             <c-components.job-posting-logo :job_posting="job_posting" size="70" class="w-[70px] h-[70px] object-contain border border-black shadow-bottom-and-right shadow-black" />
             <div class="contents wrap-anywhere @min-[41.5rem]:block @min-[41.5rem]:min-w-0">
                 <p class="font-medium">
@@ -47,11 +50,14 @@
                 {% endfor %}
             </div>
 
-            <div class="min-w-0 self-start flex flex-col items-end gap-3 @min-[41.5rem]:col-start-3 @min-[41.5rem]:row-start-1 @min-[41.5rem]:row-span-2">
+            {# Below md, the bar fixed at the bottom of the screen and the band at the top hold them instead. #}
+            <div class="min-w-0 self-start flex flex-col items-end gap-3 max-md:hidden @min-[41.5rem]:col-start-3 @min-[41.5rem]:row-start-1 @min-[41.5rem]:row-span-2">
                 <c-components.button href="{{ job_posting.url }}" target="_blank" rel="noopener noreferrer" icon="external-link" icon_position="start" class="whitespace-nowrap">
                     Postuler sur {% if job_posting.source == "apec" %}l’{% endif %}{{ job_posting.get_source_display }}<span class="sr-only"> (nouvelle fenêtre)</span>
                 </c-components.button>
-                <c-components.button variant="secondary" label="Enregistrer" icon="bookmark_outline" icon_position="start" class="whitespace-nowrap" />
+                {% if bookmark_action %}
+                    <c-components.button variant="secondary" label="Enregistrer" icon="bookmark_outline" icon_position="start" class="whitespace-nowrap" />
+                {% endif %}
             </div>
 
             <c-components.card class="min-w-0 self-end @min-[41.5rem]:col-start-1 @min-[41.5rem]:row-start-2 @min-[41.5rem]:row-span-2">
@@ -146,4 +152,10 @@
             {% endif %}
         </div>
     </c-components.card>
+
+    <c-slot name="mobile_cta">
+        <c-components.button href="{{ job_posting.url }}" target="_blank" rel="noopener noreferrer" icon="external-link" icon_position="start" class="whitespace-nowrap">
+            Postuler sur {% if job_posting.source == "apec" %}l’{% endif %}{{ job_posting.get_source_display }}<span class="sr-only"> (nouvelle fenêtre)</span>
+        </c-components.button>
+    </c-slot>
 </c-layout.base>
