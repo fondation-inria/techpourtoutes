@@ -14,6 +14,7 @@ from techpourtoutes.models import (
     Event,
     Formation,
     FormationAction,
+    JobPosting,
     LegalRepresentativeAuthorization,
     Level,
     Pro,
@@ -226,6 +227,24 @@ def event(pro):
     )
     event.save()
     return event
+
+
+@pytest.fixture
+def job_posting(db):
+    job_posting = JobPosting(
+        source=JobPosting.Source.MYFUTURE,
+        external_id="mf-1",
+        title="Développeuse web",
+        company_name="Octo",
+        description="Une alternance en développement.",
+        city="Paris",
+        domains=[JobPosting.Domain.DEVELOPPEMENT],
+        category=JobPosting.Category.APPRENTICESHIP,
+        published_at=timezone.now(),
+        url="https://www.myfuture.fr/offre/1",
+    )
+    job_posting.save()
+    return job_posting
 
 
 ONISEP = "https://www.onisep.fr/http/redirection"

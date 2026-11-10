@@ -28,7 +28,7 @@ class SavedEvent(BaseModel):
     beneficiary = models.ForeignKey(
         Beneficiary,
         on_delete=models.CASCADE,
-        related_name="saves",
+        related_name="event_saves",
         verbose_name=_("bénéficiaire"),
     )
 

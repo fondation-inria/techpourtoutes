@@ -260,6 +260,18 @@ class JobPosting(BaseModel):
         verbose_name=_("dépubliée"),
         help_text=_("Une offre dépubliée n'apparaît plus sur le site. Décocher la republie."),
     )
+    saved_by = models.ManyToManyField(
+        "Beneficiary",
+        through="SavedJobPosting",
+        related_name="saved_job_postings",
+        verbose_name=_("sauvegardée par"),
+    )
+    clicked_by = models.ManyToManyField(
+        "Beneficiary",
+        through="ClickedJobPosting",
+        related_name="clicked_job_postings",
+        verbose_name=_("cliquée par"),
+    )
     search_vector = models.GeneratedField(
         expression=SearchVector(_masculine_text("title"), weight="A", config=SEARCH_CONFIG)
         + SearchVector(_masculine_text("company_name"), weight="B", config=SEARCH_CONFIG)
