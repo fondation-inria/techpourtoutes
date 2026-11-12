@@ -36,7 +36,7 @@ def test_new_upcoming_feature_notification_get_returns_200(client):
 
 
 @pytest.mark.django_db
-@override_settings(BREVO_SYNC_ENABLED=True)
+@override_settings(BREVO_SYNC_ENABLED=True, BREVO_EMAIL_NOTIFICATION_LIST_ID=18)
 def test_create_upcoming_feature_notification_valid_pushes_brevo_contact_and_redirects(client):
     with patch(
         "techpourtoutes.views.beneficiary_views.create_upcoming_feature_notification_task"
@@ -47,7 +47,7 @@ def test_create_upcoming_feature_notification_valid_pushes_brevo_contact_and_red
 
     assert response.status_code == 302
     assert response.url == NEW_UPCOMING_FEATURE_NOTIFICATION_URL
-    mock_task.delay.assert_called_once_with(email="hedy@example.com")
+    mock_task.delay.assert_called_once_with(email="hedy@example.com", list_id=18)
 
 
 @pytest.mark.django_db
@@ -422,6 +422,8 @@ def test_index_job_postings_keeps_the_postings_of_any_ticked_department(client, 
 def test_index_job_postings_offers_the_domains_of_the_category(
     client, category, offers_apec_domains
 ):
+    save_job_posting("Offre", category)
+
     html = client.get(INDEX_JOB_POSTINGS_URL, {"category": category}).content.decode()
 
     for domain in JobPosting.Domain:
@@ -546,6 +548,113 @@ def test_index_job_postings_keeps_the_duration_filter_when_cdi_comes_with_anothe
     html = response.content.decode()
     assert not re.search(r'id="job_posting_duration_filter"[^>]*style="display: none"', html)
     assert re.findall(r'name="duration"\s+value="([^"]*)"\s+checked', html) == ["over_12_months"]
+
+
+@pytest.mark.django_db
+@pytest.mark.parametrize(
+    "query, pupil_empty_state",
+    [
+        ({"category": "seconde_internship"}, True),
+        ({"category": "troisieme_internship"}, True),
+        ({"category": "troisieme_internship", "q": "web"}, False),
+        ({"category": "troisieme_internship", "domain": "developpement"}, False),
+        ({"category": "troisieme_internship", "department": "29"}, False),
+        ({"category": "apprenticeship"}, False),
+    ],
+)
+@override_switch("internships", active=True)
+def test_index_job_postings_shows_a_pupil_empty_state_when_the_tab_has_no_offer(
+    client, query, pupil_empty_state
+):
+    html = client.get(INDEX_JOB_POSTINGS_URL, query).content.decode()
+
+    assert ("bientot-disponible-background" in html) == pupil_empty_state
+    assert ('id="job_posting_filters"' in html) != pupil_empty_state
+    assert ("Aucune offre ne correspond à ta recherche" in html) != pupil_empty_state
+    notification_action = (
+        f'action="/stages-alternances-emplois/notification/?category={query["category"]}"'
+    )
+    assert (notification_action in html) == pupil_empty_state
+
+
+@pytest.mark.django_db
+@override_switch("internships", active=True)
+def test_index_job_postings_shows_no_pupil_empty_state_when_the_tab_has_an_offer(client):
+    category = JobPosting.Category.TROISIEME_INTERNSHIP
+    save_job_posting("Stage d'observation", category)
+
+    html = client.get(INDEX_JOB_POSTINGS_URL, {"category": category}).content.decode()
+
+    assert "bientot-disponible-background" not in html
+    assert 'id="job_posting_filters"' in html
+
+
+CREATE_JOB_POSTING_NOTIFICATION_URL = "/stages-alternances-emplois/notification/"
+
+
+@pytest.mark.django_db
+@pytest.mark.parametrize(
+    "category, list_id", [("seconde_internship", 21), ("troisieme_internship", 22)]
+)
+@override_settings(
+    BREVO_SYNC_ENABLED=True,
+    BREVO_SECONDE_INTERNSHIP_NOTIFICATION_LIST_ID=21,
+    BREVO_TROISIEME_INTERNSHIP_NOTIFICATION_LIST_ID=22,
+)
+@override_switch("internships", active=True)
+def test_create_job_posting_notification_valid_pushes_brevo_contact_and_redirects_to_the_tab(
+    client, category, list_id
+):
+    with patch(
+        "techpourtoutes.views.beneficiary_views.create_upcoming_feature_notification_task"
+    ) as mock_task:
+        response = client.post(
+            f"{CREATE_JOB_POSTING_NOTIFICATION_URL}?category={category}",
+            data={"email": "hedy@example.com"},
+            follow=True,
+        )
+
+    assert response.redirect_chain == [(f"{INDEX_JOB_POSTINGS_URL}?category={category}", 302)]
+    mock_task.delay.assert_called_once_with(email="hedy@example.com", list_id=list_id)
+    assert [str(message) for message in response.context["messages"]] == [
+        "Merci, nous te préviendrons dès que les offres de stage seront disponibles."
+    ]
+
+
+@pytest.mark.django_db
+@override_switch("internships", active=True)
+def test_create_job_posting_notification_invalid_rerenders_the_tab_with_errors(client):
+    with patch(
+        "techpourtoutes.views.beneficiary_views.create_upcoming_feature_notification_task"
+    ) as mock_task:
+        response = client.post(
+            f"{CREATE_JOB_POSTING_NOTIFICATION_URL}?category=seconde_internship",
+            data={"email": "not-an-email"},
+        )
+
+    assert response.status_code == 200
+    assert response.context["category"] == "seconde_internship"
+    assert "Saisis une adresse mail valide." in response.content.decode()
+    mock_task.delay.assert_not_called()
+
+
+@pytest.mark.django_db
+@override_switch("internships", active=True)
+def test_create_job_posting_notification_not_found_for_a_tab_without_mailing_list(client):
+    response = client.post(
+        f"{CREATE_JOB_POSTING_NOTIFICATION_URL}?category=apprenticeship",
+        data={"email": "hedy@example.com"},
+    )
+
+    assert response.status_code == 404
+
+
+@pytest.mark.django_db
+@override_switch("internships", active=False)
+def test_create_job_posting_notification_not_found_when_switch_inactive(client):
+    response = client.post(CREATE_JOB_POSTING_NOTIFICATION_URL, data={"email": "hedy@example.com"})
+
+    assert response.status_code == 404
 
 
 @pytest.mark.django_db
@@ -931,6 +1040,102 @@ def test_index_job_postings_anchors_each_card_for_the_way_back(client):
 
 @pytest.mark.django_db
 @override_switch("internships", active=True)
+def test_index_job_postings_is_never_served_from_the_browser_cache(client):
+    """Back or forward would otherwise show the bookmarks as they were before a toggle."""
+    response = client.get(INDEX_JOB_POSTINGS_URL)
+
+    assert "no-store" in response["Cache-Control"]
+
+
+@pytest.mark.django_db
+@override_switch("internships", active=True)
+def test_show_job_posting_is_never_served_from_the_browser_cache(client, job_posting):
+    response = client.get(show_job_posting_url(job_posting))
+
+    assert "no-store" in response["Cache-Control"]
+
+
+@pytest.mark.django_db
+@override_switch("internships", active=True)
+def test_index_job_postings_bookmark_posts_to_update_saved_job_posting(
+    client, beneficiary, job_posting
+):
+    client.force_login(beneficiary)
+
+    response = client.get(INDEX_JOB_POSTINGS_URL, {"category": job_posting.category})
+
+    assert response.context["job_postings"][0].saved is False
+    content = response.content.decode()
+    assert reverse("update_saved_job_posting", args=[job_posting.pk]) in content
+    assert 'aria-pressed="false"' in content
+    assert "text-neutral-0" in content
+
+
+@pytest.mark.django_db
+@override_switch("internships", active=True)
+def test_index_job_postings_colours_the_bookmark_of_a_saved_posting_after_its_category(
+    client, beneficiary
+):
+    job_posting = save_job_posting("Alternance", JobPosting.Category.APPRENTICESHIP)
+    SavedJobPosting.objects.toggle(job_posting=job_posting, beneficiary=beneficiary)
+    client.force_login(beneficiary)
+
+    response = client.get(INDEX_JOB_POSTINGS_URL, {"category": job_posting.category})
+
+    assert response.context["job_postings"][0].saved is True
+    content = response.content.decode()
+    assert 'aria-pressed="true"' in content
+    assert f'aria-label="Enregistrer l’offre {job_posting.title}"' in content
+    assert "text-orange-500" in content
+
+
+@pytest.mark.django_db
+@override_switch("internships", active=True)
+def test_index_job_postings_saved_flag_costs_no_query_per_posting(client, beneficiary):
+    """Four postings must cost what one costs: the flag is annotated, never fetched per row.
+
+    A first render warms the cache of the switches the layout reads."""
+    save_job_posting("Stage 0", JobPosting.Category.HIGHER_ED_INTERNSHIP)
+    client.force_login(beneficiary)
+    client.get(INDEX_JOB_POSTINGS_URL)
+    with CaptureQueriesContext(connection) as one_posting:
+        client.get(INDEX_JOB_POSTINGS_URL)
+
+    for index in range(1, 4):
+        save_job_posting(f"Stage {index}", JobPosting.Category.HIGHER_ED_INTERNSHIP)
+    with CaptureQueriesContext(connection) as four_postings:
+        client.get(INDEX_JOB_POSTINGS_URL)
+
+    assert len(four_postings.captured_queries) == len(one_posting.captured_queries)
+
+
+@pytest.mark.django_db
+@override_switch("internships", active=True)
+def test_index_job_postings_anonymous_bookmark_opens_the_signup_modal(client, job_posting):
+    content = client.get(
+        INDEX_JOB_POSTINGS_URL, {"category": job_posting.category}
+    ).content.decode()
+
+    assert reverse("create_saved_job_posting_modal", args=[job_posting.pk]) in content
+    assert reverse("update_saved_job_posting", args=[job_posting.pk]) not in content
+    assert "aria-pressed" not in content
+
+
+@pytest.mark.django_db
+@override_switch("internships", active=True)
+def test_index_job_postings_gives_a_connected_pro_no_bookmark_at_all(client, pro, job_posting):
+    client.force_login(pro)
+
+    content = client.get(
+        INDEX_JOB_POSTINGS_URL, {"category": job_posting.category}
+    ).content.decode()
+
+    assert reverse("create_saved_job_posting_modal", args=[job_posting.pk]) not in content
+    assert "#bookmark" not in content
+
+
+@pytest.mark.django_db
+@override_switch("internships", active=True)
 def test_show_job_posting_bookmark_posts_to_update_saved_job_posting(
     client, beneficiary, job_posting
 ):
@@ -1115,6 +1320,22 @@ def test_update_saved_job_posting_swaps_every_bookmark_of_the_posting(
 
 @pytest.mark.django_db
 @override_switch("internships", active=True)
+def test_update_saved_job_posting_from_a_card_swaps_the_card_bookmark_back_in(
+    client, beneficiary, job_posting
+):
+    client.force_login(beneficiary)
+
+    content = client.post(
+        reverse("update_saved_job_posting", args=[job_posting.pk]), {"card": "true"}
+    ).content.decode()
+
+    assert "#bookmark_rosette" in content
+    assert f"text-{job_posting.category_color}-500" in content
+    assert "Enregistrée" not in content
+
+
+@pytest.mark.django_db
+@override_switch("internships", active=True)
 def test_update_saved_job_posting_rejects_a_get(client, beneficiary, job_posting):
     client.force_login(beneficiary)
 
@@ -1213,6 +1434,103 @@ def test_index_beneficiary_job_postings_anchors_a_posting_in_both_lists_apart(
     assert f'id="offre-{job_posting.pk}"' not in html
 
 
+@pytest.mark.django_db
+def test_index_beneficiary_job_postings_shows_one_empty_state_when_both_lists_are_empty(
+    client, beneficiary
+):
+    client.force_login(beneficiary)
+
+    html = client.get(reverse("index_beneficiary_job_postings")).content.decode()
+
+    assert "Candidatures et opportunités" in html
+    assert "Tu n'as aucune candidature ou opportunité enregistrée." in html
+    assert "Candidatures entamées" not in html
+    assert "Opportunités enregistrées" not in html
+
+
+@pytest.mark.django_db
+@pytest.mark.parametrize(
+    "model, shown, hidden",
+    [
+        (ClickedJobPosting, "Candidatures entamées", "Opportunités enregistrées"),
+        (SavedJobPosting, "Opportunités enregistrées", "Candidatures entamées"),
+    ],
+)
+def test_index_beneficiary_job_postings_only_shows_the_list_holding_postings(
+    client, beneficiary, job_posting, model, shown, hidden
+):
+    model.objects.toggle(job_posting=job_posting, beneficiary=beneficiary)
+    client.force_login(beneficiary)
+
+    html = client.get(reverse("index_beneficiary_job_postings")).content.decode()
+
+    assert shown in html
+    assert hidden not in html
+    assert "Tu n'as aucune" not in html
+
+
+@pytest.mark.django_db
+def test_index_beneficiary_job_postings_gives_each_list_its_own_card_button(
+    client, beneficiary, job_posting
+):
+    clicked = save_job_posting("Cliquée", JobPosting.Category.APPRENTICESHIP)
+    ClickedJobPosting.objects.toggle(job_posting=clicked, beneficiary=beneficiary)
+    SavedJobPosting.objects.toggle(job_posting=job_posting, beneficiary=beneficiary)
+    client.force_login(beneficiary)
+
+    html = client.get(reverse("index_beneficiary_job_postings")).content.decode()
+
+    assert html.count("#sent") == 1
+    assert reverse("destroy_clicked_job_posting_modal", args=[clicked.pk]) in html
+    assert html.count("#bookmark_rosette") == 1
+    assert 'aria-pressed="true"' in html
+    assert reverse("update_saved_job_posting", args=[job_posting.pk]) in html
+    assert 'id="modal-container"' in html
+
+
+@pytest.mark.django_db
+@override_switch("internships", active=True)
+def test_destroy_clicked_job_posting_modal_offers_both_ways_out(client, beneficiary, job_posting):
+    client.force_login(beneficiary)
+
+    html = client.get(
+        reverse("destroy_clicked_job_posting_modal", args=[job_posting.pk])
+    ).content.decode()
+
+    assert "Veux-tu enlever cette candidature de ton suivi ?" in html
+    assert f'action="{reverse("destroy_clicked_job_posting", args=[job_posting.pk])}"' in html
+    assert "Continuer" in html
+    assert 'name="save" value="true"' in html
+    assert "Enregistrer l’offre en favori" in html
+
+
+@pytest.mark.django_db
+@override_switch("internships", active=True)
+@pytest.mark.parametrize("data, saved", [({}, False), ({"save": "true"}, True)])
+def test_destroy_clicked_job_posting_takes_the_posting_out_of_her_follow_up(
+    client, beneficiary, job_posting, data, saved
+):
+    ClickedJobPosting.objects.toggle(job_posting=job_posting, beneficiary=beneficiary)
+    client.force_login(beneficiary)
+
+    response = client.post(reverse("destroy_clicked_job_posting", args=[job_posting.pk]), data)
+
+    assert response.status_code == 302
+    assert response["Location"] == reverse("index_beneficiary_job_postings")
+    assert ClickedJobPosting.objects.count() == 0
+    assert beneficiary.saved_job_postings.filter(pk=job_posting.pk).exists() is saved
+
+
+@pytest.mark.django_db
+@override_switch("internships", active=True)
+def test_destroy_clicked_job_posting_is_closed_to_pros(client, pro, job_posting):
+    client.force_login(pro)
+
+    response = client.post(reverse("destroy_clicked_job_posting", args=[job_posting.pk]))
+
+    assert response.status_code == 404
+
+
 def _signed_in_on(client, user, url):
     """Sign in through the code mailed, as from a page: she lands on it with a welcome message."""
     client.post(reverse("login_request"), data={"email": user.email, "next": url})
@@ -1299,6 +1617,25 @@ def test_create_saved_job_posting_modal_goes_back_to_the_posting_by_default(
 
     _assert_both_ways_in_go_back_to(
         content, "saved_job_posting", job_posting.pk, show_job_posting_url(job_posting)
+    )
+
+
+@pytest.mark.django_db
+@override_switch("internships", active=True)
+@pytest.mark.parametrize("fragment", ["", "#offre-une-autre"])
+def test_create_saved_job_posting_modal_opened_from_a_card_goes_back_to_that_card(
+    client, job_posting, fragment
+):
+    content = client.get(
+        reverse("create_saved_job_posting_modal", args=[job_posting.pk]),
+        HTTP_HX_CURRENT_URL=f"http://testserver{JOB_POSTINGS_LISTING}{fragment}",
+    ).content.decode()
+
+    _assert_both_ways_in_go_back_to(
+        content,
+        "saved_job_posting",
+        job_posting.pk,
+        f"{JOB_POSTINGS_LISTING}#offre-{job_posting.pk}",
     )
 
 
@@ -1559,6 +1896,21 @@ def salon(pro):
     event = approved_event(pro, title="Salon des métiers du numérique")
     event.save()
     return event
+
+
+@pytest.mark.django_db
+def test_index_events_is_never_served_from_the_browser_cache(client, salon):
+    """Back or forward would otherwise show the bookmarks as they were before a toggle."""
+    response = client.get(INDEX_EVENTS_URL)
+
+    assert "no-store" in response["Cache-Control"]
+
+
+@pytest.mark.django_db
+def test_show_event_is_never_served_from_the_browser_cache(client, salon):
+    response = client.get(reverse("show_event", args=[salon.slug]))
+
+    assert "no-store" in response["Cache-Control"]
 
 
 @pytest.mark.django_db

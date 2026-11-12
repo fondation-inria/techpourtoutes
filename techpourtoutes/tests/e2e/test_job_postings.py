@@ -511,6 +511,19 @@ def test_an_anonymous_visitor_is_invited_to_sign_up_to_save_from_the_application
 
 
 @override_switch("internships", active=True)
+def test_an_anonymous_visitor_is_invited_to_sign_up_to_save_from_a_card(
+    page, live_server, job_posting
+):
+    page.goto(f"{live_server.url}/stages-alternances-emplois/?category={job_posting.category}")
+
+    page.get_by_role("button", name=f"Enregistrer l’offre {job_posting.title}").click()
+
+    expect(
+        page.get_by_text("Rejoins le club TechPourToutes pour enregistrer cette offre")
+    ).to_be_visible()
+
+
+@override_switch("internships", active=True)
 @pytest.mark.parametrize("way_in", ["Créer un compte", "Se connecter"])
 def test_closing_the_funnel_opened_to_save_a_posting_brings_her_back_to_it_and_its_listing(
     page, live_server, way_in
@@ -537,6 +550,45 @@ def test_closing_the_funnel_opened_to_save_a_posting_brings_her_back_to_it_and_i
 
 
 @override_switch("internships", active=True)
+@pytest.mark.parametrize("way_in", ["Créer un compte", "Se connecter"])
+def test_closing_the_funnel_opened_from_a_card_brings_her_back_to_that_card(
+    page, live_server, way_in
+):
+    for index in range(20):
+        save_job_posting(f"Stage web {index}", JobPosting.Category.HIGHER_ED_INTERNSHIP)
+    page.goto(f"{live_server.url}/stages-alternances-emplois/?q=web")
+    listing = page.url
+    page.get_by_role("button", name="Enregistrer l’offre Stage web 0").click()
+
+    page.locator("dialog").get_by_role("link", name=way_in).click()
+    page.get_by_role("link", name="Fermer").click()
+
+    expect(page).to_have_url(re.compile(f"^{re.escape(listing)}#offre-"))
+    expect(page.get_by_role("link", name="Stage web 0", exact=True)).to_be_in_viewport()
+    assert page.evaluate("window.scrollY") > 0
+
+
+@override_switch("internships", active=True)
+def test_logging_in_from_a_card_lands_back_on_that_card(page, live_server, beneficiary):
+    for index in range(20):
+        save_job_posting(f"Stage web {index}", JobPosting.Category.HIGHER_ED_INTERNSHIP)
+    page.goto(f"{live_server.url}/stages-alternances-emplois/?q=web")
+    listing = page.url
+    page.get_by_role("button", name="Enregistrer l’offre Stage web 0").click()
+    page.locator("dialog").get_by_role("link", name="Se connecter").click()
+    page.fill('input[name="email"]', beneficiary.email)
+    page.get_by_role("button", name="Continuer").click()
+
+    page.fill('input[name="code"]', re.search(r"\b(\d{6})\b", mail.outbox[-1].body).group(1))
+    page.get_by_role("button", name="Continuer").click()
+
+    expect(page.get_by_text("Offre enregistrée")).to_be_visible()
+    expect(page).to_have_url(re.compile(f"^{re.escape(listing)}#offre-"))
+    expect(page.get_by_role("link", name="Stage web 0", exact=True)).to_be_in_viewport()
+    assert page.evaluate("window.scrollY") > 0
+
+
+@override_switch("internships", active=True)
 def test_logging_in_to_save_a_posting_lands_back_on_it_and_its_listing(
     page, live_server, beneficiary
 ):
@@ -558,3 +610,27 @@ def test_logging_in_to_save_a_posting_lands_back_on_it_and_its_listing(
     expect(page).to_have_url(re.compile(f"^{re.escape(listing)}#offre-"))
     expect(page.get_by_role("link", name="Stage web 0", exact=True)).to_be_in_viewport()
     assert page.evaluate("window.scrollY") > 0
+
+
+@override_switch("internships", active=True)
+def test_a_posting_saved_from_its_card_is_saved_on_its_page_and_back(
+    page, live_server, beneficiary, job_posting
+):
+    """Going back or forward must not bring a page back from the browser cache, holding the
+    bookmark as it was before the last toggle. « Retour » goes back through the history."""
+    page.goto(f"{live_server.url}/se-connecter/token/{beneficiary.issue_login_token()}/")
+    page.goto(f"{live_server.url}/stages-alternances-emplois/?category={job_posting.category}")
+    page.get_by_role("button", name=f"Enregistrer l’offre {job_posting.title}").click()
+    expect(page.locator('[data-bookmark] [aria-pressed="true"]')).to_have_count(1)
+    page.get_by_role("link", name=job_posting.title).click()
+    expect(page.locator('[data-bookmark] [aria-pressed="true"]')).to_have_count(2)
+
+    page.get_by_role("link", name="Retour").click()
+
+    expect(page.locator('[data-bookmark] [aria-pressed="true"]')).to_have_count(1)
+
+    page.get_by_role("button", name=f"Enregistrer l’offre {job_posting.title}").click()
+    expect(page.locator('[data-bookmark] [aria-pressed="false"]')).to_have_count(1)
+    page.go_forward()
+
+    expect(page.locator('[data-bookmark] [aria-pressed="false"]')).to_have_count(2)

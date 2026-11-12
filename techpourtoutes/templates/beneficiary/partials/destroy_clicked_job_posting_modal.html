@@ -1,0 +1,11 @@
+<c-components.modal title="Veux-tu enlever cette candidature de ton suivi ?" closable=True>
+    <br>
+    <p class="text-center text-sm">
+        En continuant, tu ne verras plus cette opportunité dans ton compte.
+    </p>
+    <br>
+    <c-patterns.form url="{% url "destroy_clicked_job_posting" job_posting.pk %}" class="items-center">
+        <c-components.button label="Continuer" type="submit" />
+        <c-components.button label="Enregistrer l’offre en favori" variant="secondary" type="submit" name="save" value="true" />
+    </c-patterns.form>
+</c-components.modal>

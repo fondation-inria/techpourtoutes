@@ -104,6 +104,11 @@ urlpatterns = [
     ),
     path("stages-alternances-emplois/", views.index_job_postings, name="index_job_postings"),
     path(
+        "stages-alternances-emplois/notification/",
+        views.create_job_posting_notification,
+        name="create_job_posting_notification",
+    ),
+    path(
         "stages-alternances-emplois/<uuid:pk>/",
         views.show_job_posting,
         name="show_job_posting",
@@ -117,6 +122,16 @@ urlpatterns = [
         "stages-alternances-emplois/<uuid:pk>/candidature/",
         views.create_clicked_job_posting,
         name="create_clicked_job_posting",
+    ),
+    path(
+        "stages-alternances-emplois/<uuid:pk>/retirer-du-suivi/",
+        views.destroy_clicked_job_posting_modal,
+        name="destroy_clicked_job_posting_modal",
+    ),
+    path(
+        "stages-alternances-emplois/<uuid:pk>/retirer-du-suivi/confirmer/",
+        views.destroy_clicked_job_posting,
+        name="destroy_clicked_job_posting",
     ),
     path(
         "stages-alternances-emplois/<uuid:pk>/rejoindre-le-club/",

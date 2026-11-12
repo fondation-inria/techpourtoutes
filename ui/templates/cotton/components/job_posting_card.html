@@ -1,6 +1,8 @@
 <c-vars
     job_posting=None
     anchor_prefix="offre"
+    bookmark_action=""
+    follow_up=False
     title_class="mb-1"
     class=""
     logo_class="w-[65px] h-[65px] shrink-0 object-contain border border-black shadow shadow-black shadow-bottom-and-right"
@@ -18,6 +20,19 @@
                 </h3>
                 <p>{{ job_posting.company_name }}</p>
             </div>
+            {% if bookmark_action %}
+                {% include "beneficiary/partials/update_saved_job_posting.html" with card=True saved=job_posting.saved %}
+            {% elif follow_up %}
+                <button type="button"
+                        class="relative z-10 shrink-0 self-start ml-auto flex cursor-pointer"
+                        aria-label="Suivi de la candidature {{ job_posting.title }}"
+                        aria-haspopup="dialog"
+                        hx-get="{% url "destroy_clicked_job_posting_modal" job_posting.pk %}"
+                        hx-target="#modal-container"
+                        hx-swap="innerHTML">
+                    <c-components.icon name="sent" class="w-10 h-10 text-{{ job_posting.category_color }}-500" />
+                </button>
+            {% endif %}
         </div>
         <div class="mt-4 text-black leading-[1.4]">
             <p class="line-clamp-3">{{ job_posting.description_text }}</p>
