@@ -1,0 +1,22 @@
+{% load static %}
+<c-vars form category="" />
+
+<div aria-hidden="true"
+     style="background-image: url({% static 'images/bientot-disponible-background.webp' %})"
+     class="absolute inset-0 -z-10 bg-cover bg-center"></div>
+<c-components.card class="md:mb-60">
+    <c-components.title title="Les offres de stages reviennent bientôt&nbsp;!" variant="h3" style="serif"/>
+    <p class="mt-3">Tu cherches un stage d'observation&nbsp;? Les offres seront disponibles prochainement pour te permettre de trouver les meilleures immersions.</p>
+    <p class="mt-3">Tu peux aussi nous laisser ton adresse mail pour être la première informée de l'ouverture des stages&nbsp;!</p>
+    <c-patterns.form url="{% url 'create_job_posting_notification' %}?category={{ category }}" outer_class="mt-3">
+        <c-components.form_fields.input
+            field=form.email
+            autocomplete="email"
+            description="exemple : hedy.lamarr@techpourtoutes.io"
+            class="max-w-xs"
+        />
+        <div class="flex">
+            <c-components.button type="submit" label="Être informée" />
+        </div>
+    </c-patterns.form>
+</c-components.card>
