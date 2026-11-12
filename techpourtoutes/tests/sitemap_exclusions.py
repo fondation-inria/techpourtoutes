@@ -43,6 +43,7 @@ NEVER_LISTED_URL_NAMES = {
     # Form submission endpoints (their GET page is the one listed)
     "create_manifeste_signature",
     "create_upcoming_feature_notification",
+    "create_job_posting_notification",
     "create_event",
     "create_event_image_upload",
     "update_event",
