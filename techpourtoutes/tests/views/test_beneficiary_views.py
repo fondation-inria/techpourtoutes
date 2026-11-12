@@ -900,7 +900,7 @@ def test_show_job_posting_goes_back_to_the_card_of_her_opportunities(
     client, anchor_prefix, expected_prefix
 ):
     job_posting = save_job_posting("Stage", JobPosting.Category.APPRENTICESHIP)
-    listing = f"{reverse('index_beneficiary_job_postings')}?job_postings_saved_page=2"
+    listing = f"{reverse('index_beneficiary_job_postings')}?saved_job_postings_page=2"
 
     response = client.get(
         show_job_posting_url(job_posting), {"ancre": anchor_prefix}, HTTP_REFERER=listing
@@ -1181,17 +1181,17 @@ def test_index_beneficiary_job_postings_pages_each_list_on_its_own(client, benef
 
     response = client.get(
         reverse("index_beneficiary_job_postings"),
-        {"job_postings_clicked_page": 2, "job_postings_saved_page": 1},
+        {"clicked_job_postings_page": 2, "saved_job_postings_page": 1},
     )
 
-    assert response.context["job_postings_clicked"].number == 2
-    assert response.context["job_postings_saved"].number == 1
+    assert response.context["clicked_job_postings"].number == 2
+    assert response.context["saved_job_postings"].number == 1
     assert (
-        b'href="?job_postings_saved_page=1&job_postings_clicked_page=1#candidatures-entamees"'
+        b'href="?saved_job_postings_page=1&clicked_job_postings_page=1#candidatures-entamees"'
         in response.content
     )
     assert (
-        b'href="?job_postings_clicked_page=2&job_postings_saved_page=2#opportunites-enregistrees"'
+        b'href="?clicked_job_postings_page=2&saved_job_postings_page=2#opportunites-enregistrees"'
         in response.content
     )
     assert b"hx-select" not in response.content

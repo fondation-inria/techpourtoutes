@@ -10,17 +10,17 @@
 
     <div id="candidatures-entamees" class="w-full flex flex-col gap-y-4 items-start">
         <c-components.card title="Candidatures entamées" title_bg="black" class="mt-9 sm:mt-12" />
-        {% if job_postings_clicked %}
+        {% if clicked_job_postings %}
             <div class="grid gap-4">
-                {% for job_posting in job_postings_clicked %}
+                {% for job_posting in clicked_job_postings %}
                     <c-components.job-posting-card :job_posting="job_posting" anchor_prefix="candidature" />
                 {% endfor %}
             </div>
             <div class="mt-4 flex justify-center self-center">
-                <c-components.pagination :page="job_postings_clicked" param="job_postings_clicked_page" anchor="candidatures-entamees" reload="true" query="job_postings_saved_page={{ job_postings_saved.number }}" />
+                <c-components.pagination :page="clicked_job_postings" param="clicked_job_postings_page" anchor="candidatures-entamees" reload="true" query="saved_job_postings_page={{ saved_job_postings.number }}" />
             </div>
         {% else %}
-            <c-components.card>Tu n'as aucune candidature ou opportunité enregistrée.</c-components.card>
+            <c-components.card>Tu n'as aucune candidature entamée.</c-components.card>
             <img src="{% static 'images/empty-event-bg.webp' %}" alt="" aria-hidden="true"
                  class="w-full" width="1344" height="868" loading="lazy" decoding="async" />
         {% endif %}
@@ -28,15 +28,19 @@
 
     <div id="opportunites-enregistrees" class="w-full flex flex-col gap-y-4 items-start">
         <c-components.card title="Opportunités enregistrées" title_bg="black" />
-        {% if job_postings_saved %}
+        {% if saved_job_postings %}
             <div class="grid gap-4">
-            {% for job_posting in job_postings_saved %}
+            {% for job_posting in saved_job_postings %}
                 <c-components.job-posting-card :job_posting="job_posting" anchor_prefix="enregistree" />
             {% endfor %}
             </div>
             <div class="mt-4 flex justify-center self-center">
-                <c-components.pagination :page="job_postings_saved" param="job_postings_saved_page" anchor="opportunites-enregistrees" reload="true" query="job_postings_clicked_page={{ job_postings_clicked.number }}" />
+                <c-components.pagination :page="saved_job_postings" param="saved_job_postings_page" anchor="opportunites-enregistrees" reload="true" query="clicked_job_postings_page={{ clicked_job_postings.number }}" />
             </div>
+        {% else %}
+            <c-components.card>Tu n'as aucune opportunité enregistrée.</c-components.card>
+            <img src="{% static 'images/empty-event-bg.webp' %}" alt="" aria-hidden="true"
+                 class="w-full" width="1344" height="868" loading="lazy" decoding="async" />
         {% endif %}
     </div>
 

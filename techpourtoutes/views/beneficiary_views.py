@@ -378,14 +378,14 @@ def index_beneficiary_job_postings(request):
         request,
         "beneficiary/index_beneficiary_job_postings.html",
         {
-            "job_postings_clicked": Paginator(
+            "clicked_job_postings": Paginator(
                 JobPosting.objects.filter(clicked_by=beneficiary).latest_first(),
                 BENEFICIARY_JOB_POSTINGS_PER_PAGE,
-            ).get_page(request.GET.get("job_postings_clicked_page")),
-            "job_postings_saved": Paginator(
+            ).get_page(request.GET.get("clicked_job_postings_page")),
+            "saved_job_postings": Paginator(
                 JobPosting.objects.filter(saved_by=beneficiary).latest_first(),
                 BENEFICIARY_JOB_POSTINGS_PER_PAGE,
-            ).get_page(request.GET.get("job_postings_saved_page")),
+            ).get_page(request.GET.get("saved_job_postings_page")),
         },
     )
 
