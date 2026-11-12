@@ -40,10 +40,10 @@ run:
 	uv run python manage.py tailwind runserver
 
 test:
-	uv run pytest
+	uv run pytest -n auto
 
 test-fast:
-	uv run pytest --no-cov --ignore=techpourtoutes/tests/e2e
+	uv run pytest -n auto --no-cov --ignore=techpourtoutes/tests/e2e
 
 verbose-test:
 	uv run pytest -vv
