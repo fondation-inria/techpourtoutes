@@ -39,9 +39,11 @@
     {% if not clicked_job_postings and not saved_job_postings %}
         <div class="w-full flex flex-col gap-y-4 items-start">
             <c-components.card title="Candidatures et opportunités" title_bg="black" class="mt-9 sm:mt-12" />
-            <c-components.card>Tu n'as aucune candidature ou opportunité enregistrée.</c-components.card>
-            <img src="{% static 'images/empty-event-bg.webp' %}" alt="" aria-hidden="true"
-                 class="w-full" width="1344" height="868" loading="lazy" decoding="async" />
+            <div class="relative w-full flex flex-col gap-y-4 sm:block">
+                <c-components.card class="sm:absolute sm:top-8 sm:inset-x-0">Tu n'as aucune candidature ou opportunité enregistrée.</c-components.card>
+                <img src="{% static 'images/empty-event-bg.webp' %}" alt="" aria-hidden="true"
+                     class="w-full" width="1344" height="868" loading="lazy" decoding="async" />
+            </div>
         </div>
     {% endif %}
 
