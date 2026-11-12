@@ -1435,6 +1435,17 @@ def test_index_beneficiary_job_postings_anchors_a_posting_in_both_lists_apart(
 
 
 @pytest.mark.django_db
+def test_index_beneficiary_job_postings_is_never_served_from_the_browser_cache(
+    client, beneficiary
+):
+    client.force_login(beneficiary)
+
+    response = client.get(reverse("index_beneficiary_job_postings"))
+
+    assert "no-store" in response["Cache-Control"]
+
+
+@pytest.mark.django_db
 def test_index_beneficiary_job_postings_shows_one_empty_state_when_both_lists_are_empty(
     client, beneficiary
 ):
@@ -1519,6 +1530,28 @@ def test_destroy_clicked_job_posting_takes_the_posting_out_of_her_follow_up(
     assert response["Location"] == reverse("index_beneficiary_job_postings")
     assert ClickedJobPosting.objects.count() == 0
     assert beneficiary.saved_job_postings.filter(pk=job_posting.pk).exists() is saved
+
+
+@pytest.mark.django_db
+@override_switch("internships", active=True)
+@pytest.mark.parametrize(
+    "data, anchor",
+    [({}, "candidatures-entamees"), ({"save": "true"}, "opportunites-enregistrees")],
+)
+def test_destroy_clicked_job_posting_brings_her_back_to_the_page_she_was_on(
+    client, beneficiary, job_posting, data, anchor
+):
+    ClickedJobPosting.objects.toggle(job_posting=job_posting, beneficiary=beneficiary)
+    client.force_login(beneficiary)
+    listing = f"{reverse('index_beneficiary_job_postings')}?saved_job_postings_page=2"
+
+    response = client.post(
+        reverse("destroy_clicked_job_posting", args=[job_posting.pk]),
+        data,
+        HTTP_REFERER=f"http://testserver{listing}",
+    )
+
+    assert response["Location"] == f"{listing}#{anchor}"
 
 
 @pytest.mark.django_db

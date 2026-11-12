@@ -443,9 +443,16 @@ def destroy_clicked_job_posting(request, pk):
     beneficiary = _beneficiary_or_404(request)
     job_posting = get_object_or_404(JobPosting, pk=pk)
     ClickedJobPosting.objects.filter(job_posting=job_posting, beneficiary=beneficiary).delete()
-    if request.POST.get("save") == "true":
+    saved = request.POST.get("save") == "true"
+    if saved:
         SavedJobPosting.objects.get_or_create(job_posting=job_posting, beneficiary=beneficiary)
-    return redirect("index_beneficiary_job_postings")
+    return redirect(
+        _back_to_listing(
+            request,
+            "index_beneficiary_job_postings",
+            anchor="opportunites-enregistrees" if saved else "candidatures-entamees",
+        )
+    )
 
 
 def _ticked(request, name, allowed):
@@ -471,6 +478,7 @@ def _searched_and_sorted(job_postings, search, sort_by_date):
 
 
 @beneficiary_required
+@never_cache
 def index_beneficiary_job_postings(request):
     beneficiary = request.user.beneficiary
     return render(
