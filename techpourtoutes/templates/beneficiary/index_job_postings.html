@@ -75,7 +75,7 @@
                 <div id="job_posting_results">
                     <div class="grid gap-4">
                         {% for job_posting in job_postings %}
-                            <c-components.job-posting-card :job_posting="job_posting"/>
+                            <c-components.job-posting-card :job_posting="job_posting" bookmark_action="{{ bookmark_action }}"/>
                         {% empty %}
                             <div class="flex flex-col gap-3 border border-black p-2">
                                 <c-components.title title="Aucune offre ne correspond à ta recherche" variant="h3" style="serif"/>
@@ -91,4 +91,6 @@
             </div>
         </c-components.card>
     </div>
+
+    <div id="modal-container"></div>
 </c-layout.base>
