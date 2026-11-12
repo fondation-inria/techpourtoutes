@@ -35,7 +35,7 @@
                      @change="updateFiltersTicked()"
                      @search-launched="searchLaunched = $event.detail">
                     <form id="job_posting_filters" action="{% url "index_job_postings" %}"
-                          hx-get="{% url "index_job_postings" %}" hx-trigger="change[target.type === 'checkbox'], change from:#job_posting_sort, submit"
+                          hx-get="{% url "index_job_postings" %}" hx-trigger="change[target.type === 'checkbox'], change from:#job_posting_sort, submit" hx-sync="this:replace"
                           hx-select="#job_posting_results" hx-target="#job_posting_results" hx-swap="outerHTML"
                           hx-select-oob="#job_posting_count:innerHTML,#job_posting_sort:innerHTML,#job_posting_search:outerHTML,#job_posting_search_error:innerHTML" hx-push-url="true" hx-history="false"
                           x-data="{ onlyCdi: {{ only_cdi|yesno:'true,false' }} }"
