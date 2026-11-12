@@ -892,6 +892,25 @@ def test_show_job_posting_goes_back_to_the_listing_she_came_from(client):
 
 @pytest.mark.django_db
 @override_switch("internships", active=True)
+@pytest.mark.parametrize(
+    ("anchor_prefix", "expected_prefix"),
+    [("candidature", "candidature"), ("enregistree", "enregistree"), ("inconnue", "offre")],
+)
+def test_show_job_posting_goes_back_to_the_card_of_her_opportunities(
+    client, anchor_prefix, expected_prefix
+):
+    job_posting = save_job_posting("Stage", JobPosting.Category.APPRENTICESHIP)
+    listing = f"{reverse('index_beneficiary_job_postings')}?job_postings_saved_page=2"
+
+    response = client.get(
+        show_job_posting_url(job_posting), {"ancre": anchor_prefix}, HTTP_REFERER=listing
+    )
+
+    assert response.context["back_url"] == f"{listing}#{expected_prefix}-{job_posting.pk}"
+
+
+@pytest.mark.django_db
+@override_switch("internships", active=True)
 def test_show_job_posting_goes_back_to_the_top_of_the_listing_without_one_to_return_to(client):
     job_posting = save_job_posting("Stage", JobPosting.Category.APPRENTICESHIP)
 
@@ -1149,6 +1168,49 @@ def test_create_saved_job_posting_modal_carries_the_posting_into_both_ways_in(cl
         in content
     )
     assert f"{reverse('login_request')}?saved_job_posting={job_posting.pk}" in content
+
+
+@pytest.mark.django_db
+def test_index_beneficiary_job_postings_pages_each_list_on_its_own(client, beneficiary):
+    for index in range(21):
+        clicked = save_job_posting(f"Cliquée {index:02d}", JobPosting.Category.APPRENTICESHIP)
+        ClickedJobPosting.objects.toggle(job_posting=clicked, beneficiary=beneficiary)
+        saved = save_job_posting(f"Enregistrée {index:02d}", JobPosting.Category.APPRENTICESHIP)
+        SavedJobPosting.objects.toggle(job_posting=saved, beneficiary=beneficiary)
+    client.force_login(beneficiary)
+
+    response = client.get(
+        reverse("index_beneficiary_job_postings"),
+        {"job_postings_clicked_page": 2, "job_postings_saved_page": 1},
+    )
+
+    assert response.context["job_postings_clicked"].number == 2
+    assert response.context["job_postings_saved"].number == 1
+    assert (
+        b'href="?job_postings_saved_page=1&job_postings_clicked_page=1#candidatures-entamees"'
+        in response.content
+    )
+    assert (
+        b'href="?job_postings_clicked_page=2&job_postings_saved_page=2#opportunites-enregistrees"'
+        in response.content
+    )
+    assert b"hx-select" not in response.content
+
+
+@pytest.mark.django_db
+def test_index_beneficiary_job_postings_anchors_a_posting_in_both_lists_apart(
+    client, beneficiary, job_posting
+):
+    ClickedJobPosting.objects.toggle(job_posting=job_posting, beneficiary=beneficiary)
+    SavedJobPosting.objects.toggle(job_posting=job_posting, beneficiary=beneficiary)
+    client.force_login(beneficiary)
+
+    html = client.get(reverse("index_beneficiary_job_postings")).content.decode()
+
+    for prefix in ("candidature", "enregistree"):
+        assert f'id="{prefix}-{job_posting.pk}"' in html
+        assert f'href="{show_job_posting_url(job_posting)}?ancre={prefix}"' in html
+    assert f'id="offre-{job_posting.pk}"' not in html
 
 
 def _signed_in_on(client, user, url):

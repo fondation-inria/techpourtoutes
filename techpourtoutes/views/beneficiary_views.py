@@ -12,6 +12,7 @@ from django.urls import reverse
 from django.views.decorators.http import require_POST
 from waffle.decorators import waffle_switch
 
+from ..decorators import beneficiary_required
 from ..forms import (
     BeneficiaryHigherEducationTrainingExperienceForm,
     BeneficiaryHighSchoolTrainingExperienceForm,
@@ -36,6 +37,7 @@ EVENTS_PER_PAGE = 18
 MAKEUSE_PROJECTS_PER_PAGE = 6
 JOB_POSTINGS_PER_PAGE = 20
 JOB_POSTING_SEARCH_MIN_LENGTH = 2
+BENEFICIARY_JOB_POSTINGS_PER_PAGE = 3
 
 # ------------------- pages -------------------
 
@@ -284,7 +286,12 @@ def index_job_postings(request):
 def show_job_posting(request, pk):
     beneficiary = getattr(request.user, "beneficiary", None)
     job_posting = get_object_or_404(JobPosting.objects.with_last_updated_at(), pk=pk)
-    back_url = _back_to_listing(request, "index_job_postings", anchor=f"offre-{job_posting.pk}")
+    back_url = _back_to_listing(
+        request,
+        "index_job_postings",
+        "index_beneficiary_job_postings",
+        anchor=f"{_job_posting_anchor_prefix(request)}-{job_posting.pk}",
+    )
     return render(
         request,
         "beneficiary/show_job_posting.html",
@@ -364,6 +371,25 @@ def _searched_and_sorted(job_postings, search, sort_by_date):
     return found.latest_first() if sort_by_date else found.most_relevant_first()
 
 
+@beneficiary_required
+def index_beneficiary_job_postings(request):
+    beneficiary = request.user.beneficiary
+    return render(
+        request,
+        "beneficiary/index_beneficiary_job_postings.html",
+        {
+            "job_postings_clicked": Paginator(
+                JobPosting.objects.filter(clicked_by=beneficiary).latest_first(),
+                BENEFICIARY_JOB_POSTINGS_PER_PAGE,
+            ).get_page(request.GET.get("job_postings_clicked_page")),
+            "job_postings_saved": Paginator(
+                JobPosting.objects.filter(saved_by=beneficiary).latest_first(),
+                BENEFICIARY_JOB_POSTINGS_PER_PAGE,
+            ).get_page(request.GET.get("job_postings_saved_page")),
+        },
+    )
+
+
 # ------------------- events -------------------
 
 
@@ -414,6 +440,11 @@ def _events_page(beneficiary, page):
             saved=Exists(SavedEvent.objects.filter(event=OuterRef("pk"), beneficiary=beneficiary))
         )
     return Paginator(upcoming, EVENTS_PER_PAGE).get_page(page)
+
+
+def _job_posting_anchor_prefix(request):
+    anchor_prefix = request.GET.get("ancre")
+    return anchor_prefix if anchor_prefix in ("candidature", "enregistree") else "offre"
 
 
 def _back_to_listing(request, *listings, anchor=""):

@@ -34,6 +34,7 @@ NEVER_LISTED_URL_NAMES = {
     "destroy_user",
     "index_pro_events",
     "index_beneficiary_events",
+    "index_beneficiary_job_postings",
     "new_event",
     "edit_pro_additional_information",
     "new_training_ambassador_request",

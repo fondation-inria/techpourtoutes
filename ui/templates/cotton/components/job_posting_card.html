@@ -1,18 +1,19 @@
 <c-vars
     job_posting=None
+    anchor_prefix="offre"
     title_class="mb-1"
     class=""
     logo_class="w-[65px] h-[65px] shrink-0 object-contain border border-black shadow shadow-black shadow-bottom-and-right"
 />
 {% load date_filters %}
 
-<div id="offre-{{ job_posting.pk }}" class="relative flex w-full wrap-anywhere scroll-mt-4 bg-neutral-0 border border-black shadow-box hover:shadow-bottom-and-right hover:shadow-{{ job_posting.category_color }}-500 {{ class }}">
+<div id="{{ anchor_prefix }}-{{ job_posting.pk }}" class="relative flex w-full wrap-anywhere scroll-mt-4 bg-neutral-0 border border-black shadow-box hover:shadow-bottom-and-right hover:shadow-{{ job_posting.category_color }}-500 {{ class }}">
     <div class="flex-1 min-w-0 p-4">
         <div class="flex items-center gap-4">
             <c-components.job-posting-logo :job_posting="job_posting" class="{{ logo_class }}" size="65" />
             <div class="min-w-0">
                 <h3 class="text-lg leading-[1.4] font-serif font-extrabold italic {{ title_class }}">
-                    <a href="{% url "show_job_posting" job_posting.pk %}"
+                    <a href="{% url "show_job_posting" job_posting.pk %}{% if anchor_prefix != "offre" %}?ancre={{ anchor_prefix }}{% endif %}"
                        class="after:absolute after:inset-0 focus-visible:outline-none focus-visible:after:outline-2 focus-visible:after:outline-blue-500 focus-visible:after:outline-offset-2">{{ job_posting.title }}</a>
                 </h3>
                 <p>{{ job_posting.company_name }}</p>

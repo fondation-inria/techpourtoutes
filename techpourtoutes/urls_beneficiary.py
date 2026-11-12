@@ -128,4 +128,9 @@ urlpatterns = [
         views.update_saved_job_posting,
         name="update_saved_job_posting",
     ),
+    path(
+        "mes-opportunites/",
+        views.index_beneficiary_job_postings,
+        name="index_beneficiary_job_postings",
+    ),
 ]
