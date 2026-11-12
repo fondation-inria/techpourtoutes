@@ -71,6 +71,7 @@ def test_the_optional_address_fields_and_the_logo_are_read_when_present(myfuture
     [
         ("3eInternship", Category.TROISIEME_INTERNSHIP),
         ("studentInternship", Category.HIGHER_ED_INTERNSHIP),
+        ("highSchoolInternship", Category.PFMP),
         ("apprenticeship", Category.APPRENTICESHIP),
         ("pmsmp", Category.FIRST_JOB),
     ],
@@ -108,19 +109,25 @@ def test_an_offer_of_several_types_lands_in_a_single_category(myfuture_record, i
     assert JobPosting.objects.get().category == Category.TROISIEME_INTERNSHIP
 
 
+def test_a_pfmp_also_open_to_students_is_a_higher_ed_internship(myfuture_record):
+    """Nearly half the PFMPs are also tagged studentInternship, mostly offers made for
+    students: the PFMP tab keeps to those meant for lycée pro pupils alone."""
+    record = myfuture_record(internshipTypes=["highSchoolInternship", "studentInternship"])
+
+    UpsertMyFutureJobPostings(records=[record])
+
+    assert JobPosting.objects.get().category == Category.HIGHER_ED_INTERNSHIP
+
+
 def test_the_types_without_a_category_are_left_out(myfuture_record):
-    record = myfuture_record(
-        internshipTypes=["3eInternship", "miniInternship", "visit", "highSchoolInternship"]
-    )
+    record = myfuture_record(internshipTypes=["3eInternship", "miniInternship", "visit"])
 
     UpsertMyFutureJobPostings(records=[record])
 
     assert JobPosting.objects.get().category == Category.TROISIEME_INTERNSHIP
 
 
-@pytest.mark.parametrize(
-    "internship_types", [[], ["miniInternship"], ["visit"], ["highSchoolInternship"]]
-)
+@pytest.mark.parametrize("internship_types", [[], ["miniInternship"], ["visit"]])
 def test_an_offer_without_any_category_is_not_imported(myfuture_record, internship_types):
     UpsertMyFutureJobPostings(records=[myfuture_record(internshipTypes=internship_types)])
 
@@ -131,6 +138,12 @@ def test_an_apprenticeship_is_an_apprenticeship_contract(myfuture_record):
     UpsertMyFutureJobPostings(records=[myfuture_record(internshipTypes=["apprenticeship"])])
 
     assert JobPosting.objects.get().contract_type == JobPosting.ContractType.APPRENTICESHIP
+
+
+def test_a_pmsmp_is_an_immersion_contract(myfuture_record):
+    UpsertMyFutureJobPostings(records=[myfuture_record(internshipTypes=["pmsmp"])])
+
+    assert JobPosting.objects.get().contract_type == JobPosting.ContractType.PMSMP
 
 
 def test_an_offer_without_a_city_is_not_imported(myfuture_record):
@@ -180,6 +193,16 @@ def test_only_the_sub_domains_we_follow_become_domains(myfuture_record):
         JobPosting.Domain.SYSTEMES_ET_RESEAUX,
         JobPosting.Domain.MATHEMATIQUES,
     ]
+
+
+def test_the_description_shows_the_line_breaks_typed_in_the_text(myfuture_record):
+    record = myfuture_record(description="<p>Description de l’atelier\nNotre atelier</p>")
+
+    UpsertMyFutureJobPostings(records=[record])
+
+    assert JobPosting.objects.get().description == (
+        "<p>Description de l’atelier<br>Notre atelier</p>"
+    )
 
 
 def test_the_description_keeps_its_layout_but_loses_whatever_could_run(myfuture_record):

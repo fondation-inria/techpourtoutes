@@ -27,6 +27,10 @@
                         {{ job_posting.company_name }} cherche une stagiaire au poste de&nbsp;:
                     {% elif job_posting.category == "apprenticeship" %}
                         {{ job_posting.company_name }} cherche une alternante au poste de&nbsp;:
+                    {% elif job_posting.category == "pfmp" %}
+                        {{ job_posting.company_name }} propose une PFMP&nbsp;:
+                    {% elif job_posting.contract_type == "pmsmp" %}
+                        {{ job_posting.company_name }} propose une immersion au poste de&nbsp;:
                     {% elif job_posting.category == "first_job" %}
                         {{ job_posting.company_name }} recrute au poste de&nbsp;:
                     {% else %}

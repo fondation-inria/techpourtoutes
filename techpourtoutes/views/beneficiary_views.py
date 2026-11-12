@@ -36,6 +36,11 @@ EVENTS_PER_PAGE = 18
 MAKEUSE_PROJECTS_PER_PAGE = 6
 JOB_POSTINGS_PER_PAGE = 20
 JOB_POSTING_SEARCH_MIN_LENGTH = 2
+# The pupils' tabs with no partner yet: left empty, they offer to be told when offers come.
+NOTIFIED_CATEGORIES = [
+    JobPosting.Category.SECONDE_INTERNSHIP,
+    JobPosting.Category.TROISIEME_INTERNSHIP,
+]
 
 # ------------------- pages -------------------
 
@@ -233,7 +238,7 @@ def index_job_postings(request):
 @require_POST
 def create_job_posting_notification(request):
     category = _job_posting_category(request)
-    if category not in JobPosting.PUPIL_CATEGORIES:
+    if category not in NOTIFIED_CATEGORIES:
         raise Http404
     form = UpcomingFeatureNotificationForm(data=request.POST)
     if not form.is_valid():
@@ -297,7 +302,7 @@ def _render_job_postings(request, notification_form):
             "query": query.urlencode(),
             "search": search,
             "searching": searching,
-            "pupil_tab_unfiltered": category in JobPosting.PUPIL_CATEGORIES
+            "notified_tab_unfiltered": category in NOTIFIED_CATEGORIES
             and not (searching or ticked_domains or ticked_departments),
             "sort_by_date": sort_by_date,
             "search_errors": [f"Saisis au moins {JOB_POSTING_SEARCH_MIN_LENGTH} caractères"]

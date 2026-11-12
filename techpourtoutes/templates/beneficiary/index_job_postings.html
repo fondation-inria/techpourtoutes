@@ -10,12 +10,16 @@
         <c-components.tabs class="flex">
             <c-components.tab_link href="{% url "index_job_postings" %}" label="Stages dans le supérieur" value="higher_ed_internship" current="{{ category }}" class="md:flex-none flex-auto" border_color="border-purple-500" bg_color="bg-purple-500" />
             <c-components.tab_link href="{% url "index_job_postings" %}?category=apprenticeship" label="Alternances" value="apprenticeship" current="{{ category }}" class="md:flex-none flex-auto" border_color="border-orange-500" bg_color="bg-orange-500" />
-            <c-components.tab_link href="{% url "index_job_postings" %}?category=seconde_internship" label="Stages de 2de" value="seconde_internship" current="{{ category }}" class="md:flex-none flex-auto" border_color="border-green-500" bg_color="bg-green-500" />
-            <c-components.tab_link href="{% url "index_job_postings" %}?category=troisieme_internship" label="Stages de 3e" value="troisieme_internship" current="{{ category }}" class="md:flex-none flex-auto" border_color="border-blue-500" bg_color="bg-blue-500" active_text_color="text-white"/>
-            <c-components.tab_link href="{% url "index_job_postings" %}?category=first_job" label="Premier emploi" value="first_job" current="{{ category }}" class="md:flex-none flex-auto" border_color="border-yellow-500" bg_color="bg-yellow-500"/>
+            <c-components.tab_link href="{% url "index_job_postings" %}?category=pfmp" label="PFMP" value="pfmp" current="{{ category }}" class="md:flex-none flex-auto" border_color="border-green-500" bg_color="bg-green-500" />
+            <c-components.tab_link href="{% url "index_job_postings" %}?category=seconde_internship" label="Stages de 2de" value="seconde_internship" current="{{ category }}" class="md:flex-none flex-auto" border_color="border-blue-500" bg_color="bg-blue-500" active_text_color="text-white" />
+            <c-components.tab_link href="{% url "index_job_postings" %}?category=troisieme_internship" label="Stages de 3e" value="troisieme_internship" current="{{ category }}" class="md:flex-none flex-auto" border_color="border-purple-500" bg_color="bg-purple-500" />
+            <c-components.tab_link href="{% url "index_job_postings" %}?category=first_job" label="Premier emploi" value="first_job" current="{{ category }}" class="md:flex-none flex-auto" border_color="border-orange-500" bg_color="bg-orange-500"/>
         </c-components.tabs>
         <c-components.card class="relative -mt-0.5 rounded-tl-none w-full z-10">
-            {% if pupil_tab_unfiltered and not job_postings.paginator.count %}
+            {% if category == "pfmp" %}
+                <p class="mb-5">En CAP et en bac professionnel, des stages en entreprise sont obligatoires. TechPourToutes t’aide à trouver une entreprise auprès de qui tu pourras effectuer ta «&nbsp;période de formation en milieu professionnel&nbsp;» (PFMP).</p>
+            {% endif %}
+            {% if notified_tab_unfiltered and not job_postings.paginator.count %}
                 <c-components.job_posting_pupil_empty_state :form="form" category="{{ category }}" />
             {% else %}
                 <div x-data="{
@@ -46,7 +50,7 @@
                           }"
                           class="flex flex-wrap gap-4 mb-3">
                         <input type="hidden" name="category" value="{{ category }}">
-                        <c-components.form_fields.search_bar id="job_posting_search" name="q" label="Rechercher une offre" placeholder="Métier, entreprise, etc." :value="search" :errors="search_errors">
+                        <c-components.form_fields.search_bar id="job_posting_search" name="q" label="Rechercher une offre" placeholder="Métier, entreprise, référence, etc." :value="search" :errors="search_errors">
                             <button type="button" x-show="searchLaunched || filtersTicked" x-cloak @click="resetAll()"
                                     class="ml-auto text-sm underline decoration-1 underline-offset-4 hover:decoration-2 active:bg-neutral-200 focus:outline-blue-500 focus:outline-offset-2 cursor-pointer">
                                 Tout réinitialiser
