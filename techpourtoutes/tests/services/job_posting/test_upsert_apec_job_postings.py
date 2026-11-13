@@ -190,14 +190,11 @@ def test_the_description_keeps_its_layout_but_loses_whatever_could_run(apec_reco
     [
         ("description_offre", "Détail du poste"),
         ("profil", "Profil recherché"),
-        ("presentation_entreprise", "M&amp;J Conseil"),
+        ("presentation_entreprise", "Présentation de l’entreprise"),
     ],
 )
 def test_each_titled_paragraph_is_replaced_by_its_heading(apec_record, section, heading):
-    record = apec_record(
-        Nom_entreprise="M&amp;J  Conseil",
-        Texte_offre=f'<p title="{section}"><p>Du texte</p></p>',
-    )
+    record = apec_record(Texte_offre=f'<p title="{section}"><p>Du texte</p></p>')
 
     UpsertApecJobPostings(records=[record])
 
@@ -223,7 +220,7 @@ def test_the_description_keeps_its_divisions_and_bold_text(apec_record):
     UpsertApecJobPostings(records=[record])
 
     assert JobPosting.objects.get().description == (
-        "<h3>TRANSPORTS DE L'AGGLOMÉRATION</h3>"
+        "<h3>Présentation de l’entreprise</h3>"
         "<div>Depuis <b>2002</b>.</div><div>Avec 220 personnes.</div>"
     )
 

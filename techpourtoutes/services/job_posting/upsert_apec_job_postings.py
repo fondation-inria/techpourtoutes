@@ -54,11 +54,11 @@ CONTRACT_TYPES = {
     ),
 }
 
-# Apec opens each section of an offer with a paragraph titled after it. The company's section is
-# headed by its name.
+# Apec opens each section of an offer with a paragraph titled after it.
 SECTION_HEADINGS = {
     "description_offre": "Détail du poste",
     "profil": "Profil recherché",
+    "presentation_entreprise": "Présentation de l’entreprise",
 }
 SECTION = re.compile(r'<p title="(description_offre|profil|presentation_entreprise)">')
 
@@ -118,13 +118,12 @@ class UpsertApecJobPostings(BaseService):
     def _posting(self, record):
         months = record.get("Duree_contrat")
         logo = record.get("Logo_entreprise")
-        company_name = _plain(record["Nom_entreprise"])
         return JobPosting(
             source=JobPosting.Source.APEC,
             external_id=record["Reference_apec"],
             title=_plain(record["Intitule"]),
-            company_name=company_name,
-            description=_description(record["Texte_offre"], company_name),
+            company_name=_plain(record["Nom_entreprise"]),
+            description=_description(record["Texte_offre"]),
             cog_code=record["COG_lieu"],
             department_code=department_code(record["COG_lieu"], ""),
             city=city_name(_plain(record["Libelle_lieu"])),
@@ -148,12 +147,11 @@ def _plain(text):
     return " ".join(html.unescape(text).split())
 
 
-def _description(text, company_name):
+def _description(text):
     """Each titled paragraph is headed by its title. Most hold no text, only the paragraphs
     following: those come out of nh3 empty, and are dropped like the others."""
-    headings = {**SECTION_HEADINGS, "presentation_entreprise": company_name}
     with_headings = SECTION.sub(
-        lambda section: f"<h3>{html.escape(headings[section[1]])}</h3><p>", text
+        lambda section: f"<h3>{SECTION_HEADINGS[section[1]]}</h3><p>", text
     )
     cleaned = nh3.clean(
         with_headings,
