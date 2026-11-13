@@ -10,6 +10,10 @@ urlpatterns = [
         RedirectView.as_view(pattern_name="home", permanent=True),
     ),
     path(
+        "pour-s-inscrire-c-est-juste-ici-532220/",
+        RedirectView.as_view(pattern_name="new_beneficiary_inscription_funnel", permanent=True),
+    ),
+    path(
         "inscription/", views.beneficiary_inscription_funnel, name="beneficiary_inscription_funnel"
     ),
     path(

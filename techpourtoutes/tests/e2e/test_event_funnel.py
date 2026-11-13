@@ -381,14 +381,19 @@ def test_an_event_is_edited_through_the_same_funnel(page, live_server, pro, even
     page.goto(f"{live_server.url}/coalition/evenements/{event.pk}/modifier/")
 
     expect(page.get_by_text("Modifier un événement")).to_be_visible()
+    # Every screen has its own Continuer and Retour: wait for the next one before clicking
+    # again, or the click lands on the screen still waiting to be replaced.
     page.get_by_role("button", name="Continuer").click()
+    expect(page.get_by_label("Nom de l'événement*")).to_be_visible()
     page.get_by_role("button", name="Continuer").click()
     # the place is shown the way the search would have labelled it, commune included
     expect(page.get_by_text("8 Boulevard du Port 80000 Amiens")).to_be_visible()
     page.get_by_role("button", name="Retour").click()
     page.get_by_label("Nom de l'événement*").fill("Salon renommé")
     page.get_by_role("button", name="Continuer").click()
+    expect(page.get_by_text("8 Boulevard du Port 80000 Amiens")).to_be_visible()
     page.get_by_role("button", name="Retour").click()
+    expect(page.get_by_label("Nom de l'événement*")).to_be_visible()
     page.get_by_role("button", name="Continuer").click()
     page.get_by_role("button", name="Publier", exact=True).click()
 
