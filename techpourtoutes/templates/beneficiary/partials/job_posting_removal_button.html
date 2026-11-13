@@ -1,0 +1,18 @@
+{% if skips_removal_modal %}
+    {% if removal == "saved" %}
+        {% include "beneficiary/partials/update_saved_job_posting.html" with card=True saved=True bookmark_action="toggle" %}
+    {% else %}
+        {% include "beneficiary/partials/update_clicked_job_posting.html" with clicked=True %}
+    {% endif %}
+{% else %}
+    <button type="button"
+            class="relative z-10 shrink-0 self-start ml-auto flex cursor-pointer"
+            aria-label="{% if removal == "saved" %}Retirer l’offre {{ job_posting.title }} de tes favoris{% else %}Retirer la candidature {{ job_posting.title }} de ton suivi{% endif %}"
+            aria-haspopup="dialog"
+            hx-get="{% if removal == "saved" %}{% url "destroy_saved_job_posting_modal" job_posting.pk %}{% else %}{% url "destroy_clicked_job_posting_modal" job_posting.pk %}{% endif %}"
+            hx-target="#modal-container"
+            hx-swap="innerHTML">
+        <c-components.icon name="{% if removal == "saved" %}bookmark_rosette{% else %}sent{% endif %}"
+                           class="w-10 h-10 text-{{ job_posting.category_color }}-500" />
+    </button>
+{% endif %}

@@ -1481,9 +1481,13 @@ def test_index_beneficiary_job_postings_only_shows_the_list_holding_postings(
 
 
 @pytest.mark.django_db
-def test_index_beneficiary_job_postings_gives_each_list_its_own_card_button(
-    client, beneficiary, job_posting
+@pytest.mark.parametrize("skips_modal", [False, True])
+def test_index_beneficiary_job_postings_gives_each_list_its_own_removal_button(
+    client, beneficiary, job_posting, skips_modal
 ):
+    """Until she asks not to see it again, each removal goes through its confirmation modal."""
+    beneficiary.skips_job_posting_removal_modal = skips_modal
+    beneficiary.save()
     clicked = save_job_posting("Cliquée", JobPosting.Category.APPRENTICESHIP)
     ClickedJobPosting.objects.toggle(job_posting=clicked, beneficiary=beneficiary)
     SavedJobPosting.objects.toggle(job_posting=job_posting, beneficiary=beneficiary)
@@ -1492,10 +1496,16 @@ def test_index_beneficiary_job_postings_gives_each_list_its_own_card_button(
     html = client.get(reverse("index_beneficiary_job_postings")).content.decode()
 
     assert html.count("#sent") == 1
-    assert reverse("destroy_clicked_job_posting_modal", args=[clicked.pk]) in html
     assert html.count("#bookmark_rosette") == 1
-    assert 'aria-pressed="true"' in html
-    assert reverse("update_saved_job_posting", args=[job_posting.pk]) in html
+    for resource, pk in (
+        ("clicked_job_posting", clicked.pk),
+        ("saved_job_posting", job_posting.pk),
+    ):
+        modal = reverse(f"destroy_{resource}_modal", args=[pk])
+        toggle = reverse(f"update_{resource}", args=[pk])
+        assert (f'hx-get="{modal}"' in html) is not skips_modal
+        assert (f'hx-post="{toggle}"' in html) is skips_modal
+    assert html.count('aria-pressed="true"') == (2 if skips_modal else 0)
     assert 'id="modal-container"' in html
 
 
@@ -1513,6 +1523,106 @@ def test_destroy_clicked_job_posting_modal_offers_both_ways_out(client, benefici
     assert "Continuer" in html
     assert 'name="save" value="true"' in html
     assert "Enregistrer l’offre en favori" in html
+    assert 'name="skip_modal"' in html
+
+
+@pytest.mark.django_db
+@override_switch("internships", active=True)
+@pytest.mark.parametrize("already_clicked, pressed", [(True, "false"), (False, "true")])
+def test_update_clicked_job_posting_toggles_it_in_and_out_of_her_follow_up(
+    client, beneficiary, job_posting, already_clicked, pressed
+):
+    if already_clicked:
+        ClickedJobPosting.objects.toggle(job_posting=job_posting, beneficiary=beneficiary)
+    client.force_login(beneficiary)
+
+    html = client.post(
+        reverse("update_clicked_job_posting", args=[job_posting.pk])
+    ).content.decode()
+
+    assert (
+        beneficiary.clicked_job_postings.filter(pk=job_posting.pk).exists() is not already_clicked
+    )
+    assert "#sent" in html
+    assert f'aria-pressed="{pressed}"' in html
+
+
+@pytest.mark.django_db
+@override_switch("internships", active=True)
+def test_update_clicked_job_posting_is_closed_to_pros(client, pro, job_posting):
+    client.force_login(pro)
+
+    response = client.post(reverse("update_clicked_job_posting", args=[job_posting.pk]))
+
+    assert response.status_code == 404
+
+
+@pytest.mark.django_db
+@override_switch("internships", active=True)
+def test_destroy_saved_job_posting_modal_asks_before_taking_it_out(
+    client, beneficiary, job_posting
+):
+    client.force_login(beneficiary)
+
+    html = client.get(
+        reverse("destroy_saved_job_posting_modal", args=[job_posting.pk])
+    ).content.decode()
+
+    assert "Veux-tu enlever cette opportunité de tes favoris ?" in html
+    assert f'action="{reverse("destroy_saved_job_posting", args=[job_posting.pk])}"' in html
+    assert "Continuer" in html
+    assert "Annuler" in html
+    assert 'name="skip_modal"' in html
+
+
+@pytest.mark.django_db
+@override_switch("internships", active=True)
+def test_destroy_saved_job_posting_brings_her_back_to_her_saved_postings(
+    client, beneficiary, job_posting
+):
+    SavedJobPosting.objects.toggle(job_posting=job_posting, beneficiary=beneficiary)
+    client.force_login(beneficiary)
+    listing = f"{reverse('index_beneficiary_job_postings')}?saved_job_postings_page=2"
+
+    response = client.post(
+        reverse("destroy_saved_job_posting", args=[job_posting.pk]),
+        HTTP_REFERER=f"http://testserver{listing}",
+    )
+
+    assert response["Location"] == f"{listing}#opportunites-enregistrees"
+    assert SavedJobPosting.objects.count() == 0
+
+
+@pytest.mark.django_db
+@override_switch("internships", active=True)
+def test_destroy_saved_job_posting_is_closed_to_pros(client, pro, job_posting):
+    client.force_login(pro)
+
+    response = client.post(reverse("destroy_saved_job_posting", args=[job_posting.pk]))
+
+    assert response.status_code == 404
+
+
+@pytest.mark.django_db
+@override_switch("internships", active=True)
+@pytest.mark.parametrize(
+    "route, data, skips_modal",
+    [
+        ("destroy_saved_job_posting", {}, False),
+        ("destroy_saved_job_posting", {"skip_modal": "true"}, True),
+        ("destroy_clicked_job_posting", {"skip_modal": "true"}, True),
+        ("destroy_clicked_job_posting", {"skip_modal": "true", "save": "true"}, True),
+    ],
+)
+def test_destroy_job_posting_removal_remembers_she_no_longer_wants_the_modal(
+    client, beneficiary, job_posting, route, data, skips_modal
+):
+    client.force_login(beneficiary)
+
+    client.post(reverse(route, args=[job_posting.pk]), data)
+
+    beneficiary.refresh_from_db()
+    assert beneficiary.skips_job_posting_removal_modal is skips_modal
 
 
 @pytest.mark.django_db

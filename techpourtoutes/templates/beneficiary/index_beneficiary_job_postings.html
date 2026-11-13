@@ -13,7 +13,7 @@
             <c-components.card title="Candidatures entamées" title_bg="black" class="mt-9 sm:mt-12" />
             <div class="grid gap-4">
                 {% for job_posting in clicked_job_postings %}
-                    <c-components.job-posting-card :job_posting="job_posting" anchor_prefix="candidature" :follow_up="True" />
+                    <c-components.job-posting-card :job_posting="job_posting" anchor_prefix="candidature" removal="clicked" :skips_removal_modal="skips_removal_modal" />
                 {% endfor %}
             </div>
             <div class="mt-4 flex justify-center self-center">
@@ -27,7 +27,7 @@
             <c-components.card title="Opportunités enregistrées" title_bg="black" class="{% if not clicked_job_postings %}mt-9 sm:mt-12{% endif %}" />
             <div class="grid gap-4">
             {% for job_posting in saved_job_postings %}
-                <c-components.job-posting-card :job_posting="job_posting" anchor_prefix="enregistree" bookmark_action="toggle" />
+                <c-components.job-posting-card :job_posting="job_posting" anchor_prefix="enregistree" removal="saved" :skips_removal_modal="skips_removal_modal" />
             {% endfor %}
             </div>
             <div class="mt-4 flex justify-center self-center">
