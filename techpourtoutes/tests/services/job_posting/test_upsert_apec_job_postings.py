@@ -176,13 +176,63 @@ def test_the_description_keeps_its_layout_but_loses_whatever_could_run(apec_reco
     record = apec_record(
         Texte_offre=(
             '<h2 style="color: red">Missions</h2>'
-            '<p title="profil">D&eacute;veloppeur</p><script>steal()</script>'
+            '<p title="autre">D&eacute;veloppeur</p><script>steal()</script>'
         )
     )
 
     UpsertApecJobPostings(records=[record])
 
     assert JobPosting.objects.get().description == "<h2>Missions</h2><p>Développeur</p>"
+
+
+@pytest.mark.parametrize(
+    ("section", "heading"),
+    [
+        ("description_offre", "Détail du poste"),
+        ("profil", "Profil recherché"),
+        ("presentation_entreprise", "Présentation de l’entreprise"),
+    ],
+)
+def test_each_titled_paragraph_is_replaced_by_its_heading(apec_record, section, heading):
+    record = apec_record(Texte_offre=f'<p title="{section}"><p>Du texte</p></p>')
+
+    UpsertApecJobPostings(records=[record])
+
+    assert JobPosting.objects.get().description == f"<h3>{heading}</h3><p>Du texte</p>"
+
+
+def test_a_titled_paragraph_holding_its_text_keeps_it_as_a_paragraph(apec_record):
+    """One section in seven or so holds its text directly rather than in paragraphs of its own."""
+    UpsertApecJobPostings(records=[apec_record(Texte_offre='<p title="profil">Curieuse</p>')])
+
+    assert JobPosting.objects.get().description == "<h3>Profil recherché</h3><p>Curieuse</p>"
+
+
+def test_the_description_keeps_its_divisions_and_bold_text(apec_record):
+    """Some sections are written in divisions rather than paragraphs, some in `<b>`."""
+    record = apec_record(
+        Texte_offre=(
+            '<p title="presentation_entreprise"><div class="ql-align-justify">Depuis '
+            "<b>2002</b>.</div><div>Avec 220 personnes.</div></p>"
+        )
+    )
+
+    UpsertApecJobPostings(records=[record])
+
+    assert JobPosting.objects.get().description == (
+        "<h3>Présentation de l’entreprise</h3>"
+        "<div>Depuis <b>2002</b>.</div><div>Avec 220 personnes.</div>"
+    )
+
+
+def test_the_description_shows_the_line_breaks_typed_in_the_text(apec_record):
+    record = apec_record(Texte_offre='<p title="profil">Formation en électricité\nPermis B</p>')
+
+    UpsertApecJobPostings(records=[record])
+
+    assert JobPosting.objects.get().description == (
+        "<h3>Profil recherché</h3><p>Formation en électricité<br>Permis B</p>"
+    )
 
 
 def test_an_offer_already_imported_is_updated_in_place(apec_record):

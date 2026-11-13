@@ -1,4 +1,5 @@
 import html
+import re
 from datetime import datetime
 
 import nh3
@@ -12,6 +13,7 @@ from techpourtoutes.utils.job_posting import (
     DESCRIPTION_TAGS,
     city_name,
     upsert_in_batches,
+    with_line_breaks,
 )
 from techpourtoutes.utils.naf import naf_label
 from techpourtoutes.utils.territories import department_code
@@ -51,6 +53,14 @@ CONTRACT_TYPES = {
         JobPosting.ContractType.PROFESSIONALIZATION
     ),
 }
+
+# Apec opens each section of an offer with a paragraph titled after it.
+SECTION_HEADINGS = {
+    "description_offre": "Détail du poste",
+    "profil": "Profil recherché",
+    "presentation_entreprise": "Présentation de l’entreprise",
+}
+SECTION = re.compile(r'<p title="(description_offre|profil|presentation_entreprise)">')
 
 # The export only gives the logos' path.
 LOGO_BASE_URL = "https://www.apec.fr/files/live/mounts/images"
@@ -113,13 +123,7 @@ class UpsertApecJobPostings(BaseService):
             external_id=record["Reference_apec"],
             title=_plain(record["Intitule"]),
             company_name=_plain(record["Nom_entreprise"]),
-            description=nh3.clean(
-                record["Texte_offre"],
-                tags=DESCRIPTION_TAGS,
-                # nh3 keeps `title` on every tag unless told otherwise, and Apec labels its
-                # sections `title="profil"`: they would show as tooltips.
-                attributes={**DESCRIPTION_ATTRIBUTES, "*": set()},
-            ),
+            description=_description(record["Texte_offre"]),
             cog_code=record["COG_lieu"],
             department_code=department_code(record["COG_lieu"], ""),
             city=city_name(_plain(record["Libelle_lieu"])),
@@ -141,6 +145,22 @@ class UpsertApecJobPostings(BaseService):
 def _plain(text):
     """Some company names come HTML-escaped (`M&amp;J`), some titles with doubled spaces."""
     return " ".join(html.unescape(text).split())
+
+
+def _description(text):
+    """Each titled paragraph is headed by its title. Most hold no text, only the paragraphs
+    following: those come out of nh3 empty, and are dropped like the others."""
+    with_headings = SECTION.sub(
+        lambda section: f"<h3>{SECTION_HEADINGS[section[1]]}</h3><p>", text
+    )
+    cleaned = nh3.clean(
+        with_headings,
+        tags=DESCRIPTION_TAGS,
+        # nh3 keeps `title` on every tag unless told otherwise, and Apec labels its sections
+        # `title="profil"`: an unknown one would show as a tooltip.
+        attributes={**DESCRIPTION_ATTRIBUTES, "*": set()},
+    )
+    return with_line_breaks(cleaned.replace("<p></p>", ""))
 
 
 def _category(record):

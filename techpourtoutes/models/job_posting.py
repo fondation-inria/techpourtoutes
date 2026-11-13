@@ -5,12 +5,7 @@ from html import unescape
 
 from django.contrib.postgres.fields import ArrayField
 from django.contrib.postgres.indexes import GinIndex
-from django.contrib.postgres.search import (
-    SearchQuery,
-    SearchRank,
-    SearchVector,
-    SearchVectorField,
-)
+from django.contrib.postgres.search import SearchRank, SearchVector, SearchVectorField
 from django.db import models
 from django.db.models import Case, Q, When
 from django.db.models.functions import Coalesce, TruncDate
@@ -18,10 +13,11 @@ from django.utils.html import strip_tags
 from django.utils.translation import gettext_lazy as _
 
 from techpourtoutes.models.base import BaseModel, BaseQuerySet
+from techpourtoutes.utils.full_text_search import SEARCH_CONFIG, masculine_text, search_query
 
 POSTAL_CODE = re.compile(r"\b\d{5}\b")
-SEARCH_CONFIG = "french_unaccent"
-MASCULINE_OF_FEMININE = (("euse", "eur"), ("trice", "teur"), ("cheffe", "chef"), ("[ée]e", "é"))
+HEADING = re.compile(r"<h\d>.*?</h\d>", re.DOTALL)
+LINE_BREAK = re.compile(r"<br>")
 LATEST_FIRST = Coalesce("last_updated_at", "published_at").desc()
 
 
@@ -65,52 +61,12 @@ class JobPostingQuerySet(BaseQuerySet):
         return self.with_last_updated_at().order_by("-relevance", LATEST_FIRST)
 
     def search(self, terms):
-        query = SearchQuery(
-            " & ".join(
-                _any_spelling(_masculine(word))
-                for word in terms.replace("\x00", "").lower().split()
-            ),
-            search_type="raw",
-            config=SEARCH_CONFIG,
-        )
-        return self.filter(search_vector=query).annotate(
+        """Also finds a posting by its reference, whatever its case."""
+        terms = terms.replace("\x00", "")
+        query = search_query(terms)
+        return self.filter(Q(search_vector=query) | Q(external_id__iexact=terms.strip())).annotate(
             relevance=SearchRank(models.F("search_vector"), query)
         )
-
-
-def _masculine(word):
-    for feminine, masculine in MASCULINE_OF_FEMININE:
-        word = re.sub(rf"{feminine}(s?)\b", rf"{masculine}\1", word)
-    return word
-
-
-def _any_spelling(word):
-    """Matches "node.js" as typed, "nodejs" and "node js", but not "node" and "js" far apart."""
-    parts = re.findall(r"\w+", word)
-    if len(parts) < 2:
-        return _prefix(word)
-    spellings = [_prefix(word), _prefix("".join(parts))]
-    if all(len(part) > 1 for part in parts):
-        spellings.append(" <-> ".join(_prefix(part) for part in parts))
-    return "(" + " | ".join(spellings) + ")"
-
-
-def _prefix(word):
-    return "'" + word.replace("\\", "\\\\").replace("'", "''") + "':*"
-
-
-def _masculine_text(field):
-    text = models.F(field)
-    for feminine, masculine in MASCULINE_OF_FEMININE:
-        text = models.Func(
-            text,
-            models.Value(rf"{feminine}(s?)\M"),
-            models.Value(rf"{masculine}\1"),
-            models.Value("gi"),
-            function="regexp_replace",
-            output_field=models.TextField(),
-        )
-    return text
 
 
 class VisibleJobPostingManager(models.Manager.from_queryset(JobPostingQuerySet)):
@@ -125,6 +81,7 @@ class JobPosting(BaseModel):
         SECONDE_INTERNSHIP = "seconde_internship", _("Stage de seconde")
         TROISIEME_INTERNSHIP = "troisieme_internship", _("Stage de troisième")
         FIRST_JOB = "first_job", _("Premier emploi")
+        PFMP = "pfmp", _("PFMP")
 
     class ContractType(models.TextChoices):
         CDD = "cdd", _("CDD")
@@ -132,6 +89,7 @@ class JobPosting(BaseModel):
         INTERIM = "interim", _("Mission d'intérim")
         APPRENTICESHIP = "apprenticeship", _("Contrat d'apprentissage")
         PROFESSIONALIZATION = "professionalization", _("Contrat de professionnalisation")
+        PMSMP = "pmsmp", _("Immersion professionnelle")
 
     class Domain(models.TextChoices):
         ELECTRONIQUE = "electronique", _("Électronique")
@@ -183,7 +141,12 @@ class JobPosting(BaseModel):
     all_objects = models.Manager()
 
     CATEGORY_CONTRACT_TYPES = {
-        Category.FIRST_JOB: [ContractType.CDD, ContractType.CDI, ContractType.INTERIM],
+        Category.FIRST_JOB: [
+            ContractType.CDD,
+            ContractType.CDI,
+            ContractType.INTERIM,
+            ContractType.PMSMP,
+        ],
         Category.APPRENTICESHIP: [ContractType.APPRENTICESHIP, ContractType.PROFESSIONALIZATION],
     }
 
@@ -197,7 +160,7 @@ class JobPosting(BaseModel):
         Domain.PROJETS_SCIENTIFIQUES_TECHNIQUES,
         Domain.TEST_ESSAI_VALIDATION_EXPERTISE,
     ]
-    PUPIL_CATEGORIES = [Category.SECONDE_INTERNSHIP, Category.TROISIEME_INTERNSHIP]
+    PUPIL_CATEGORIES = [Category.PFMP, Category.SECONDE_INTERNSHIP, Category.TROISIEME_INTERNSHIP]
 
     DURATION_RANGES = {
         Duration.UNDER_3_MONTHS: Q(duration_months__lt=3),
@@ -209,9 +172,10 @@ class JobPosting(BaseModel):
     CATEGORY_COLORS = {
         Category.HIGHER_ED_INTERNSHIP: "purple",
         Category.APPRENTICESHIP: "orange",
-        Category.SECONDE_INTERNSHIP: "green",
-        Category.TROISIEME_INTERNSHIP: "blue",
-        Category.FIRST_JOB: "yellow",
+        Category.SECONDE_INTERNSHIP: "blue",
+        Category.TROISIEME_INTERNSHIP: "purple",
+        Category.FIRST_JOB: "orange",
+        Category.PFMP: "green",
     }
 
     source = models.CharField(
@@ -273,9 +237,9 @@ class JobPosting(BaseModel):
         verbose_name=_("cliquée par"),
     )
     search_vector = models.GeneratedField(
-        expression=SearchVector(_masculine_text("title"), weight="A", config=SEARCH_CONFIG)
-        + SearchVector(_masculine_text("company_name"), weight="B", config=SEARCH_CONFIG)
-        + SearchVector(_masculine_text("description"), weight="C", config=SEARCH_CONFIG),
+        expression=SearchVector(masculine_text("title"), weight="A", config=SEARCH_CONFIG)
+        + SearchVector(masculine_text("company_name"), weight="B", config=SEARCH_CONFIG)
+        + SearchVector(masculine_text("description"), weight="C", config=SEARCH_CONFIG),
         output_field=SearchVectorField(),
         db_persist=True,
     )
@@ -318,4 +282,5 @@ class JobPosting(BaseModel):
 
     @property
     def description_text(self):
-        return unescape(strip_tags(self.description))
+        """Without its headings: an excerpt would otherwise open on « Détail du poste »."""
+        return unescape(strip_tags(LINE_BREAK.sub(" ", HEADING.sub("", self.description))))

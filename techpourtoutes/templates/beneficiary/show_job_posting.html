@@ -27,6 +27,10 @@
                         {{ job_posting.company_name }} cherche une stagiaire au poste de&nbsp;:
                     {% elif job_posting.category == "apprenticeship" %}
                         {{ job_posting.company_name }} cherche une alternante au poste de&nbsp;:
+                    {% elif job_posting.category == "pfmp" %}
+                        {{ job_posting.company_name }} propose une PFMP&nbsp;:
+                    {% elif job_posting.contract_type == "pmsmp" %}
+                        {{ job_posting.company_name }} propose une immersion au poste de&nbsp;:
                     {% elif job_posting.category == "first_job" %}
                         {{ job_posting.company_name }} recrute au poste de&nbsp;:
                     {% else %}
@@ -126,9 +130,9 @@
     </div>
 
     <c-components.card class="w-full">
-        <h2 class="font-bold text-lg mb-3">Descriptif de l’offre</h2>
+        <h2 class="sr-only">Descriptif de l’offre</h2>
         {# Sanitised on import: only layout tags and links are left. #}
-        <div class="wrap-anywhere text-sm [&_p]:mb-3 [&_h2]:font-bold [&_h3]:font-bold [&_h4]:font-bold [&_ul]:list-disc [&_ol]:list-decimal [&_ul,&_ol]:pl-6 [&_ul,&_ol]:mb-3 [&_a]:underline">{{ job_posting.description|safe }}</div>
+        <div class="wrap-anywhere text-sm [&_p]:mb-3 [&_h2,&_h3,&_h4]:font-bold [&_h2,&_h3,&_h4]:text-base [&_h2,&_h3]:bg-black [&_h2,&_h3]:text-white [&_h2,&_h3]:mt-1 [&_h2,&_h3]:p-1 [&_h2,&_h3]:w-fit [&_h2,&_h3]:mb-2 [&_ul]:list-disc [&_ol]:list-decimal [&_ul,&_ol]:pl-6 [&_ul,&_ol]:mb-3 [&_a]:underline">{{ job_posting.description|safe }}</div>
     </c-components.card>
 
     <c-components.card class="w-full">
