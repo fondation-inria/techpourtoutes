@@ -73,8 +73,8 @@ Every make target wraps `uv`. Never run `python manage.py` without `uv run`.
 make install    # first-time setup: DB, .env, deps, migrations, pre-commit hooks, seed
 make sync       # install/update deps + run migrations
 make run        # dev server with Tailwind watcher
-make test       # whole suite with coverage, browser tests included (~1 min 40)
-make test-fast  # no browser tests, no coverage (~50 s)
+make test       # whole suite with coverage, browser tests included, on every core (~1 min 15)
+make test-fast  # no browser tests, no coverage, on every core (~40 s)
 make lint       # ruff check
 make format     # ruff format
 make icons      # rebuild the SVG sprite — run it after any change in ui/svg_source/, commit the sprite
