@@ -1,0 +1,51 @@
+{% load static %}
+
+<c-layout.base title="Mes opportunités – TechPourToutes">
+    <div class="w-full flex flex-col lg:flex-row lg:items-center lg:justify-between">
+        <c-components.title title="Mes opportunités" title_bg="green" />
+        <div class="mt-8 lg:m-0">
+            <c-components.button label="Voir toutes les opportunités" href="{% url "index_job_postings" %}" class="shrink-0" />
+        </div>
+    </div>
+
+    {% if clicked_job_postings %}
+        <div id="candidatures-entamees" class="w-full flex flex-col gap-y-4 items-start">
+            <c-components.card title="Candidatures entamées" title_bg="black" class="mt-9 sm:mt-12" />
+            <div class="grid gap-4">
+                {% for job_posting in clicked_job_postings %}
+                    <c-components.job-posting-card :job_posting="job_posting" anchor_prefix="candidature" removal="clicked" :skips_removal_modal="skips_removal_modal" />
+                {% endfor %}
+            </div>
+            <div class="mt-4 flex justify-center self-center">
+                <c-components.pagination :page="clicked_job_postings" param="clicked_job_postings_page" anchor="candidatures-entamees" reload="true" query="saved_job_postings_page={{ saved_job_postings.number }}" />
+            </div>
+        </div>
+    {% endif %}
+
+    {% if saved_job_postings %}
+        <div id="opportunites-enregistrees" class="w-full flex flex-col gap-y-4 items-start">
+            <c-components.card title="Opportunités enregistrées" title_bg="black" class="{% if not clicked_job_postings %}mt-9 sm:mt-12{% endif %}" />
+            <div class="grid gap-4">
+            {% for job_posting in saved_job_postings %}
+                <c-components.job-posting-card :job_posting="job_posting" anchor_prefix="enregistree" removal="saved" :skips_removal_modal="skips_removal_modal" />
+            {% endfor %}
+            </div>
+            <div class="mt-4 flex justify-center self-center">
+                <c-components.pagination :page="saved_job_postings" param="saved_job_postings_page" anchor="opportunites-enregistrees" reload="true" query="clicked_job_postings_page={{ clicked_job_postings.number }}" />
+            </div>
+        </div>
+    {% endif %}
+
+    {% if not clicked_job_postings and not saved_job_postings %}
+        <div class="w-full flex flex-col gap-y-4 items-start">
+            <c-components.card title="Candidatures et opportunités" title_bg="black" class="mt-9 sm:mt-12" />
+            <div class="relative w-full flex flex-col gap-y-4 sm:block">
+                <c-components.card class="sm:absolute sm:top-8 sm:inset-x-0">Tu n'as aucune candidature ou opportunité enregistrée.</c-components.card>
+                <img src="{% static 'images/empty-event-bg.webp' %}" alt="" aria-hidden="true"
+                     class="w-full" width="1344" height="868" loading="lazy" decoding="async" />
+            </div>
+        </div>
+    {% endif %}
+
+    <div id="modal-container"></div>
+</c-layout.base>

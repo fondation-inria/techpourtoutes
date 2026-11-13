@@ -1001,6 +1001,25 @@ def test_show_job_posting_goes_back_to_the_listing_she_came_from(client):
 
 @pytest.mark.django_db
 @override_switch("internships", active=True)
+@pytest.mark.parametrize(
+    ("anchor_prefix", "expected_prefix"),
+    [("candidature", "candidature"), ("enregistree", "enregistree"), ("inconnue", "offre")],
+)
+def test_show_job_posting_goes_back_to_the_card_of_her_opportunities(
+    client, anchor_prefix, expected_prefix
+):
+    job_posting = save_job_posting("Stage", JobPosting.Category.APPRENTICESHIP)
+    listing = f"{reverse('index_beneficiary_job_postings')}?saved_job_postings_page=2"
+
+    response = client.get(
+        show_job_posting_url(job_posting), {"ancre": anchor_prefix}, HTTP_REFERER=listing
+    )
+
+    assert response.context["back_url"] == f"{listing}#{expected_prefix}-{job_posting.pk}"
+
+
+@pytest.mark.django_db
+@override_switch("internships", active=True)
 def test_show_job_posting_goes_back_to_the_top_of_the_listing_without_one_to_return_to(client):
     job_posting = save_job_posting("Stage", JobPosting.Category.APPRENTICESHIP)
 
@@ -1370,6 +1389,289 @@ def test_create_saved_job_posting_modal_carries_the_posting_into_both_ways_in(cl
         in content
     )
     assert f"{reverse('login_request')}?saved_job_posting={job_posting.pk}" in content
+
+
+@pytest.mark.django_db
+def test_index_beneficiary_job_postings_pages_each_list_on_its_own(client, beneficiary):
+    for index in range(21):
+        clicked = save_job_posting(f"Cliquée {index:02d}", JobPosting.Category.APPRENTICESHIP)
+        ClickedJobPosting.objects.toggle(job_posting=clicked, beneficiary=beneficiary)
+        saved = save_job_posting(f"Enregistrée {index:02d}", JobPosting.Category.APPRENTICESHIP)
+        SavedJobPosting.objects.toggle(job_posting=saved, beneficiary=beneficiary)
+    client.force_login(beneficiary)
+
+    response = client.get(
+        reverse("index_beneficiary_job_postings"),
+        {"clicked_job_postings_page": 2, "saved_job_postings_page": 1},
+    )
+
+    assert response.context["clicked_job_postings"].number == 2
+    assert response.context["saved_job_postings"].number == 1
+    assert (
+        b'href="?saved_job_postings_page=1&clicked_job_postings_page=1#candidatures-entamees"'
+        in response.content
+    )
+    assert (
+        b'href="?clicked_job_postings_page=2&saved_job_postings_page=2#opportunites-enregistrees"'
+        in response.content
+    )
+    assert b"hx-select" not in response.content
+
+
+@pytest.mark.django_db
+def test_index_beneficiary_job_postings_anchors_a_posting_in_both_lists_apart(
+    client, beneficiary, job_posting
+):
+    ClickedJobPosting.objects.toggle(job_posting=job_posting, beneficiary=beneficiary)
+    SavedJobPosting.objects.toggle(job_posting=job_posting, beneficiary=beneficiary)
+    client.force_login(beneficiary)
+
+    html = client.get(reverse("index_beneficiary_job_postings")).content.decode()
+
+    for prefix in ("candidature", "enregistree"):
+        assert f'id="{prefix}-{job_posting.pk}"' in html
+        assert f'href="{show_job_posting_url(job_posting)}?ancre={prefix}"' in html
+    assert f'id="offre-{job_posting.pk}"' not in html
+
+
+@pytest.mark.django_db
+def test_index_beneficiary_job_postings_is_never_served_from_the_browser_cache(
+    client, beneficiary
+):
+    client.force_login(beneficiary)
+
+    response = client.get(reverse("index_beneficiary_job_postings"))
+
+    assert "no-store" in response["Cache-Control"]
+
+
+@pytest.mark.django_db
+def test_index_beneficiary_job_postings_shows_one_empty_state_when_both_lists_are_empty(
+    client, beneficiary
+):
+    client.force_login(beneficiary)
+
+    html = client.get(reverse("index_beneficiary_job_postings")).content.decode()
+
+    assert "Candidatures et opportunités" in html
+    assert "Tu n'as aucune candidature ou opportunité enregistrée." in html
+    assert "Candidatures entamées" not in html
+    assert "Opportunités enregistrées" not in html
+
+
+@pytest.mark.django_db
+@pytest.mark.parametrize(
+    "model, shown, hidden",
+    [
+        (ClickedJobPosting, "Candidatures entamées", "Opportunités enregistrées"),
+        (SavedJobPosting, "Opportunités enregistrées", "Candidatures entamées"),
+    ],
+)
+def test_index_beneficiary_job_postings_only_shows_the_list_holding_postings(
+    client, beneficiary, job_posting, model, shown, hidden
+):
+    model.objects.toggle(job_posting=job_posting, beneficiary=beneficiary)
+    client.force_login(beneficiary)
+
+    html = client.get(reverse("index_beneficiary_job_postings")).content.decode()
+
+    assert shown in html
+    assert hidden not in html
+    assert "Tu n'as aucune" not in html
+
+
+@pytest.mark.django_db
+@pytest.mark.parametrize("skips_modal", [False, True])
+def test_index_beneficiary_job_postings_gives_each_list_its_own_removal_button(
+    client, beneficiary, job_posting, skips_modal
+):
+    """Until she asks not to see it again, each removal goes through its confirmation modal."""
+    beneficiary.skips_job_posting_removal_modal = skips_modal
+    beneficiary.save()
+    clicked = save_job_posting("Cliquée", JobPosting.Category.APPRENTICESHIP)
+    ClickedJobPosting.objects.toggle(job_posting=clicked, beneficiary=beneficiary)
+    SavedJobPosting.objects.toggle(job_posting=job_posting, beneficiary=beneficiary)
+    client.force_login(beneficiary)
+
+    html = client.get(reverse("index_beneficiary_job_postings")).content.decode()
+
+    assert html.count("#sent") == 1
+    assert html.count("#bookmark_rosette") == 1
+    for resource, pk in (
+        ("clicked_job_posting", clicked.pk),
+        ("saved_job_posting", job_posting.pk),
+    ):
+        modal = reverse(f"destroy_{resource}_modal", args=[pk])
+        toggle = reverse(f"update_{resource}", args=[pk])
+        assert (f'hx-get="{modal}"' in html) is not skips_modal
+        assert (f'hx-post="{toggle}"' in html) is skips_modal
+    assert html.count('aria-pressed="true"') == (2 if skips_modal else 0)
+    assert 'id="modal-container"' in html
+
+
+@pytest.mark.django_db
+@override_switch("internships", active=True)
+def test_destroy_clicked_job_posting_modal_offers_both_ways_out(client, beneficiary, job_posting):
+    client.force_login(beneficiary)
+
+    html = client.get(
+        reverse("destroy_clicked_job_posting_modal", args=[job_posting.pk])
+    ).content.decode()
+
+    assert "Veux-tu enlever cette candidature de ton suivi ?" in html
+    assert f'action="{reverse("destroy_clicked_job_posting", args=[job_posting.pk])}"' in html
+    assert "Continuer" in html
+    assert 'name="save" value="true"' in html
+    assert "Enregistrer l’offre en favori" in html
+    assert 'name="skip_modal"' in html
+
+
+@pytest.mark.django_db
+@override_switch("internships", active=True)
+@pytest.mark.parametrize("already_clicked, pressed", [(True, "false"), (False, "true")])
+def test_update_clicked_job_posting_toggles_it_in_and_out_of_her_follow_up(
+    client, beneficiary, job_posting, already_clicked, pressed
+):
+    if already_clicked:
+        ClickedJobPosting.objects.toggle(job_posting=job_posting, beneficiary=beneficiary)
+    client.force_login(beneficiary)
+
+    html = client.post(
+        reverse("update_clicked_job_posting", args=[job_posting.pk])
+    ).content.decode()
+
+    assert (
+        beneficiary.clicked_job_postings.filter(pk=job_posting.pk).exists() is not already_clicked
+    )
+    assert "#sent" in html
+    assert f'aria-pressed="{pressed}"' in html
+
+
+@pytest.mark.django_db
+@override_switch("internships", active=True)
+def test_update_clicked_job_posting_is_closed_to_pros(client, pro, job_posting):
+    client.force_login(pro)
+
+    response = client.post(reverse("update_clicked_job_posting", args=[job_posting.pk]))
+
+    assert response.status_code == 404
+
+
+@pytest.mark.django_db
+@override_switch("internships", active=True)
+def test_destroy_saved_job_posting_modal_asks_before_taking_it_out(
+    client, beneficiary, job_posting
+):
+    client.force_login(beneficiary)
+
+    html = client.get(
+        reverse("destroy_saved_job_posting_modal", args=[job_posting.pk])
+    ).content.decode()
+
+    assert "Veux-tu enlever cette opportunité de tes favoris ?" in html
+    assert f'action="{reverse("destroy_saved_job_posting", args=[job_posting.pk])}"' in html
+    assert "Continuer" in html
+    assert "Annuler" in html
+    assert 'name="skip_modal"' in html
+
+
+@pytest.mark.django_db
+@override_switch("internships", active=True)
+def test_destroy_saved_job_posting_brings_her_back_to_her_saved_postings(
+    client, beneficiary, job_posting
+):
+    SavedJobPosting.objects.toggle(job_posting=job_posting, beneficiary=beneficiary)
+    client.force_login(beneficiary)
+    listing = f"{reverse('index_beneficiary_job_postings')}?saved_job_postings_page=2"
+
+    response = client.post(
+        reverse("destroy_saved_job_posting", args=[job_posting.pk]),
+        HTTP_REFERER=f"http://testserver{listing}",
+    )
+
+    assert response["Location"] == f"{listing}#opportunites-enregistrees"
+    assert SavedJobPosting.objects.count() == 0
+
+
+@pytest.mark.django_db
+@override_switch("internships", active=True)
+def test_destroy_saved_job_posting_is_closed_to_pros(client, pro, job_posting):
+    client.force_login(pro)
+
+    response = client.post(reverse("destroy_saved_job_posting", args=[job_posting.pk]))
+
+    assert response.status_code == 404
+
+
+@pytest.mark.django_db
+@override_switch("internships", active=True)
+@pytest.mark.parametrize(
+    "route, data, skips_modal",
+    [
+        ("destroy_saved_job_posting", {}, False),
+        ("destroy_saved_job_posting", {"skip_modal": "true"}, True),
+        ("destroy_clicked_job_posting", {"skip_modal": "true"}, True),
+        ("destroy_clicked_job_posting", {"skip_modal": "true", "save": "true"}, True),
+    ],
+)
+def test_destroy_job_posting_removal_remembers_she_no_longer_wants_the_modal(
+    client, beneficiary, job_posting, route, data, skips_modal
+):
+    client.force_login(beneficiary)
+
+    client.post(reverse(route, args=[job_posting.pk]), data)
+
+    beneficiary.refresh_from_db()
+    assert beneficiary.skips_job_posting_removal_modal is skips_modal
+
+
+@pytest.mark.django_db
+@override_switch("internships", active=True)
+@pytest.mark.parametrize("data, saved", [({}, False), ({"save": "true"}, True)])
+def test_destroy_clicked_job_posting_takes_the_posting_out_of_her_follow_up(
+    client, beneficiary, job_posting, data, saved
+):
+    ClickedJobPosting.objects.toggle(job_posting=job_posting, beneficiary=beneficiary)
+    client.force_login(beneficiary)
+
+    response = client.post(reverse("destroy_clicked_job_posting", args=[job_posting.pk]), data)
+
+    assert response.status_code == 302
+    assert response["Location"] == reverse("index_beneficiary_job_postings")
+    assert ClickedJobPosting.objects.count() == 0
+    assert beneficiary.saved_job_postings.filter(pk=job_posting.pk).exists() is saved
+
+
+@pytest.mark.django_db
+@override_switch("internships", active=True)
+@pytest.mark.parametrize(
+    "data, anchor",
+    [({}, "candidatures-entamees"), ({"save": "true"}, "opportunites-enregistrees")],
+)
+def test_destroy_clicked_job_posting_brings_her_back_to_the_page_she_was_on(
+    client, beneficiary, job_posting, data, anchor
+):
+    ClickedJobPosting.objects.toggle(job_posting=job_posting, beneficiary=beneficiary)
+    client.force_login(beneficiary)
+    listing = f"{reverse('index_beneficiary_job_postings')}?saved_job_postings_page=2"
+
+    response = client.post(
+        reverse("destroy_clicked_job_posting", args=[job_posting.pk]),
+        data,
+        HTTP_REFERER=f"http://testserver{listing}",
+    )
+
+    assert response["Location"] == f"{listing}#{anchor}"
+
+
+@pytest.mark.django_db
+@override_switch("internships", active=True)
+def test_destroy_clicked_job_posting_is_closed_to_pros(client, pro, job_posting):
+    client.force_login(pro)
+
+    response = client.post(reverse("destroy_clicked_job_posting", args=[job_posting.pk]))
+
+    assert response.status_code == 404
 
 
 def _signed_in_on(client, user, url):

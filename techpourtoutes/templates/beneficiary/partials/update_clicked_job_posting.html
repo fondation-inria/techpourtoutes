@@ -1,0 +1,17 @@
+<div data-follow-up="{{ job_posting.pk }}" class="relative z-10 shrink-0 self-start ml-auto">
+    <button type="button"
+            class="flex cursor-pointer"
+            aria-label="Suivre la candidature {{ job_posting.title }}"
+            aria-pressed="{{ clicked|yesno:"true,false" }}"
+            hx-post="{% url "update_clicked_job_posting" job_posting.pk %}"
+            hx-target="closest [data-follow-up]"
+            hx-swap="outerHTML"
+            hx-disabled-elt="this"
+            hx-headers='{"X-CSRFToken": "{{ csrf_token }}"}'>
+        <c-components.icon name="sent"
+                           class="w-10 h-10 {% if clicked %}text-{{ job_posting.category_color }}-500{% else %}text-neutral-0{% endif %}" />
+    </button>
+</div>
+{% if oob and messages %}
+    <c-layout.partials.messages oob_swap="true" />
+{% endif %}
