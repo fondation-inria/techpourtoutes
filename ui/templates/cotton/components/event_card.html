@@ -4,7 +4,7 @@
     <div class="flex flex-col gap-4 text-black {{ category_color }}">
         <div data-event-image="card" class="relative self-center w-50 h-50 {% if event.image %}{{ category_color }}{% endif %}">
             <img src="{{ event.image_url }}" alt="{{ event.image_alt }}" width="200" height="200" loading="lazy"
-                 class="w-full h-full object-contain {% if event.image %}border border-black{% endif %}">
+                 class="w-full h-full object-contain {% if event.image %}border border-t-0 border-black{% endif %}">
             {% if bookmark_action %}
                 <div class="absolute top-2 right-2">
                     {% include "beneficiary/partials/update_saved_event.html" with saved=event.saved %}
