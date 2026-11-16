@@ -1,0 +1,28 @@
+<c-vars name_field id_field not_found_field school_label />
+
+{# Placed in an Alpine scope holding `structureType`, which the structure type select feeds. #}
+{# A school is picked in the catalogue, any other structure typed: only one field may post its name. #}
+{# Retired and jobless pros work in no structure to name. #}
+<template x-if="structureType === 'school'">
+    <c-components.form_fields.school_search
+        :name_field=name_field
+        :id_field=id_field
+        :not_found_field=not_found_field
+        scope="secondary"
+        label="{{ school_label }}"
+        description="Recherchez par nom et/ou code postal" />
+</template>
+<template x-if="structureType === 'higher_ed'">
+    <c-components.form_fields.school_search
+        :name_field=name_field
+        :id_field=id_field
+        :not_found_field=not_found_field
+        scope="higher_ed"
+        label="{{ school_label }}"
+        description="Recherchez par nom" />
+</template>
+<template x-if="structureType && !['retired', 'jobless', 'school', 'higher_ed'].includes(structureType)">
+    <div>
+        <c-components.form_fields.input :field=name_field autocomplete="organization" />
+    </div>
+</template>

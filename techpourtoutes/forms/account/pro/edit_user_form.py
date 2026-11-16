@@ -5,9 +5,10 @@ from techpourtoutes.validators import POSTAL_CODE_VALIDATOR
 
 from ....models import Pro
 from ...fields import PhoneNumberField
+from ...mixins import StructureFormMixin
 
 
-class ProEditUserForm(forms.Form):
+class ProEditUserForm(StructureFormMixin, forms.Form):
     first_name = forms.CharField(label=_("Prénom*"))
     last_name = forms.CharField(label=_("Nom*"))
     phone = PhoneNumberField(region="FR", label=_("Numéro de téléphone"), required=False)
@@ -16,6 +17,8 @@ class ProEditUserForm(forms.Form):
         choices=[("", _("Sélectionner une option")), *Pro.StructureType.choices],
     )
     structure_name = forms.CharField(label=_("Structure"), required=False)
+    structure_school_id = forms.CharField(widget=forms.HiddenInput, required=False)
+    structure_school_not_found = forms.BooleanField(widget=forms.HiddenInput, required=False)
     job_title = forms.CharField(label=_("Métier"), required=False)
     postal_code = forms.CharField(
         label=_("Code postal"),
@@ -37,15 +40,12 @@ class ProEditUserForm(forms.Form):
                     "postal_code": pro.postal_code,
                 },
             )
+            self.saved_structure = (pro.structure_type, pro.structure_name)
         super().__init__(*args, **kwargs)
 
     def clean(self):
         cleaned_data = super().clean()
-        structure_type = cleaned_data.get("structure_type")
-        if structure_type in Pro.WITHOUT_STRUCTURE:
-            cleaned_data["structure_name"] = ""
-        elif structure_type and not cleaned_data.get("structure_name"):
-            self.add_error("structure_name", _("Ce champ est obligatoire."))
+        self.clean_structure(cleaned_data)
         return cleaned_data
 
     def save(self, pro):

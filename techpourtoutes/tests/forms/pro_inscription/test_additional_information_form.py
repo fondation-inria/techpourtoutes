@@ -15,6 +15,13 @@ def _additional_information(**overrides):
     }
 
 
+def _asked(form):
+    return set(form.fields)
+
+
+_STRUCTURE_NAME_FIELDS = ("structure_name", "structure_school_id", "structure_school_not_found")
+
+
 def test_additional_information_form_accepts_complete_information():
     assert ProAdditionalInformationForm(data=_additional_information()).is_valid()
 
@@ -43,6 +50,76 @@ def test_additional_information_form_rejects_an_invalid_postal_code():
     form = ProAdditionalInformationForm(data=_additional_information(postal_code="7501"))
     assert not form.is_valid()
     assert "postal_code" in form.errors
+
+
+@pytest.mark.django_db
+@pytest.mark.parametrize(
+    ("structure_type", "school_fixture"), [("school", "school"), ("higher_ed", "higher_ed_school")]
+)
+def test_additional_information_form_names_the_school_she_picked(
+    request, structure_type, school_fixture
+):
+    picked = request.getfixturevalue(school_fixture)
+    form = ProAdditionalInformationForm(
+        data=_additional_information(
+            structure_type=structure_type,
+            structure_name="Ce que la recherche affichait",
+            structure_school_id=str(picked.pk),
+        )
+    )
+    assert form.is_valid()
+    assert form.cleaned_data["structure_name"] == picked.name
+    assert "structure_school_id" not in form.cleaned_data
+
+
+@pytest.mark.django_db
+def test_additional_information_form_rejects_a_school_outside_her_type_of_structure(
+    higher_ed_school,
+):
+    form = ProAdditionalInformationForm(
+        data=_additional_information(
+            structure_type="school",
+            structure_name=higher_ed_school.name,
+            structure_school_id=str(higher_ed_school.pk),
+        )
+    )
+    assert not form.is_valid()
+    assert form.errors["structure_name"] == ["Sélectionnez un établissement dans la liste."]
+
+
+@pytest.mark.django_db
+@pytest.mark.parametrize("structure_type", ["school", "higher_ed"])
+def test_additional_information_form_requires_a_school_picked_in_the_list(structure_type):
+    form = ProAdditionalInformationForm(
+        data=_additional_information(structure_type=structure_type, structure_name="Typed")
+    )
+    assert not form.is_valid()
+    assert form.errors["structure_name"] == ["Sélectionnez un établissement dans la liste."]
+
+
+@pytest.mark.parametrize("structure_type", ["school", "higher_ed"])
+def test_additional_information_form_takes_the_name_of_a_school_missing_from_the_list(
+    structure_type,
+):
+    form = ProAdditionalInformationForm(
+        data=_additional_information(
+            structure_type=structure_type,
+            structure_name="Lycée de la Lune",
+            structure_school_not_found="on",
+        )
+    )
+    assert form.is_valid()
+    assert form.cleaned_data["structure_name"] == "Lycée de la Lune"
+
+
+def test_additional_information_form_requires_the_name_of_a_school_missing_from_the_list():
+    form = ProAdditionalInformationForm(
+        data=_additional_information(
+            structure_type="school", structure_name="", structure_school_not_found="on"
+        )
+    )
+    assert not form.is_valid()
+    assert form.errors["structure_name"] == ["Ce champ est obligatoire."]
 
 
 def _workshop(**overrides):
@@ -80,7 +157,13 @@ def test_additional_information_form_asks_the_job_of_another_mission_at_the_scho
 )
 def test_additional_information_form_asks_everything_of_who_works_elsewhere(job_title):
     form = ProAdditionalInformationForm(workshop=_workshop(job_title=job_title))
-    assert len(form.fields) == 5
+    assert _asked(form) == {
+        "structure_type",
+        *_STRUCTURE_NAME_FIELDS,
+        "job_title",
+        "phone",
+        "postal_code",
+    }
     assert form["postal_code"].value() is None
 
 
@@ -107,10 +190,6 @@ def _pro(**overrides):
     )
 
 
-def _asked(form):
-    return set(form.fields)
-
-
 def test_additional_information_form_asks_nothing_she_already_gave():
     form = ProAdditionalInformationForm(pro=_pro())
     assert _asked(form) == set()
@@ -133,7 +212,7 @@ def test_additional_information_form_asks_the_type_of_the_structure_she_named():
 
 def test_additional_information_form_requires_the_name_of_a_known_type_of_structure():
     form = ProAdditionalInformationForm(data={}, pro=_pro(structure_name=""))
-    assert _asked(form) == {"structure_name"}
+    assert _asked(form) == set(_STRUCTURE_NAME_FIELDS)
     assert not form.is_valid()
     assert "structure_name" in form.errors
 

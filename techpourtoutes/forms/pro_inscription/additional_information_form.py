@@ -5,10 +5,11 @@ from techpourtoutes.validators import POSTAL_CODE_VALIDATOR
 
 from ...models import Pro
 from ..fields import PhoneNumberField
+from ..mixins import StructureFormMixin
 from .workshop_request_form import OTHER_SCHOOL_MISSION, OUTSIDE_SCHOOL_JOBS
 
 
-class ProAdditionalInformationForm(forms.Form):
+class ProAdditionalInformationForm(StructureFormMixin, forms.Form):
     structure_type = forms.ChoiceField(
         label=_("Dans quel type de structure travaillez-vous ?*"),
         choices=[("", _("Sélectionner une option")), *Pro.StructureType.choices],
@@ -16,6 +17,8 @@ class ProAdditionalInformationForm(forms.Form):
     structure_name = forms.CharField(
         label=_("Quel est le nom de votre structure ?*"), required=False
     )
+    structure_school_id = forms.CharField(widget=forms.HiddenInput, required=False)
+    structure_school_not_found = forms.BooleanField(widget=forms.HiddenInput, required=False)
     job_title = forms.CharField(label=_("Quel est votre métier ?*"))
     phone = PhoneNumberField(region="FR", label=_("Votre numéro de téléphone*"))
     postal_code = forms.CharField(
@@ -57,11 +60,7 @@ class ProAdditionalInformationForm(forms.Form):
     def clean(self):
         cleaned_data = super().clean()
         cleaned_data.update(self.known)
-        structure_type = cleaned_data.get("structure_type")
-        if structure_type in Pro.WITHOUT_STRUCTURE:
-            cleaned_data["structure_name"] = ""
-        elif structure_type and not cleaned_data.get("structure_name"):
-            self.add_error("structure_name", _("Ce champ est obligatoire."))
+        self.clean_structure(cleaned_data)
         return cleaned_data
 
     def save(self, pro):
@@ -80,3 +79,6 @@ class ProAdditionalInformationForm(forms.Form):
         self.known.update(values)
         for name in values:
             del self.fields[name]
+        if "structure_name" in values:
+            del self.fields["structure_school_id"]
+            del self.fields["structure_school_not_found"]
