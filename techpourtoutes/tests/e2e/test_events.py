@@ -106,3 +106,28 @@ def test_saving_from_the_participation_modal_syncs_the_bookmarks_behind_it(
     page.locator("dialog").get_by_label("Enregistrer cet événement").click()
 
     expect(bookmarks.locator('[aria-pressed="true"]')).to_have_count(3)
+
+
+def test_an_event_saved_from_its_card_is_saved_on_its_page_and_back(
+    page, live_server, beneficiary, event
+):
+    """Going back or forward must not bring a page back from the browser cache, holding the
+    bookmark as it was before the last toggle."""
+    event.status = Event.Status.APPROVED
+    event.save()
+    page.goto(f"{live_server.url}/se-connecter/token/{beneficiary.issue_login_token()}/")
+    page.goto(f"{live_server.url}/evenements/")
+    page.get_by_role("button", name="Enregistrer cet événement").click()
+    expect(page.locator('[data-bookmark] [aria-pressed="true"]')).to_have_count(1)
+    page.get_by_role("link", name=f"Voir l'événement {event.title}").dispatch_event("click")
+    expect(page.locator('[data-bookmark] [aria-pressed="true"]')).to_have_count(2)
+
+    page.go_back()
+
+    expect(page.locator('[data-bookmark] [aria-pressed="true"]')).to_have_count(1)
+
+    page.get_by_role("button", name="Retirer cet événement de mes favoris").click()
+    expect(page.locator('[data-bookmark] [aria-pressed="false"]')).to_have_count(1)
+    page.go_forward()
+
+    expect(page.locator('[data-bookmark] [aria-pressed="false"]')).to_have_count(2)

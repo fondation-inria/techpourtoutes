@@ -1,5 +1,6 @@
 <c-vars
     job_posting=None
+    bookmark_action=""
     title_class="mb-1"
     class=""
     logo_class="w-[65px] h-[65px] shrink-0 object-contain border border-black shadow shadow-black shadow-bottom-and-right"
@@ -17,6 +18,9 @@
                 </h3>
                 <p>{{ job_posting.company_name }}</p>
             </div>
+            {% if bookmark_action %}
+                {% include "beneficiary/partials/update_saved_job_posting.html" with card=True saved=job_posting.saved %}
+            {% endif %}
         </div>
         <div class="mt-4 text-black leading-[1.4]">
             <p class="line-clamp-3">{{ job_posting.description_text }}</p>

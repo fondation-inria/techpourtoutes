@@ -1021,6 +1021,102 @@ def test_index_job_postings_anchors_each_card_for_the_way_back(client):
 
 @pytest.mark.django_db
 @override_switch("internships", active=True)
+def test_index_job_postings_is_never_served_from_the_browser_cache(client):
+    """Back or forward would otherwise show the bookmarks as they were before a toggle."""
+    response = client.get(INDEX_JOB_POSTINGS_URL)
+
+    assert "no-store" in response["Cache-Control"]
+
+
+@pytest.mark.django_db
+@override_switch("internships", active=True)
+def test_show_job_posting_is_never_served_from_the_browser_cache(client, job_posting):
+    response = client.get(show_job_posting_url(job_posting))
+
+    assert "no-store" in response["Cache-Control"]
+
+
+@pytest.mark.django_db
+@override_switch("internships", active=True)
+def test_index_job_postings_bookmark_posts_to_update_saved_job_posting(
+    client, beneficiary, job_posting
+):
+    client.force_login(beneficiary)
+
+    response = client.get(INDEX_JOB_POSTINGS_URL, {"category": job_posting.category})
+
+    assert response.context["job_postings"][0].saved is False
+    content = response.content.decode()
+    assert reverse("update_saved_job_posting", args=[job_posting.pk]) in content
+    assert 'aria-pressed="false"' in content
+    assert "text-neutral-0" in content
+
+
+@pytest.mark.django_db
+@override_switch("internships", active=True)
+def test_index_job_postings_colours_the_bookmark_of_a_saved_posting_after_its_category(
+    client, beneficiary
+):
+    job_posting = save_job_posting("Alternance", JobPosting.Category.APPRENTICESHIP)
+    SavedJobPosting.objects.toggle(job_posting=job_posting, beneficiary=beneficiary)
+    client.force_login(beneficiary)
+
+    response = client.get(INDEX_JOB_POSTINGS_URL, {"category": job_posting.category})
+
+    assert response.context["job_postings"][0].saved is True
+    content = response.content.decode()
+    assert 'aria-pressed="true"' in content
+    assert f'aria-label="Enregistrer l’offre {job_posting.title}"' in content
+    assert "text-orange-500" in content
+
+
+@pytest.mark.django_db
+@override_switch("internships", active=True)
+def test_index_job_postings_saved_flag_costs_no_query_per_posting(client, beneficiary):
+    """Four postings must cost what one costs: the flag is annotated, never fetched per row.
+
+    A first render warms the cache of the switches the layout reads."""
+    save_job_posting("Stage 0", JobPosting.Category.HIGHER_ED_INTERNSHIP)
+    client.force_login(beneficiary)
+    client.get(INDEX_JOB_POSTINGS_URL)
+    with CaptureQueriesContext(connection) as one_posting:
+        client.get(INDEX_JOB_POSTINGS_URL)
+
+    for index in range(1, 4):
+        save_job_posting(f"Stage {index}", JobPosting.Category.HIGHER_ED_INTERNSHIP)
+    with CaptureQueriesContext(connection) as four_postings:
+        client.get(INDEX_JOB_POSTINGS_URL)
+
+    assert len(four_postings.captured_queries) == len(one_posting.captured_queries)
+
+
+@pytest.mark.django_db
+@override_switch("internships", active=True)
+def test_index_job_postings_anonymous_bookmark_opens_the_signup_modal(client, job_posting):
+    content = client.get(
+        INDEX_JOB_POSTINGS_URL, {"category": job_posting.category}
+    ).content.decode()
+
+    assert reverse("create_saved_job_posting_modal", args=[job_posting.pk]) in content
+    assert reverse("update_saved_job_posting", args=[job_posting.pk]) not in content
+    assert "aria-pressed" not in content
+
+
+@pytest.mark.django_db
+@override_switch("internships", active=True)
+def test_index_job_postings_gives_a_connected_pro_no_bookmark_at_all(client, pro, job_posting):
+    client.force_login(pro)
+
+    content = client.get(
+        INDEX_JOB_POSTINGS_URL, {"category": job_posting.category}
+    ).content.decode()
+
+    assert reverse("create_saved_job_posting_modal", args=[job_posting.pk]) not in content
+    assert "#bookmark" not in content
+
+
+@pytest.mark.django_db
+@override_switch("internships", active=True)
 def test_show_job_posting_bookmark_posts_to_update_saved_job_posting(
     client, beneficiary, job_posting
 ):
@@ -1205,6 +1301,22 @@ def test_update_saved_job_posting_swaps_every_bookmark_of_the_posting(
 
 @pytest.mark.django_db
 @override_switch("internships", active=True)
+def test_update_saved_job_posting_from_a_card_swaps_the_card_bookmark_back_in(
+    client, beneficiary, job_posting
+):
+    client.force_login(beneficiary)
+
+    content = client.post(
+        reverse("update_saved_job_posting", args=[job_posting.pk]), {"card": "true"}
+    ).content.decode()
+
+    assert "#bookmark_rosette" in content
+    assert f"text-{job_posting.category_color}-500" in content
+    assert "Enregistrée" not in content
+
+
+@pytest.mark.django_db
+@override_switch("internships", active=True)
 def test_update_saved_job_posting_rejects_a_get(client, beneficiary, job_posting):
     client.force_login(beneficiary)
 
@@ -1346,6 +1458,25 @@ def test_create_saved_job_posting_modal_goes_back_to_the_posting_by_default(
 
     _assert_both_ways_in_go_back_to(
         content, "saved_job_posting", job_posting.pk, show_job_posting_url(job_posting)
+    )
+
+
+@pytest.mark.django_db
+@override_switch("internships", active=True)
+@pytest.mark.parametrize("fragment", ["", "#offre-une-autre"])
+def test_create_saved_job_posting_modal_opened_from_a_card_goes_back_to_that_card(
+    client, job_posting, fragment
+):
+    content = client.get(
+        reverse("create_saved_job_posting_modal", args=[job_posting.pk]),
+        HTTP_HX_CURRENT_URL=f"http://testserver{JOB_POSTINGS_LISTING}{fragment}",
+    ).content.decode()
+
+    _assert_both_ways_in_go_back_to(
+        content,
+        "saved_job_posting",
+        job_posting.pk,
+        f"{JOB_POSTINGS_LISTING}#offre-{job_posting.pk}",
     )
 
 
@@ -1606,6 +1737,21 @@ def salon(pro):
     event = approved_event(pro, title="Salon des métiers du numérique")
     event.save()
     return event
+
+
+@pytest.mark.django_db
+def test_index_events_is_never_served_from_the_browser_cache(client, salon):
+    """Back or forward would otherwise show the bookmarks as they were before a toggle."""
+    response = client.get(INDEX_EVENTS_URL)
+
+    assert "no-store" in response["Cache-Control"]
+
+
+@pytest.mark.django_db
+def test_show_event_is_never_served_from_the_browser_cache(client, salon):
+    response = client.get(reverse("show_event", args=[salon.slug]))
+
+    assert "no-store" in response["Cache-Control"]
 
 
 @pytest.mark.django_db
