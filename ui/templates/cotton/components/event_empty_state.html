@@ -1,0 +1,8 @@
+{% load static %}
+<c-vars title="" />
+
+<div class="relative w-full flex flex-col gap-y-4 sm:block">
+    <c-components.card class="sm:absolute sm:top-8 sm:inset-x-0" title="{{ title|safe }}">{{ slot }}</c-components.card>
+    <img src="{% static 'images/empty-event-bg.webp' %}" alt="" aria-hidden="true"
+         class="w-full" width="1344" height="868" loading="lazy" decoding="async" />
+</div>
