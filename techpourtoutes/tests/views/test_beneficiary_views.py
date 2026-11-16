@@ -358,8 +358,9 @@ def test_index_job_postings_keeps_the_postings_of_any_ticked_domain(client, quer
     [
         ({"contract_type": "cdi"}, {"CDI"}),
         ({"contract_type": ["cdi", "interim"]}, {"CDI", "Intérim"}),
-        ({"contract_type": "apprenticeship"}, {"CDD", "CDI", "Intérim"}),
-        ({}, {"CDD", "CDI", "Intérim"}),
+        ({"contract_type": "pmsmp"}, {"Immersion"}),
+        ({"contract_type": "apprenticeship"}, {"CDD", "CDI", "Intérim", "Immersion"}),
+        ({}, {"CDD", "CDI", "Intérim", "Immersion"}),
     ],
 )
 @override_switch("internships", active=True)
@@ -370,6 +371,7 @@ def test_index_job_postings_keeps_the_postings_of_any_ticked_contract_type(
         ("CDD", JobPosting.ContractType.CDD),
         ("CDI", JobPosting.ContractType.CDI),
         ("Intérim", JobPosting.ContractType.INTERIM),
+        ("Immersion", JobPosting.ContractType.PMSMP),
     ]:
         save_job_posting(title, JobPosting.Category.FIRST_JOB, contract_type=contract_type)
 
@@ -415,6 +417,7 @@ def test_index_job_postings_keeps_the_postings_of_any_ticked_department(client, 
         ("higher_ed_internship", True),
         ("apprenticeship", True),
         ("first_job", True),
+        ("pfmp", False),
         ("seconde_internship", False),
         ("troisieme_internship", False),
     ],
@@ -445,12 +448,66 @@ def test_index_job_postings_ignores_an_apec_domain_ticked_on_a_pupils_tab(client
 
 
 @pytest.mark.django_db
+@override_switch("internships", active=True)
+def test_index_job_postings_shows_the_tabs_in_the_colour_of_their_category(client):
+    html = client.get(INDEX_JOB_POSTINGS_URL).content.decode()
+
+    tabs = re.findall(r'role="tab"\s+class="[^"]*border-(\w+)-500[^"]*">\s*([^<]*?)\s*</a>', html)
+    assert tabs == [
+        ("purple", "Stages dans le supérieur"),
+        ("orange", "Alternances"),
+        ("green", "PFMP"),
+        ("blue", "Stages de 2de"),
+        ("purple", "Stages de 3e"),
+        ("orange", "Premier emploi"),
+    ]
+    assert [JobPosting.CATEGORY_COLORS[category] for category in JobPosting.Category] == [
+        "purple",
+        "orange",
+        "blue",
+        "purple",
+        "orange",
+        "green",
+    ]
+
+
+PFMP_INTRODUCTION = "En CAP et en bac professionnel, des stages en entreprise sont obligatoires."
+
+
+@pytest.mark.django_db
+@pytest.mark.parametrize(
+    ("category", "introduced"),
+    [("pfmp", True), ("higher_ed_internship", False), ("troisieme_internship", False)],
+)
+@override_switch("internships", active=True)
+def test_index_job_postings_introduces_the_pfmp_tab(client, category, introduced):
+    html = client.get(INDEX_JOB_POSTINGS_URL, {"category": category}).content.decode()
+
+    assert (PFMP_INTRODUCTION in html) == introduced
+
+
+@pytest.mark.django_db
+@pytest.mark.parametrize(
+    ("category", "text_color"),
+    [("seconde_internship", "text-white"), ("troisieme_internship", "text-black")],
+)
+@override_switch("internships", active=True)
+def test_index_job_postings_writes_white_on_the_blue_tab(client, category, text_color):
+    """Black on this blue falls short of the 4.5:1 contrast RGAA asks for."""
+    html = client.get(INDEX_JOB_POSTINGS_URL, {"category": category}).content.decode()
+
+    active_tab = re.search(r'class="([^"]*tab-active[^"]*)"', html)[1]
+    assert text_color in active_tab.split()
+
+
+@pytest.mark.django_db
 @pytest.mark.parametrize(
     "category, offered",
     [
-        ("first_job", ["cdd", "cdi", "interim"]),
+        ("first_job", ["cdd", "cdi", "interim", "pmsmp"]),
         ("apprenticeship", ["apprenticeship", "professionalization"]),
         ("higher_ed_internship", []),
+        ("pfmp", []),
         ("seconde_internship", []),
         ("troisieme_internship", []),
     ],
@@ -470,6 +527,7 @@ def test_index_job_postings_offers_the_contract_types_of_the_category(client, ca
         ("higher_ed_internship", True),
         ("apprenticeship", True),
         ("first_job", True),
+        ("pfmp", False),
         ("seconde_internship", False),
         ("troisieme_internship", False),
     ],
@@ -556,6 +614,7 @@ def test_index_job_postings_keeps_the_duration_filter_when_cdi_comes_with_anothe
     [
         ({"category": "seconde_internship"}, True),
         ({"category": "troisieme_internship"}, True),
+        ({"category": "pfmp"}, False),
         ({"category": "troisieme_internship", "q": "web"}, False),
         ({"category": "troisieme_internship", "domain": "developpement"}, False),
         ({"category": "troisieme_internship", "department": "29"}, False),
@@ -639,10 +698,13 @@ def test_create_job_posting_notification_invalid_rerenders_the_tab_with_errors(c
 
 
 @pytest.mark.django_db
+@pytest.mark.parametrize("category", ["apprenticeship", "pfmp"])
 @override_switch("internships", active=True)
-def test_create_job_posting_notification_not_found_for_a_tab_without_mailing_list(client):
+def test_create_job_posting_notification_not_found_for_a_tab_without_mailing_list(
+    client, category
+):
     response = client.post(
-        f"{CREATE_JOB_POSTING_NOTIFICATION_URL}?category=apprenticeship",
+        f"{CREATE_JOB_POSTING_NOTIFICATION_URL}?category={category}",
         data={"email": "hedy@example.com"},
     )
 
@@ -739,6 +801,43 @@ def test_show_job_posting_not_found_when_switch_inactive(client):
     job_posting = save_job_posting("Stage", JobPosting.Category.HIGHER_ED_INTERNSHIP)
 
     assert client.get(show_job_posting_url(job_posting)).status_code == 404
+
+
+@pytest.mark.django_db
+@override_switch("internships", active=True)
+def test_index_job_postings_names_the_contract_of_an_immersion_on_its_card(client):
+    save_job_posting(
+        "Immersion", JobPosting.Category.FIRST_JOB, contract_type=JobPosting.ContractType.PMSMP
+    )
+
+    html = client.get(INDEX_JOB_POSTINGS_URL, {"category": "first_job"}).content.decode()
+
+    assert "<span>Immersion professionnelle</span>" in html
+
+
+@pytest.mark.django_db
+@override_switch("internships", active=True)
+def test_show_job_posting_names_the_contract_of_an_immersion(client):
+    job_posting = save_job_posting(
+        "Immersion", JobPosting.Category.FIRST_JOB, contract_type=JobPosting.ContractType.PMSMP
+    )
+
+    html = client.get(show_job_posting_url(job_posting)).content.decode()
+
+    assert re.search(r"Type d’offre&nbsp;:</dt>\s*<dd[^>]*>Immersion professionnelle</dd>", html)
+
+
+@pytest.mark.django_db
+@override_switch("internships", active=True)
+def test_show_job_posting_introduces_the_company_of_an_immersion(client):
+    job_posting = save_job_posting(
+        "Immersion", JobPosting.Category.FIRST_JOB, contract_type=JobPosting.ContractType.PMSMP
+    )
+
+    html = client.get(show_job_posting_url(job_posting)).content.decode()
+
+    assert "Numeum propose une immersion au poste de&nbsp;:" in html
+    assert "recrute" not in html
 
 
 @pytest.mark.django_db
@@ -854,6 +953,7 @@ def test_show_job_posting_says_what_the_partner_did_not_give(client):
         ("higher_ed_internship", "Numeum cherche une stagiaire au poste de&nbsp;:"),
         ("apprenticeship", "Numeum cherche une alternante au poste de&nbsp;:"),
         ("first_job", "Numeum recrute au poste de&nbsp;:"),
+        ("pfmp", "Numeum propose une PFMP&nbsp;:"),
         ("seconde_internship", "Numeum propose un stage d’observation"),
         ("troisieme_internship", "Numeum propose un stage d’observation"),
     ],
@@ -871,7 +971,7 @@ def test_show_job_posting_introduces_the_company_according_to_the_category(
 
 
 @pytest.mark.django_db
-@pytest.mark.parametrize("category", ["seconde_internship", "troisieme_internship"])
+@pytest.mark.parametrize("category", ["pfmp", "seconde_internship", "troisieme_internship"])
 @override_switch("internships", active=True)
 def test_show_job_posting_shows_a_pupil_the_period_and_nothing_about_the_job(client, category):
     job_posting = save_job_posting(

@@ -4,7 +4,9 @@ import pytest
 from django.apps import apps
 from waffle.models import Switch
 
-migration = importlib.import_module("techpourtoutes.migrations.0061_delete_new_pro_features_switch")
+migration = importlib.import_module(
+    "techpourtoutes.migrations.0061_delete_new_pro_features_switch"
+)
 
 pytestmark = pytest.mark.django_db
 

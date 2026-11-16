@@ -10,20 +10,29 @@ from techpourtoutes.utils.job_posting import (
     DESCRIPTION_TAGS,
     city_name,
     upsert_in_batches,
+    with_line_breaks,
 )
 from techpourtoutes.utils.myfuture import SUB_DOMAINS
 from techpourtoutes.utils.naf import naf_label
 from techpourtoutes.utils.territories import department_code
 
 # Lowercased, because MyFuture spells some of them several ways (`PMSMP`, `3einternship`).
-# An offer of several types lands in the first of them listed here.
-# `miniInternship`, `visit` and `highSchoolInternship` fit no category and are left out: the last
-# is MyFuture's long internship in a lycée pro (PFMP), not the seconde one.
+# An offer of several types lands in the first of them listed here: nearly half the PFMPs are
+# also student internships, meant for students.
+# `miniInternship` and `visit` fit no category and are left out. `highSchoolInternship` is
+# MyFuture's long internship in a lycée pro (PFMP), not the seconde one.
 CATEGORIES = {
     "3einternship": JobPosting.Category.TROISIEME_INTERNSHIP,
     "studentinternship": JobPosting.Category.HIGHER_ED_INTERNSHIP,
+    "highschoolinternship": JobPosting.Category.PFMP,
     "apprenticeship": JobPosting.Category.APPRENTICESHIP,
     "pmsmp": JobPosting.Category.FIRST_JOB,
+}
+
+# MyFuture only has a contract to give for these.
+CONTRACT_TYPES = {
+    JobPosting.Category.APPRENTICESHIP: JobPosting.ContractType.APPRENTICESHIP,
+    JobPosting.Category.FIRST_JOB: JobPosting.ContractType.PMSMP,
 }
 
 MAPPED_FIELDS = [
@@ -78,10 +87,12 @@ class UpsertMyFutureJobPostings(BaseService):
             external_id=record["_id"],
             title=record["title"],
             company_name=record["owner_name"],
-            description=nh3.clean(
-                record["description"],
-                tags=DESCRIPTION_TAGS,
-                attributes=DESCRIPTION_ATTRIBUTES,
+            description=with_line_breaks(
+                nh3.clean(
+                    record["description"],
+                    tags=DESCRIPTION_TAGS,
+                    attributes=DESCRIPTION_ATTRIBUTES,
+                )
             ),
             postal_code=postal_code,
             cog_code=cog_code,
@@ -92,11 +103,7 @@ class UpsertMyFutureJobPostings(BaseService):
             domains=[SUB_DOMAINS[key] for key in record["subDomainKeys"] if key in SUB_DOMAINS],
             company_logo=record["owner_logo"] or "",
             category=category,
-            contract_type=(
-                JobPosting.ContractType.APPRENTICESHIP
-                if category == JobPosting.Category.APPRENTICESHIP
-                else ""
-            ),
+            contract_type=CONTRACT_TYPES.get(category, ""),
             sector=naf_label(record.get("nafCode")),
             starts_on=period and _local_date(period["from"]),
             ends_on=period and _local_date(period["to"]),
