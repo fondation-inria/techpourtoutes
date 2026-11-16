@@ -1,3 +1,4 @@
+from datetime import date
 from urllib.parse import urlencode, urlparse
 
 from django.conf import settings
@@ -448,15 +449,64 @@ def save_pending_job_posting(request, job_posting_pk):
 
 def _events_context(request, page):
     beneficiary = getattr(request.user, "beneficiary", None)
+    ticked_departments = _ticked(request, "department", DEPARTMENT_CODES)
+    ticked_event_types = _ticked(request, "subcategory", Event.Subcategory.values)
+    ticked_location_types = _ticked_location_types(request)
+    date_from = _date_param(request, "date_from")
+    date_to = _date_param(request, "date_to")
+    free_only = request.GET.get("free") == "1"
+    upcoming = (
+        Event.objects.approved()
+        .upcoming()
+        .with_location_types(ticked_location_types)
+        .in_departments(ticked_departments)
+        .in_subcategories(ticked_event_types)
+        .overlapping(date_from, date_to)
+    )
+    query = request.GET.copy()
+    query.pop("page", None)
     return {
-        "events": _events_page(beneficiary, page),
+        "events": _events_page(beneficiary, upcoming.free() if free_only else upcoming, page),
         "bookmark_action": _bookmark_action(request.user, beneficiary),
+        "query": query.urlencode(),
+        "filtering": bool(
+            ticked_departments
+            or ticked_event_types
+            or date_from
+            or date_to
+            or free_only
+            or set(ticked_location_types) != set(Event.LocationType.values)
+        ),
+        "regions": REGIONS,
+        "ticked_departments": ticked_departments,
+        "event_types": Event.Subcategory.sorted_choices(),
+        "ticked_event_types": ticked_event_types,
+        "location_types": Event.LocationType.choices,
+        "ticked_location_types": ticked_location_types,
+        "default_location_types": Event.LocationType.values,
+        "date_from": date_from,
+        "date_to": date_to,
+        "free_only": free_only,
     }
 
 
-def _events_page(beneficiary, page):
+def _ticked_location_types(request):
+    """The filter form always sends the key, ticked or not, so that switching both off shows
+    nothing; a bare URL keeps them both on."""
+    if "location_type" not in request.GET:
+        return Event.LocationType.values
+    return _ticked(request, "location_type", Event.LocationType.values)
+
+
+def _date_param(request, name):
+    try:
+        return date.fromisoformat(request.GET.get(name, ""))
+    except ValueError:
+        return None
+
+
+def _events_page(beneficiary, upcoming, page):
     """Only one query: each event carries whether the visitor already bookmarked it."""
-    upcoming = Event.objects.approved().upcoming()
     if beneficiary is None:
         upcoming = upcoming.annotate(saved=Value(False))
     else:

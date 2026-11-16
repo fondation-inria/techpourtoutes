@@ -1,7 +1,9 @@
-<c-vars label="" name="" id="" icon="" :options=[] :ticked=[] tint_class="bg-neutral-0" selection_target="" class="" />
+<c-vars label="" name="" id="" icon="" :options=[] :ticked=[] :default_ticked=[] :switch=False disabled_when="" disabled_reason="" tint_class="bg-neutral-0" selection_target="" class="" />
 
 <div x-data="{
         open: false,
+        disabled: false,
+        tip: false,
         selected: [],
         groupToggle(input) { return input.closest('[data-group]')?.querySelector('[data-group-toggle] input') },
         cascade(input) {
@@ -17,22 +19,35 @@
             this.selected = [...this.$refs.panel.querySelectorAll('input:checked')]
                 .filter(input => input.closest('[data-group-toggle]') || !this.groupToggle(input)?.checked)
                 .map(input => ({ id: input.id, label: input.labels[0].textContent.trim() }));
+            const [from, to] = this.dates();
+            if (to && to.min !== from.value) to.min = from.value;
+            if (from && from.max !== to.value) from.max = to.value;
+            if (from?.value || to?.value) this.selected.push({ id: from.id, label: this.dateRangeLabel(from.value, to.value) });
+        },
+        dates() { return [...this.$refs.panel.querySelectorAll('input[type=date]')] },
+        dateRangeLabel(from, to) {
+            const short = value => value.split('-').reverse().map((part, index) => index === 2 ? part.slice(2) : part).join('/');
+            if (from && to) return `du ${short(from)} au ${short(to)}`;
+            return from ? `à partir du ${short(from)}` : `jusqu'au ${short(to)}`;
         },
         remove(id) {
             const input = document.getElementById(id);
-            input.checked = false;
+            if (input.type === 'date') this.dates().forEach(date => date.value = '');
+            else input.checked = false;
             input.dispatchEvent(new Event('change', { bubbles: true }));
             this.$refs.button.focus();
         },
         reset() {
             this.$refs.panel.querySelectorAll('input[type=checkbox]').forEach(input => {
-                input.checked = false;
+                input.checked = 'defaultChecked' in input.dataset;
                 input.indeterminate = false;
             });
+            this.dates().forEach(date => date.value = '');
             this.sync();
         },
      }"
      x-init="$refs.panel.querySelectorAll('[data-group-member]:first-child input').forEach(input => cascade(input)); sync()"
+     {% if disabled_when %}x-effect="disabled = {{ disabled_when }}; if (disabled) open = false" @mouseenter="tip = true" @mouseleave="tip = false"{% endif %}
      @reset-filters.window="reset()"
      @reset-filter.window="if ($event.detail === '{{ id }}') reset()"
      @click.outside="open = false"
@@ -40,9 +55,15 @@
      @keydown.escape="if (open) { open = false; $refs.button.focus() }"
      class="relative inline-block {{ class }}">
     <button type="button" id="{{ id }}" x-ref="button"
-            @click="open = !open"
+            @click="if (!disabled) open = !open"
             :aria-expanded="open" aria-controls="{{ id }}_panel"
-            class="flex items-center gap-2 px-4 py-3 rounded-sm text-sm font-normal leading-[1.4] bg-neutral-0 text-black border border-black shadow-bottom-and-right shadow-black hover:font-medium hover:shadow-bottom-and-right-lg focus-visible:outline-2 focus-visible:outline-blue-500 focus-visible:outline-offset-2 cursor-pointer">
+            {% if disabled_when %}
+                :aria-disabled="disabled ? 'true' : null"
+                :aria-describedby="disabled ? '{{ id }}_reason' : null"
+                @focus="tip = true" @blur="tip = false"
+                @keydown.escape.window="tip = false"
+            {% endif %}
+            class="flex items-center gap-2 px-4 py-3 rounded-sm text-sm font-normal leading-[1.4] bg-neutral-0 text-black border border-black shadow-bottom-and-right shadow-black not-aria-disabled:hover:font-medium not-aria-disabled:hover:shadow-bottom-and-right-lg focus-visible:outline-2 focus-visible:outline-blue-500 focus-visible:outline-offset-2 cursor-pointer aria-disabled:bg-neutral-500 aria-disabled:text-neutral-0 aria-disabled:cursor-not-allowed">
         {% if icon %}<c-components.icon name="{{ icon }}" class="w-5 h-5 shrink-0" />{% endif %}
         <span>{{ label }}</span>
         <span x-show="selected.length" x-cloak class="inline-flex items-center justify-center w-5 h-5 rounded-full border border-black text-xs {{ tint_class }}">
@@ -50,6 +71,9 @@
         </span>
         <span class="shrink-0 transition-transform" :class="open && 'rotate-180'"><c-components.icon name="chevron-down" class="w-4 h-4" /></span>
     </button>
+    {% if disabled_reason %}
+        <span role="tooltip" id="{{ id }}_reason" x-show="tip && disabled" x-cloak class="absolute left-1/2 bottom-full z-30 w-72 max-w-[80vw] -translate-x-1/2 rounded border-b-4 border-transparent bg-neutral-950 bg-clip-padding px-3 py-2 text-xs text-neutral-50">{{ disabled_reason }}</span>
+    {% endif %}
     <fieldset id="{{ id }}_panel" x-ref="panel" x-show="open" x-cloak @change="cascade($event.target); sync()"
               class="absolute left-0 z-20 mt-2 w-max min-w-full max-w-[calc(100vw-4rem)] max-h-72 overflow-y-auto p-4 rounded-sm bg-neutral-0 border border-black shadow-bottom-and-right shadow-black">
         <legend class="sr-only">{{ label }}</legend>
@@ -58,7 +82,7 @@
                 {{ slot }}
             {% else %}
                 {% for value, option_label in options %}
-                    <c-components.form_fields.checkbox name="{{ name }}" id="{{ id }}_{{ forloop.counter0 }}" value="{{ value }}" label="{{ option_label }}" checked="{% if value in ticked %}checked{% endif %}" />
+                    <c-components.form_fields.checkbox name="{{ name }}" id="{{ id }}_{{ forloop.counter0 }}" value="{{ value }}" label="{{ option_label }}" checked="{% if value in ticked %}checked{% endif %}" default_checked="{% if value in default_ticked %}1{% endif %}" :switch="switch" />
                 {% endfor %}
             {% endif %}
         </div>

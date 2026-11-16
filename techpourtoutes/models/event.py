@@ -11,6 +11,7 @@ from simple_history.models import HistoricalRecords
 
 from ..utils.object_storage import public_storage
 from ..utils.structure_type_teams import structure_types_followed_by
+from ..utils.territories import department_code
 from ..utils.text import strip_accents
 from .base import BaseModel, BaseQuerySet
 from .mixins import SlugFromTitleMixin
@@ -62,6 +63,34 @@ class EventQuerySet(BaseQuerySet):
 
     def in_subcategory(self, subcategory):
         return self._within([subcategory])
+
+    def in_subcategories(self, subcategories):
+        if not subcategories:
+            return self
+        return self._within(subcategories)
+
+    def in_departments(self, codes):
+        """An online event happens anywhere, so a department never leaves it out."""
+        if not codes:
+            return self
+        return self.filter(
+            models.Q(location_type=Event.LocationType.ONLINE) | models.Q(department_code__in=codes)
+        )
+
+    def with_location_types(self, location_types):
+        return self.filter(location_type__in=location_types)
+
+    def overlapping(self, date_from, date_to):
+        """The events sharing at least a day with the range; either end may be left open."""
+        overlapping = self
+        if date_from:
+            overlapping = overlapping.filter(end_date__gte=date_from)
+        if date_to:
+            overlapping = overlapping.filter(start_date__lte=date_to)
+        return overlapping
+
+    def free(self):
+        return self.filter(price=0)
 
     def _within(self, subcategories):
         """`OTHER` also brings back the free text typed when no subcategory fits."""
@@ -185,6 +214,10 @@ class Event(SlugFromTitleMixin, BaseModel):
     postal_code = models.CharField(max_length=10, blank=True, verbose_name=_("code postal"))
     city = models.CharField(max_length=100, blank=True, verbose_name=_("commune"))
     cog_code = models.CharField(max_length=10, blank=True, verbose_name=_("COG de la commune"))
+    # Derived on save from `cog_code`, or `postal_code` without one.
+    department_code = models.CharField(
+        max_length=3, blank=True, db_index=True, verbose_name=_("code du département")
+    )
     longitude = models.FloatField(null=True, blank=True, verbose_name=_("longitude"))
     latitude = models.FloatField(null=True, blank=True, verbose_name=_("latitude"))
     ban_id = models.CharField(max_length=30, blank=True, verbose_name=_("identifiant BAN"))
@@ -249,6 +282,10 @@ class Event(SlugFromTitleMixin, BaseModel):
 
     def __str__(self):
         return self.title
+
+    def save(self, *args, **kwargs):
+        self.department_code = department_code(self.cog_code, self.postal_code)
+        super().save(*args, **kwargs)
 
     def is_organized_by(self, user):
         return self.created_by_id == user.pk

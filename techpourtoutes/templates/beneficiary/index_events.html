@@ -1,3 +1,4 @@
+{% load humanize %}
 <c-layout.base
     title="Événements – TechPourToutes"
     description="Salons, portes ouvertes, hackathons, job datings : tous les événements de la tech à venir, pour t'orienter et rencontrer des professionnelles."
@@ -7,9 +8,77 @@
         <p>Et si tu allais voir ce qui se passe sur le terrain&nbsp;? Ateliers, rencontres, hackathons… Viens tester, échanger avec des pros, poser toutes tes questions et explorer les multiples facettes du numérique&nbsp;!</p>
         <p class="mt-3">Retrouve tous les prochains rendez-vous, près de chez toi ou en ligne, et inscris-toi&nbsp;!</p>
     </c-components.card>
-    {% include "beneficiary/partials/event_cards.html" %}
+    <div x-data="{
+                filtersChanged: false,
+                onsite: true,
+                refresh() {
+                    this.onsite = this.$root.querySelector('[name=location_type][value=physical]').checked;
+                    if (!this.onsite) this.$dispatch('reset-filter', 'event_location');
+                    this.filtersChanged = [...this.$root.querySelectorAll('input[type=checkbox], input[type=date]')]
+                        .some(input => input.type === 'date' ? input.value : input.checked !== ('defaultChecked' in input.dataset));
+                },
+                resetAll() {
+                    this.$dispatch('reset-filters');
+                    document.getElementById('event_free').checked = false;
+                    this.refresh();
+                    this.$nextTick(() => htmx.trigger('#event_filters', 'submit'));
+                    document.getElementById('event_location_type').focus();
+                },
+             }"
+             x-init="refresh()"
+             @change.capture="refresh()"
+             class="w-full flex flex-col">
+        <c-components.card class="mb-2">
+            <form id="event_filters" action="{% url "index_events" %}"
+                  hx-get="{% url "index_events" %}" hx-trigger="change[target.type === 'checkbox'], change[target.type === 'date'] delay:500ms, submit" hx-sync="this:replace"
+                  hx-select="#event_results" hx-target="#event_results" hx-swap="outerHTML"
+                  hx-select-oob="#event_count:innerHTML,#event_empty:innerHTML" hx-push-url="true" hx-history="false"
+                  class="flex flex-wrap gap-4 mb-3">
+                <input type="hidden" name="location_type" value="">
+                <c-components.form_fields.filter_select label="En ligne / en présentiel" name="location_type" id="event_location_type" :options="location_types" :ticked="ticked_location_types" :default_ticked="default_location_types" :switch="True" selection_target="#event_selected_filters" />
+                <c-components.form_fields.filter_select label="Région / Département" id="event_location" icon="location" tint_class="bg-green-500/20" disabled_when="!onsite" disabled_reason="Active « En présentiel » pour filtrer par région ou département." selection_target="#event_selected_filters">
+                    <c-components.form_fields.region_options :regions="regions" :ticked="ticked_departments" id="event_location" />
+                </c-components.form_fields.filter_select>
+                <c-components.form_fields.filter_select label="Type d'événement" name="subcategory" id="event_type" :options="event_types" :ticked="ticked_event_types" selection_target="#event_selected_filters" />
+                <c-components.form_fields.filter_select label="Date" id="event_date" icon="calendar" tint_class="bg-orange-500/20" selection_target="#event_selected_filters">
+                    <div class="flex flex-col gap-2">
+                        <label for="event_date_from" class="label-text-sm">Date de début</label>
+                        <input type="date" id="event_date_from" name="date_from" value="{{ date_from|date:"Y-m-d" }}" class="field-base field-default">
+                    </div>
+                    <div class="flex flex-col gap-2">
+                        <label for="event_date_to" class="label-text-sm">Date de fin</label>
+                        <input type="date" id="event_date_to" name="date_to" value="{{ date_to|date:"Y-m-d" }}" class="field-base field-default">
+                    </div>
+                </c-components.form_fields.filter_select>
+                <c-components.form_fields.checkbox name="free" id="event_free" value="1" label="Gratuit uniquement" :checked="free_only" :switch="True" label_class="text-sm! font-normal"
+                                                   class="justify-center px-4 py-3 rounded-sm bg-neutral-0 border border-black shadow-bottom-and-right shadow-black hover:shadow-bottom-and-right-lg" />
+                <button type="button" x-show="filtersChanged" x-cloak @click="resetAll()"
+                        class="ml-auto self-center text-sm underline decoration-1 underline-offset-4 hover:decoration-2 active:bg-neutral-200 focus:outline-blue-500 focus:outline-offset-2 cursor-pointer">
+                    Tout réinitialiser
+                </button>
+            </form>
+            <div id="event_selected_filters" class="hidden has-[li]:flex flex-wrap items-center gap-2 mt-4">
+                <span class="text-sm">Filtres sélectionnés&nbsp;:</span>
+            </div>
+            <div class="flex items-center justify-between gap-4 mt-3">
+                {% with event_count=events.paginator.count %}
+                    <p id="event_count" aria-live="polite">{{ event_count|intcomma }}&nbsp;événement{% if event_count > 1 %}s{% endif %} </p>
+                {% endwith %}
+            </div>
+            <div id="event_empty" class="empty:hidden mt-3">{% if filtering and not events.paginator.count %}
+                <div class="flex flex-col gap-3 border border-black p-2">
+                    <c-components.title title="Aucun événement ne correspond à ta recherche" variant="h3" style="serif"/>
+                    <p>Essaie de retirer un filtre ou d'élargir ta recherche.</p>
+                    <c-components.inline-link label="Réinitialiser la recherche" href="{% url "index_events" %}" @click.prevent="resetAll()" />
+                </div>
+            {% endif %}</div>
+        </c-components.card>
+        <div id="event_results" class="w-full flex flex-col">
+            {% include "beneficiary/partials/event_cards.html" %}
 
-    <c-components.pagination :page="events" class="mt-(--grid-cell) self-center" />
+            <c-components.pagination :page="events" query="{{ query }}" class="mt-(--grid-cell) self-center" />
+        </div>
+    </div>
 
     <div id="modal-container"></div>
 </c-layout.base>
