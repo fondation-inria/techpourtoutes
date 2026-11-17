@@ -1,45 +1,5 @@
 [
   {
-    "_id": "22NisRqehckrMvEu3",
-    "title": "Stage en électricité générale",
-    "description": "<p>Explorez le métier d’électricien et enrichissez vos compétences lors d’un stage concret et formateur. Description de l'entreprise : Intégrez une structure engagée dans le domaine de l’électricité générale, où la qualité et la sécurité sont au cœur des projets. Ce stage vous plongera au cœur du métier. Résumé du stage : Vous participerez à l’installation de systèmes électriques, au diagnostic des pannes et à l’entretien des équipements. Une immersion complète dans l’univers de l’électricité générale.</p>",
-    "address": {
-      "street": "CURATS, LD CANTIRAN, 32110 CAUPENNE D'ARMAGNAC",
-      "postalCode": "32110",
-      "departmentCode": "32",
-      "inseeCode": "32094",
-      "city": "Caupenne-d'Armagnac"
-    },
-    "coordinates": {
-      "latitude": 43.7842826352,
-      "longitude": -0.0711396072349
-    },
-    "owner_name": "Didier Ducom",
-    "owner_logo": null,
-    "nafCode": "4321A",
-    "idSecteurOcapiat": "131",
-    "secteurOcapiat": "Secteur agricole - Services associés",
-    "createdAt": "2025-01-06T08:21:32.994Z",
-    "updatedAt": "2025-03-11T13:56:31.694Z",
-    "domains": [
-      "électrotechnique"
-    ],
-    "subDomainKeys": [
-      "electricite-electronique-robotiqueelectrotechnique"
-    ],
-    "domainKeys": [
-      "electricite-electronique-robotique"
-    ],
-    "domains1j1s": [
-      "ELECTRONIQUE_ELECTROTECHNIQUE"
-    ],
-    "internshipTypes": [
-      "3eInternship"
-    ],
-    "periods": [],
-    "canonicalUrl": "https://myfutu.re/internships/offers/22NisRqehckrMvEu3"
-  },
-  {
     "_id": "24MYLux8p5h5wtb5x",
     "title": "Stage de 3e/2nd en Électricité, Plomberie et Chauffagerie",
     "description": "<p>Découvrez le monde de l'électricité, de la plomberie et de la chauffagerie chez Arthuis Poirier SAS à Bonchamp les Laval lors d'un stage passionnant. Acquérez des compétences pratiques dans un environnement dynamique et formateur.</p>\n<h2 id=\"descriptiondelentreprise\">Description de l'entreprise</h2>\n<p>Arthuis Poirier SAS, basée à Bonchamp les Laval, excelle dans les domaines de l'électricité, de la plomberie et de la chauffagerie. En tant qu'entreprise polyvalente, elle offre des services complets dans le secteur du bâtiment, assurant des installations fiables et des solutions énergétiques efficientes. Avec un engagement envers la qualité et la satisfaction client, Arthuis Poirier SAS est une référence locale dans le domaine des travaux électriques et de plomberie.</p>\n<h2 id=\"missionsdustagiaire\">Missions du stagiaire</h2>\n<p>Les stagiaires de 3e/2nd chez Arthuis Poirier SAS à Bonchamp les Laval auront l'opportunité d'observer et découvrir les métiers de la plomberie, de l'électricité et du secrétariat. Leur stage inclura l'observation active des professionnels, permettant ainsi une immersion pratique dans les activités liées à ces domaines, contribuant à une compréhension approfondie du fonctionnement de l'entreprise.</p>",
@@ -238,45 +198,6 @@
     "canonicalUrl": "https://myfutu.re/internships/offers/27dg5d5xXzQFbq7et"
   },
   {
-    "_id": "29T9dzuTPuahjLJbW",
-    "title": "Alternance - Electrotechnicien F/H",
-    "description": "<p>Envie d’un métier utile, concret et d’avenir ?</p><ul><li>Rejoindre nos équipes, c’est participer chaque jour à une mission essentielle : garantir l’accès à l’électricité pour tous, en toute sécurité.</li><li>Accompagné par un tuteur expérimenté, vous apprendrez un métier technique, recherché et évolutif, au cœur des infrastructures énergétiques.</li></ul><p>Votre mission, sur le terrain :</p><p>Sur le réseau électrique :</p><p>- Réalisation de travaux de construction, de renforcement et de renouvellement des réseaux aériens et souterrains</p><p>- Interventions réalisées en équipe, dans le respect strict des règles de sécurité</p><p>Chez les clients :</p><p>- Interventions en autonomie progressive sur les panneaux de comptage et les branchements</p><p>- Contact direct avec les clients, avec un véritable rôle de service</p><p>&nbsp;</p><p>Vous apprendrez un métier vivant et dynamique :</p><p>- Situations sollicitant votre réactivité</p><p>- Travail de fond pour fiabiliser durablement les installations</p><p>- Activité en extérieur, physique et variée, avec déplacements réguliers</p>",
-    "address": {
-      "street": "",
-      "postalCode": "57220",
-      "city": "Boulay-Moselle",
-      "departmentCode": "57"
-    },
-    "coordinates": {
-      "latitude": 49.17479,
-      "longitude": 6.494882
-    },
-    "owner_name": "EDF",
-    "owner_logo": null,
-    "nafCode": null,
-    "idSecteurOcapiat": null,
-    "secteurOcapiat": null,
-    "createdAt": "2026-03-02T13:06:54.363Z",
-    "updatedAt": "2026-03-02T13:06:54.363Z",
-    "domains": [
-      "électrotechnique"
-    ],
-    "subDomainKeys": [
-      "electricite-electronique-robotiqueelectrotechnique"
-    ],
-    "domainKeys": [
-      "electricite-electronique-robotique"
-    ],
-    "domains1j1s": [
-      "ELECTRONIQUE_ELECTROTECHNIQUE"
-    ],
-    "internshipTypes": [
-      "apprenticeship"
-    ],
-    "periods": [],
-    "canonicalUrl": "https://myfutu.re/internships/offers/29T9dzuTPuahjLJbW"
-  },
-  {
     "_id": "29pSh3oDQQdSaw6T4",
     "title": "Responsable du pilotage des projets applicatifs Métier",
     "description": "<p>Nous recherchons pour la Direction des Systèmes d'Information, un Responsable du pilotage des projets applicatifs Métier.</p><p>Rattaché(e) au Responsable du Pôle Pilotage Projets Applicatifs, vous serez en charge du pilotage opérationnel des personnes de l’équipe intervenant sur les processus Métiers de l’entreprise, en complément d’une activité de chefferie de projets / Assistance à maîtrise d’ouvrage en propre. Le périmètre d’intervention couvrira tant les activités projets que le run.</p><p>L’équipe se compose de chefs de projets, intervenants sur des périmètres métiers dédiés, ainsi que d’une équipe de support applicatif intervenant sur le principal ERP métier de l’entreprise, JASON.</p><p>Avec les membres de votre équipe, vous assurerez la mise en place et le suivi des projets applicatifs du Groupe concernant les processus métiers (assainissement, déchets, matériels roulants, mobilité, administration des ventes, …).</p><p>Vous aurez aussi la responsabilité du patrimoine applicatif associé, et en assurerez la gestion afin d’en garantir le bon fonctionnement au quotidien. Plus précisément vos missions seront :&#xa0;</p><p>&#xa0;</p><p><strong>Pilotage opérationnel de l’équipe :</strong></p><ul><li><p>Suivre l’activité des membres de l’équipe (à date 9 internes)</p></li><li><p>Assister et conseiller les membres de l’équipe au quotidien</p></li><li><p>Suivre l’avancement des objectifs sur le périmètre</p></li><li><p>Assurer le reporting à destination de sa hiérarchie et des métiers</p></li></ul><p>&#xa0;</p><p><strong>Pilotage, suivi et coordination de projet :</strong></p><ul><li><p>Définir le plan projet avec les équipes concernées (évaluer les charges, identifier les actions et les acteurs, planifier le projet du kick-off jusqu’à la période de garantie post-Go Live, …)</p></li><li><p>Assurer la coordination entre les parties-prenantes tout au long du projet (équipes DSI, BPO métiers, correspondants en région, prestataires, …)</p></li><li><p>Assurer le reporting du projet en lien avec le métier (suivi d’avancement, suivi budgétaire, suivi des risques, …)</p></li></ul><ul><li><p>Organiser et animer les différentes instances de suivi du projet (comité de projet, comité de pilotage, …)</p></li><li><p>Organiser et suivre en particulier les tests d’intégration, les tests de charges, la mise en production et le déploiement</p></li></ul><p>&#xa0;</p><p><strong>Assistance à maîtrise d’ouvrage :</strong></p><ul><li><p>Etudier les besoins des métiers, avec l’appui éventuel de nos partenaires</p></li><li><p>Collaborer à l’élaboration du cahier des charges fonctionnel et déterminer les spécifications techniques générales</p></li><li><p>Participer à la définition des solutions</p></li></ul><p>&#xa0;</p><p><strong>Business partner IT :</strong></p><ul><li><p>Accompagnement des directions métiers pour tout sujet en lien avec l’informatique, avec le soutien de l’ensemble des intervenants de la DSI</p></li></ul><p>&#xa0;</p><p><strong>Gestion du patrimoine applicatif confié (en supervision des équipes en place) :</strong></p><ul><li><p>Coordonner les actions nécessaires au rétablissement du service en cas d’incident majeur</p></li><li><p>Assurer la correction des anomalies identifiées</p></li><li><p>Collaborer activement aux évolutions ou montées de versions</p></li><li><p>Tenir compte de l'obsolescence des composants applicatifs et des exigences liées à la sécurité IT dans la roadmap des applications</p></li></ul><p>&#xa0;</p><p><strong>Administration (en supervision des équipes en place) :</strong></p><ul><li><p>Administration technique des outils du périmètre applicatif</p></li><li><p>Backup du métier pour l’administration fonctionnelle des outils du périmètre applicatif</p></li></ul>\n\n<p>Plusieurs avantages à nous rejoindre :</p><ul><li><p>13ème mois</p></li><li><p>Part variable</p></li><li><p>Intéressement&#xa0;</p></li><li><p>Tickets restaurants</p></li><li><p>Epargne salariale</p></li><li><p>Des parcours de carrière et mobilité en adéquation avec vos projets</p></li></ul><p>&#xa0;</p><p>Leader mondial des services à l’environnement, Veolia est présent sur les 5 continents avec près de 218 000 salariés. Expert dans les métiers de l’eau, l’énergie et les déchets, le Groupe conçoit et met en œuvre des solutions innovantes de décarbonation, de dépollution et de régénération des ressources pour accompagner les collectivités et les industriels dans leur transformation écologique</p><p>Pour plus d'informations sur SARP, n'hésitez pas à consulter notre Page Entreprise <a href=\"https://fr.linkedin.com/company/sarp\">Linkedin</a>, notre <a href=\"https://www.youtube.com/channel/UC9I-b2MOoggnpF--OTRQFww/featured\">Page Youtube</a> et notre <a href=\"https://recrutement.sarp-assainissement.fr/\">Page Carrière</a>.</p><div sr-tagline=\"\"></div><p><strong>As an inclusive company, Veolia is committed to diversity and gives equal consideration to all applications, without discrimination.</strong></p>",
@@ -314,85 +235,6 @@
     ],
     "periods": [],
     "canonicalUrl": "https://myfutu.re/internships/offers/29pSh3oDQQdSaw6T4"
-  },
-  {
-    "_id": "2AYkvWY6GFBTWz2uE",
-    "title": "Stage en climatisation",
-    "description": "<p>Plongez dans l’univers de l’installation thermique et développez vos compétences techniques lors de ce stage formateur. Description de l’entreprise : Rejoignez une entreprise spécialisée dans l’installation et la maintenance de systèmes thermiques, où expertise et innovation sont au cœur des projets. Description de l’entreprise : Rejoignez une entreprise spécialisée dans l’installation et la maintenance de systèmes thermiques, où expertise et innovation sont au cœur des projets. Résumé du stage : Vous serez amené à intervenir sur des chantiers, à aider à la préparation et à la mise en œuvre des installations, tout en respectant les normes de sécurité.</p>",
-    "address": {
-      "street": "31 MONTAGNAC LE HAUT 30120 MOLIERES-CAVAILLAC",
-      "postalCode": "30120",
-      "departmentCode": "30",
-      "inseeCode": "30170",
-      "city": "Molières-Cavaillac"
-    },
-    "coordinates": {
-      "latitude": 43.9707308268,
-      "longitude": 3.571824012
-    },
-    "owner_name": "Mb Energies Froid - Clim",
-    "owner_logo": null,
-    "nafCode": "4322B",
-    "idSecteurOcapiat": "131",
-    "secteurOcapiat": "Secteur agricole - Services associés",
-    "createdAt": "2025-03-11T13:57:12.969Z",
-    "updatedAt": "2025-03-11T13:57:12.969Z",
-    "domains": [
-      "électrotechnique"
-    ],
-    "subDomainKeys": [
-      "electricite-electronique-robotiqueelectrotechnique"
-    ],
-    "domainKeys": [
-      "electricite-electronique-robotique"
-    ],
-    "domains1j1s": [
-      "ELECTRONIQUE_ELECTROTECHNIQUE"
-    ],
-    "internshipTypes": [
-      "highSchoolInternship"
-    ],
-    "periods": [],
-    "canonicalUrl": "https://myfutu.re/internships/offers/2AYkvWY6GFBTWz2uE"
-  },
-  {
-    "_id": "2Ck2ZBEYGCFrMsXip",
-    "title": "Découvrir les métiers de l'électrique",
-    "description": "<p>Découvrez le métier d'électricien et explorez un univers où compétences techniques, créativité et résolution de problèmes se rencontrent pour apporter lumière et énergie à notre quotidien. </p>\n<h2 id=\"descriptiondelentreprise\">Description de l'entreprise</h2>\n<p>Comelec offre des services d'installation et de maintenance électrique pour les particuliers, les entreprises et les collectivités.</p>\n<h2 id=\"contenudustage\">Contenu du stage</h2>\n<p>Pendant votre stage de découverte chez Comelec, vous assisterez les électriciens sur les chantiers et participerez à des projets d'installation et de maintenance électrique. Vous découvrirez les différentes étapes du métier et apprendrez les normes de sécurité à respecter dans le domaine de l'électricité.</p>",
-    "address": {
-      "street": "305 rue Tuilerie 39140 Commenailles ",
-      "postalCode": "39140",
-      "departmentCode": "39",
-      "city": "CHAPELLE VOLAND"
-    },
-    "coordinates": {
-      "latitude": 46.7587878563,
-      "longitude": 5.43938502725
-    },
-    "owner_name": "Comelec",
-    "owner_logo": null,
-    "nafCode": "4321A",
-    "idSecteurOcapiat": "131",
-    "secteurOcapiat": "Secteur agricole - Services associés",
-    "createdAt": "2024-04-10T15:38:48.834Z",
-    "updatedAt": "2024-04-10T15:38:48.834Z",
-    "domains": [
-      "électrotechnique"
-    ],
-    "subDomainKeys": [
-      "electricite-electronique-robotiqueelectrotechnique"
-    ],
-    "domainKeys": [
-      "electricite-electronique-robotique"
-    ],
-    "domains1j1s": [
-      "ELECTRONIQUE_ELECTROTECHNIQUE"
-    ],
-    "internshipTypes": [
-      "3eInternship"
-    ],
-    "periods": [],
-    "canonicalUrl": "https://myfutu.re/internships/offers/2Ck2ZBEYGCFrMsXip"
   },
   {
     "_id": "2D3S2xeLqxgXg4xep",
@@ -616,57 +458,6 @@
     "canonicalUrl": "https://myfutu.re/internships/offers/2HkYDe28mejpcXjdt"
   },
   {
-    "_id": "2JXNZp5PvX7RpS6nY",
-    "title": "Alternance - Chef de Projets Conduite des réseaux électriques F/H",
-    "description": "<p>En rejoignant nos équipes, vous contribuez directement au développement des réseaux électriques de demain. Accompagné par un tuteur expérimenté, vous évoluez progressivement vers un rôle clé de pilotage de projets contribuant à l'amélioration de la performance du réseau électrique Normand.</p><p>&nbsp;</p><p>Vos missions :</p><p>👉Pilote de projets techniques en simultanée liés à la conduite du réseau ou la réalimentation des clients.</p><p>👉&nbsp;Participation aux missions de gestions prévisionnelles des capacités du réseau.</p><p>👉Analyse de données et évolutions de tableau de bord pour un suivi de l’activité.</p><p>👉Proposer et expérimenter des pistes d’outils pour optimiser l’activité.</p><p>&nbsp;</p><p>Ce que nous vous offrons :</p><p><br>👉Une immersion dans les enjeux stratégiques de la transition énergétique et dans la conduite des réseaux électriques français.<br>👉Une expérience concrète sur la fiabilité et la résilience des réseaux électriques.<br><br></p><p>&nbsp;</p>",
-    "address": {
-      "street": "",
-      "postalCode": "76800",
-      "city": "ST ETIENNE DU ROUVRAY",
-      "departmentCode": "76"
-    },
-    "coordinates": {
-      "latitude": 49.3814944369,
-      "longitude": 1.08976892912
-    },
-    "owner_name": "EDF",
-    "owner_logo": null,
-    "nafCode": null,
-    "idSecteurOcapiat": null,
-    "secteurOcapiat": null,
-    "createdAt": "2026-03-02T13:07:23.630Z",
-    "updatedAt": "2026-03-02T13:07:23.630Z",
-    "domains": [
-      "énergies",
-      "électrotechnique",
-      "génie civil, construction (généralités)",
-      "sciences de la Terre"
-    ],
-    "subDomainKeys": [
-      "environnement-energies-propreteenergies",
-      "electricite-electronique-robotiqueelectrotechnique",
-      "construction-architecture-travaux-publicsgenie-civil-construction-generalites",
-      "sciencessciences-de-la-terre"
-    ],
-    "domainKeys": [
-      "environnement-energies-proprete",
-      "electricite-electronique-robotique",
-      "construction-architecture-travaux-publics",
-      "sciences"
-    ],
-    "domains1j1s": [
-      "ENVIRONNEMENT_ECOLOGIE_AGRICULTURE",
-      "ELECTRONIQUE_ELECTROTECHNIQUE",
-      "ARCHITECTURE",
-      "SCIENCES_HUMAINES"
-    ],
-    "internshipTypes": [
-      "apprenticeship"
-    ],
-    "periods": [],
-    "canonicalUrl": "https://myfutu.re/internships/offers/2JXNZp5PvX7RpS6nY"
-  },
-  {
     "_id": "2JuMzmmq8SnbMAmXa",
     "title": "Stage de découverte en électricité à Plonévez Porzay",
     "description": "<p>Stage de découverte et d'observation dans l’électricité à Plonévez Porzay, idéal pour des élèves de 3ème ou seconde intéressés par les systèmes électriques résidentiels.</p>\n<h2 id=\"descriptiondelentreprise\">Description de l'entreprise</h2>\n<p>Cette entreprise, basée à Plonévez Porzay, se concentre sur les installations électriques dans des bâtiments résidentiels et tertiaires. Elle assure le câblage, la pose de tableaux électriques et l'installation d'éclairages. Elle intervient également dans la maintenance des systèmes électriques existants, avec un accent sur la sécurité et la mise aux normes des installations. En cas de dysfonctionnements, l’entreprise effectue des dépannages rapides pour assurer le bon fonctionnement des équipements. Elle propose aussi des solutions d'optimisation pour améliorer l'efficacité énergétique des systèmes électriques.</p>\n<h2 id=\"missions\">Missions</h2>\n<p>Ce stage permettra au stagiaire d'observer les différentes étapes de l'installation électrique dans des bâtiments résidentiels. Il découvrira le câblage, la pose de tableaux électriques et de disjoncteurs, ainsi que l'installation d'éclairages. Le stagiaire observera aussi les interventions de dépannage pour résoudre les pannes, ainsi que les techniques pour mettre à jour et sécuriser les installations électriques.</p>",
@@ -826,49 +617,6 @@
     ],
     "periods": [],
     "canonicalUrl": "https://myfutu.re/internships/offers/2Mgoky9evsCSM49Xe"
-  },
-  {
-    "_id": "2NPRkYcDjvKkK8vQs",
-    "title": "Alternance - Chargé de conception F/H",
-    "description": "<p>Accompagné par votre tuteur, vous participez à l<strong>’élaboration de solutions techniques</strong> pour le raccordement de nouveaux clients et le <strong>renforcement des lignes existantes</strong>, dans le respect des exigences techniques, environnementales et de sécurité.</p><p>&nbsp;</p><p>Au fil de votre alternance, vous êtes formé à la <strong>réalisation des études techniques</strong> et à l<strong>’élaboration des chiffrages associés</strong>. Vous appréhendez les besoins des clients en tenant compte des contraintes de l’environnement, analysez les situations rencontrées et proposez des solutions techniques adaptées aux travaux à réaliser. Vous assurez le chiffrage des solutions retenues et veillez au respect des règles techniques en vigueur, y compris les aspects liés à la prévention et à l’environnement.</p><p>&nbsp;</p><p>Par votre engagement, vous contribuez directement à l’<strong>amélioration de la qualité de fourniture en électricité</strong>, à la satisfaction des clients et participez activement aux enjeux de la <strong>transition énergétique</strong>.</p>",
-    "address": {
-      "street": "",
-      "postalCode": "63000",
-      "city": "Clermont-Ferrand",
-      "departmentCode": "63"
-    },
-    "coordinates": {
-      "latitude": 45.786671,
-      "longitude": 3.107055
-    },
-    "owner_name": "EDF",
-    "owner_logo": null,
-    "nafCode": null,
-    "idSecteurOcapiat": null,
-    "secteurOcapiat": null,
-    "createdAt": "2026-03-02T13:06:53.125Z",
-    "updatedAt": "2026-03-02T13:06:53.125Z",
-    "domains": [
-      "électrotechnique",
-      "énergies"
-    ],
-    "subDomainKeys": [
-      "electricite-electronique-robotiqueelectrotechnique",
-      "environnement-energies-propreteenergies"
-    ],
-    "domainKeys": [
-      "electricite-electronique-robotique",
-      "environnement-energies-proprete"
-    ],
-    "domains1j1s": [
-      "ELECTRONIQUE_ELECTROTECHNIQUE",
-      "ENVIRONNEMENT_ECOLOGIE_AGRICULTURE"
-    ],
-    "internshipTypes": [
-      "apprenticeship"
-    ],
-    "periods": [],
-    "canonicalUrl": "https://myfutu.re/internships/offers/2NPRkYcDjvKkK8vQs"
   },
   {
     "_id": "2Qydv3ABiXiNM8xPt",
@@ -1040,46 +788,6 @@
     ],
     "periods": [],
     "canonicalUrl": "https://myfutu.re/internships/offers/2TTP8xC3LZykTB3ga"
-  },
-  {
-    "_id": "2ThmFaCkcisrYpcWX",
-    "title": "Stage en électricité générale",
-    "description": "<p>Rejoignez le monde dynamique de l’électricité et participez à des projets passionnants au cours de ce stage. Description de l'entreprise : Participez à l’activité d’une entreprise spécialisée en travaux électriques, qui met un point d’honneur à transmettre son savoir-faire. Ce stage vous permettra de comprendre les défis et enjeux de l’électricité générale. Résumé du stage : Vous aurez l’opportunité de contribuer à des installations électriques, d’assister à des dépannages, et de travailler en collaboration avec une équipe professionnelle.</p>",
-    "address": {
-      "street": "11 RUE FRANCIS DE PRESSENSE 30100 ALES",
-      "postalCode": "30100",
-      "departmentCode": "30",
-      "inseeCode": "30007",
-      "city": "Alès"
-    },
-    "coordinates": {
-      "latitude": 44.1250099126,
-      "longitude": 4.08828501262
-    },
-    "owner_name": "Action Service",
-    "owner_logo": null,
-    "nafCode": "4321A",
-    "idSecteurOcapiat": "131",
-    "secteurOcapiat": "Secteur agricole - Services associés",
-    "createdAt": "2025-01-06T08:21:00.744Z",
-    "updatedAt": "2025-03-11T13:56:01.780Z",
-    "domains": [
-      "électrotechnique"
-    ],
-    "subDomainKeys": [
-      "electricite-electronique-robotiqueelectrotechnique"
-    ],
-    "domainKeys": [
-      "electricite-electronique-robotique"
-    ],
-    "domains1j1s": [
-      "ELECTRONIQUE_ELECTROTECHNIQUE"
-    ],
-    "internshipTypes": [
-      "3eInternship"
-    ],
-    "periods": [],
-    "canonicalUrl": "https://myfutu.re/internships/offers/2ThmFaCkcisrYpcWX"
   },
   {
     "_id": "2WR2JckwBjrzq88Xb",
@@ -1290,45 +998,6 @@
     "canonicalUrl": "https://myfutu.re/internships/offers/2X7DnTE5RLXZ9Gu2H"
   },
   {
-    "_id": "2XQTnb7xoPHhGHQu2",
-    "title": "Electricien basse tension",
-    "description": "<p><strong>Description du poste</strong></p><p>Vous avez des compétences électriques mais vous ne connaissez pas nos installations : NOUS VOUS FORMONS EN CDI PRO en alternant la théorie dans nos centres de formation et la pratique au sein de nos équipes. </p><p>Vos journées seront rythmées par les missions suivantes : </p><p>o Contrôler, entretenir et réparer nos installations électriques </p><p>o Coordonner vos interventions avec d'autres agents SNCF Réseau </p><p>o Veiller à ce que chacune des interventions soient tracées </p><p> </p><p>En bref, vous serez en charge de garantir que les installations électriques sont en parfait état de marche grâce à votre sens de l'analyse et votre rigueur. </p><p>Vous êtes sur le terrain : vous vous déplacerez aux abords des voies, en marchant sur le ballast, dans les tunnels..</p><p>Votre rythme de travail varie entre les horaires décalés, nuits, week-ends et jours fériés. </p><p><br /></p><p><strong><u>Rejoignez nous : </u></strong></p><p><strong><u>https://www.altays-progiciels.com/sncf-recrutement-externe/back/offre/redirectOffreSiteCarriere/1?NoOffre=2490609</u></strong></p>",
-    "address": {
-      "street": "Place du 11 Novembre 1918",
-      "postalCode": "75010",
-      "departmentCode": "75",
-      "city": "PARIS (10EME ARRONDISSEMENT)"
-    },
-    "coordinates": {
-      "latitude": 48.8735085,
-      "longitude": 2.35853
-    },
-    "owner_name": "SNCF RESEAU",
-    "owner_logo": null,
-    "nafCode": null,
-    "idSecteurOcapiat": null,
-    "secteurOcapiat": null,
-    "createdAt": "2024-07-24T10:18:40.270Z",
-    "updatedAt": "2026-11-04T00:00:31.648Z",
-    "domains": [
-      "électrotechnique"
-    ],
-    "subDomainKeys": [
-      "electricite-electronique-robotiqueelectrotechnique"
-    ],
-    "domainKeys": [
-      "electricite-electronique-robotique"
-    ],
-    "domains1j1s": [
-      "ELECTRONIQUE_ELECTROTECHNIQUE"
-    ],
-    "internshipTypes": [
-      "apprenticeship"
-    ],
-    "periods": [],
-    "canonicalUrl": "https://myfutu.re/internships/offers/2XQTnb7xoPHhGHQu2"
-  },
-  {
     "_id": "2ZekGugChGEwYdMGc",
     "title": "Stage de découverte en dépannage informatique",
     "description": "<p>Apprenez le dépannage informatique à Quévert ! Découvrez les bases de la détection et de la résolution de problèmes techniques sur ordinateur.</p>\n<h2 id=\"descriptiondelentreprise\">Description de l'entreprise</h2>\n<p>L'entreprise propose également des services de dépannage informatique, en intervenant pour résoudre les pannes matérielles et logicielles. Elle s'assure de diagnostiquer rapidement les problèmes, qu'il s'agisse de défaillances matérielles, de virus ou de défaillances logicielles. Les techniciens de l'entreprise interviennent à la fois sur site ou à distance pour offrir des solutions efficaces et rapides. L’objectif est de minimiser les temps d'arrêt et de garantir que les systèmes des clients fonctionnent de manière optimale, tout en offrant un service de qualité et de confiance.</p>\n<h2 id=\"rsumdustage\">Résumé du stage</h2>\n<p>Le stagiaire sera initié aux méthodes de dépannage informatique, notamment l’identification des dysfonctionnements courants et les réparations de base. Il observera les étapes de résolution des problèmes liés aux systèmes d’exploitation, aux réseaux et à la sécurité. Ce stage inclut la découverte des outils de diagnostic et des techniques de restauration système.</p>",
@@ -1486,46 +1155,6 @@
     ],
     "periods": [],
     "canonicalUrl": "https://myfutu.re/internships/offers/2dg9RKbKmgCjfxQwG"
-  },
-  {
-    "_id": "2kEC6QMcJJH5e7gXT",
-    "title": "Stage en électricité générale",
-    "description": "<p>Intégrez une équipe d’experts en électricité générale et découvrez un métier d’avenir. Description de l'entreprise : Participez à l’activité d’une entreprise dynamique spécialisée dans les travaux électriques, où chaque projet est une occasion d’apprendre. Résumé du stage : Vous participerez activement à des chantiers, découvrirez les bases des installations électriques et apprendrez à diagnostiquer et résoudre des problèmes techniques.</p>",
-    "address": {
-      "street": "5 RUE HORACE 32000 AUCH",
-      "postalCode": "32000",
-      "departmentCode": "32",
-      "inseeCode": "32013",
-      "city": "Auch"
-    },
-    "coordinates": {
-      "latitude": 43.6534300414,
-      "longitude": 0.575190250459
-    },
-    "owner_name": "Electricité Gersoise SARL",
-    "owner_logo": null,
-    "nafCode": "4321A",
-    "idSecteurOcapiat": "131",
-    "secteurOcapiat": "Secteur agricole - Services associés",
-    "createdAt": "2025-03-11T13:56:25.798Z",
-    "updatedAt": "2025-03-11T13:56:25.798Z",
-    "domains": [
-      "électrotechnique"
-    ],
-    "subDomainKeys": [
-      "electricite-electronique-robotiqueelectrotechnique"
-    ],
-    "domainKeys": [
-      "electricite-electronique-robotique"
-    ],
-    "domains1j1s": [
-      "ELECTRONIQUE_ELECTROTECHNIQUE"
-    ],
-    "internshipTypes": [
-      "highSchoolInternship"
-    ],
-    "periods": [],
-    "canonicalUrl": "https://myfutu.re/internships/offers/2kEC6QMcJJH5e7gXT"
   },
   {
     "_id": "2kKsPNMN3eziYQvCH",
@@ -2081,46 +1710,6 @@
     "canonicalUrl": "https://myfutu.re/internships/offers/3Cx8SjTR9y3i4JKxk"
   },
   {
-    "_id": "3E55aa8vWpDRyR2nw",
-    "title": "Stage bac pro / CAP  - antenniste ",
-    "description": "<h2 id=\"proposdelastructure\">🔎 À propos de la structure</h2>\n<p>L’entreprise est spécialisée dans l’installation, la maintenance et le dépannage d’antennes et de systèmes de réception audiovisuelle. Elle intervient auprès des particuliers, entreprises et collectivités pour assurer la réception des chaînes de télévision et des services numériques.\nL’entreprise propose différents services : installation d’antennes TNT, paraboles, réglage des équipements de réception, dépannage et maintenance des installations audiovisuelles. Elle accompagne également les clients dans le choix et l’installation du matériel adapté à leurs besoins.\nL’équipe est composée de techniciens antennistes qualifiés, chargés de l’installation, du réglage et de l’entretien des systèmes de réception télévisuelle et satellite dans le respect des normes de sécurité. 🎯Missions du stage\n📌 Participation aux activités techniques\n✔ Assister les techniciens lors de l’installation d’antennes ou de paraboles\n✔ Participer à la préparation du matériel et des outils nécessaires\n✔ Contribuer aux réglages et aux tests de réception des équipements\n✔ Observer les opérations de maintenance et de dépannage\n📌 Organisation et respect des règles\n✔ Appliquer les règles de sécurité lors des interventions\n✔ Participer au rangement et à l’entretien du matériel\n✔ Respecter les consignes et procédures de l’entreprise\n✔ Contribuer au bon déroulement des installations\n📌 Compétences développées\n✔ Connaissance des systèmes de réception audiovisuelle\n✔ Découverte du métier d’antenniste\n✔ Travail en équipe et organisation des interventions\n✔ Mise en pratique des compétences techniques acquises en formation</p>\n<h2 id=\"profilrecherch\">👤 Profil recherché</h2>\n<p>🎓 Élève en Bac Pro ou CAP Électronique, maintenance ou équivalent\n🤝 Personne motivée, sérieuse et rigoureuse\n📡 Intérêt pour les technologies audiovisuelles et les systèmes de réception</p>\n<h2 id=\"pourquoinousrejoindre\">⭐ Pourquoi nous rejoindre ?</h2>\n<p>✔ Découvrir le fonctionnement d’une entreprise spécialisée en installation d’antennes\n✔ Développer des compétences techniques dans le domaine audiovisuel\n✔ Acquérir une première expérience professionnelle\n✔ Participer à des installations et interventions techniques sur le terrain</p>",
-    "address": {
-      "street": "22 Rue Louis Lumière, 81500 Lavaur",
-      "postalCode": "81500",
-      "departmentCode": "81",
-      "inseeCode": "81140",
-      "city": "Lavaur"
-    },
-    "coordinates": {
-      "latitude": 43.6895628711,
-      "longitude": 1.79437213708
-    },
-    "owner_name": "Proxi Confort Viselec",
-    "owner_logo": null,
-    "nafCode": "4321A",
-    "idSecteurOcapiat": "131",
-    "secteurOcapiat": "Secteur agricole - Services associés",
-    "createdAt": "2026-03-27T07:59:51.029Z",
-    "updatedAt": "2026-03-27T08:02:04.276Z",
-    "domains": [
-      "électrotechnique"
-    ],
-    "subDomainKeys": [
-      "electricite-electronique-robotiqueelectrotechnique"
-    ],
-    "domainKeys": [
-      "electricite-electronique-robotique"
-    ],
-    "domains1j1s": [
-      "ELECTRONIQUE_ELECTROTECHNIQUE"
-    ],
-    "internshipTypes": [
-      "highSchoolInternship"
-    ],
-    "periods": [],
-    "canonicalUrl": "https://myfutu.re/internships/offers/3E55aa8vWpDRyR2nw"
-  },
-  {
     "_id": "3EhEAeBWE2SyH3K6X",
     "title": "Une expérience en agence web spécialiste des bornes commandes connectées ",
     "description": "<p>L’entreprise <strong>Allo sites web</strong> serait ravie d’accueillir un.e stagiaire pour découvrir le métier de développeurs et développeuses web.</p><p>Tu veux comprendre comment créer un site internet ou une application mobile ? Ce stage t’apportera des compétences techniques et les bases du code informatique. À toi de jouer !</p>",
@@ -2203,45 +1792,6 @@
     ],
     "periods": [],
     "canonicalUrl": "https://myfutu.re/internships/offers/3HmSiCDB22eTZWboN"
-  },
-  {
-    "_id": "3KZWshecyq8r9oitt",
-    "title": "Découvir le métier d'électricien",
-    "description": "<p>Découvrez les métiers du BTP de l'intérieur ! Rejoignez-nous pour une semaine d'observation passionnante et immersive au sein de notre entreprise, et explorez les différentes facettes du secteur de la construction.</p>\n<h2 id=\"descriptiondelentreprise\">Description de l'entreprise</h2>\n<p>Remaud-Maindron SARL à La Poirée-sur-Vie offre des services spécialisés en électricité générale et en domotique pour les particuliers et les professionnels, mettant en avant son expertise technique, son service client personnalisé et son engagement envers la qualité des installations</p>\n<h2 id=\"contenudustage\">Contenu du stage</h2>\n<p>Au cours d'un stage d'observation d'une semaine chez Remaud-Maindron SARL à La Poirée-sur-Vie, un stagiaire de troisième pourrait découvrir les bases de l'électricité générale et de la domotique, observer les différentes étapes des installations dans divers environnements, participer à des tâches d'assistance simples sous supervision, tout en apprenant les normes de sécurité et les pratiques professionnelles dans ces domaines</p>",
-    "address": {
-      "street": "10 rue Ampère",
-      "postalCode": "85170",
-      "departmentCode": "85",
-      "city": "BELLEVIGNY"
-    },
-    "coordinates": {
-      "latitude": 46.803170613,
-      "longitude": -1.45953412091
-    },
-    "owner_name": "Remaud-Maindron SARL ",
-    "owner_logo": null,
-    "nafCode": "4322A",
-    "idSecteurOcapiat": "131",
-    "secteurOcapiat": "Secteur agricole - Services associés",
-    "createdAt": "2024-03-20T09:03:47.626Z",
-    "updatedAt": "2024-03-28T18:56:03.632Z",
-    "domains": [
-      "électrotechnique"
-    ],
-    "subDomainKeys": [
-      "electricite-electronique-robotiqueelectrotechnique"
-    ],
-    "domainKeys": [
-      "electricite-electronique-robotique"
-    ],
-    "domains1j1s": [
-      "ELECTRONIQUE_ELECTROTECHNIQUE"
-    ],
-    "internshipTypes": [
-      "3eInternship"
-    ],
-    "periods": [],
-    "canonicalUrl": "https://myfutu.re/internships/offers/3KZWshecyq8r9oitt"
   },
   {
     "_id": "3MDoANW5sozra5zJd",
@@ -2414,49 +1964,6 @@
     ],
     "periods": [],
     "canonicalUrl": "https://myfutu.re/internships/offers/3Y5veaCva8skZS2nT"
-  },
-  {
-    "_id": "3nznb4Sfeir9YftGm",
-    "title": "Électricien Conducteur Nacelle (F/H) - PLACIDOM Mayotte",
-    "description": "<p>ous recherchons actuellement pour l'un de nos partenaires un Électricien (H/F) titulaire du CACES Nacelle R486 (Catégorie B) pour des chantiers d'envergure.<br> <br> <br> Vos Missions <br>Rattaché(e) au chef de chantier, vous intervenez principalement sur des travaux en hauteur pour des installations industrielles ou tertiaires :<br> <br>- <br>Travaux en hauteur : Utilisation de la nacelle (type 3B ou 1B) pour accéder aux zones de travail.<br> <br>- <br>Installation &amp; Maintenance : Pose de chemins de câbles, tirage de câbles, raccordements d'armoires électriques.<br> <br>- <br>Équipements : Installation de systèmes d'éclairage (LED, projecteurs), pose de luminaires extérieurs ou équipements de sécurité.<br> <br>- <br>Mise en service : Lecture de plans, vérification des circuits et tests de mise sous tension.<br> <br>- <br>Sécurité : Respect strict des consignes de sécurité sur chantier et des périmètres de balisage.CACES R386 catégorie B obligatoire pour la conduite de l'engins Nacelle</p>",
-    "address": {
-      "street": "",
-      "postalCode": "97600",
-      "city": "MAMOUDZOU",
-      "departmentCode": "976"
-    },
-    "coordinates": {
-      "latitude": -12.791124,
-      "longitude": 45.220445
-    },
-    "owner_name": "PLACIDOM Mayotte",
-    "owner_logo": null,
-    "nafCode": null,
-    "idSecteurOcapiat": null,
-    "secteurOcapiat": null,
-    "createdAt": "2026-05-22T14:02:10.598Z",
-    "updatedAt": "2026-05-22T14:02:10.598Z",
-    "domains": [
-      "électrotechnique",
-      "équipement technique"
-    ],
-    "subDomainKeys": [
-      "electricite-electronique-robotiqueelectrotechnique",
-      "construction-architecture-travaux-publicsequipement-technique"
-    ],
-    "domainKeys": [
-      "electricite-electronique-robotique",
-      "construction-architecture-travaux-publics"
-    ],
-    "domains1j1s": [
-      "ELECTRONIQUE_ELECTROTECHNIQUE",
-      "ARCHITECTURE"
-    ],
-    "internshipTypes": [
-      "pmsmp"
-    ],
-    "periods": [],
-    "canonicalUrl": "https://myfutu.re/internships/offers/3nznb4Sfeir9YftGm"
   },
   {
     "_id": "3okszq4rbm7qmzaho",

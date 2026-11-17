@@ -19,7 +19,7 @@ def test_the_first_jobs_of_myfuture_become_immersions():
 
     migration.set_pmsmp_contract_type(apps, None)
 
-    assert JobPosting.objects.get().contract_type == JobPosting.ContractType.PMSMP
+    assert JobPosting.objects.get().contract_type == "pmsmp"
 
 
 @pytest.mark.parametrize(

@@ -67,7 +67,6 @@ def test_job_posting_rejects_a_domain_outside_the_choices():
 def test_job_posting_domains_are_the_normalized_list():
     assert JobPosting.Domain.labels == [
         "Électronique",
-        "Électrotechnique",
         "Télécommunications",
         "Bases de données",
         "Développement - programmation - logiciel",

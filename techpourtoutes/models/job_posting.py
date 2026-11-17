@@ -89,11 +89,9 @@ class JobPosting(BaseModel):
         INTERIM = "interim", _("Mission d'intérim")
         APPRENTICESHIP = "apprenticeship", _("Contrat d'apprentissage")
         PROFESSIONALIZATION = "professionalization", _("Contrat de professionnalisation")
-        PMSMP = "pmsmp", _("Immersion professionnelle")
 
     class Domain(models.TextChoices):
         ELECTRONIQUE = "electronique", _("Électronique")
-        ELECTROTECHNIQUE = "electrotechnique", _("Électrotechnique")
         TELECOMMUNICATIONS = "telecommunications", _("Télécommunications")
         BASES_DE_DONNEES = "bases_de_donnees", _("Bases de données")
         DEVELOPPEMENT = "developpement", _("Développement - programmation - logiciel")
@@ -141,12 +139,7 @@ class JobPosting(BaseModel):
     all_objects = models.Manager()
 
     CATEGORY_CONTRACT_TYPES = {
-        Category.FIRST_JOB: [
-            ContractType.CDD,
-            ContractType.CDI,
-            ContractType.INTERIM,
-            ContractType.PMSMP,
-        ],
+        Category.FIRST_JOB: [ContractType.CDD, ContractType.CDI, ContractType.INTERIM],
         Category.APPRENTICESHIP: [ContractType.APPRENTICESHIP, ContractType.PROFESSIONALIZATION],
     }
 

@@ -358,9 +358,8 @@ def test_index_job_postings_keeps_the_postings_of_any_ticked_domain(client, quer
     [
         ({"contract_type": "cdi"}, {"CDI"}),
         ({"contract_type": ["cdi", "interim"]}, {"CDI", "Intérim"}),
-        ({"contract_type": "pmsmp"}, {"Immersion"}),
-        ({"contract_type": "apprenticeship"}, {"CDD", "CDI", "Intérim", "Immersion"}),
-        ({}, {"CDD", "CDI", "Intérim", "Immersion"}),
+        ({"contract_type": "apprenticeship"}, {"CDD", "CDI", "Intérim"}),
+        ({}, {"CDD", "CDI", "Intérim"}),
     ],
 )
 @override_switch("internships", active=True)
@@ -371,7 +370,6 @@ def test_index_job_postings_keeps_the_postings_of_any_ticked_contract_type(
         ("CDD", JobPosting.ContractType.CDD),
         ("CDI", JobPosting.ContractType.CDI),
         ("Intérim", JobPosting.ContractType.INTERIM),
-        ("Immersion", JobPosting.ContractType.PMSMP),
     ]:
         save_job_posting(title, JobPosting.Category.FIRST_JOB, contract_type=contract_type)
 
@@ -459,7 +457,7 @@ def test_index_job_postings_shows_the_tabs_in_the_colour_of_their_category(clien
         ("green", "PFMP"),
         ("blue", "Stages de 2de"),
         ("purple", "Stages de 3e"),
-        ("orange", "Premier emploi"),
+        ("orange", "Premiers emplois"),
     ]
     assert [JobPosting.CATEGORY_COLORS[category] for category in JobPosting.Category] == [
         "purple",
@@ -504,7 +502,7 @@ def test_index_job_postings_writes_white_on_the_blue_tab(client, category, text_
 @pytest.mark.parametrize(
     "category, offered",
     [
-        ("first_job", ["cdd", "cdi", "interim", "pmsmp"]),
+        ("first_job", ["cdd", "cdi", "interim"]),
         ("apprenticeship", ["apprenticeship", "professionalization"]),
         ("higher_ed_internship", []),
         ("pfmp", []),
@@ -805,43 +803,6 @@ def test_show_job_posting_not_found_when_switch_inactive(client):
 
 @pytest.mark.django_db
 @override_switch("internships", active=True)
-def test_index_job_postings_names_the_contract_of_an_immersion_on_its_card(client):
-    save_job_posting(
-        "Immersion", JobPosting.Category.FIRST_JOB, contract_type=JobPosting.ContractType.PMSMP
-    )
-
-    html = client.get(INDEX_JOB_POSTINGS_URL, {"category": "first_job"}).content.decode()
-
-    assert "<span>Immersion professionnelle</span>" in html
-
-
-@pytest.mark.django_db
-@override_switch("internships", active=True)
-def test_show_job_posting_names_the_contract_of_an_immersion(client):
-    job_posting = save_job_posting(
-        "Immersion", JobPosting.Category.FIRST_JOB, contract_type=JobPosting.ContractType.PMSMP
-    )
-
-    html = client.get(show_job_posting_url(job_posting)).content.decode()
-
-    assert re.search(r"Type d’offre&nbsp;:</dt>\s*<dd[^>]*>Immersion professionnelle</dd>", html)
-
-
-@pytest.mark.django_db
-@override_switch("internships", active=True)
-def test_show_job_posting_introduces_the_company_of_an_immersion(client):
-    job_posting = save_job_posting(
-        "Immersion", JobPosting.Category.FIRST_JOB, contract_type=JobPosting.ContractType.PMSMP
-    )
-
-    html = client.get(show_job_posting_url(job_posting)).content.decode()
-
-    assert "Numeum propose une immersion au poste de&nbsp;:" in html
-    assert "recrute" not in html
-
-
-@pytest.mark.django_db
-@override_switch("internships", active=True)
 def test_show_job_posting_not_found_once_unpublished(client):
     job_posting = save_job_posting("Stage", JobPosting.Category.HIGHER_ED_INTERNSHIP, hidden=True)
 
@@ -915,7 +876,7 @@ def test_show_job_posting_puts_save_beside_back_and_apply_at_the_bottom_on_a_pho
 
     html = client.get(show_job_posting_url(job_posting)).content.decode()
 
-    assert html.index("Retour") < html.index("Enregistrer") < html.index("cherche une stagiaire")
+    assert html.index("Retour") < html.index("Enregistrer") < html.index("prochaine stagiaire")
     assert html.rindex("Postuler sur") > html.index("Descriptif de l’offre")
 
 
@@ -950,8 +911,8 @@ def test_show_job_posting_says_what_the_partner_did_not_give(client):
 @pytest.mark.parametrize(
     "category, mention",
     [
-        ("higher_ed_internship", "Numeum cherche une stagiaire au poste de&nbsp;:"),
-        ("apprenticeship", "Numeum cherche une alternante au poste de&nbsp;:"),
+        ("higher_ed_internship", "Seras-tu la prochaine stagiaire de Numeum&nbsp;?"),
+        ("apprenticeship", "Seras-tu la prochaine alternante de Numeum&nbsp;?"),
         ("first_job", "Numeum recrute au poste de&nbsp;:"),
         ("pfmp", "Numeum propose une PFMP&nbsp;:"),
         ("seconde_internship", "Numeum propose un stage d’observation"),
