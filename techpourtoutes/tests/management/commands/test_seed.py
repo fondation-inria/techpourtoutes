@@ -1,3 +1,5 @@
+from io import StringIO
+
 import pytest
 from django.core.management import call_command
 from django.core.management.base import CommandError
@@ -27,16 +29,18 @@ def test_seed_refuses_when_disabled():
 
 
 @pytest.mark.django_db
-def test_seed_creates_admin_pro_with_configured_credentials():
+def test_seed_creates_admin_pro_with_configured_credentials_without_printing_the_password():
+    stdout = StringIO()
     with override_settings(
         SEED_ENABLED=True,
         SEED_ADMIN_EMAIL="reviewer@example.com",
         SEED_ADMIN_PASSWORD="s3cret-review-pass",
     ):
-        call_command("seed")
+        call_command("seed", stdout=stdout)
 
     pro = Pro.objects.get(email="reviewer@example.com")
     assert pro.check_password("s3cret-review-pass")
+    assert "s3cret-review-pass" not in stdout.getvalue()
 
 
 @pytest.mark.django_db
