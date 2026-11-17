@@ -7,15 +7,22 @@
     {% if card %}
         <button type="button"
                 class="flex cursor-pointer"
-                aria-label="Enregistrer l’offre {{ job_posting.title }}"
                 {% if bookmark_action == "toggle" %}
+                    aria-label="Enregistrer l’offre {{ job_posting.title }}"
                     aria-pressed="{{ saved|yesno:"true,false" }}"
                     hx-post="{% url "update_saved_job_posting" job_posting.pk %}"
                     hx-vals='{"card": "true"}'
                     hx-swap="none"
                     hx-disabled-elt="this"
                     hx-headers='{"X-CSRFToken": "{{ csrf_token }}"}'
+                {% elif bookmark_action == "confirm_removal" %}
+                    aria-label="Retirer l’offre {{ job_posting.title }} de tes favoris"
+                    aria-haspopup="dialog"
+                    hx-get="{% url "destroy_saved_job_posting_modal" job_posting.pk %}"
+                    hx-target="#modal-container"
+                    hx-swap="innerHTML"
                 {% else %}
+                    aria-label="Enregistrer l’offre {{ job_posting.title }}"
                     hx-get="{% url "create_saved_job_posting_modal" job_posting.pk %}"
                     hx-target="#modal-container"
                     hx-swap="innerHTML"
