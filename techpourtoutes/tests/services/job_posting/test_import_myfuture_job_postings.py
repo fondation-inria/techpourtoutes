@@ -52,9 +52,9 @@ def test_a_sample_reads_the_committed_file_instead_of_the_api():
         JobPosting.Category.TROISIEME_INTERNSHIP,
         JobPosting.Category.HIGHER_ED_INTERNSHIP,
         JobPosting.Category.APPRENTICESHIP,
-        JobPosting.Category.FIRST_JOB,
         JobPosting.Category.PFMP,
     }
+    assert not JobPosting.objects.filter(domains=[]).exists()
 
 
 def test_a_failed_fetch_deletes_nothing(httpx_mock, myfuture_record):

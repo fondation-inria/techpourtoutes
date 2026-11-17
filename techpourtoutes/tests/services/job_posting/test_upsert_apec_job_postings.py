@@ -339,7 +339,7 @@ def test_the_other_sources_offers_are_left_alone(apec_record):
         company_name="Didier Ducom",
         description="…",
         city="Caupenne-d'Armagnac",
-        domains=[JobPosting.Domain.ELECTROTECHNIQUE],
+        domains=[JobPosting.Domain.ELECTRONIQUE],
         category=Category.TROISIEME_INTERNSHIP,
         published_at=datetime(2026, 1, 1, tzinfo=UTC),
         url="https://myfutu.re/internships/offers/22NisRqehckrMvEu3",
