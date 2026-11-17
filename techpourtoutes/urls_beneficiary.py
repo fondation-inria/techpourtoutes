@@ -128,6 +128,21 @@ urlpatterns = [
         name="create_clicked_job_posting",
     ),
     path(
+        "stages-alternances-emplois/<uuid:pk>/suivi/",
+        views.update_clicked_job_posting,
+        name="update_clicked_job_posting",
+    ),
+    path(
+        "stages-alternances-emplois/<uuid:pk>/retirer-du-suivi/",
+        views.destroy_clicked_job_posting_modal,
+        name="destroy_clicked_job_posting_modal",
+    ),
+    path(
+        "stages-alternances-emplois/<uuid:pk>/retirer-du-suivi/confirmer/",
+        views.destroy_clicked_job_posting,
+        name="destroy_clicked_job_posting",
+    ),
+    path(
         "stages-alternances-emplois/<uuid:pk>/rejoindre-le-club/",
         views.create_saved_job_posting_modal,
         name="create_saved_job_posting_modal",
@@ -136,5 +151,20 @@ urlpatterns = [
         "stages-alternances-emplois/<uuid:pk>/enregistrer/",
         views.update_saved_job_posting,
         name="update_saved_job_posting",
+    ),
+    path(
+        "stages-alternances-emplois/<uuid:pk>/retirer-des-favoris/",
+        views.destroy_saved_job_posting_modal,
+        name="destroy_saved_job_posting_modal",
+    ),
+    path(
+        "stages-alternances-emplois/<uuid:pk>/retirer-des-favoris/confirmer/",
+        views.destroy_saved_job_posting,
+        name="destroy_saved_job_posting",
+    ),
+    path(
+        "mes-opportunites/",
+        views.index_beneficiary_job_postings,
+        name="index_beneficiary_job_postings",
     ),
 ]
