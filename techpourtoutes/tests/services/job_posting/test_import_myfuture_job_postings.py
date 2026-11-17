@@ -53,6 +53,7 @@ def test_a_sample_reads_the_committed_file_instead_of_the_api():
         JobPosting.Category.HIGHER_ED_INTERNSHIP,
         JobPosting.Category.APPRENTICESHIP,
         JobPosting.Category.FIRST_JOB,
+        JobPosting.Category.PFMP,
     }
 
 

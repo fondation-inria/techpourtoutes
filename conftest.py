@@ -1,3 +1,4 @@
+import itertools
 import os
 
 import pytest
@@ -15,6 +16,31 @@ def pytest_collection_modifyitems(items):
     migrations created. pytest then regroups the tests sharing a session-scoped parameter —
     pytest-playwright's browser — which may pull the e2e tests back in the middle: sort again."""
     sort_as_django_does(items)
+
+
+@pytest.fixture(scope="session")
+def django_db_modify_db_settings():
+    """Each process — a suite, or one of its xdist workers — numbers its test database with the
+    first number no other process holds, through a Postgres advisory lock kept until it ends.
+    Suites thus run side by side, and a process killed midway releases its number along with its
+    connection: the next one to take it recreates that database, so none piles up. The lock is
+    taken in the `postgres` database, as advisory locks only conflict within one database."""
+    from django.db import connections
+
+    database = connections["default"]
+    base = f"test_{database.settings_dict['NAME']}"
+    lock = database.get_new_connection({**database.get_connection_params(), "dbname": "postgres"})
+    lock.autocommit = True
+    number = next(number for number in itertools.count() if _take(lock, base, number))
+    database.settings_dict.setdefault("TEST", {})["NAME"] = f"{base}_{number}"
+    yield
+    lock.close()
+
+
+def _take(lock, base, number):
+    with lock.cursor() as cursor:
+        cursor.execute("SELECT pg_try_advisory_lock(hashtext(%s), %s)", [base, number])
+        return cursor.fetchone()[0]
 
 
 @pytest.fixture(autouse=True)

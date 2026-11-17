@@ -179,6 +179,18 @@ def test_with_durations_keeps_the_ticked_ranges_and_the_postings_without_a_durat
     assert set(postings.values_list("external_id", flat=True)) == kept
 
 
+def test_description_text_spaces_out_the_line_breaks():
+    assert (
+        JobPosting(description="<p>Primes<br>Mutuelle</p>").description_text == "Primes Mutuelle"
+    )
+
+
+def test_description_text_leaves_out_the_headings():
+    job_posting = JobPosting(description="<h3>Détail du poste</h3><p>Tu d&eacute;veloppes.</p>")
+
+    assert job_posting.description_text == "Tu développes."
+
+
 def _save_searchable_posting(title="Stage", **overrides):
     save_job_posting(title, JobPosting.Category.HIGHER_ED_INTERNSHIP, **overrides)
 
@@ -306,6 +318,15 @@ def test_search_does_not_break_on_punctuation(terms):
     _save_searchable_posting("Développeur web")
 
     list(JobPosting.objects.search(terms))
+
+
+@pytest.mark.django_db
+@pytest.mark.parametrize("terms", ["179254673W", "179254673w"], ids=["as_shown", "lowercase"])
+def test_search_finds_a_posting_by_its_reference(terms):
+    _save_searchable_posting("Développeur web", external_id="179254673W")
+    _save_searchable_posting("Autre stage", external_id="179254673X")
+
+    assert _titles_found_by(terms) == ["Développeur web"]
 
 
 @pytest.mark.django_db

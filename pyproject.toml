@@ -46,6 +46,7 @@ dev = [
   "pytest-django>=4.14",
   "pytest-httpx>=0.36.2",
   "pytest-playwright>=0.10",
+  "pytest-xdist>=3.8",
   "ruff>=0.17.1",
 ]
 

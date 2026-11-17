@@ -1,5 +1,5 @@
 import pytest
-from django.urls import get_resolver
+from django.urls import get_resolver, reverse
 
 URLCONFS = [
     "techpourtoutes.urls_common",
@@ -20,3 +20,11 @@ def test_legacy_home_page_redirects_permanently_to_home(client):
     response = client.get("/page-d-accueil-techpourtoutes-992956", follow=True)
 
     assert response.redirect_chain[-1] == ("/", 301)
+
+
+@pytest.mark.django_db
+def test_legacy_sign_up_page_redirects_permanently_to_beneficiary_inscription_funnel(client):
+    response = client.get("/pour-s-inscrire-c-est-juste-ici-532220", follow=True)
+
+    assert (reverse("new_beneficiary_inscription_funnel"), 301) in response.redirect_chain
+    assert response.redirect_chain[-1] == (reverse("beneficiary_inscription_funnel"), 302)

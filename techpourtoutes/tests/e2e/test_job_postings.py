@@ -93,6 +93,30 @@ def test_resetting_unticks_every_filter_at_once(page, live_server):
 
 
 @override_switch("internships", active=True)
+def test_resetting_while_a_filter_is_loading_still_clears_the_search(page, live_server):
+    category = JobPosting.Category.HIGHER_ED_INTERNSHIP
+    save_job_posting("Stage web", category)
+    save_job_posting("Stage en design", category)
+    page.goto(f"{live_server.url}/stages-alternances-emplois/?q=web")
+    expect(page.locator("#job_posting_count")).to_have_text("1\xa0offre")
+    held = []
+    page.route(
+        "**/stages-alternances-emplois/?*",
+        lambda route: route.continue_() if held else held.append(route),
+    )
+    page.get_by_role("button", name="Domaine").click()
+    with page.expect_request("**/stages-alternances-emplois/?*"):
+        page.get_by_text("Électronique", exact=True).click()
+    page.keyboard.press("Escape")
+
+    page.get_by_role("button", name="Tout réinitialiser").click()
+    held[0].continue_()
+
+    expect(page.locator("#job_posting_count")).to_have_text("2\xa0offres")
+    expect(page.get_by_label("Rechercher une offre")).to_have_value("")
+
+
+@override_switch("internships", active=True)
 def test_resetting_brings_back_the_duration_filter_a_lone_cdi_took_away(page, live_server):
     page.goto(f"{live_server.url}/stages-alternances-emplois/?category=first_job")
     duration = page.get_by_role("button", name="Durée")
