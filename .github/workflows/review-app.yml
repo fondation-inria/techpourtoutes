@@ -160,16 +160,17 @@ jobs:
 
       # The one-off is aborted after ~30 s without output, and the seed sometimes takes that long
       # to exit after its last line: a line every 10 s keeps the connection alive meanwhile.
+      # `scalingo run` joins the lines of the command with spaces: each one ends with a `;`.
       - name: Seed review app
         timeout-minutes: 5
         env:
           REVIEW_APP: techpourtoutes-staging-pr${{ steps.pr.outputs.number }}
         run: |
           scalingo --app "$REVIEW_APP" run '
-            python manage.py seed & pid=$!
-            while kill -0 $pid 2>/dev/null; do sleep 10; echo "  (seed en cours…)"; done
-            wait $pid; status=$?
-            echo "seed terminé (code $status)"
+            python manage.py seed & pid=$!;
+            while kill -0 $pid 2>/dev/null; do sleep 10; echo "(seed en cours…)"; done;
+            wait $pid; status=$?;
+            echo "seed terminé (code $status)";
             exit $status
           '
 
