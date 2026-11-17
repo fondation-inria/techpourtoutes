@@ -6,7 +6,7 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('techpourtoutes', '0076_saved_and_clicked_job_postings'),
+        ('techpourtoutes', '0077_jobposting_pmsmp_and_pfmp'),
     ]
 
     operations = [
