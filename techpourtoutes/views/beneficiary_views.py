@@ -38,7 +38,7 @@ EVENTS_PER_PAGE = 18
 MAKEUSE_PROJECTS_PER_PAGE = 6
 JOB_POSTINGS_PER_PAGE = 20
 JOB_POSTING_SEARCH_MIN_LENGTH = 2
-BENEFICIARY_JOB_POSTINGS_PER_PAGE = 3
+BENEFICIARY_JOB_POSTINGS_PER_PAGE = 5
 
 # ------------------- pages -------------------
 
@@ -463,7 +463,9 @@ def destroy_clicked_job_posting(request, pk):
     saved = request.POST.get("save") == "true"
     if saved:
         SavedJobPosting.objects.get_or_create(job_posting=job_posting, beneficiary=beneficiary)
-    _remember_if_she_skips_the_removal_modal(request, beneficiary)
+    _remember_if_she_skips_the_removal_modal(
+        request, beneficiary, "skip_clicked_job_posting_removal_modal"
+    )
     return redirect(
         _back_to_listing(
             request,
@@ -490,7 +492,9 @@ def destroy_saved_job_posting(request, pk):
     beneficiary = _beneficiary_or_404(request)
     job_posting = get_object_or_404(JobPosting, pk=pk)
     SavedJobPosting.objects.filter(job_posting=job_posting, beneficiary=beneficiary).delete()
-    _remember_if_she_skips_the_removal_modal(request, beneficiary)
+    _remember_if_she_skips_the_removal_modal(
+        request, beneficiary, "skip_saved_job_posting_removal_modal"
+    )
     return redirect(
         _back_to_listing(
             request, "index_beneficiary_job_postings", anchor="opportunites-enregistrees"
@@ -498,10 +502,14 @@ def destroy_saved_job_posting(request, pk):
     )
 
 
-def _remember_if_she_skips_the_removal_modal(request, beneficiary):
+def _removal_action(skips_modal):
+    return "toggle" if skips_modal else "confirm_removal"
+
+
+def _remember_if_she_skips_the_removal_modal(request, beneficiary, field):
     if request.POST.get("skip_modal") == "true":
-        beneficiary.skips_job_posting_removal_modal = True
-        beneficiary.save(update_fields=["skips_job_posting_removal_modal"])
+        setattr(beneficiary, field, True)
+        beneficiary.save(update_fields=[field])
 
 
 def _ticked(request, name, allowed):
@@ -534,13 +542,18 @@ def index_beneficiary_job_postings(request):
         request,
         "beneficiary/index_beneficiary_job_postings.html",
         {
-            "skips_removal_modal": beneficiary.skips_job_posting_removal_modal,
+            "bookmark_action": _removal_action(beneficiary.skip_saved_job_posting_removal_modal),
+            "follow_up_action": _removal_action(
+                beneficiary.skip_clicked_job_posting_removal_modal
+            ),
             "clicked_job_postings": Paginator(
                 JobPosting.objects.filter(clicked_by=beneficiary).latest_first(),
                 BENEFICIARY_JOB_POSTINGS_PER_PAGE,
             ).get_page(request.GET.get("clicked_job_postings_page")),
             "saved_job_postings": Paginator(
-                JobPosting.objects.filter(saved_by=beneficiary).latest_first(),
+                JobPosting.objects.filter(saved_by=beneficiary)
+                .annotate(saved=Value(True))
+                .latest_first(),
                 BENEFICIARY_JOB_POSTINGS_PER_PAGE,
             ).get_page(request.GET.get("saved_job_postings_page")),
         },

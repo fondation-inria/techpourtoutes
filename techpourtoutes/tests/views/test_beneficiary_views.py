@@ -1481,13 +1481,14 @@ def test_index_beneficiary_job_postings_only_shows_the_list_holding_postings(
 
 
 @pytest.mark.django_db
-@pytest.mark.parametrize("skips_modal", [False, True])
+@pytest.mark.parametrize("skipped", [None, "clicked_job_posting", "saved_job_posting"])
 def test_index_beneficiary_job_postings_gives_each_list_its_own_removal_button(
-    client, beneficiary, job_posting, skips_modal
+    client, beneficiary, job_posting, skipped
 ):
-    """Until she asks not to see it again, each removal goes through its confirmation modal."""
-    beneficiary.skips_job_posting_removal_modal = skips_modal
-    beneficiary.save()
+    """Until she asks not to see it again, each list's removal goes through its own modal."""
+    if skipped:
+        setattr(beneficiary, f"skip_{skipped}_removal_modal", True)
+        beneficiary.save()
     clicked = save_job_posting("Cliquée", JobPosting.Category.APPRENTICESHIP)
     ClickedJobPosting.objects.toggle(job_posting=clicked, beneficiary=beneficiary)
     SavedJobPosting.objects.toggle(job_posting=job_posting, beneficiary=beneficiary)
@@ -1503,9 +1504,9 @@ def test_index_beneficiary_job_postings_gives_each_list_its_own_removal_button(
     ):
         modal = reverse(f"destroy_{resource}_modal", args=[pk])
         toggle = reverse(f"update_{resource}", args=[pk])
-        assert (f'hx-get="{modal}"' in html) is not skips_modal
-        assert (f'hx-post="{toggle}"' in html) is skips_modal
-    assert html.count('aria-pressed="true"') == (2 if skips_modal else 0)
+        assert (f'hx-get="{modal}"' in html) is (resource != skipped)
+        assert (f'hx-post="{toggle}"' in html) is (resource == skipped)
+    assert html.count('aria-pressed="true"') == (1 if skipped else 0)
     assert 'id="modal-container"' in html
 
 
@@ -1606,23 +1607,28 @@ def test_destroy_saved_job_posting_is_closed_to_pros(client, pro, job_posting):
 @pytest.mark.django_db
 @override_switch("internships", active=True)
 @pytest.mark.parametrize(
-    "route, data, skips_modal",
+    "route, data, skipped",
     [
-        ("destroy_saved_job_posting", {}, False),
-        ("destroy_saved_job_posting", {"skip_modal": "true"}, True),
-        ("destroy_clicked_job_posting", {"skip_modal": "true"}, True),
-        ("destroy_clicked_job_posting", {"skip_modal": "true", "save": "true"}, True),
+        ("destroy_saved_job_posting", {}, None),
+        ("destroy_saved_job_posting", {"skip_modal": "true"}, "saved_job_posting"),
+        ("destroy_clicked_job_posting", {"skip_modal": "true"}, "clicked_job_posting"),
+        (
+            "destroy_clicked_job_posting",
+            {"skip_modal": "true", "save": "true"},
+            "clicked_job_posting",
+        ),
     ],
 )
-def test_destroy_job_posting_removal_remembers_she_no_longer_wants_the_modal(
-    client, beneficiary, job_posting, route, data, skips_modal
+def test_destroy_job_posting_removal_remembers_she_no_longer_wants_that_modal(
+    client, beneficiary, job_posting, route, data, skipped
 ):
     client.force_login(beneficiary)
 
     client.post(reverse(route, args=[job_posting.pk]), data)
 
     beneficiary.refresh_from_db()
-    assert beneficiary.skips_job_posting_removal_modal is skips_modal
+    for resource in ("clicked_job_posting", "saved_job_posting"):
+        assert getattr(beneficiary, f"skip_{resource}_removal_modal") is (resource == skipped)
 
 
 @pytest.mark.django_db

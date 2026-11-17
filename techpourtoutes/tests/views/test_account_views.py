@@ -8,6 +8,7 @@ from django.contrib.messages import get_messages
 from django.core import mail
 from django.urls import reverse
 from django.utils import timezone
+from waffle.testutils import override_switch
 
 from techpourtoutes.models import (
     Beneficiary,
@@ -223,6 +224,17 @@ def test_show_account_acknowledges_the_training_ambassador_request_once_sent(cli
 
     assert "Tu as demandé à être mise en relation" in content
     assert "TechPourToutes peut te mettre en relation avec une étudiante" not in content
+
+
+@pytest.mark.django_db
+@pytest.mark.parametrize("active", [True, False])
+def test_show_account_shows_the_job_postings_card_according_to_switch(client, beneficiary, active):
+    client.force_login(beneficiary)
+
+    with override_switch("internships", active=active):
+        content = client.get(reverse("show_account")).content.decode()
+
+    assert (reverse("index_beneficiary_job_postings") in content) is active
 
 
 def _welcome_modal(client, beneficiary):

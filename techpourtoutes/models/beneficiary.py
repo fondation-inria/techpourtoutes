@@ -9,9 +9,13 @@ class Beneficiary(User):
     has_requested_training_ambassador = models.BooleanField(
         default=False, verbose_name=_("a demandé à être mise en contact avec une ambassadrice")
     )
-    skips_job_posting_removal_modal = models.BooleanField(
+    skip_saved_job_posting_removal_modal = models.BooleanField(
         default=False,
-        verbose_name=_("ne veut plus confirmer le retrait d’une offre de son compte"),
+        verbose_name=_("ne veut plus confirmer le retrait d’une offre de ses favoris"),
+    )
+    skip_clicked_job_posting_removal_modal = models.BooleanField(
+        default=False,
+        verbose_name=_("ne veut plus confirmer le retrait d’une candidature de son suivi"),
     )
 
     class Meta:
