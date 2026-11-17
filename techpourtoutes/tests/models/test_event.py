@@ -681,13 +681,13 @@ def test_in_departments_keeps_the_online_events_which_happen_anywhere(pro):
 
 
 @pytest.mark.django_db
-def test_with_location_types_keeps_only_the_given_ones_and_none_without_any(pro):
+def test_with_location_types_keeps_only_the_given_ones_and_all_without_any(pro):
     online = build_event(pro)
     online.save()
     build_event(pro, location_type=Event.LocationType.PHYSICAL).save()
 
     assert list(Event.objects.with_location_types([Event.LocationType.ONLINE])) == [online]
-    assert not Event.objects.with_location_types([]).exists()
+    assert Event.objects.with_location_types([]).count() == 2
 
 
 @pytest.mark.django_db
@@ -711,6 +711,7 @@ def test_in_subcategories_keeps_any_of_them_and_every_event_without_any(pro):
         (date(2026, 9, 18), None, {"Dedans", "Après"}),
         (None, date(2026, 9, 14), {"Chevauche le début"}),
         (None, None, {"Chevauche le début", "Dedans", "Après"}),
+        (date(2026, 9, 14), date(2026, 9, 13), set()),
     ],
 )
 def test_overlapping_keeps_the_events_sharing_a_day_with_the_range(

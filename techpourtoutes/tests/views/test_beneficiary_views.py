@@ -1637,14 +1637,16 @@ def test_index_events_offers_every_event_type(client):
 
 
 @pytest.mark.django_db
-def test_index_events_offers_each_location_type_as_a_switch_on_by_default(client):
+def test_index_events_offers_each_location_type_as_a_switch_off_by_default(client):
     html = client.get(INDEX_EVENTS_URL).content.decode()
 
     for location_type in Event.LocationType:
-        assert re.search(
-            rf'role="switch"\s+id="[^"]+"\s+name="location_type"\s+value="{location_type}"\s+checked',
+        switch = re.search(
+            rf'role="switch"\s+id="[^"]+"\s+name="location_type"\s+value="{location_type}"\s*(checked)?',
             html,
         )
+        assert switch
+        assert not switch.group(1)
 
 
 @pytest.mark.django_db
@@ -1739,8 +1741,7 @@ def listed_event_titles(response):
         ({}, {"Brest", "Paris", "En ligne"}),
         ({"department": "29"}, {"Brest", "En ligne"}),
         ({"location_type": "online"}, {"En ligne"}),
-        ({"location_type": ["", "physical"], "department": "29"}, {"Brest"}),
-        ({"location_type": ""}, set()),
+        ({"location_type": "physical", "department": "29"}, {"Brest"}),
     ],
 )
 def test_index_events_keeps_the_events_of_the_ticked_places(client, pro, query, expected):
@@ -1804,7 +1805,7 @@ def test_index_events_pages_keep_the_filters(client, pro):
 
 @pytest.mark.django_db
 def test_index_events_says_when_no_event_matches_the_filters(client, salon):
-    response = client.get(INDEX_EVENTS_URL, {"location_type": ""})
+    response = client.get(INDEX_EVENTS_URL, {"location_type": "physical"})
 
     assert "Aucun événement ne correspond à ta recherche" in response.content.decode()
 
@@ -1813,7 +1814,7 @@ def test_index_events_says_when_no_event_matches_the_filters(client, salon):
 @pytest.mark.parametrize(
     "query",
     [
-        {"location_type": ["", "physical", "online"], "date_from": "", "date_to": ""},
+        {"location_type": "", "date_from": "", "date_to": ""},
         {"utm_source": "newsletter"},
     ],
 )

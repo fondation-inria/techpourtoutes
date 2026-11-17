@@ -78,10 +78,14 @@ class EventQuerySet(BaseQuerySet):
         )
 
     def with_location_types(self, location_types):
+        if not location_types:
+            return self
         return self.filter(location_type__in=location_types)
 
     def overlapping(self, date_from, date_to):
         """The events sharing at least a day with the range; either end may be left open."""
+        if date_from and date_to and date_to < date_from:
+            return self.none()
         overlapping = self
         if date_from:
             overlapping = overlapping.filter(end_date__gte=date_from)

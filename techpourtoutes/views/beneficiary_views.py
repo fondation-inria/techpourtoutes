@@ -451,7 +451,7 @@ def _events_context(request, page):
     beneficiary = getattr(request.user, "beneficiary", None)
     ticked_departments = _ticked(request, "department", DEPARTMENT_CODES)
     ticked_event_types = _ticked(request, "subcategory", Event.Subcategory.values)
-    ticked_location_types = _ticked_location_types(request)
+    ticked_location_types = _ticked(request, "location_type", Event.LocationType.values)
     date_from = _date_param(request, "date_from")
     date_to = _date_param(request, "date_to")
     free_only = request.GET.get("free") == "1"
@@ -475,27 +475,21 @@ def _events_context(request, page):
             or date_from
             or date_to
             or free_only
-            or set(ticked_location_types) != set(Event.LocationType.values)
+            or ticked_location_types
         ),
         "regions": REGIONS,
         "ticked_departments": ticked_departments,
         "event_types": Event.Subcategory.sorted_choices(),
         "ticked_event_types": ticked_event_types,
-        "location_types": Event.LocationType.choices,
+        "location_types": [
+            (Event.LocationType.ONLINE, "En ligne uniquement"),
+            (Event.LocationType.PHYSICAL, "En présentiel uniquement"),
+        ],
         "ticked_location_types": ticked_location_types,
-        "default_location_types": Event.LocationType.values,
         "date_from": date_from,
         "date_to": date_to,
         "free_only": free_only,
     }
-
-
-def _ticked_location_types(request):
-    """The filter form always sends the key, ticked or not, so that switching both off shows
-    nothing; a bare URL keeps them both on."""
-    if "location_type" not in request.GET:
-        return Event.LocationType.values
-    return _ticked(request, "location_type", Event.LocationType.values)
 
 
 def _date_param(request, name):

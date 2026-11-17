@@ -6,7 +6,7 @@ from techpourtoutes.models import Event
 
 from ..views.test_beneficiary_views import approved_event, save_onsite_event
 
-PLACE_DISABLED_REASON = "Active « En présentiel » pour filtrer par région ou département."
+PLACE_DISABLED_REASON = "Décoche « En ligne uniquement » pour filtrer par région ou département."
 
 # This test drives a real browser to cover what the view tests cannot: the modal only exists
 # once the page runs, so a view test can see its URL in the markup but not that clicking opens it.
@@ -23,32 +23,29 @@ def test_an_anonymous_visitor_is_invited_to_sign_up_before_saving(page, live_ser
     expect(page.get_by_role("link", name="Créer un compte")).to_be_visible()
 
 
-def test_a_date_range_is_listed_as_one_filter_until_removed(page, live_server):
+def test_a_date_range_names_the_filter_instead_of_a_selected_filter(page, live_server):
     page.goto(f"{live_server.url}/evenements/")
 
     dates = page.get_by_role("button", name="Date")
     dates.click()
-    page.get_by_label("Date de début").fill("2026-09-14")
-    page.get_by_label("Date de fin").fill("2026-10-31")
+    page.get_by_label("À partir du").fill("2026-09-14")
+    page.get_by_label("Jusqu'au").fill("2026-10-31")
 
-    expect(dates).to_contain_text("1")
-    expect(page.get_by_role("list", name="Date")).to_have_text("du 14/09/26 au 31/10/26")
+    expect(dates).to_have_accessible_name("Date\xa0: du 14/09/26 au 31/10/26")
+    expect(page.get_by_role("list", name="Date")).not_to_be_visible()
 
-    page.keyboard.press("Escape")
-    remove = page.get_by_role("button", name="Retirer le filtre du 14/09/26 au 31/10/26")
-    remove.click()
+    page.get_by_label("À partir du").fill("")
+    page.get_by_label("Jusqu'au").fill("")
 
-    expect(remove).not_to_be_attached()
-    expect(dates).not_to_contain_text("1")
-    expect(page.get_by_label("Date de début")).to_have_value("")
-    expect(page.get_by_label("Date de fin")).to_have_value("")
+    expect(dates).to_have_accessible_name("Date")
 
 
-def test_the_end_date_cannot_come_before_the_start_date(page, live_server):
+def test_an_end_date_typed_before_the_start_date_finds_nothing(page, live_server):
+    """The bounds only grey out the picker: typed by hand, an inverted range still searches."""
     page.goto(f"{live_server.url}/evenements/")
     page.get_by_role("button", name="Date").click()
-    start = page.get_by_label("Date de début")
-    end = page.get_by_label("Date de fin")
+    start = page.get_by_label("À partir du")
+    end = page.get_by_label("Jusqu'au")
 
     start.fill("2026-12-10")
     expect(end).to_have_attribute("min", "2026-12-10")
@@ -57,11 +54,11 @@ def test_the_end_date_cannot_come_before_the_start_date(page, live_server):
 
     end.press_sequentially("01122026")
     assert end.evaluate("input => input.validity.rangeUnderflow")
-    expect(page).not_to_have_url(re.compile(f"date_to={end.input_value()}"))
+    expect(page).to_have_url(re.compile(f"date_to={end.input_value()}"))
+    expect(page.get_by_text("Aucun événement ne correspond à ta recherche")).to_be_visible()
 
-    page.keyboard.press("Escape")
-    page.get_by_role("button", name=re.compile("^Retirer le filtre du")).click()
-    page.get_by_role("button", name="Date").click()
+    start.fill("")
+    end.fill("")
     expect(end).to_have_attribute("min", "")
     expect(start).to_have_attribute("max", "")
 
@@ -72,13 +69,13 @@ def test_dates_typed_digit_by_digit_keep_every_digit(page, live_server):
     month are the same so the test holds in either segment order."""
     page.goto(f"{live_server.url}/evenements/")
     page.get_by_role("button", name="Date").click()
-    expect(page.get_by_label("Date de début")).to_be_visible()
+    expect(page.get_by_label("À partir du")).to_be_visible()
 
-    page.get_by_label("Date de début").press_sequentially("11112026")
-    page.get_by_label("Date de fin").press_sequentially("12122026")
+    page.get_by_label("À partir du").press_sequentially("11112026")
+    page.get_by_label("Jusqu'au").press_sequentially("12122026")
 
-    expect(page.get_by_label("Date de début")).to_have_value("2026-11-11")
-    expect(page.get_by_label("Date de fin")).to_have_value("2026-12-12")
+    expect(page.get_by_label("À partir du")).to_have_value("2026-11-11")
+    expect(page.get_by_label("Jusqu'au")).to_have_value("2026-12-12")
     expect(page).to_have_url(re.compile("date_from=2026-11-11&date_to=2026-12-12"))
 
 
@@ -95,7 +92,7 @@ def test_resetting_brings_every_filter_back_to_its_default(page, live_server):
     _click_label_of(page.get_by_role("checkbox", name="Atelier"))
     page.keyboard.press("Escape")
     page.get_by_role("button", name="Date").click()
-    page.get_by_label("Date de début").fill("2026-09-14")
+    page.get_by_label("À partir du").fill("2026-09-14")
     page.keyboard.press("Escape")
     _click_label_of(page.get_by_role("switch", name="Gratuit uniquement"))
 
@@ -107,15 +104,15 @@ def test_resetting_brings_every_filter_back_to_its_default(page, live_server):
     expect(page.get_by_role("button", name="Retirer le filtre Atelier")).not_to_be_attached()
     expect(page.get_by_role("switch", name="Gratuit uniquement")).not_to_be_checked()
     location_type.click()
-    expect(page.get_by_role("switch", name="En ligne")).to_be_checked()
-    expect(page.get_by_role("switch", name="En présentiel")).to_be_checked()
+    expect(page.get_by_role("switch", name="En ligne")).not_to_be_checked()
+    expect(page.get_by_role("switch", name="En présentiel")).not_to_be_checked()
     page.get_by_role("button", name="Type d'événement").click()
     expect(page.get_by_role("checkbox", name="Atelier")).not_to_be_checked()
     page.get_by_role("button", name="Date").click()
-    expect(page.get_by_label("Date de début")).to_have_value("")
+    expect(page.get_by_label("À partir du")).to_have_value("")
 
 
-def test_switching_onsite_off_disables_and_clears_the_place_filter(page, live_server):
+def test_ticking_online_disables_and_clears_the_place_filter(page, live_server):
     page.goto(f"{live_server.url}/evenements/")
     place = page.get_by_role("button", name="Région / Département")
     place.click()
@@ -126,7 +123,7 @@ def test_switching_onsite_off_disables_and_clears_the_place_filter(page, live_se
     expect(remove).to_be_attached()
 
     page.get_by_role("button", name="En ligne / en présentiel").click()
-    _click_label_of(page.get_by_role("switch", name="En présentiel"))
+    _click_label_of(page.get_by_role("switch", name="En ligne"))
 
     expect(place).to_be_disabled()
     expect(remove).not_to_be_attached()
@@ -166,7 +163,7 @@ def test_the_disabled_place_filter_explains_itself_on_hover(page, live_server):
     expect(tooltip).to_be_visible()
 
 
-def test_a_url_without_onsite_opens_with_the_place_filter_disabled(page, live_server):
+def test_a_url_online_only_opens_with_the_place_filter_disabled(page, live_server):
     page.goto(f"{live_server.url}/evenements/?location_type=online")
 
     expect(page.get_by_role("button", name="Région / Département")).to_be_disabled()
@@ -182,9 +179,9 @@ def test_switching_a_filter_narrows_the_list_without_reloading_the_page(page, li
     _click_label_of(page.get_by_role("switch", name="En ligne"))
 
     expect(page.locator("#event_count")).to_have_text("1\xa0événement")
-    expect(page.get_by_text("Webinaire")).to_be_hidden()
+    expect(page.get_by_text("Salon à Brest")).to_be_hidden()
     expect(page.get_by_role("switch", name="En présentiel")).to_be_visible()
-    expect(page).to_have_url(re.compile(r"location_type=physical"))
+    expect(page).to_have_url(re.compile(r"location_type=online"))
 
     page.keyboard.press("Escape")
     page.get_by_role("button", name="Tout réinitialiser").click()
@@ -196,7 +193,7 @@ def test_the_empty_state_link_resets_the_filters_without_reloading_the_page(
     page, live_server, pro
 ):
     approved_event(pro, title="Webinaire").save()
-    page.goto(f"{live_server.url}/evenements/?location_type=")
+    page.goto(f"{live_server.url}/evenements/?location_type=physical")
     page.evaluate("window.notReloaded = true")
 
     page.get_by_role("link", name="Réinitialiser la recherche").click()
@@ -206,14 +203,38 @@ def test_the_empty_state_link_resets_the_filters_without_reloading_the_page(
     assert page.evaluate("window.notReloaded")
 
 
-def test_switching_onsite_off_drops_the_departments_from_the_url(page, live_server):
+def test_ticking_online_drops_the_departments_from_the_url(page, live_server):
     page.goto(f"{live_server.url}/evenements/?department=29")
     page.get_by_role("button", name="En ligne / en présentiel").click()
 
-    _click_label_of(page.get_by_role("switch", name="En présentiel"))
+    _click_label_of(page.get_by_role("switch", name="En ligne"))
 
     expect(page).to_have_url(re.compile(r"location_type=online"))
     assert "department=" not in page.url
+
+
+def test_ticking_a_location_type_unticks_the_other_and_names_the_filter(page, live_server):
+    page.goto(f"{live_server.url}/evenements/")
+    location_type = page.get_by_role("button", name="En ligne / en présentiel")
+    location_type.click()
+    online = page.get_by_role("switch", name="En ligne")
+    onsite = page.get_by_role("switch", name="En présentiel")
+
+    _click_label_of(online)
+    _click_label_of(onsite)
+
+    expect(online).not_to_be_checked()
+    expect(onsite).to_be_checked()
+    expect(location_type).to_have_accessible_name(
+        "En ligne / en présentiel\xa0: En présentiel uniquement"
+    )
+    expect(page.get_by_role("button", name="Retirer le filtre")).to_have_count(1)
+    expect(page).to_have_url(re.compile(r"\?location_type=physical&"))
+
+    _click_label_of(onsite)
+
+    expect(location_type).to_have_accessible_name("En ligne / en présentiel")
+    expect(page.get_by_role("button", name="Retirer le filtre")).to_have_count(0)
 
 
 def _click_label_of(control):

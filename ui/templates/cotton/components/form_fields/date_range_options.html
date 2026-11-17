@@ -1,0 +1,10 @@
+<c-vars :date_from=None :date_to=None id="" />
+
+<div class="flex flex-col gap-2">
+    <label for="{{ id }}_from" class="label-text-sm">À partir du</label>
+    <input type="date" id="{{ id }}_from" name="date_from" value="{{ date_from|date:"Y-m-d" }}" class="field-base field-default">
+</div>
+<div class="flex flex-col gap-2">
+    <label for="{{ id }}_to" class="label-text-sm">Jusqu'au</label>
+    <input type="date" id="{{ id }}_to" name="date_to" value="{{ date_to|date:"Y-m-d" }}" class="field-base field-default">
+</div>

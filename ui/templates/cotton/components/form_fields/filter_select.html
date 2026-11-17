@@ -1,10 +1,13 @@
-<c-vars label="" name="" id="" icon="" :options=[] :ticked=[] :default_ticked=[] :switch=False disabled_when="" disabled_reason="" tint_class="bg-neutral-0" selection_target="" class="" />
+<c-vars label="" name="" id="" icon="" :options=[] :ticked=[] :switch=False :single=False label_class="" disabled_when="" disabled_reason="" tint_class="bg-neutral-0" selection_target="" class="" />
 
 <div x-data="{
         open: false,
         disabled: false,
         tip: false,
         selected: [],
+        dateRange: '',
+        single: {{ single|yesno:"true,false" }},
+        get summary() { return this.dateRange || (this.single && this.selected[0]?.label) },
         groupToggle(input) { return input.closest('[data-group]')?.querySelector('[data-group-toggle] input') },
         cascade(input) {
             const toggle = this.groupToggle(input);
@@ -15,6 +18,9 @@
             toggle.checked = checkedCount === members.length;
             toggle.indeterminate = checkedCount > 0 && !toggle.checked;
         },
+        untickOthers(input) {
+            if (input.checked) this.$refs.panel.querySelectorAll('input:checked').forEach(other => other.checked = other === input);
+        },
         sync() {
             this.selected = [...this.$refs.panel.querySelectorAll('input:checked')]
                 .filter(input => input.closest('[data-group-toggle]') || !this.groupToggle(input)?.checked)
@@ -22,7 +28,7 @@
             const [from, to] = this.dates();
             if (to && to.min !== from.value) to.min = from.value;
             if (from && from.max !== to.value) from.max = to.value;
-            if (from?.value || to?.value) this.selected.push({ id: from.id, label: this.dateRangeLabel(from.value, to.value) });
+            this.dateRange = from?.value || to?.value ? this.dateRangeLabel(from.value, to.value) : '';
         },
         dates() { return [...this.$refs.panel.querySelectorAll('input[type=date]')] },
         dateRangeLabel(from, to) {
@@ -32,14 +38,13 @@
         },
         remove(id) {
             const input = document.getElementById(id);
-            if (input.type === 'date') this.dates().forEach(date => date.value = '');
-            else input.checked = false;
+            input.checked = false;
             input.dispatchEvent(new Event('change', { bubbles: true }));
             this.$refs.button.focus();
         },
         reset() {
             this.$refs.panel.querySelectorAll('input[type=checkbox]').forEach(input => {
-                input.checked = 'defaultChecked' in input.dataset;
+                input.checked = false;
                 input.indeterminate = false;
             });
             this.dates().forEach(date => date.value = '');
@@ -65,8 +70,8 @@
             {% endif %}
             class="flex items-center gap-2 px-4 py-3 rounded-sm text-sm font-normal leading-[1.4] bg-neutral-0 text-black border border-black shadow-bottom-and-right shadow-black not-aria-disabled:hover:font-medium not-aria-disabled:hover:shadow-bottom-and-right-lg focus-visible:outline-2 focus-visible:outline-blue-500 focus-visible:outline-offset-2 cursor-pointer aria-disabled:bg-neutral-500 aria-disabled:text-neutral-0 aria-disabled:cursor-not-allowed">
         {% if icon %}<c-components.icon name="{{ icon }}" class="w-5 h-5 shrink-0" />{% endif %}
-        <span>{{ label }}</span>
-        <span x-show="selected.length" x-cloak class="inline-flex items-center justify-center w-5 h-5 rounded-full border border-black text-xs {{ tint_class }}">
+        <span class="{{ label_class }}"><span x-show="summary" x-cloak class="sr-only">{{ label }}&nbsp;: </span><span x-text="summary || '{{ label|escapejs }}'">{{ label }}</span></span>
+        <span x-show="selected.length && !summary" x-cloak class="inline-flex items-center justify-center w-5 h-5 rounded-full border border-black text-xs {{ tint_class }}">
             <span x-text="selected.length"></span><span class="sr-only">&nbsp;sélectionné(s)</span>
         </span>
         <span class="shrink-0 transition-transform" :class="open && 'rotate-180'"><c-components.icon name="chevron-down" class="w-4 h-4" /></span>
@@ -74,7 +79,7 @@
     {% if disabled_reason %}
         <span role="tooltip" id="{{ id }}_reason" x-show="tip && disabled" x-cloak class="absolute left-1/2 bottom-full z-30 w-72 max-w-[80vw] -translate-x-1/2 rounded border-b-4 border-transparent bg-neutral-950 bg-clip-padding px-3 py-2 text-xs text-neutral-50">{{ disabled_reason }}</span>
     {% endif %}
-    <fieldset id="{{ id }}_panel" x-ref="panel" x-show="open" x-cloak @change="cascade($event.target); sync()"
+    <fieldset id="{{ id }}_panel" x-ref="panel" x-show="open" x-cloak {% if single %}@click="untickOthers($event.target)"{% endif %} @change="cascade($event.target); sync()"
               class="absolute left-0 z-20 mt-2 w-max min-w-full max-w-[calc(100vw-4rem)] max-h-72 overflow-y-auto p-4 rounded-sm bg-neutral-0 border border-black shadow-bottom-and-right shadow-black">
         <legend class="sr-only">{{ label }}</legend>
         <div class="flex flex-col gap-3">
@@ -82,7 +87,7 @@
                 {{ slot }}
             {% else %}
                 {% for value, option_label in options %}
-                    <c-components.form_fields.checkbox name="{{ name }}" id="{{ id }}_{{ forloop.counter0 }}" value="{{ value }}" label="{{ option_label }}" checked="{% if value in ticked %}checked{% endif %}" default_checked="{% if value in default_ticked %}1{% endif %}" :switch="switch" />
+                    <c-components.form_fields.checkbox name="{{ name }}" id="{{ id }}_{{ forloop.counter0 }}" value="{{ value }}" label="{{ option_label }}" checked="{% if value in ticked %}checked{% endif %}" :switch="switch" />
                 {% endfor %}
             {% endif %}
         </div>

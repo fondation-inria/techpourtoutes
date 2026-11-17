@@ -9,7 +9,6 @@
     value=""
     :checked=False
     :switch=False
-    default_checked=""
     variant="default"
     full_width=False
     class=""
@@ -26,7 +25,6 @@
                 name="{{ field.html_name|default:name }}"
                 {% if value %}value="{{ value }}"{% endif %}
                 {% if field.value or checked %}checked{% endif %}
-                {% if default_checked %}data-default-checked{% endif %}
                 {% if variant == "disabled" %}disabled{% endif %}
                 class="peer sr-only"
             />
