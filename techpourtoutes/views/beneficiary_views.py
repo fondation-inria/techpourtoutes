@@ -36,7 +36,7 @@ from ..utils.urls import safe_url
 EVENTS_PER_PAGE = 18
 MAKEUSE_PROJECTS_PER_PAGE = 6
 JOB_POSTINGS_PER_PAGE = 20
-JOB_POSTING_SEARCH_MIN_LENGTH = 2
+SEARCH_MIN_LENGTH = 2
 
 # ------------------- pages -------------------
 
@@ -285,7 +285,7 @@ def _render_job_postings(request, notification_form):
     durations = [] if category in JobPosting.PUPIL_CATEGORIES else list(JobPosting.Duration)
     ticked_durations = [] if only_cdi else _ticked(request, "duration", durations)
     search = request.GET.get("q", "").strip()
-    searching = len(search) >= JOB_POSTING_SEARCH_MIN_LENGTH
+    searching = len(search) >= SEARCH_MIN_LENGTH
     sort_by_date = request.GET.get("sort") == "date"
     query = request.GET.copy()
     query.pop("page", None)
@@ -301,7 +301,7 @@ def _render_job_postings(request, notification_form):
             "pupil_tab_unfiltered": category in JobPosting.PUPIL_CATEGORIES
             and not (searching or ticked_domains or ticked_departments),
             "sort_by_date": sort_by_date,
-            "search_errors": [f"Saisis au moins {JOB_POSTING_SEARCH_MIN_LENGTH} caractères"]
+            "search_errors": [f"Saisis au moins {SEARCH_MIN_LENGTH} caractères"]
             if search and not searching
             else [],
             "domains": [(domain, domain.label) for domain in domains],
@@ -463,10 +463,19 @@ def _events_context(request, page):
         .in_subcategories(ticked_event_types)
         .overlapping(date_from, date_to)
     )
+    if free_only:
+        upcoming = upcoming.free()
+    search = request.GET.get("q", "").strip()
+    searching = len(search) >= SEARCH_MIN_LENGTH
+    sort_by_date = request.GET.get("sort") == "date"
     query = request.GET.copy()
     query.pop("page", None)
     return {
-        "events": _events_page(beneficiary, upcoming.free() if free_only else upcoming, page),
+        "events": _events_page(
+            beneficiary,
+            _searched_events(upcoming, search if searching else None, sort_by_date),
+            page,
+        ),
         "bookmark_action": _bookmark_action(request.user, beneficiary),
         "query": query.urlencode(),
         "filtering": bool(
@@ -476,6 +485,7 @@ def _events_context(request, page):
             or date_to
             or free_only
             or ticked_location_types
+            or searching
         ),
         "regions": REGIONS,
         "ticked_departments": ticked_departments,
@@ -489,7 +499,21 @@ def _events_context(request, page):
         "date_from": date_from,
         "date_to": date_to,
         "free_only": free_only,
+        "search": search,
+        "searching": searching,
+        "sort_by_date": sort_by_date,
+        "search_errors": [f"Saisis au moins {SEARCH_MIN_LENGTH} caractères"]
+        if search and not searching
+        else [],
     }
+
+
+def _searched_events(events, search, sort_by_date):
+    """By date, they stay in their own order: the nearest first."""
+    if not search:
+        return events
+    found = events.search(search)
+    return found if sort_by_date else found.most_relevant_first()
 
 
 def _date_param(request, name):
