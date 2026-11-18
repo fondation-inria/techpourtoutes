@@ -2,9 +2,20 @@
 
 <div class="flex flex-col gap-2">
     <label for="{{ id }}_from" class="label-text-sm">À partir du</label>
-    <input type="date" id="{{ id }}_from" name="date_from" value="{{ date_from|date:"Y-m-d" }}" class="field-base field-default">
+    <input type="date" id="{{ id }}_from" name="date_from" min="2000-01-01" value="{{ date_from|date:"Y-m-d" }}" @blur="sync()"
+           :aria-describedby="dateErrors.fromEarly ? '{{ id }}_from_early' : null" :aria-invalid="dateErrors.fromEarly ? 'true' : null"
+           class="field-base field-default">
+    <div aria-live="polite">
+        <p id="{{ id }}_from_early" x-show="dateErrors.fromEarly" x-cloak class="text-xxs leading-[1.4] text-error font-normal">La date doit être postérieure au 01/01/2000</p>
+    </div>
 </div>
 <div class="flex flex-col gap-2">
     <label for="{{ id }}_to" class="label-text-sm">Jusqu'au</label>
-    <input type="date" id="{{ id }}_to" name="date_to" value="{{ date_to|date:"Y-m-d" }}" class="field-base field-default">
+    <input type="date" id="{{ id }}_to" name="date_to" min="2000-01-01" value="{{ date_to|date:"Y-m-d" }}" @blur="sync()"
+           :aria-describedby="dateErrors.toEarly ? '{{ id }}_to_early' : dateErrors.inverted ? '{{ id }}_to_inverted' : null" :aria-invalid="dateErrors.toEarly || dateErrors.inverted ? 'true' : null"
+           class="field-base field-default">
+    <div aria-live="polite">
+        <p id="{{ id }}_to_early" x-show="dateErrors.toEarly" x-cloak class="text-xxs leading-[1.4] text-error font-normal">La date doit être postérieure au 01/01/2000</p>
+        <p id="{{ id }}_to_inverted" x-show="dateErrors.inverted" x-cloak class="text-xxs leading-[1.4] text-error font-normal">La date doit être postérieure à la date de début</p>
+    </div>
 </div>

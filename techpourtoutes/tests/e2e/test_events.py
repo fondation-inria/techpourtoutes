@@ -46,21 +46,62 @@ def test_an_end_date_typed_before_the_start_date_finds_nothing(page, live_server
     page.get_by_role("button", name="Date").click()
     start = page.get_by_label("À partir du")
     end = page.get_by_label("Jusqu'au")
+    expect(start).to_have_attribute("min", "2000-01-01")
+    expect(end).to_have_attribute("min", "2000-01-01")
 
     start.fill("2026-12-10")
     expect(end).to_have_attribute("min", "2026-12-10")
     end.fill("2026-12-20")
     expect(start).to_have_attribute("max", "2026-12-20")
 
+    inverted = page.locator("[aria-live=polite]").get_by_text(
+        "La date doit être postérieure à la date de début"
+    )
+    expect(inverted).to_be_hidden()
+
     end.press_sequentially("01122026")
     assert end.evaluate("input => input.validity.rangeUnderflow")
     expect(page).to_have_url(re.compile(f"date_to={end.input_value()}"))
     expect(page.get_by_text("Aucun événement ne correspond à ta recherche")).to_be_visible()
+    expect(inverted).to_be_visible()
+    expect(end).to_have_attribute("aria-invalid", "true")
+    expect(end).to_have_accessible_description("La date doit être postérieure à la date de début")
 
     start.fill("")
+    expect(inverted).to_be_hidden()
+    expect(end).not_to_have_attribute("aria-invalid", "true")
     end.fill("")
-    expect(end).to_have_attribute("min", "")
+    expect(end).to_have_attribute("min", "2000-01-01")
     expect(start).to_have_attribute("max", "")
+
+
+def test_a_date_typed_before_2000_is_flagged_under_its_own_field(page, live_server):
+    """A year under 1000 is still being typed, digit by digit, so it is left alone until the
+    field is left. An end date both before 2000 and before the start only gets the first
+    message."""
+    too_early = "La date doit être postérieure au 01/01/2000"
+    page.goto(f"{live_server.url}/evenements/")
+    page.get_by_role("button", name="Date").click()
+    start = page.get_by_label("À partir du")
+    end = page.get_by_label("Jusqu'au")
+
+    start.fill("0202-11-11")
+    expect(start).not_to_have_attribute("aria-invalid", "true")
+    start.blur()
+    expect(start).to_have_attribute("aria-invalid", "true")
+
+    start.fill("1999-12-31")
+    expect(start).to_have_attribute("aria-invalid", "true")
+    expect(start).to_have_accessible_description(too_early)
+    expect(page.locator("[aria-live=polite]").get_by_text(too_early).first).to_be_visible()
+
+    end.fill("1999-06-01")
+    expect(end).to_have_accessible_description(too_early)
+    expect(page.get_by_text("La date doit être postérieure à la date de début")).to_be_hidden()
+
+    start.fill("2000-01-01")
+    expect(start).not_to_have_attribute("aria-invalid", "true")
+    expect(start).to_have_accessible_description("")
 
 
 def test_dates_typed_digit_by_digit_keep_every_digit(page, live_server):

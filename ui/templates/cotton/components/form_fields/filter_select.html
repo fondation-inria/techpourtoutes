@@ -6,6 +6,7 @@
         tip: false,
         selected: [],
         dateRange: '',
+        dateErrors: {},
         single: {{ single|yesno:"true,false" }},
         get summary() { return this.dateRange || (this.single && this.selected[0]?.label) },
         groupToggle(input) { return input.closest('[data-group]')?.querySelector('[data-group-toggle] input') },
@@ -26,11 +27,17 @@
                 .filter(input => input.closest('[data-group-toggle]') || !this.groupToggle(input)?.checked)
                 .map(input => ({ id: input.id, label: input.labels[0].textContent.trim() }));
             const [from, to] = this.dates();
-            if (to && to.min !== from.value) to.min = from.value;
+            if (to && to.min !== (from.value || from.min)) to.min = from.value || from.min;
             if (from && from.max !== to.value) from.max = to.value;
             this.dateRange = from?.value || to?.value ? this.dateRangeLabel(from.value, to.value) : '';
+            if (from) this.dateErrors = this.dateErrorsFor(from, to);
         },
         dates() { return [...this.$refs.panel.querySelectorAll('input[type=date]')] },
+        dateErrorsFor(from, to) {
+            const complete = input => Boolean(input.value) && (input !== document.activeElement || input.value >= '1000');
+            const early = input => complete(input) && input.value < from.min;
+            return { fromEarly: early(from), toEarly: early(to), inverted: !early(to) && complete(from) && complete(to) && to.value < from.value };
+        },
         dateRangeLabel(from, to) {
             const short = value => value.split('-').reverse().map((part, index) => index === 2 ? part.slice(2) : part).join('/');
             if (from && to) return `du ${short(from)} au ${short(to)}`;
@@ -69,7 +76,7 @@
                 @keydown.escape.window="tip = false"
             {% endif %}
             class="flex items-center gap-2 px-4 py-3 rounded-sm text-sm font-normal leading-[1.4] bg-neutral-0 text-black border border-black shadow-bottom-and-right shadow-black not-aria-disabled:hover:font-medium not-aria-disabled:hover:shadow-bottom-and-right-lg focus-visible:outline-2 focus-visible:outline-blue-500 focus-visible:outline-offset-2 cursor-pointer aria-disabled:bg-neutral-500 aria-disabled:text-neutral-0 aria-disabled:cursor-not-allowed">
-        {% if icon %}<c-components.icon name="{{ icon }}" class="w-5 h-5 shrink-0" />{% endif %}
+        {% if icon %}<c-components.icon name="{{ icon }}" class="w-5 h-5 shrink-0 in-aria-disabled:brightness-0 in-aria-disabled:invert" />{% endif %}
         <span class="{{ label_class }}"><span x-show="summary" x-cloak class="sr-only">{{ label }}&nbsp;: </span><span x-text="summary || '{{ label|escapejs }}'">{{ label }}</span></span>
         <span x-show="selected.length && !summary" x-cloak class="inline-flex items-center justify-center w-5 h-5 rounded-full border border-black text-xs {{ tint_class }}">
             <span x-text="selected.length"></span><span class="sr-only">&nbsp;sélectionné(s)</span>
