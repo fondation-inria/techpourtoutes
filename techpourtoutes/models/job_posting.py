@@ -5,7 +5,7 @@ from html import unescape
 
 from django.contrib.postgres.fields import ArrayField
 from django.contrib.postgres.indexes import GinIndex
-from django.contrib.postgres.search import SearchRank, SearchVector, SearchVectorField
+from django.contrib.postgres.search import SearchRank, SearchVectorField
 from django.db import models
 from django.db.models import Case, Q, When
 from django.db.models.functions import Coalesce, TruncDate
@@ -13,7 +13,8 @@ from django.utils.html import strip_tags
 from django.utils.translation import gettext_lazy as _
 
 from techpourtoutes.models.base import BaseModel, BaseQuerySet
-from techpourtoutes.utils.full_text_search import SEARCH_CONFIG, masculine_text, search_query
+from techpourtoutes.models.mixins import search_vector
+from techpourtoutes.utils.full_text_search import search_query
 
 POSTAL_CODE = re.compile(r"\b\d{5}\b")
 HEADING = re.compile(r"<h\d>.*?</h\d>", re.DOTALL)
@@ -230,9 +231,7 @@ class JobPosting(BaseModel):
         verbose_name=_("cliquée par"),
     )
     search_vector = models.GeneratedField(
-        expression=SearchVector(masculine_text("title"), weight="A", config=SEARCH_CONFIG)
-        + SearchVector(masculine_text("company_name"), weight="B", config=SEARCH_CONFIG)
-        + SearchVector(masculine_text("description"), weight="C", config=SEARCH_CONFIG),
+        expression=search_vector(("title", "A"), ("company_name", "B"), ("description", "C")),
         output_field=SearchVectorField(),
         db_persist=True,
     )
