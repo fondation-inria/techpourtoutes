@@ -7,13 +7,13 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('techpourtoutes', '0077_jobposting_pmsmp_and_pfmp'),
+        ('techpourtoutes', '0079_jobposting_without_pmsmp_and_electrotechnique'),
     ]
 
     operations = [
         migrations.AddField(
             model_name='pro',
             name='structure_school',
-            field=models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='pros', to='techpourtoutes.school', verbose_name='établissement de la structure'),
+            field=models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='pros', to='techpourtoutes.school', verbose_name='établissement lié'),
         ),
     ]
