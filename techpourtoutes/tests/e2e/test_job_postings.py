@@ -27,7 +27,7 @@ def test_a_ticked_filter_is_counted_and_listed_until_removed(page, live_server):
     page.get_by_text("Électronique", exact=True).click()
 
     expect(page.get_by_role("checkbox", name="Électronique")).to_be_checked()
-    expect(page.get_by_role("checkbox", name="Électrotechnique")).to_be_visible()
+    expect(page.get_by_role("checkbox", name="Télécommunications")).to_be_visible()
     expect(domain).to_contain_text("1")
     expect(page.get_by_role("list", name="Domaine").get_by_role("listitem")).to_have_count(1)
 

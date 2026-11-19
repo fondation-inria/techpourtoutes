@@ -16,23 +16,21 @@ from techpourtoutes.utils.myfuture import SUB_DOMAINS
 from techpourtoutes.utils.naf import naf_label
 from techpourtoutes.utils.territories import department_code
 
-# Lowercased, because MyFuture spells some of them several ways (`PMSMP`, `3einternship`).
+# Lowercased, because MyFuture spells some of them several ways (`3einternship`).
 # An offer of several types lands in the first of them listed here: nearly half the PFMPs are
 # also student internships, meant for students.
-# `miniInternship` and `visit` fit no category and are left out. `highSchoolInternship` is
-# MyFuture's long internship in a lycée pro (PFMP), not the seconde one.
+# `miniInternship`, `visit` and `pmsmp` fit no category and are left out. `highSchoolInternship`
+# is MyFuture's long internship in a lycée pro (PFMP), not the seconde one.
 CATEGORIES = {
     "3einternship": JobPosting.Category.TROISIEME_INTERNSHIP,
     "studentinternship": JobPosting.Category.HIGHER_ED_INTERNSHIP,
     "highschoolinternship": JobPosting.Category.PFMP,
     "apprenticeship": JobPosting.Category.APPRENTICESHIP,
-    "pmsmp": JobPosting.Category.FIRST_JOB,
 }
 
 # MyFuture only has a contract to give for these.
 CONTRACT_TYPES = {
     JobPosting.Category.APPRENTICESHIP: JobPosting.ContractType.APPRENTICESHIP,
-    JobPosting.Category.FIRST_JOB: JobPosting.ContractType.PMSMP,
 }
 
 MAPPED_FIELDS = [

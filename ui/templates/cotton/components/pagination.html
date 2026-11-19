@@ -1,21 +1,21 @@
 {% load pagination %}
-<c-vars page="" anchor="" query="" class="" />
-
+<c-vars page="" param="page" anchor="" reload="" query="" class="" />
+                
 {% if page.paginator.num_pages > 1 %}
     <nav aria-label="Pagination"
-         {% if anchor %}hx-select="#{{ anchor }}" hx-target="#{{ anchor }}" hx-swap="outerHTML show:#{{ anchor }}:top" hx-push-url="true"{% endif %}
+         {% if anchor and not reload %}hx-select="#{{ anchor }}" hx-target="#{{ anchor }}" hx-swap="outerHTML show:#{{ anchor }}:top" hx-push-url="true"{% endif %}
          class="join flex-wrap bg-white [&>*]:border-y-black [&>*]:border-x-neutral-300 [&>*:first-child]:border-s-black [&>*:last-child]:border-e-black {{ class }}">
         {% for number in page|elided_pages %}
             {% if number == page.paginator.ELLIPSIS %}
                 <span class="join-item btn btn-disabled border-x-0! bg-white font-normal text-black">{{ number }}</span>
             {% elif number == page.number %}
-                <a href="?{% if query %}{{ query }}&{% endif %}page={{ number }}{% if anchor %}#{{ anchor }}{% endif %}"
-                   {% if anchor %}hx-get="?{% if query %}{{ query }}&{% endif %}page={{ number }}"{% endif %}
+                <a href="?{% if query %}{{ query }}&{% endif %}{{ param }}={{ number }}{% if anchor %}#{{ anchor }}{% endif %}"
+                   {% if anchor and not reload %}hx-get="?{% if query %}{{ query }}&{% endif %}{{ param }}={{ number }}"{% endif %}
                    aria-current="page"
                    class="join-item btn bg-yellow-500 font-medium text-neutral-950">{{ number }}</a>
             {% else %}
-                <a href="?{% if query %}{{ query }}&{% endif %}page={{ number }}{% if anchor %}#{{ anchor }}{% endif %}"
-                   {% if anchor %}hx-get="?{% if query %}{{ query }}&{% endif %}page={{ number }}"{% endif %}
+                <a href="?{% if query %}{{ query }}&{% endif %}{{ param }}={{ number }}{% if anchor %}#{{ anchor }}{% endif %}"
+                   {% if anchor and not reload %}hx-get="?{% if query %}{{ query }}&{% endif %}{{ param }}={{ number }}"{% endif %}
                    class="join-item btn bg-neutral-0 font-normal text-black hover:bg-yellow-500/20">{{ number }}</a>
             {% endif %}
         {% endfor %}

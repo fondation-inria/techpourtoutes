@@ -97,9 +97,7 @@ class Command(BaseCommand):
         pro.save()
         pro.set_password(settings.SEED_ADMIN_PASSWORD)
         pro.save(update_fields=["password"])
-        self.stdout.write(
-            self.style.SUCCESS(f"  Admin pro created: {email} / {settings.SEED_ADMIN_PASSWORD}")
-        )
+        self.stdout.write(self.style.SUCCESS(f"  Admin pro created: {email}"))
 
     def _create_beneficiary(self, email, *, first_name, birth_date, level, formations):
         if Beneficiary.objects.filter(email=email).exists():

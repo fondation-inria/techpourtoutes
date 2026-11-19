@@ -6,6 +6,9 @@ from .school import School
 from .structure_type import StructureType
 from .user import User
 
+# Created by migration 0056, which keeps its own copy of the name.
+EVENT_MODERATOR_GROUP_NAME = "Chargée de mission"
+
 
 class Pro(User):
     class Engagement(models.TextChoices):
@@ -82,3 +85,10 @@ class Pro(User):
     @property
     def has_internships(self):
         return self.Engagement.INTERNSHIPS in self.engagements
+
+    @property
+    def default_event_organizer(self):
+        """A Chargée de mission proposes events on behalf of others"""
+        if self.groups.filter(name=EVENT_MODERATOR_GROUP_NAME).exists() or self.is_superuser:
+            return ""
+        return self.structure_name

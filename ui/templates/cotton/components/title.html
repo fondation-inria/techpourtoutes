@@ -25,7 +25,7 @@
                         {% if title_bg %}text-2xl sm:text-4xl leading-(--grid-cell){% else %}text-3xl text-black leading-[1.4]{% endif %}
             ">
                 {% if title_bg %}
-                    <span class="box-decoration-clone {% if title_bg == "blue" %}bg-blue-500 text-neutral-0{% else %}bg-yellow-500{% endif %} border-[0.5px] border-neutral-950 rounded-full px-8 py-5 sm:py-3.5">{{ title|safe }}</span>
+                    <span class="box-decoration-clone {% if title_bg == "blue" %}bg-blue-500 text-neutral-0{% elif title_bg == "green" %}bg-green-500{% else %}bg-yellow-500{% endif %} border-[0.5px] border-neutral-950 rounded-full px-8 py-5 sm:py-3.5">{{ title|safe }}</span>
                 {% else %}
                     {{ title|safe }}
                 {% endif %}

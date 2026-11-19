@@ -24,13 +24,11 @@
             <div class="contents wrap-anywhere @min-[41.5rem]:block @min-[41.5rem]:min-w-0">
                 <p class="font-medium">
                     {% if job_posting.category == "higher_ed_internship" %}
-                        {{ job_posting.company_name }} cherche une stagiaire au poste de&nbsp;:
+                        Seras-tu la prochaine stagiaire de {{ job_posting.company_name }}&nbsp;?
                     {% elif job_posting.category == "apprenticeship" %}
-                        {{ job_posting.company_name }} cherche une alternante au poste de&nbsp;:
+                        Seras-tu la prochaine alternante de {{ job_posting.company_name }}&nbsp;?
                     {% elif job_posting.category == "pfmp" %}
                         {{ job_posting.company_name }} propose une PFMP&nbsp;:
-                    {% elif job_posting.contract_type == "pmsmp" %}
-                        {{ job_posting.company_name }} propose une immersion au poste de&nbsp;:
                     {% elif job_posting.category == "first_job" %}
                         {{ job_posting.company_name }} recrute au poste de&nbsp;:
                     {% else %}
