@@ -17,7 +17,7 @@ class ProAdditionalInformationForm(StructureFormMixin, forms.Form):
     structure_name = forms.CharField(
         label=_("Quel est le nom de votre structure ?*"), required=False
     )
-    structure_school_id = forms.CharField(widget=forms.HiddenInput, required=False)
+    structure_school_search_id = forms.CharField(widget=forms.HiddenInput, required=False)
     structure_school_not_found = forms.BooleanField(widget=forms.HiddenInput, required=False)
     job_title = forms.CharField(label=_("Quel est votre métier ?*"))
     phone = PhoneNumberField(region="FR", label=_("Votre numéro de téléphone*"))
@@ -80,5 +80,5 @@ class ProAdditionalInformationForm(StructureFormMixin, forms.Form):
         for name in values:
             del self.fields[name]
         if "structure_name" in values:
-            del self.fields["structure_school_id"]
+            del self.fields["structure_school_search_id"]
             del self.fields["structure_school_not_found"]

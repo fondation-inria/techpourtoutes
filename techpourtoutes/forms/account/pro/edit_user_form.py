@@ -17,7 +17,7 @@ class ProEditUserForm(StructureFormMixin, forms.Form):
         choices=[("", _("Sélectionner une option")), *Pro.StructureType.choices],
     )
     structure_name = forms.CharField(label=_("Structure"), required=False)
-    structure_school_id = forms.CharField(widget=forms.HiddenInput, required=False)
+    structure_school_search_id = forms.CharField(widget=forms.HiddenInput, required=False)
     structure_school_not_found = forms.BooleanField(widget=forms.HiddenInput, required=False)
     job_title = forms.CharField(label=_("Métier"), required=False)
     postal_code = forms.CharField(
@@ -55,6 +55,8 @@ class ProEditUserForm(StructureFormMixin, forms.Form):
         pro.phone = data["phone"]
         pro.structure_type = data["structure_type"]
         pro.structure_name = data["structure_name"]
+        if "structure_school" in data:
+            pro.structure_school = data["structure_school"]
         pro.job_title = data["job_title"]
         pro.postal_code = data["postal_code"]
         pro.save()

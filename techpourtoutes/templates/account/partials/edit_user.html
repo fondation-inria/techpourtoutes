@@ -23,8 +23,9 @@
                     <c-components.form_fields.input field=form.job_title />
                     <c-components.form_fields.structure_name
                         :name_field=form.structure_name
-                        :id_field=form.structure_school_id
+                        :id_field=form.structure_school_search_id
                         :not_found_field=form.structure_school_not_found
+                        structure_type="{{ form.structure_type.value|default:'' }}"
                         school_label="Établissement" />
                 </div>
             {% endif %}

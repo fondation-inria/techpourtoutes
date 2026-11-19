@@ -19,11 +19,17 @@ def _asked(form):
     return set(form.fields)
 
 
-_STRUCTURE_NAME_FIELDS = ("structure_name", "structure_school_id", "structure_school_not_found")
+_STRUCTURE_NAME_FIELDS = (
+    "structure_name",
+    "structure_school_search_id",
+    "structure_school_not_found",
+)
 
 
 def test_additional_information_form_accepts_complete_information():
-    assert ProAdditionalInformationForm(data=_additional_information()).is_valid()
+    form = ProAdditionalInformationForm(data=_additional_information())
+    assert form.is_valid()
+    assert form.cleaned_data["structure_school"] is None
 
 
 def test_additional_information_form_requires_a_structure_name_for_a_structure():
@@ -64,12 +70,13 @@ def test_additional_information_form_names_the_school_she_picked(
         data=_additional_information(
             structure_type=structure_type,
             structure_name="Ce que la recherche affichait",
-            structure_school_id=str(picked.pk),
+            structure_school_search_id=str(picked.pk),
         )
     )
     assert form.is_valid()
     assert form.cleaned_data["structure_name"] == picked.name
-    assert "structure_school_id" not in form.cleaned_data
+    assert form.cleaned_data["structure_school"] == picked
+    assert "structure_school_search_id" not in form.cleaned_data
 
 
 @pytest.mark.django_db
@@ -80,7 +87,7 @@ def test_additional_information_form_rejects_a_school_outside_her_type_of_struct
         data=_additional_information(
             structure_type="school",
             structure_name=higher_ed_school.name,
-            structure_school_id=str(higher_ed_school.pk),
+            structure_school_search_id=str(higher_ed_school.pk),
         )
     )
     assert not form.is_valid()
@@ -110,6 +117,7 @@ def test_additional_information_form_takes_the_name_of_a_school_missing_from_the
     )
     assert form.is_valid()
     assert form.cleaned_data["structure_name"] == "Lycée de la Lune"
+    assert form.cleaned_data["structure_school"] is None
 
 
 def test_additional_information_form_requires_the_name_of_a_school_missing_from_the_list():
@@ -137,6 +145,7 @@ def test_additional_information_form_keeps_the_school_and_job_given_for_the_work
     assert form.is_valid()
     assert form.cleaned_data["structure_type"] == "school"
     assert form.cleaned_data["structure_name"] == "Lycée Voltaire"
+    assert "structure_school" not in form.cleaned_data
     assert form.cleaned_data["job_title"] == "Enseignante"
 
 
@@ -202,6 +211,7 @@ def test_additional_information_form_only_asks_what_she_has_not_given():
     assert form.asks_anything
     assert form.is_valid()
     assert form.cleaned_data["structure_name"] == "Inria"
+    assert "structure_school" not in form.cleaned_data
     assert str(form.cleaned_data["phone"]) == "+33698765432"
 
 
@@ -242,3 +252,19 @@ def test_additional_information_form_saves_her_answers_onto_her_profile(pro):
     pro.refresh_from_db()
     assert pro.structure_type == "association"
     assert pro.structure_name == "Inria"
+
+
+@pytest.mark.django_db
+def test_additional_information_form_keeps_the_school_of_the_structure_she_already_named(
+    pro, school
+):
+    pro.structure_type, pro.structure_name, pro.structure_school = "school", school.name, school
+    pro.phone = ""
+    pro.save()
+    form = ProAdditionalInformationForm(data={"phone": "0698765432"}, pro=pro)
+    assert form.is_valid()
+
+    form.save(pro)
+
+    pro.refresh_from_db()
+    assert pro.structure_school == school

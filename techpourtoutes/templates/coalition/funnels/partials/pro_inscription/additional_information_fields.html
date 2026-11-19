@@ -9,8 +9,9 @@
     {% if "structure_name" in form.fields %}
         <c-components.form_fields.structure_name
             :name_field=form.structure_name
-            :id_field=form.structure_school_id
+            :id_field=form.structure_school_search_id
             :not_found_field=form.structure_school_not_found
+            structure_type="{{ form.structure_type_value|default:'' }}"
             school_label="Dans quel établissement travaillez-vous ?*" />
     {% endif %}
     {% if "job_title" in form.fields %}

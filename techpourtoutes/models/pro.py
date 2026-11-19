@@ -2,6 +2,7 @@ from django.contrib.postgres.fields import ArrayField
 from django.db import models
 from django.utils.translation import gettext_lazy as _
 
+from .school import School
 from .structure_type import StructureType
 from .user import User
 
@@ -29,6 +30,14 @@ class Pro(User):
     )
     structure_name = models.CharField(
         max_length=255, blank=True, verbose_name=_("nom de la structure")
+    )
+    structure_school = models.ForeignKey(
+        School,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="pros",
+        verbose_name=_("établissement lié"),
     )
     job_title = models.CharField(max_length=255, blank=True, verbose_name=_("métier"))
     engagements = ArrayField(
