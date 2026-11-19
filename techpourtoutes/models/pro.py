@@ -70,6 +70,10 @@ class Pro(User):
         return self.Engagement.WORK_AMBASSADOR in self.engagements
 
     @property
+    def is_only_work_ambassador(self):
+        return self.engagements == [self.Engagement.WORK_AMBASSADOR]
+
+    @property
     def has_workshops(self):
         return self.Engagement.WORKSHOPS in self.engagements
 
