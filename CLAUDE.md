@@ -90,7 +90,7 @@ Python dependencies are declared in `pyproject.toml` and locked in `uv.lock`. Th
 
 `.github/dependabot.yml` follows `pyproject.toml` and must change with it, in the same change:
 
-- A version ceiling in `pyproject.toml` (`psycopg2<2.9.13`, `redis<8`) has its twin in the `ignore` list, so Dependabot never proposes what the ceiling forbids. Add, change or lift both together.
+- A version ceiling in `pyproject.toml` (`psycopg2<2.9.13`) has its twin in the `ignore` list, so Dependabot never proposes what the ceiling forbids. Add, change or lift both together.
 - The `python-patch` group leaves out, by name, the packages CI does not exercise for real (Celery runs eagerly, without a broker): their patches come on their own, for a closer review. A new dependency of that kind joins the list; a dependency removed from `pyproject.toml` leaves every list that names it.
 - A new package ecosystem (a Dockerfile, another lockfile…) gets its own `updates` entry, with the same schedule and cooldown as the others.
 

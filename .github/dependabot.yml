@@ -29,8 +29,6 @@ updates:
     ignore:
       - dependency-name: "psycopg2"
         versions: [">=2.9.13"]
-      - dependency-name: "redis"
-        versions: [">=8"]
 
   - package-ecosystem: "npm"
     directory: "/"
