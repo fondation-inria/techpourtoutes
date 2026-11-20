@@ -2,8 +2,6 @@ import pytest
 from django.db import connection
 from django.db.migrations.executor import MigrationExecutor
 
-from techpourtoutes.models import Pro
-
 BEFORE = [("techpourtoutes", "0061_delete_new_pro_features_switch")]
 AFTER = [("techpourtoutes", "0062_remove_pro_professional_situation")]
 
@@ -19,9 +17,11 @@ def historical_apps(transactional_db):
 
 
 def _migrate_to_after():
+    """The pro model as it stands right after the migration: today's may have more columns."""
     executor = MigrationExecutor(connection)
     executor.loader.build_graph()
     executor.migrate(AFTER)
+    return executor.loader.project_state(AFTER).apps.get_model("techpourtoutes", "Pro")
 
 
 @pytest.fixture
@@ -44,7 +44,7 @@ def test_a_retired_or_jobless_situation_becomes_her_structure_type(historical_pr
     _pro(historical_pro, "retired@example.com", "retired")
     _pro(historical_pro, "jobless@example.com", "jobless")
 
-    _migrate_to_after()
+    Pro = _migrate_to_after()
 
     assert Pro.objects.get(email="retired@example.com").structure_type == "retired"
     assert Pro.objects.get(email="jobless@example.com").structure_type == "jobless"
@@ -54,7 +54,7 @@ def test_a_structure_type_already_given_is_kept(historical_pro):
     _pro(historical_pro, "working@example.com", "working")
     _pro(historical_pro, "company@example.com", "retired", structure_type="company")
 
-    _migrate_to_after()
+    Pro = _migrate_to_after()
 
     assert Pro.objects.get(email="working@example.com").structure_type == ""
     assert Pro.objects.get(email="company@example.com").structure_type == "company"
@@ -75,7 +75,7 @@ def test_a_student_takes_the_school_of_her_parcours_for_her_structure(
         end_date="2026-08-31",
     )
 
-    _migrate_to_after()
+    Pro = _migrate_to_after()
 
     pro = Pro.objects.get(email="student@example.com")
     assert (pro.structure_type, pro.structure_name) == ("higher_ed", "Université Paris-Saclay")
@@ -84,7 +84,7 @@ def test_a_student_takes_the_school_of_her_parcours_for_her_structure(
 def test_a_student_without_a_parcours_still_studies_in_higher_education(historical_pro):
     _pro(historical_pro, "student@example.com", "student")
 
-    _migrate_to_after()
+    Pro = _migrate_to_after()
 
     pro = Pro.objects.get(email="student@example.com")
     assert (pro.structure_type, pro.structure_name) == ("higher_ed", "")

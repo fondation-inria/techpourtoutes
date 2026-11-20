@@ -1,7 +1,7 @@
 from django import forms
 from django.utils.translation import gettext_lazy as _
 
-from ...models import WorkshopRequest
+from ...models import School, WorkshopRequest
 from ..mixins import MissingRecordMixin
 
 FONCTION_CHOICES = [
@@ -32,7 +32,7 @@ class ProWorkshopRequestForm(MissingRecordMixin, forms.Form):
     # answers all land in the same place.
     prefix = "workshop"
 
-    structure_uai = forms.CharField(widget=forms.HiddenInput, required=False)
+    school_id = forms.CharField(widget=forms.HiddenInput, required=False)
     school_label = forms.CharField(
         label=_("Pour quel établissement souhaitez-vous organiser un atelier ?*")
     )
@@ -47,11 +47,17 @@ class ProWorkshopRequestForm(MissingRecordMixin, forms.Form):
     remark = forms.CharField(label=_("Remarque"), required=False, widget=forms.Textarea)
 
     def clean(self):
-        """Outside the fallback, the name must come from the autocomplete — hence its UAI."""
+        """Outside the fallback, the name must come from the autocomplete — hence its id."""
         cleaned_data = super().clean()
-        if not self.school_not_found and not cleaned_data.get("structure_uai"):
-            self.add_error("school_label", _("Sélectionnez un établissement dans la liste."))
+        if not self.school_not_found:
+            self._school = School.objects.secondary().find(cleaned_data.get("school_id"))
+            if self._school is None:
+                self.add_error("school_label", _("Sélectionnez un établissement dans la liste."))
         return cleaned_data
+
+    @property
+    def school(self):
+        return self._school
 
     @property
     def works_at_school(self):
