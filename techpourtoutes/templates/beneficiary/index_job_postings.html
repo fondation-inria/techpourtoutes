@@ -68,7 +68,7 @@
                         {% with job_posting_count=job_postings.paginator.count %}
                             <p id="job_posting_count" aria-live="polite">{{ job_posting_count|intcomma }}&nbsp;offre{% if job_posting_count > 1 %}s{% endif %} </p>
                         {% endwith %}
-                        <div id="job_posting_sort" class="empty:hidden">{% if searching %}<c-components.job_posting_sort :sort_by_date="sort_by_date" form="job_posting_filters" />{% endif %}</div>
+                        <div id="job_posting_sort" class="empty:hidden">{% if searching %}<c-components.sort_select id="job_posting_sort" :sort_by_date="sort_by_date" form="job_posting_filters" />{% endif %}</div>
                     </div>
                     <div id="job_posting_results">
                         <div class="grid gap-4">

@@ -1,5 +1,7 @@
 from datetime import datetime
 
+from django.contrib.postgres.indexes import GinIndex
+from django.contrib.postgres.search import SearchVectorField
 from django.core.validators import MinValueValidator
 from django.db import models
 from django.template.defaultfilters import floatformat
@@ -14,11 +16,11 @@ from ..utils.structure_type_teams import structure_types_followed_by
 from ..utils.territories import department_code
 from ..utils.text import strip_accents
 from .base import BaseModel, BaseQuerySet
-from .mixins import SlugFromTitleMixin
+from .mixins import SearchableQuerySetMixin, SlugFromTitleMixin, search_vector
 from .pro import Pro
 
 
-class EventQuerySet(BaseQuerySet):
+class EventQuerySet(SearchableQuerySetMixin, BaseQuerySet):
     def approved(self):
         return self.filter(status=Event.Status.APPROVED)
 
@@ -95,6 +97,10 @@ class EventQuerySet(BaseQuerySet):
 
     def free(self):
         return self.filter(price=0)
+
+    def most_relevant_first(self):
+        """After `search()`: ties go to the nearest."""
+        return self.order_by("-relevance", "start_date", "start_time")
 
     def _within(self, subcategories):
         """`OTHER` also brings back the free text typed when no subcategory fits."""
@@ -250,14 +256,20 @@ class Event(SlugFromTitleMixin, BaseModel):
         max_length=255, blank=True, verbose_name=_("alternative textuelle du visuel")
     )
     image_credit = models.CharField(max_length=255, blank=True, verbose_name=_("crédit du visuel"))
+    search_vector = models.GeneratedField(
+        expression=search_vector(("title", "A"), ("organizer", "B"), ("description", "C")),
+        output_field=SearchVectorField(),
+        db_persist=True,
+    )
 
     objects = EventQuerySet.as_manager()
-    history = HistoricalRecords()
+    history = HistoricalRecords(excluded_fields=["search_vector"])
 
     class Meta:
         verbose_name = _("événement")
         verbose_name_plural = _("événements")
         ordering = ["start_date", "start_time"]
+        indexes = [GinIndex(fields=["search_vector"], name="event_search_vector")]
         constraints = [
             models.CheckConstraint(
                 condition=models.Q(end_date__gt=models.F("start_date"))
