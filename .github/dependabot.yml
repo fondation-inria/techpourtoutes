@@ -1,0 +1,60 @@
+version: 2
+
+# Updates are grouped so that each ecosystem opens few pull requests a week, sorted by how
+# closely they need reviewing: Python patches together, minor updates together, and on their own
+# the patches of the packages CI does not exercise for real (Celery runs eagerly, without a
+# broker) and Django's feature releases. A release must be a week old before Dependabot proposes
+# it, so that a compromised one is likely pulled before it reaches us; security updates skip
+# that wait.
+updates:
+  - package-ecosystem: "uv"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "06:00"
+      timezone: "Europe/Paris"
+    cooldown:
+      default-days: 7
+    groups:
+      python-patch:
+        patterns: ["*"]
+        exclude-patterns: ["celery", "kombu", "redis", "gunicorn", "psycopg2"]
+        update-types: ["patch"]
+      python-minor:
+        patterns: ["*"]
+        exclude-patterns: ["django"]
+        update-types: ["minor"]
+    # The same ceilings as pyproject.toml, which explains them.
+    ignore:
+      - dependency-name: "psycopg2"
+        versions: [">=2.9.13"]
+      - dependency-name: "redis"
+        versions: [">=8"]
+
+  - package-ecosystem: "npm"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "06:00"
+      timezone: "Europe/Paris"
+    cooldown:
+      default-days: 7
+    groups:
+      front:
+        patterns: ["*"]
+
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "06:00"
+      timezone: "Europe/Paris"
+    cooldown:
+      default-days: 7
+    groups:
+      actions-minor-patch:
+        patterns: ["*"]
+        update-types: ["minor", "patch"]
