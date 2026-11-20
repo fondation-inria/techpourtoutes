@@ -39,7 +39,9 @@
                 <c-components.form_fields.search_bar id="event_search" name="q" label="Rechercher un événement" placeholder="Événement, organisation, etc." :value="search" :errors="search_errors">
                     <c-components.reset_filters_button x-show="searchLaunched || filtersChanged" @click="resetAll()" />
                 </c-components.form_fields.search_bar>
-                <c-components.form_fields.filter_select label="En ligne / en présentiel" name="location_type" id="event_location_type" :options="location_types" :ticked="ticked_location_types" :switch="True" :single="True" label_class="min-w-46" selection_target="#event_selected_filters" />
+                <c-components.form_fields.filter_select label="En ligne / en présentiel" id="event_location_type" label_class="min-w-46" selection_target="#event_selected_filters">
+                    <c-components.form_fields.single_choice_options name="location_type" id="event_location_type" :options="location_types" :ticked="ticked_location_types" />
+                </c-components.form_fields.filter_select>
                 <c-components.form_fields.filter_select label="Région / Département" id="event_location" icon="location" tint_class="bg-green-500/20" disabled_when="online" disabled_reason="Décoche « En ligne uniquement » pour filtrer par région ou département." selection_target="#event_selected_filters">
                     <c-components.form_fields.region_options :regions="regions" :ticked="ticked_departments" id="event_location" />
                 </c-components.form_fields.filter_select>

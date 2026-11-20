@@ -1,11 +1,25 @@
 <c-vars :regions=[] :ticked=[] id="" />
 
+{# Slot of a filter_select. A region ticks or unticks all its departments, and is ticked itself once they all are; #}
+{# its departments are then `data-covered`, so the filter lists the region alone. #}
 <div x-data="{
         query: '',
         normalize(text) { return text.normalize('NFD').replace(/\p{Diacritic}/gu, '').replaceAll('-', ' ').toLowerCase() },
         matches(el) { return this.normalize(el.dataset.search).includes(this.normalize(this.query.trim())) },
         searching() { return this.query.trim() !== '' },
+        cascade(input) {
+            const toggle = input.closest('[data-group]')?.querySelector('[data-group-toggle] input');
+            if (!toggle) return;
+            const members = [...toggle.closest('[data-group]').querySelectorAll('[data-group-member] input')];
+            if (input === toggle) members.forEach(member => member.checked = toggle.checked);
+            const checkedCount = members.filter(member => member.checked).length;
+            toggle.checked = checkedCount === members.length;
+            toggle.indeterminate = checkedCount > 0 && !toggle.checked;
+            members.forEach(member => member.toggleAttribute('data-covered', toggle.checked));
+        },
      }"
+     x-init="$root.querySelectorAll('[data-group-member]:first-child input').forEach(input => cascade(input))"
+     @change="cascade($event.target)"
      class="flex flex-col gap-3">
     <div class="sticky -top-4 z-10 -mx-4 -mt-4 p-4 pb-1 bg-neutral-0">
         <label for="{{ id }}_search" class="sr-only">Rechercher une région ou un département</label>

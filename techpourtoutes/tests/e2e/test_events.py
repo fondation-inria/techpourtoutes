@@ -280,6 +280,33 @@ def test_ticking_a_location_type_unticks_the_other_and_names_the_filter(page, li
     expect(page.get_by_role("button", name="Retirer le filtre")).to_have_count(0)
 
 
+def test_a_filtered_url_opens_with_the_location_type_and_the_dates_named(page, live_server):
+    page.goto(
+        f"{live_server.url}/evenements/?location_type=physical"
+        "&date_from=2026-09-14&date_to=2026-10-31"
+    )
+
+    expect(page.get_by_role("button", name="En ligne / en présentiel")).to_have_accessible_name(
+        "En ligne / en présentiel\xa0: En présentiel uniquement"
+    )
+    expect(page.get_by_role("button", name="Date")).to_have_accessible_name(
+        "Date\xa0: du 14/09/26 au 31/10/26"
+    )
+
+
+def test_removing_the_location_type_from_the_selected_filters_unnames_the_filter(
+    page, live_server
+):
+    page.goto(f"{live_server.url}/evenements/?location_type=physical")
+
+    page.get_by_role("button", name="Retirer le filtre En présentiel uniquement").click()
+
+    expect(page.get_by_role("button", name="En ligne / en présentiel")).to_have_accessible_name(
+        "En ligne / en présentiel"
+    )
+    expect(page.get_by_text("Filtres sélectionnés")).to_be_hidden()
+
+
 def _click_label_of(control):
     """The input itself is visually hidden behind its drawn tick or switch: the label is what
     she clicks."""

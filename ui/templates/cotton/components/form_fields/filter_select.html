@@ -1,47 +1,18 @@
-<c-vars label="" name="" id="" icon="" :options=[] :ticked=[] :switch=False :single=False label_class="" disabled_when="" disabled_reason="" tint_class="bg-neutral-0" selection_target="" class="" />
+<c-vars label="" name="" id="" icon="" :options=[] :ticked=[] label_class="" disabled_when="" disabled_reason="" tint_class="bg-neutral-0" selection_target="" class="" />
 
+{# A button opening a panel of checkboxes, the ticked ones counted on the button and listed in `selection_target`. #}
+{# What the slot puts in the panel can talk back: a `filter-summary` event names the filter on the button instead of #}
+{# the count, and a ticked input carrying `data-covered` is left out of the list. The first sync waits a tick for the #}
+{# slot's own x-init, which Alpine runs after this one. #}
 <div x-data="{
         open: false,
         disabled: false,
         tip: false,
         selected: [],
-        dateRange: '',
-        dateErrors: {},
-        single: {{ single|yesno:"true,false" }},
-        get summary() { return this.dateRange || (this.single && this.selected[0]?.label) },
-        groupToggle(input) { return input.closest('[data-group]')?.querySelector('[data-group-toggle] input') },
-        cascade(input) {
-            const toggle = this.groupToggle(input);
-            if (!toggle) return;
-            const members = [...toggle.closest('[data-group]').querySelectorAll('[data-group-member] input')];
-            if (input === toggle) members.forEach(member => member.checked = toggle.checked);
-            const checkedCount = members.filter(member => member.checked).length;
-            toggle.checked = checkedCount === members.length;
-            toggle.indeterminate = checkedCount > 0 && !toggle.checked;
-        },
-        untickOthers(input) {
-            if (input.checked) this.$refs.panel.querySelectorAll('input:checked').forEach(other => other.checked = other === input);
-        },
+        summary: '',
         sync() {
-            this.selected = [...this.$refs.panel.querySelectorAll('input:checked')]
-                .filter(input => input.closest('[data-group-toggle]') || !this.groupToggle(input)?.checked)
+            this.selected = [...this.$refs.panel.querySelectorAll('input:checked:not([data-covered])')]
                 .map(input => ({ id: input.id, label: input.labels[0].textContent.trim() }));
-            const [from, to] = this.dates();
-            if (to && to.min !== (from.value || from.min)) to.min = from.value || from.min;
-            if (from && from.max !== to.value) from.max = to.value;
-            this.dateRange = from?.value || to?.value ? this.dateRangeLabel(from.value, to.value) : '';
-            if (from) this.dateErrors = this.dateErrorsFor(from, to);
-        },
-        dates() { return [...this.$refs.panel.querySelectorAll('input[type=date]')] },
-        dateErrorsFor(from, to) {
-            const complete = input => Boolean(input.value) && (input !== document.activeElement || input.value >= '1000');
-            const early = input => complete(input) && input.value < from.min;
-            return { fromEarly: early(from), toEarly: early(to), inverted: !early(to) && complete(from) && complete(to) && to.value < from.value };
-        },
-        dateRangeLabel(from, to) {
-            const short = value => value.split('-').reverse().map((part, index) => index === 2 ? part.slice(2) : part).join('/');
-            if (from && to) return `du ${short(from)} au ${short(to)}`;
-            return from ? `à partir du ${short(from)}` : `jusqu'au ${short(to)}`;
         },
         remove(id) {
             const input = document.getElementById(id);
@@ -54,11 +25,12 @@
                 input.checked = false;
                 input.indeterminate = false;
             });
-            this.dates().forEach(date => date.value = '');
+            this.summary = '';
             this.sync();
         },
      }"
-     x-init="$refs.panel.querySelectorAll('[data-group-member]:first-child input').forEach(input => cascade(input)); sync()"
+     x-init="$nextTick(() => sync())"
+     @filter-summary="summary = $event.detail"
      {% if disabled_when %}x-effect="disabled = {{ disabled_when }}; if (disabled) open = false" @mouseenter="tip = true" @mouseleave="tip = false"{% endif %}
      @reset-filters.window="reset()"
      @reset-filter.window="if ($event.detail === '{{ id }}') reset()"
@@ -86,7 +58,7 @@
     {% if disabled_reason %}
         <span role="tooltip" id="{{ id }}_reason" x-show="tip && disabled" x-cloak class="absolute left-1/2 bottom-full z-30 w-72 max-w-[80vw] -translate-x-1/2 rounded border-b-4 border-transparent bg-neutral-950 bg-clip-padding px-3 py-2 text-xs text-neutral-50">{{ disabled_reason }}</span>
     {% endif %}
-    <fieldset id="{{ id }}_panel" x-ref="panel" x-show="open" x-cloak {% if single %}@click="untickOthers($event.target)"{% endif %} @change="cascade($event.target); sync()"
+    <fieldset id="{{ id }}_panel" x-ref="panel" x-show="open" x-cloak @change="sync()"
               class="absolute left-0 z-20 mt-2 w-max min-w-full max-w-[calc(100vw-4rem)] max-h-72 overflow-y-auto p-4 rounded-sm bg-neutral-0 border border-black shadow-bottom-and-right shadow-black">
         <legend class="sr-only">{{ label }}</legend>
         <div class="flex flex-col gap-3">
@@ -94,7 +66,7 @@
                 {{ slot }}
             {% else %}
                 {% for value, option_label in options %}
-                    <c-components.form_fields.checkbox name="{{ name }}" id="{{ id }}_{{ forloop.counter0 }}" value="{{ value }}" label="{{ option_label }}" checked="{% if value in ticked %}checked{% endif %}" :switch="switch" />
+                    <c-components.form_fields.checkbox name="{{ name }}" id="{{ id }}_{{ forloop.counter0 }}" value="{{ value }}" label="{{ option_label }}" checked="{% if value in ticked %}checked{% endif %}" />
                 {% endfor %}
             {% endif %}
         </div>
