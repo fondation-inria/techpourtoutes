@@ -23,8 +23,11 @@ jobs:
   move:
     # A fork PR gets no secrets, so the app token step would fail: skip it rather than
     # turn every such PR red. Never switch this workflow to pull_request_target, which
-    # would hand the app token to code the fork controls.
-    if: github.event.pull_request.head.repo.full_name == github.repository
+    # would hand the app token to code the fork controls. A run Dependabot triggers (it
+    # edits its PR's body) gets no Actions secrets either, and its PRs close no ticket.
+    if: >-
+      github.event.pull_request.head.repo.full_name == github.repository
+      && github.actor != 'dependabot[bot]'
     runs-on: ubuntu-latest
     concurrency:
       group: move-ticket-${{ github.event.pull_request.number }}
