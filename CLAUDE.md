@@ -84,6 +84,16 @@ make seed       # seed DB with minimal dev data (idempotent)
 Seed creates: one `Pro` with superuser role — `admin@techpourtoutes.io` / `admin` — one `Beneficiary` with a `TrainingExperience` — `beneficiary@techpourtoutes.io` / `beneficiary` — 19 approved upcoming `Event`s covering every subcategory but `OTHER`, so every card colour and the pagination show up (seeded again only once they are all past), and 32 `JobPosting`s: more than a page of higher-ed internships, a few apprenticeships, first jobs and troisième internships, none for the seconde tab. When `SEED_TEAM_EMAILS` is set (review apps), it replaces those two accounts with, for each address, an adult student, a minor pupil and an admin pro as `+etudiante` / `+lyceenne` / `+pro` aliases, the pro sharing `SEED_ADMIN_PASSWORD`; the events then belong to the first of these pros. Every login or email-change code is `FIXED_VERIFICATION_CODE` when set (`111111` in `.env.example`) — honoured only under `DEBUG`. It also imports the Onisep samples committed under `data/onisep/` (~100 coherent rows per file) rather than downloading the full datasets.
 One file or one test: `uv run pytest <path>[::<test>] -q --no-cov` — coverage is in `addopts`, so drop it with `--no-cov` when iterating.
 
+## Dependencies
+
+Python dependencies are declared in `pyproject.toml` and locked in `uv.lock`. The npm packages only feed `npm run copy-assets`, which copies their files into `ui/static/`: bumping one in `package.json` changes nothing served until that script is run again and its output committed, in the same pull request.
+
+`.github/dependabot.yml` follows `pyproject.toml` and must change with it, in the same change:
+
+- A version ceiling in `pyproject.toml` (`psycopg2<2.9.13`) has its twin in the `ignore` list, so Dependabot never proposes what the ceiling forbids. Add, change or lift both together.
+- The `python-patch` group leaves out, by name, the packages CI does not exercise for real (Celery runs eagerly, without a broker): their patches come on their own, for a closer review. A new dependency of that kind joins the list; a dependency removed from `pyproject.toml` leaves every list that names it.
+- A new package ecosystem (a Dockerfile, another lockfile…) gets its own `updates` entry, with the same schedule and cooldown as the others.
+
 ## Architecture
 
 Django 6 + PostgreSQL. Locale is French (fr-FR), timezone Europe/Paris.

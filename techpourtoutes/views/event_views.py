@@ -298,7 +298,7 @@ def _render(request, template, step, answers, *, form=None, confirming=False, qu
         template,
         {
             "step": step,
-            "form": form or _STEP_FORMS[step](initial=dict(answers.items())),
+            "form": form or _STEP_FORMS[step](initial=_initial(request, answers)),
             "carried": _carried(answers, step),
             "previous_step": _previous_step(step),
             "confirming": confirming,
@@ -308,6 +308,12 @@ def _render(request, template, step, answers, *, form=None, confirming=False, qu
             "quit_url": quit_url or reverse("show_account"),
         },
     )
+
+
+def _initial(request, answers):
+    """The organizer is only suggested until she has seen the details screen: from then on her
+    answer is carried with the others, even left blank."""
+    return {"organizer": request.user.pro.default_event_organizer} | dict(answers.items())
 
 
 def _carried(answers, step):
