@@ -20,7 +20,7 @@
   "homepage": "https://github.com/fondation-inria/techpourtoutes#readme",
   "devDependencies": {
     "alpinejs": "^3.17.5",
-    "daisyui": "^5.8.0",
+    "daisyui": "^5.8.1",
     "htmx.org": "^2.0.11"
   }
 }
