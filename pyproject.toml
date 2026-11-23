@@ -33,7 +33,7 @@ dependencies = [
   "phonenumberslite>=9.0.43",
   "psycopg2>=2.9.12,<2.9.13",        # 2.9.13 ships no wheel: building it needs pg_config
   "redis>=8.1",
-  "sentry-sdk[celery,django]>=2.75.0",
+  "sentry-sdk[celery,django]>=2.75",
   "whitenoise[brotli]>=6.12",
 ]
 

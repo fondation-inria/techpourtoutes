@@ -31,10 +31,13 @@ def build_authorization_proof(authorization):
 
 def _new_pdf():
     pdf = FPDF()
-    pdf.add_font("Poppins", "", finders.find("fonts/poppins/poppins-latin-400-normal.woff2"))
-    pdf.add_font("Poppins", "B", finders.find("fonts/poppins/poppins-latin-600-normal.woff2"))
+    satoshi = finders.find("fonts/satoshi/Satoshi-Variable.woff2")
+    pdf.add_font("Satoshi", "", satoshi, variations={"wght": 400})
+    pdf.add_font("Satoshi", "B", satoshi, variations={"wght": 600})
     pdf.add_font(
-        "Newsreader", "BI", finders.find("fonts/newsreader/newsreader-latin-800-italic.woff2")
+        "Mazius Display",
+        "BI",
+        finders.find("fonts/mazius-display/MaziusDisplay-ExtraItalicBold.woff2"),
     )
     pdf.set_margins(20, 20)
     pdf.add_page()
@@ -46,21 +49,21 @@ def _lines(pdf, height, text):
 
 
 def _title(pdf, text):
-    pdf.set_font("Newsreader", "BI", 20)
+    pdf.set_font("Mazius Display", "BI", 20)
     _lines(pdf, 9, text)
     pdf.ln(4)
 
 
 def _paragraph(pdf, text):
-    pdf.set_font("Poppins", "", 10)
+    pdf.set_font("Satoshi", "", 10)
     _lines(pdf, 5, text)
     pdf.ln(3)
 
 
 def _field(pdf, label, value):
-    pdf.set_font("Poppins", "B", 10)
+    pdf.set_font("Satoshi", "B", 10)
     pdf.cell(h=6, text=f"{label} : ")
-    pdf.set_font("Poppins", "", 10)
+    pdf.set_font("Satoshi", "", 10)
     _lines(pdf, 6, value)
 
 
@@ -73,14 +76,14 @@ def _checkbox(pdf, text, *, checked):
         pdf.line(x + 1.7, y + 3.6, x + 3.3, y + 1.3)
         pdf.set_line_width(0.2)
     pdf.set_x(x + 7)
-    pdf.set_font("Poppins", "", 9)
+    pdf.set_font("Satoshi", "", 9)
     _lines(pdf, 5, text)
     pdf.ln(2)
 
 
 def _signature(pdf, signed_at):
     pdf.ln(6)
-    pdf.set_font("Poppins", "", 9)
+    pdf.set_font("Satoshi", "", 9)
     pdf.set_text_color(*_GREY)
     _lines(
         pdf,
