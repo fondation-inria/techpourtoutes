@@ -1,4 +1,3 @@
-{% load waffle_tags %}
 {% if user.jobirl_user_id %}
     <c-components.card-link color="yellow" title="Mentorat" button="Rejoindre mon espace mentorat" href="{% url "login_to_jobirl" %}" target="_blank">
         Retrouve les échanges avec ta mentore et des conseils directement dans l'espace dédié.
@@ -36,13 +35,11 @@
         TechPourToutes peut te mettre en relation avec une étudiante pour que tu puisses lui poser toutes tes questions sur les études dans la tech.
     </c-components.card-link>
 {% endif %}
-{% switch "internships" %}
-    <c-components.card-link color="green" title="Opportunités"
-                            button="Mes opportunités"
-                            href="{% url "index_beneficiary_job_postings" %}">
-        Trouve ta voie dans la tech grâce aux nombreuses offres de stage, d'alternance et d'emploi proposées par TechPourToutes.
-    </c-components.card-link>
-{% endswitch %}
+<c-components.card-link color="green" title="Opportunités"
+                        button="Mes opportunités"
+                        href="{% url "index_beneficiary_job_postings" %}">
+    Trouve ta voie dans la tech grâce aux nombreuses offres de stage, d'alternance et d'emploi proposées par TechPourToutes.
+</c-components.card-link>
 <c-components.card-link color="purple" title="Projet makeuses"
                         button="Proposer un projet"
                         href="{% url "new_makeuse_project_submission" %}">

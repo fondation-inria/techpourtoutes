@@ -11,7 +11,6 @@ from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
 from django.views.decorators.cache import never_cache
 from django.views.decorators.http import require_POST
-from waffle.decorators import waffle_switch
 
 from ..decorators import beneficiary_required
 from ..forms import (
@@ -234,13 +233,11 @@ def _render_upcoming_feature_notification_form(request, form):
     return render(request, "beneficiary/new_upcoming_feature_notification.html", {"form": form})
 
 
-@waffle_switch("internships")
 @never_cache
 def index_job_postings(request):
     return _render_job_postings(request, UpcomingFeatureNotificationForm())
 
 
-@waffle_switch("internships")
 @require_POST
 def create_job_posting_notification(request):
     category = _job_posting_category(request)
@@ -343,7 +340,6 @@ def _render_job_postings(request, notification_form):
     )
 
 
-@waffle_switch("internships")
 @never_cache
 def show_job_posting(request, pk):
     beneficiary = getattr(request.user, "beneficiary", None)
@@ -368,7 +364,6 @@ def show_job_posting(request, pk):
     )
 
 
-@waffle_switch("internships")
 def show_job_posting_application_modal(request, pk):
     beneficiary = getattr(request.user, "beneficiary", None)
     job_posting = get_object_or_404(JobPosting, pk=pk)
@@ -384,7 +379,6 @@ def show_job_posting_application_modal(request, pk):
     )
 
 
-@waffle_switch("internships")
 @require_POST
 @login_required
 def update_saved_job_posting(request, pk):
@@ -405,7 +399,6 @@ def update_saved_job_posting(request, pk):
     )
 
 
-@waffle_switch("internships")
 def create_saved_job_posting_modal(request, pk):
     job_posting = get_object_or_404(JobPosting, pk=pk)
     return render(
@@ -420,7 +413,6 @@ def create_saved_job_posting_modal(request, pk):
     )
 
 
-@waffle_switch("internships")
 @require_POST
 @login_required
 def create_clicked_job_posting(request, pk):
@@ -430,7 +422,6 @@ def create_clicked_job_posting(request, pk):
     return HttpResponse(status=204)
 
 
-@waffle_switch("internships")
 @require_POST
 @login_required
 def update_clicked_job_posting(request, pk):
@@ -447,7 +438,6 @@ def update_clicked_job_posting(request, pk):
     )
 
 
-@waffle_switch("internships")
 @beneficiary_required
 def destroy_clicked_job_posting_modal(request, pk):
     return render(
@@ -457,7 +447,6 @@ def destroy_clicked_job_posting_modal(request, pk):
     )
 
 
-@waffle_switch("internships")
 @require_POST
 @login_required
 def destroy_clicked_job_posting(request, pk):
@@ -480,7 +469,6 @@ def destroy_clicked_job_posting(request, pk):
     )
 
 
-@waffle_switch("internships")
 @beneficiary_required
 def destroy_saved_job_posting_modal(request, pk):
     return render(
@@ -490,7 +478,6 @@ def destroy_saved_job_posting_modal(request, pk):
     )
 
 
-@waffle_switch("internships")
 @require_POST
 @login_required
 def destroy_saved_job_posting(request, pk):
