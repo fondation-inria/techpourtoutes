@@ -1,0 +1,29 @@
+/* Linked from Brevo, which only takes a stylesheet URL to add a custom font to its emails. */
+@font-face {
+  font-family: "Mazius Display";
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url("MaziusDisplay-Regular.woff2") format("woff2");
+}
+@font-face {
+  font-family: "Mazius Display";
+  font-style: italic;
+  font-weight: 400;
+  font-display: swap;
+  src: url("MaziusDisplay-Extraitalic.woff2") format("woff2");
+}
+@font-face {
+  font-family: "Mazius Display";
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+  src: url("MaziusDisplay-Bold.woff2") format("woff2");
+}
+@font-face {
+  font-family: "Mazius Display";
+  font-style: italic;
+  font-weight: 700;
+  font-display: swap;
+  src: url("MaziusDisplay-ExtraItalicBold.woff2") format("woff2");
+}

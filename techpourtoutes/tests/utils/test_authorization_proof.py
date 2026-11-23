@@ -32,3 +32,9 @@ def test_build_authorization_proof_survives_a_name_outside_the_font(signed_autho
 @pytest.mark.django_db
 def test_build_authorization_proof_carries_the_logo(signed_authorization):
     assert b"/Subtype /Image" in build_authorization_proof(signed_authorization)
+
+
+@pytest.mark.django_db
+@pytest.mark.parametrize("font", [b"Satoshi", b"MaziusDisplay"])
+def test_build_authorization_proof_embeds_the_site_fonts(signed_authorization, font):
+    assert font in build_authorization_proof(signed_authorization)

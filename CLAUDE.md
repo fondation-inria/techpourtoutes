@@ -244,7 +244,7 @@ Exceptions are rare — static pages (`static_views`, `home`…), `search_views`
 - Imports go at the top of the test module, not inside the test, unless the test needs the patched object an import inside a `with patch(…)` returns.
 - Mails land in `django.core.mail.outbox` without any setting: pytest-django already switches to the locmem backend.
 - Name a view's tests after the view: `test_update_user_valid_saves_and_returns_info_card`, not `test_account_edit_...`.
-- A data migration is tested in `tests/migrations/test_<migration>.py`. When its function only needs today's models, import it with `importlib` and call it with `django.apps.apps` (see `test_0061_…`); when it reads a column the migration then removes, migrate with `MigrationExecutor` to the state before it (see `test_0062_…`).
+- A data migration is tested in `tests/migrations/test_<migration>.py` until it has run in production; the test is then deleted, since a migration that has run guards nothing. When its function only needs today's models, import it with `importlib` and call it with `django.apps.apps`; when it reads a column the migration then removes, migrate with `MigrationExecutor` to the state before it.
 
 ### Test layout
 

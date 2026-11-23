@@ -76,9 +76,9 @@ def test_notre_manifeste_og_image_uses_manifeste_cover(client):
 
 
 @pytest.mark.django_db
-@pytest.mark.parametrize("weight", ["500", "700"])
-def test_base_template_preloads_the_italic_serif_shown_only_on_hover_or_in_a_modal(client, weight):
+@pytest.mark.parametrize("style", ["Extraitalic", "ExtraItalicBold"])
+def test_base_template_preloads_the_italic_serif_shown_only_on_hover_or_in_a_modal(client, style):
     content = client.get(reverse("mentions_legales")).content.decode()
 
-    font = f"/static/fonts/newsreader/newsreader-latin-{weight}-italic.woff2"
+    font = f"/static/fonts/mazius-display/MaziusDisplay-{style}.woff2"
     assert f'<link rel="preload" href="{font}" as="font" type="font/woff2" crossorigin>' in content
