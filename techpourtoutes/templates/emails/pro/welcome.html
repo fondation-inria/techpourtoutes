@@ -3,9 +3,15 @@
   <p style="font-size:15px;color:#374151;">
     Bienvenue dans la <strong>coalition TechPourToutes</strong>, et merci beaucoup pour votre engagement&nbsp;!
   </p>
-  <p style="font-size:15px;color:#374151;">
-    Nous prendrons contact avec vous sous 48 heures pour vous accompagner dans le programme.
-  </p>
+  {% if pro.is_only_work_ambassador %}
+    <p style="font-size:15px;color:#374151;">
+      Nous vous contacterons prochainement pour vous mettre en relation avec une fille du programme ou pour vous proposer de prendre la parole à l'occasion d'un de nos événements.
+    </p>
+  {% else %}
+    <p style="font-size:15px;color:#374151;">
+      Nous prendrons contact avec vous sous 48 heures pour vous accompagner dans le programme.
+    </p>
+  {% endif %}
   <br>
   <p style="font-size:15px;color:#374151;">
     Vous disposez dès à présent d'un compte. Pour vous y connecter, voici votre code de vérification&nbsp;:

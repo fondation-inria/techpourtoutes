@@ -33,6 +33,7 @@ A_PROPOS_URL_NAMES = [
 HTML_SITEMAP_EXCLUDED_URL_NAMES = {
     # Not linked from the navigation
     "new_manifeste_signature",
+    "new_upcoming_feature_notification",
     # The HTML sitemap itself
     "html_sitemap",
 }

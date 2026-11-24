@@ -26,6 +26,7 @@
 
     {% if href and not disabled %}
         <a href="{{ href }}"
+           {% if target %}target="{{ target }}"{% endif %}
            class="
             {% if variant == "secondary" %}
                 {{ base_class }} {{ secondary_class }}
