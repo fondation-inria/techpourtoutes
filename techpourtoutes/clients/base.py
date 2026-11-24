@@ -11,7 +11,7 @@ class BaseClient:
     """Thin HTTP client wrapper around httpx.
 
     Subclasses configure a `base_url` and optional default `headers` in their
-    constructor. HTTP methods (`get`, `post`) build the full URL, attach default
+    constructor. HTTP methods (`get`, `post`, `put`, `delete`) build the full URL, attach default
     headers, execute the request, and log the full request/response at DEBUG level.
 
     Callers receive the raw `httpx.Response` and are responsible for checking
@@ -27,6 +27,12 @@ class BaseClient:
 
     def post(self, *, path: str = "", **request_kwargs) -> httpx.Response:
         return self._request(httpx.post, path=path, **request_kwargs)
+
+    def put(self, *, path: str = "", **request_kwargs) -> httpx.Response:
+        return self._request(httpx.put, path=path, **request_kwargs)
+
+    def delete(self, *, path: str = "", **request_kwargs) -> httpx.Response:
+        return self._request(httpx.delete, path=path, **request_kwargs)
 
     def _request(self, send, *, path: str = "", **request_kwargs) -> httpx.Response:
         url = f"{self.base_url}/{path.lstrip('/')}" if path else self.base_url

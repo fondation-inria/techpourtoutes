@@ -38,6 +38,8 @@ NEVER_LISTED_URL_NAMES = {
     "new_event",
     "edit_pro_additional_information",
     "new_training_ambassador_request",
+    "new_discord_membership",
+    "create_discord_membership",
     "create_training_ambassador_request",
     "new_makeuse_project_submission",
     "create_makeuse_project_submission",

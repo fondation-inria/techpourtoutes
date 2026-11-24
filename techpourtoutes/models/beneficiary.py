@@ -17,6 +17,9 @@ class Beneficiary(User):
         default=False,
         verbose_name=_("ne veut plus confirmer le retrait d’une candidature de son suivi"),
     )
+    discord_user_id = models.BigIntegerField(
+        null=True, blank=True, unique=True, verbose_name=_("identifiant discord")
+    )
 
     class Meta:
         verbose_name = _("bénéficiaire")
@@ -38,6 +41,7 @@ class Beneficiary(User):
 
     def soft_delete(self):
         self.birth_date = None
+        self.discord_user_id = None
         self._forget_legal_representative()
         self.makeuse_projects.all().delete()
         super().soft_delete()

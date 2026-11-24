@@ -11,6 +11,7 @@ from .import_onisep_formation_actions import import_onisep_formation_actions_tas
 from .import_onisep_formations import import_onisep_formations_task
 from .import_onisep_schools import import_onisep_schools_task
 from .notify_workshop_request import notify_workshop_request_task
+from .remove_discord_guild_member import remove_discord_guild_member_task
 from .send_beneficiary_welcome_email import send_beneficiary_welcome_email_task
 from .send_event_updated_email import send_event_updated_email_task
 from .send_legal_representative_authorization_proof import (
@@ -35,6 +36,7 @@ __all__ = (
     "import_onisep_formations_task",
     "import_onisep_schools_task",
     "notify_workshop_request_task",
+    "remove_discord_guild_member_task",
     "send_beneficiary_welcome_email_task",
     "send_event_updated_email_task",
     "send_legal_representative_authorization_proof_task",
