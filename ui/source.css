@@ -243,7 +243,7 @@
 @layer components {
   /* Typography classes */
   .text-disabled {
-    @apply text-neutral-500;
+    @apply text-neutral-700;
   }
   .description-text-xxs {
     @apply text-xxs font-light text-neutral-700 leading-[1.4];
@@ -265,7 +265,7 @@
     @apply shadow-green-500 focus:border-green-500;
   }
   .field-disabled {
-    @apply text-neutral-500 bg-neutral-100 cursor-not-allowed border-none;
+    @apply text-neutral-700 bg-neutral-100 cursor-not-allowed border-none;
   }
   /* Tick controls: visual span sibling of a peer input (radio, checkbox) */
   .tick-base {

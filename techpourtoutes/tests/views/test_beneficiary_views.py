@@ -319,9 +319,7 @@ def test_index_job_postings_lists_the_latest_update_or_publication_first(client)
 def test_index_job_postings_highlights_the_tab_of_the_category(client, query, active_href):
     html = client.get(INDEX_JOB_POSTINGS_URL, query).content.decode()
 
-    assert re.findall(r'<a href="([^"]*)" role="tab"\s+class="[^"]*tab-active', html) == [
-        active_href
-    ]
+    assert re.findall(r'<a href="([^"]*)" aria-current="page"', html) == [active_href]
 
 
 def listed_titles(response):
@@ -450,7 +448,7 @@ def test_index_job_postings_ignores_an_apec_domain_ticked_on_a_pupils_tab(client
 def test_index_job_postings_shows_the_tabs_in_the_colour_of_their_category(client):
     html = client.get(INDEX_JOB_POSTINGS_URL).content.decode()
 
-    tabs = re.findall(r'role="tab"\s+class="[^"]*border-(\w+)-500[^"]*">\s*([^<]*?)\s*</a>', html)
+    tabs = re.findall(r'class="tab [^"]*border-(\w+)-500[^"]*">\s*([^<]*?)\s*</a>', html)
     assert tabs == [
         ("purple", "Stages dans le supérieur"),
         ("orange", "Alternances"),

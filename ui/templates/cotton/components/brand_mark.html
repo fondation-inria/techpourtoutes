@@ -1,7 +1,17 @@
-<c-vars class="block" />
+<c-vars class="block" background=False />
 {% load static coalition_page %}
 {% url "coalition_home" as coalition_home %}
 {% is_coalition_page as is_coalition_page %}
-<a href="{% if is_coalition_page %}{{ coalition_home }}{% else %}{% url "home" %}{% endif %}" class="{{ class }}" {{ attrs }}>
-    <img src="{% if is_coalition_page %}{% static 'images/techpourtoutes-logo-new-coalition.png' %}{% else %}{% static 'images/techpourtoutes-logo-new-beneficiary.png' %}{% endif %}" alt="{% if is_coalition_page %}Accueil TechPourToutes Coalition{% else %}Accueil TechPourToutes Programme{% endif %}" class="h-14 w-auto" width="1344" height="372" decoding="async" />
+{% if is_coalition_page %}
+    {% static 'images/techpourtoutes-logo-new-coalition.png' as logo %}
+{% else %}
+    {% static 'images/techpourtoutes-logo-new-beneficiary.png' as logo %}
+{% endif %}
+<a href="{% if is_coalition_page %}{{ coalition_home }}{% else %}{% url "home" %}{% endif %}"
+   class="{{ class }}{% if background %} h-14 w-50 bg-contain bg-no-repeat bg-center{% endif %}"
+   {% if background %}aria-label="{% if is_coalition_page %}Accueil TechPourToutes Coalition{% else %}Accueil TechPourToutes Programme{% endif %}" style="background-image: url('{{ logo }}')"{% endif %}
+   {{ attrs }}>
+    {% if not background %}
+        <img src="{{ logo }}" alt="{% if is_coalition_page %}Accueil TechPourToutes Coalition{% else %}Accueil TechPourToutes Programme{% endif %}" class="h-14 w-auto" width="202" height="56" decoding="async" />
+    {% endif %}
 </a>

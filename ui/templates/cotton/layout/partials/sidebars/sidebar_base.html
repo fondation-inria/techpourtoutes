@@ -1,8 +1,8 @@
 {% load static coalition_page %}
 {% url "coalition_home" as coalition_home %}
 {% is_coalition_page as is_coalition_page %}
-<nav aria-label="Menu principal" class="sticky top-0 h-dvh w-[280px] bg-neutral-0 md:border-r-(length:--hairline) md:border-black flex flex-col">
-    <div class="flex-1 min-h-0 overflow-y-auto px-1 pt-(--grid-cell) xl:pt-3">
+<nav aria-label="Menu principal" class="sticky top-0 h-dvh w-[280px] bg-neutral-0 md:border-r-(length:--hairline) md:border-black flex flex-col [@media(max-height:600px)]:overflow-y-auto">
+    <div class="flex-1 min-h-0 overflow-y-auto px-1 pt-(--grid-cell) xl:pt-3 [@media(max-height:600px)]:flex-none [@media(max-height:600px)]:pt-3">
         <div class="pb-2 mb-3 pl-3">
             <c-components.brand-mark class="hidden xl:block" />
         </div>
@@ -30,11 +30,11 @@
         </ul>
         <div class="flex items-center justify-between">
             <img src="{% static 'svg/rf.svg' %}"
-                 alt="République Française"
-                 class="h-14 w-auto" />
+                 alt="Logo République Française"
+                 class="h-14 w-auto" width="62" height="56" />
             <img src="{% static 'svg/france-2030.svg' %}"
-                 alt="France 2030 — Lauréat"
-                 class="h-14 w-auto" />
+                 alt="Logo France 2030 — Lauréat"
+                 class="h-14 w-auto" width="41" height="56" />
         </div>
     </div>
 </nav>

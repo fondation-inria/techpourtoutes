@@ -2,21 +2,30 @@
 {% load coalition_page %}
 {% is_coalition_page as is_coalition_page %}
 
-<body class="min-h-screen font-sans text-neutral-900 drawer xl:drawer-open">
-    <c-layout.partials.skip_link />
-    {% if decorations %}
-        <div class="pointer-events-none absolute inset-0 -z-10 overflow-hidden" aria-hidden="true">{{ decorations }}</div>
-    {% endif %}
-    <c-layout.partials.messages />
-    <input id="sidebar-drawer" type="checkbox" class="drawer-toggle" />
-    <div class="drawer-content flex flex-col min-h-screen @container">
-        <header class="xl:hidden flex h-(--grid-cell) items-center justify-between px-4 bg-neutral-0 border-b z-100">
-            <label for="sidebar-drawer" class="cursor-pointer p-1">
+<body class="min-h-screen font-sans text-neutral-900 drawer xl:drawer-open"
+      x-data="{ menuOpen: false }"
+      @keydown.escape.window="if (menuOpen) { menuOpen = false; $refs.burger.focus() }"
+      @resize.window="if (matchMedia('(min-width: 80rem)').matches) menuOpen = false">
+    <div :inert="menuOpen">
+        <c-layout.partials.skip_link />
+        {% if decorations %}
+            <div class="pointer-events-none absolute inset-0 -z-10 overflow-hidden" aria-hidden="true">{{ decorations }}</div>
+        {% endif %}
+        <c-layout.partials.messages />
+    </div>
+    <input id="sidebar-drawer" type="checkbox" class="drawer-toggle" aria-label="Menu" x-ref="burger" x-model="menuOpen" />
+    <div class="drawer-side z-40">
+        <label for="sidebar-drawer" class="drawer-overlay xl:hidden"></label>
+        <c-layout.partials.sidebars.sidebar-base />
+    </div>
+    <label for="sidebar-drawer" class="outline-blue-500 [body:has(#sidebar-drawer:focus-visible)_&]:outline-2 [body:has(#sidebar-drawer:focus-visible)_&]:outline-offset-2 hidden [body:has(#sidebar-drawer:checked)_&]:block fixed right-4 top-4 z-[110] cursor-pointer p-1 text-neutral-900 text-xl leading-none">&times;</label>
+    <div class="drawer-content flex flex-col min-h-screen @container" :inert="menuOpen">
+        <header class="xl:hidden flex h-(--grid-cell) items-center justify-between px-4 bg-neutral-0 border-b z-100 [@media(max-height:600px)]:z-0">
+            <label for="sidebar-drawer" class="drawer-button outline-blue-500 [body:has(#sidebar-drawer:checked)_&]:invisible cursor-pointer p-1">
                 <c-components.icon name="menu-burger-{% if is_coalition_page %}pro{% else %}beneficiary{% endif %}" class="w-6 h-6" />
             </label>
-            <c-components.brand-mark />
+            <c-components.brand-mark :background="True" />
             <div />
-            <label for="sidebar-drawer" class="hidden [body:has(#sidebar-drawer:checked)_&]:block absolute right-4 top-4 cursor-pointer p-1 text-neutral-900 text-xl leading-none">&times;</label>
         </header>
         {% if banner %}
             <div class="h-(--grid-cell) w-full bg-neutral-0">{{ banner }}</div>
@@ -35,9 +44,5 @@
                 {{ mobile_cta }}
             </div>
         {% endif %}
-    </div>
-    <div class="drawer-side z-40">
-        <label for="sidebar-drawer" class="drawer-overlay xl:hidden"></label>
-        <c-layout.partials.sidebars.sidebar-base />
     </div>
 </body>
