@@ -21,6 +21,7 @@ from techpourtoutes.models import (
     User,
 )
 from techpourtoutes.utils.territories import REGIONS
+from techpourtoutes.utils.time_zones import TimeZone
 
 from ..models.test_event import build_event
 from ..models.test_makeuse_project import build_makeuse_project
@@ -2422,6 +2423,19 @@ def test_show_event_shows_the_minutes_of_the_opening_hours(client, pro):
     content = client.get(reverse("show_event", args=[event.slug])).content.decode()
 
     assert "entre 9h30 et 17h45" in content
+    assert "heure de" not in content
+
+
+@pytest.mark.django_db
+def test_show_event_names_the_time_zone_of_an_event_away_from_paris(client, pro):
+    event = approved_event(
+        pro, start_time=time(9, 30), end_time=time(17, 45), time_zone=TimeZone.REUNION
+    )
+    event.save()
+
+    content = client.get(reverse("show_event", args=[event.slug])).content.decode()
+
+    assert "entre 9h30 et 17h45 (heure de La Réunion)" in content
 
 
 @pytest.mark.django_db

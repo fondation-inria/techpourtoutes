@@ -3,6 +3,7 @@ from django.core import mail
 
 from techpourtoutes.mailers import ProMailer
 from techpourtoutes.models import Pro
+from techpourtoutes.utils.time_zones import TimeZone
 
 
 @pytest.mark.django_db
@@ -78,6 +79,28 @@ def test_event_submitted_confirms_the_event_is_awaiting_validation(event):
     assert "en cours de validation" in message.subject
     assert event.title in message.body
     assert message.tags == ["utilisateur", "coalition", "événement soumis"]
+
+
+@pytest.mark.django_db
+@pytest.mark.parametrize("send", [ProMailer.event_submitted, ProMailer.event_updated])
+def test_event_mails_name_the_time_zone_of_an_event_away_from_paris(event, send):
+    event.time_zone = TimeZone.REUNION
+
+    send(event=event)
+
+    message = mail.outbox[0]
+    for content in (message.body, message.alternatives[0][0]):
+        assert "18h00 (heure de La Réunion)" in content
+
+
+@pytest.mark.django_db
+@pytest.mark.parametrize("send", [ProMailer.event_submitted, ProMailer.event_updated])
+def test_event_mails_never_name_paris_time(event, send):
+    send(event=event)
+
+    message = mail.outbox[0]
+    for content in (message.body, message.alternatives[0][0]):
+        assert "heure de" not in content
 
 
 @pytest.mark.django_db

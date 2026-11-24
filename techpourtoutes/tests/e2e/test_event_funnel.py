@@ -11,6 +11,7 @@ from django.utils import timezone
 from playwright.sync_api import expect
 
 from techpourtoutes.models import Event, Pro
+from techpourtoutes.utils.time_zones import TimeZone
 
 from .helpers import select_option
 
@@ -177,6 +178,32 @@ def test_an_online_event_is_published_for_validation(funnel):
     assert event.subcategory == "webinar"
     assert event.online_url == "https://example.org/live"
     assert len(mail.outbox) == 2
+
+
+@new_event_recipients
+def test_the_time_zone_is_chosen_next_to_the_dates(funnel):
+    choose_subcategory(funnel, "Webinaire d'info")
+    funnel.get_by_role("button", name="Continuer").click()
+    fill_details(funnel)
+    funnel.get_by_label("Heure de fin*").fill("18:00")
+    time_zone = funnel.get_by_label("Fuseau horaire*")
+    expect(time_zone).to_be_hidden()
+    funnel.get_by_text("Choisir le fuseau horaire").click()
+    expect(time_zone).to_be_visible()
+    time_zone.click()
+    funnel.get_by_role("button", name="Heure de La Réunion").click()
+    funnel.get_by_role("button", name="Continuer").click()
+
+    funnel.get_by_text("En ligne", exact=True).click()
+    funnel.get_by_label("Quel est le lien de connexion à l'événement ?").fill(
+        "https://example.org/live"
+    )
+    funnel.get_by_text("Sans inscription", exact=True).click()
+    funnel.get_by_text("Gratuit", exact=True).click()
+    funnel.get_by_role("button", name="Publier").click()
+
+    expect(funnel.get_by_text("en cours de validation")).to_be_visible()
+    assert Event.objects.get().time_zone == TimeZone.REUNION
 
 
 @new_event_recipients

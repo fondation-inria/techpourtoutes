@@ -13,6 +13,7 @@ from django.utils import timezone
 
 from techpourtoutes.models import Event, Pro, User
 from techpourtoutes.tests.services.event.test_create_event import valid_forms
+from techpourtoutes.utils.time_zones import TimeZone
 
 
 def build_event(pro, **overrides):
@@ -284,7 +285,7 @@ def test_past_and_upcoming_split_events_on_their_end_date(pro):
     )
     later.save()
 
-    with patch("django.utils.timezone.localtime", return_value=midday):
+    with patch("django.utils.timezone.now", return_value=midday):
         assert list(Event.objects.past()) == [over]
         assert list(Event.objects.upcoming()) == [ongoing, later]
 
@@ -305,9 +306,41 @@ def test_past_and_upcoming_split_same_day_events_on_their_end_time(pro):
     )
     still_ongoing.save()
 
-    with patch("django.utils.timezone.localtime", return_value=midday):
+    with patch("django.utils.timezone.now", return_value=midday):
         assert list(Event.objects.past()) == [just_ended]
         assert list(Event.objects.upcoming()) == [still_ongoing]
+
+
+@pytest.mark.django_db
+def test_past_and_upcoming_read_the_end_in_the_time_zone_of_the_event(pro):
+    """At midday in Paris, it is 6:00 or 7:00 in Martinique and 14:00 or 15:00 in La Réunion,
+    depending on daylight saving time: read on Paris time, both events would land on the wrong
+    side."""
+
+    today = timezone.localdate()
+    midday = timezone.localtime().replace(hour=12, minute=0, second=0, microsecond=0)
+    martinique = build_event(
+        pro,
+        start_date=today,
+        end_date=today,
+        start_time=time(0, 0),
+        end_time=time(8, 0),
+        time_zone=TimeZone.MARTINIQUE,
+    )
+    martinique.save()
+    reunion = build_event(
+        pro,
+        start_date=today,
+        end_date=today,
+        start_time=time(0, 0),
+        end_time=time(13, 0),
+        time_zone=TimeZone.REUNION,
+    )
+    reunion.save()
+
+    with patch("django.utils.timezone.now", return_value=midday):
+        assert list(Event.objects.past()) == [reunion]
+        assert list(Event.objects.upcoming()) == [martinique]
 
 
 @pytest.mark.django_db
@@ -416,6 +449,74 @@ def test_has_ended_checks_the_time_when_the_event_ends_today(pro):
 
     with patch("django.utils.timezone.now", return_value=midday):
         assert event.has_ended is True
+
+
+@pytest.mark.django_db
+def test_has_ended_reads_the_end_in_the_time_zone_of_the_event(pro):
+    """Same clocks as for `past` and `upcoming`: 6:00 or 7:00 in Martinique, 14:00 or 15:00
+    in La Réunion."""
+    today = timezone.localdate()
+    midday = timezone.localtime().replace(hour=12, minute=0, second=0, microsecond=0)
+    same_day = {"start_date": today, "end_date": today, "start_time": time(0, 0)}
+
+    martinique = build_event(pro, **same_day, end_time=time(8, 0), time_zone=TimeZone.MARTINIQUE)
+    reunion = build_event(pro, **same_day, end_time=time(13, 0), time_zone=TimeZone.REUNION)
+
+    with patch("django.utils.timezone.now", return_value=midday):
+        assert martinique.has_ended is False
+        assert reunion.has_ended is True
+
+
+@pytest.mark.django_db
+def test_an_event_is_on_paris_time_unless_told_otherwise(pro):
+    event = build_event(pro)
+    event.save()
+
+    assert event.time_zone == TimeZone.PARIS
+
+
+@pytest.mark.django_db
+def test_an_online_event_keeps_the_time_zone_it_was_given(pro):
+    event = build_event(pro, time_zone=TimeZone.MARTINIQUE)
+    event.save()
+
+    assert event.time_zone == TimeZone.MARTINIQUE
+
+
+def physical_event_in_la_reunion(pro, **overrides):
+    return build_event(
+        pro,
+        location_type=Event.LocationType.PHYSICAL,
+        address="1 rue de Paris",
+        postal_code="97400",
+        city="Saint-Denis",
+        **overrides,
+    )
+
+
+@pytest.mark.django_db
+def test_a_physical_event_left_on_paris_time_takes_the_time_zone_of_its_postal_code(pro):
+    """Paris is never chosen, only left as it is: the place decides."""
+    event = physical_event_in_la_reunion(pro, time_zone=TimeZone.PARIS)
+    event.save()
+
+    assert event.time_zone == TimeZone.REUNION
+
+
+@pytest.mark.django_db
+def test_a_physical_event_keeps_the_time_zone_it_was_given(pro):
+    event = physical_event_in_la_reunion(pro, time_zone=TimeZone.MAYOTTE)
+    event.save()
+
+    assert event.time_zone == TimeZone.MAYOTTE
+
+
+def test_time_zone_label_stays_silent_on_paris_time():
+    assert Event(time_zone=TimeZone.PARIS).time_zone_label == ""
+
+
+def test_time_zone_label_names_any_other_time_zone():
+    assert Event(time_zone=TimeZone.REUNION).time_zone_label == "heure de La Réunion"
 
 
 @pytest.mark.django_db
