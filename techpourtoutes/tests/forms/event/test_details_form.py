@@ -1,4 +1,4 @@
-from datetime import datetime, time, timedelta
+from datetime import datetime, timedelta
 
 import pytest
 from django.core.files.base import ContentFile
@@ -6,6 +6,10 @@ from django.core.files.storage import storages
 from django.utils import timezone
 
 from techpourtoutes.forms.event import EventDetailsForm
+from techpourtoutes.models import Event
+from techpourtoutes.utils.time_zones import TimeZone
+
+from ...models.test_event import build_event
 
 START = timezone.localdate() + timedelta(days=30)
 
@@ -68,30 +72,97 @@ def test_an_event_already_over_is_refused():
     assert "end_date" in form.errors
 
 
-@pytest.fixture
-def at_three_pm_today(monkeypatch):
-    now = timezone.make_aware(datetime.combine(timezone.localdate(), time(15, 0)))
-    monkeypatch.setattr(timezone, "now", lambda: now)
-
-
 def today_ending_at(end_time):
     today = timezone.localdate().isoformat()
-    return VALID | {"start_date": today, "end_date": today, "end_time": end_time}
+    return VALID | {
+        "start_date": today,
+        "end_date": today,
+        "start_time": "00:00",
+        "end_time": end_time,
+    }
 
 
-@pytest.mark.usefixtures("at_three_pm_today")
-def test_an_event_that_ended_earlier_today_is_refused():
-    form = EventDetailsForm(data=today_ending_at("14:59"))
+def test_an_event_over_in_every_time_zone_is_refused():
+    """At 15:00 in Paris, it is 03:00 in Tahiti, where the clock is furthest behind."""
+    form = EventDetailsForm(data=today_ending_at("02:59"))
 
     assert not form.is_valid()
     assert "end_time" in form.errors
 
 
-@pytest.mark.usefixtures("at_three_pm_today")
+def test_an_event_over_on_paris_time_but_not_further_west_is_accepted():
+    """Left unticked, the zone is not known yet: a physical event takes the one of its postal
+    code, asked on the next screen."""
+    form = EventDetailsForm(data=today_ending_at("14:59"))
+
+    assert form.is_valid()
+
+
+def test_an_event_ended_yesterday_on_paris_time_but_not_in_tahiti_is_accepted(monkeypatch):
+    """At 09:00 in Paris on October 1st, it is still 21:00 on September 30th in Tahiti."""
+    now = timezone.make_aware(datetime(2026, 10, 1, 9, 0))
+    monkeypatch.setattr(timezone, "now", lambda: now)
+
+    form = EventDetailsForm(
+        data=VALID | {"start_date": "2026-09-30", "end_date": "2026-09-30", "end_time": "22:00"}
+    )
+
+    assert form.is_valid()
+
+
 def test_an_event_ending_later_today_is_accepted():
     form = EventDetailsForm(data=today_ending_at("15:00"))
 
     assert form.is_valid()
+
+
+def in_time_zone(time_zone):
+    return {"choose_time_zone": "on", "time_zone": time_zone}
+
+
+def test_an_event_over_in_the_time_zone_she_chose_is_refused():
+    """At 15:00 in Paris on October 1st, it is already 17:00 in La Réunion."""
+    form = EventDetailsForm(data=today_ending_at("16:59") | in_time_zone(TimeZone.REUNION))
+
+    assert not form.is_valid()
+    assert "end_time" in form.errors
+
+
+def test_an_event_still_running_in_the_time_zone_she_chose_is_accepted():
+    """At 15:00 in Paris on October 1st, it is only 09:00 in Martinique."""
+    form = EventDetailsForm(data=today_ending_at("09:00") | in_time_zone(TimeZone.MARTINIQUE))
+
+    assert form.is_valid()
+
+
+def test_an_event_is_on_paris_time_unless_she_chooses_otherwise():
+    """A zone left selected after she unticked the box is not the one she wants."""
+    form = EventDetailsForm(data=VALID | {"time_zone": TimeZone.REUNION})
+
+    assert form.is_valid()
+    assert form.cleaned_data["time_zone"] == TimeZone.PARIS
+
+
+def test_an_event_takes_the_time_zone_she_chose():
+    form = EventDetailsForm(data=VALID | in_time_zone(TimeZone.REUNION))
+
+    assert form.is_valid()
+    assert form.cleaned_data["time_zone"] == TimeZone.REUNION
+
+
+def test_choosing_a_time_zone_demands_one():
+    form = EventDetailsForm(data=VALID | {"choose_time_zone": "on"})
+
+    assert not form.is_valid()
+    assert "time_zone" in form.errors
+
+
+def test_the_time_zones_offered_leave_paris_out():
+    """Paris, or the zone of her address, is what she gets by leaving the box unticked."""
+    offered = [value for value, _ in EventDetailsForm().fields["time_zone"].choices]
+
+    assert TimeZone.PARIS not in offered
+    assert TimeZone.REUNION in offered
 
 
 def test_an_event_started_yesterday_and_ending_tomorrow_is_accepted():
@@ -123,12 +194,72 @@ def test_the_form_prefilled_from_an_event_hands_back_dates_and_times_this_form_p
     assert form.cleaned_data["title"] == event.title
 
 
-def test_event_fields_carries_every_answer_of_the_screen():
+def test_event_fields_carries_every_answer_of_the_screen_but_the_box():
+    """Whether she ticked it is read back off the time zone."""
     form = EventDetailsForm(data=VALID)
 
     assert form.is_valid()
     assert form.event_fields["title"] == VALID["title"]
-    assert set(form.event_fields) == set(EventDetailsForm.base_fields)
+    assert set(form.event_fields) == set(EventDetailsForm.base_fields) - {"choose_time_zone"}
+
+
+@pytest.mark.django_db
+def test_the_form_prefilled_from_an_event_hands_back_the_time_zone_she_chose(pro):
+    online = build_event(pro, description="Un webinaire.", time_zone=TimeZone.MARTINIQUE)
+    online.save()
+
+    answers = EventDetailsForm(event=online).initial
+
+    assert answers["choose_time_zone"] == "on"
+    form = EventDetailsForm(data=answers)
+    assert form.is_valid(), form.errors
+    assert form.cleaned_data["time_zone"] == TimeZone.MARTINIQUE
+
+
+@pytest.mark.django_db
+def test_the_form_prefilled_from_an_event_on_paris_time_leaves_the_box_unticked(pro):
+    online = build_event(pro)
+    online.save()
+
+    answers = EventDetailsForm(event=online).initial
+
+    assert answers["choose_time_zone"] == ""
+    assert answers["time_zone"] == ""
+
+
+def overseas_event(pro, **overrides):
+    return build_event(
+        pro,
+        location_type=Event.LocationType.PHYSICAL,
+        address="1 rue de Paris",
+        postal_code="97400",
+        city="Saint-Denis",
+        **overrides,
+    )
+
+
+@pytest.mark.django_db
+def test_the_form_prefilled_from_an_event_on_the_clock_of_its_place_leaves_the_box_unticked(
+    pro,
+):
+    """Her address gave the zone: she never chose it."""
+    event = overseas_event(pro)
+    event.save()
+
+    answers = EventDetailsForm(event=event).initial
+
+    assert answers["choose_time_zone"] == ""
+
+
+@pytest.mark.django_db
+def test_the_form_prefilled_from_a_physical_event_hands_back_a_time_zone_she_chose(pro):
+    event = overseas_event(pro, time_zone=TimeZone.MAYOTTE)
+    event.save()
+
+    answers = EventDetailsForm(event=event).initial
+
+    assert answers["choose_time_zone"] == "on"
+    assert answers["time_zone"] == TimeZone.MAYOTTE
 
 
 @pytest.fixture

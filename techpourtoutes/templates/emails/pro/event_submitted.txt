@@ -6,7 +6,7 @@ Votre événement <strong>{{ event.title }}</strong> va être étudié par notre
 Pour rappel, voici ce que vous avez renseigné :
 
 - Type : {{ event.subcategory_label }}
-- Dates : du {{ event.start_date|date:"d/m/Y" }} à {{ event.start_time|time:"H\hi" }} au {{ event.end_date|date:"d/m/Y" }} à {{ event.end_time|time:"H\hi" }}
+- Dates : du {{ event.start_date|date:"d/m/Y" }} à {{ event.start_time|time:"H\hi" }} au {{ event.end_date|date:"d/m/Y" }} à {{ event.end_time|time:"H\hi" }}{% if event.time_zone_label %} ({{ event.time_zone_label }}){% endif %}
 - Format : {{ event.get_location_type_display }}
 
 

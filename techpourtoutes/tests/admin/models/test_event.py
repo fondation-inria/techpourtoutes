@@ -50,6 +50,7 @@ def _change_form_data(event, **overrides):
         "start_time": event.start_time.strftime("%H:%M"),
         "end_date": event.end_date.strftime("%Y-%m-%d"),
         "end_time": event.end_time.strftime("%H:%M"),
+        "time_zone": event.time_zone,
         "poi_name": event.poi_name,
         "address": event.address,
         "postal_code": event.postal_code,
