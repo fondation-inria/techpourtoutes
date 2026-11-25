@@ -1,4 +1,4 @@
-<c-vars :sort_by_date=False form="" />
+<c-vars id :sort_by_date=False form="" />
 
 <div x-data="{ open: false }"
      @reset-filters.window="$el.remove()"
@@ -6,10 +6,10 @@
      @focusout="if ($event.relatedTarget && !$el.contains($event.relatedTarget) && !$event.relatedTarget.contains($el)) open = false"
      @keydown.escape="if (open) { open = false; $refs.button.focus() }"
      class="relative inline-flex items-center gap-1">
-    <span id="job_posting_sort_label" class="label-text-sm">Trier par</span>
-    <button type="button" id="job_posting_sort_by" x-ref="button"
+    <span id="{{ id }}_label" class="label-text-sm">Trier par</span>
+    <button type="button" id="{{ id }}_by" x-ref="button"
             @click="open = !open"
-            :aria-expanded="open" aria-labelledby="job_posting_sort_label job_posting_sort_by"
+            :aria-expanded="open" aria-labelledby="{{ id }}_label {{ id }}_by"
             class="flex items-center gap-1 rounded-sm text-sm text-blue-500 focus-visible:outline-2 focus-visible:outline-blue-500 focus-visible:outline-offset-2 cursor-pointer">
         {% if sort_by_date %}date{% else %}pertinence{% endif %}
         <span class="shrink-0 transition-transform" :class="open && 'rotate-180'"><c-components.icon name="chevron-down" class="w-4 h-4" /></span>

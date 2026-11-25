@@ -1,3 +1,4 @@
+from datetime import date
 from urllib.parse import urlencode, urlparse
 
 from django.conf import settings
@@ -36,7 +37,7 @@ from ..utils.urls import safe_url
 EVENTS_PER_PAGE = 18
 MAKEUSE_PROJECTS_PER_PAGE = 6
 JOB_POSTINGS_PER_PAGE = 20
-JOB_POSTING_SEARCH_MIN_LENGTH = 2
+SEARCH_MIN_LENGTH = 2
 BENEFICIARY_JOB_POSTINGS_PER_PAGE = 5
 # The pupils' tabs with no partner yet: left empty, they offer to be told when offers come.
 NOTIFIED_CATEGORIES = [
@@ -293,7 +294,7 @@ def _render_job_postings(request, notification_form):
     durations = [] if category in JobPosting.PUPIL_CATEGORIES else list(JobPosting.Duration)
     ticked_durations = [] if only_cdi else _ticked(request, "duration", durations)
     search = request.GET.get("q", "").strip()
-    searching = len(search) >= JOB_POSTING_SEARCH_MIN_LENGTH
+    searching = len(search) >= SEARCH_MIN_LENGTH
     sort_by_date = request.GET.get("sort") == "date"
     query = request.GET.copy()
     query.pop("page", None)
@@ -309,7 +310,7 @@ def _render_job_postings(request, notification_form):
             "notified_tab_unfiltered": category in NOTIFIED_CATEGORIES
             and not (searching or ticked_domains or ticked_departments),
             "sort_by_date": sort_by_date,
-            "search_errors": [f"Saisis au moins {JOB_POSTING_SEARCH_MIN_LENGTH} caractères"]
+            "search_errors": [f"Saisis au moins {SEARCH_MIN_LENGTH} caractères"]
             if search and not searching
             else [],
             "domains": [(domain, domain.label) for domain in domains],
@@ -586,15 +587,82 @@ def save_pending_job_posting(request, job_posting_pk):
 
 def _events_context(request, page):
     beneficiary = getattr(request.user, "beneficiary", None)
+    ticked_departments = _ticked(request, "department", DEPARTMENT_CODES)
+    ticked_event_types = _ticked(request, "subcategory", Event.Subcategory.values)
+    ticked_location_types = _ticked(request, "location_type", Event.LocationType.values)
+    date_from = _date_param(request, "date_from")
+    date_to = _date_param(request, "date_to")
+    free_only = request.GET.get("free") == "1"
+    upcoming = (
+        Event.objects.approved()
+        .upcoming()
+        .with_location_types(ticked_location_types)
+        .in_departments(ticked_departments)
+        .in_subcategories(ticked_event_types)
+        .overlapping(date_from, date_to)
+    )
+    if free_only:
+        upcoming = upcoming.free()
+    search = request.GET.get("q", "").strip()
+    searching = len(search) >= SEARCH_MIN_LENGTH
+    sort_by_date = request.GET.get("sort") == "date"
+    query = request.GET.copy()
+    query.pop("page", None)
     return {
-        "events": _events_page(beneficiary, page),
+        "events": _events_page(
+            beneficiary,
+            _searched_events(upcoming, search if searching else None, sort_by_date),
+            page,
+        ),
         "bookmark_action": _bookmark_action(request.user, beneficiary),
+        "query": query.urlencode(),
+        "filtering": bool(
+            ticked_departments
+            or ticked_event_types
+            or date_from
+            or date_to
+            or free_only
+            or ticked_location_types
+            or searching
+        ),
+        "regions": REGIONS,
+        "ticked_departments": ticked_departments,
+        "event_types": Event.Subcategory.sorted_choices(),
+        "ticked_event_types": ticked_event_types,
+        "location_types": [
+            (Event.LocationType.ONLINE, "En ligne uniquement"),
+            (Event.LocationType.PHYSICAL, "En présentiel uniquement"),
+        ],
+        "ticked_location_types": ticked_location_types,
+        "date_from": date_from,
+        "date_to": date_to,
+        "free_only": free_only,
+        "search": search,
+        "searching": searching,
+        "sort_by_date": sort_by_date,
+        "search_errors": [f"Saisis au moins {SEARCH_MIN_LENGTH} caractères"]
+        if search and not searching
+        else [],
     }
 
 
-def _events_page(beneficiary, page):
+def _searched_events(events, search, sort_by_date):
+    """By date, they stay in their own order: the nearest first."""
+    if not search:
+        return events
+    found = events.search(search)
+    return found if sort_by_date else found.most_relevant_first()
+
+
+def _date_param(request, name):
+    try:
+        return date.fromisoformat(request.GET.get(name, ""))
+    except ValueError:
+        return None
+
+
+def _events_page(beneficiary, upcoming, page):
     """Only one query: each event carries whether the visitor already bookmarked it."""
-    upcoming = Event.objects.approved().upcoming()
     if beneficiary is None:
         upcoming = upcoming.annotate(saved=Value(False))
     else:

@@ -1,21 +1,17 @@
-<c-vars label="" name="" id="" icon="" :options=[] :ticked=[] tint_class="bg-neutral-0" selection_target="" class="" />
+<c-vars label="" name="" id="" icon="" :options=[] :ticked=[] label_class="" disabled_when="" disabled_reason="" tint_class="bg-neutral-0" selection_target="" class="" />
 
+{# A button opening a panel of checkboxes, the ticked ones counted on the button and listed in `selection_target`. #}
+{# What the slot puts in the panel can talk back: a `filter-summary` event names the filter on the button instead of #}
+{# the count, and a ticked input carrying `data-covered` is left out of the list. The first sync waits a tick for the #}
+{# slot's own x-init, which Alpine runs after this one. #}
 <div x-data="{
         open: false,
+        disabled: false,
+        tip: false,
         selected: [],
-        groupToggle(input) { return input.closest('[data-group]')?.querySelector('[data-group-toggle] input') },
-        cascade(input) {
-            const toggle = this.groupToggle(input);
-            if (!toggle) return;
-            const members = [...toggle.closest('[data-group]').querySelectorAll('[data-group-member] input')];
-            if (input === toggle) members.forEach(member => member.checked = toggle.checked);
-            const checkedCount = members.filter(member => member.checked).length;
-            toggle.checked = checkedCount === members.length;
-            toggle.indeterminate = checkedCount > 0 && !toggle.checked;
-        },
+        summary: '',
         sync() {
-            this.selected = [...this.$refs.panel.querySelectorAll('input:checked')]
-                .filter(input => input.closest('[data-group-toggle]') || !this.groupToggle(input)?.checked)
+            this.selected = [...this.$refs.panel.querySelectorAll('input:checked:not([data-covered])')]
                 .map(input => ({ id: input.id, label: input.labels[0].textContent.trim() }));
         },
         remove(id) {
@@ -29,10 +25,13 @@
                 input.checked = false;
                 input.indeterminate = false;
             });
+            this.summary = '';
             this.sync();
         },
      }"
-     x-init="$refs.panel.querySelectorAll('[data-group-member]:first-child input').forEach(input => cascade(input)); sync()"
+     x-init="$nextTick(() => sync())"
+     @filter-summary="summary = $event.detail"
+     {% if disabled_when %}x-effect="disabled = {{ disabled_when }}; if (disabled) open = false" @mouseenter="tip = true" @mouseleave="tip = false"{% endif %}
      @reset-filters.window="reset()"
      @reset-filter.window="if ($event.detail === '{{ id }}') reset()"
      @click.outside="open = false"
@@ -40,17 +39,26 @@
      @keydown.escape="if (open) { open = false; $refs.button.focus() }"
      class="relative inline-block {{ class }}">
     <button type="button" id="{{ id }}" x-ref="button"
-            @click="open = !open"
+            @click="if (!disabled) open = !open"
             :aria-expanded="open" aria-controls="{{ id }}_panel"
-            class="flex items-center gap-2 px-4 py-3 rounded-sm text-sm font-normal leading-[1.4] bg-neutral-0 text-black border border-black shadow-bottom-and-right shadow-black hover:font-medium hover:shadow-bottom-and-right-lg focus-visible:outline-2 focus-visible:outline-blue-500 focus-visible:outline-offset-2 cursor-pointer">
-        {% if icon %}<c-components.icon name="{{ icon }}" class="w-5 h-5 shrink-0" />{% endif %}
-        <span>{{ label }}</span>
-        <span x-show="selected.length" x-cloak class="inline-flex items-center justify-center w-5 h-5 rounded-full border border-black text-xs {{ tint_class }}">
+            {% if disabled_when %}
+                :aria-disabled="disabled ? 'true' : null"
+                :aria-describedby="disabled ? '{{ id }}_reason' : null"
+                @focus="tip = true" @blur="tip = false"
+                @keydown.escape.window="tip = false"
+            {% endif %}
+            class="flex items-center gap-2 px-4 py-3 rounded-sm text-sm font-normal leading-[1.4] bg-neutral-0 text-black border border-black shadow-bottom-and-right shadow-black not-aria-disabled:hover:font-medium not-aria-disabled:hover:shadow-bottom-and-right-lg focus-visible:outline-2 focus-visible:outline-blue-500 focus-visible:outline-offset-2 cursor-pointer aria-disabled:bg-neutral-500 aria-disabled:text-neutral-0 aria-disabled:cursor-not-allowed">
+        {% if icon %}<c-components.icon name="{{ icon }}" class="w-5 h-5 shrink-0 in-aria-disabled:brightness-0 in-aria-disabled:invert" />{% endif %}
+        <span class="{{ label_class }}"><span x-show="summary" x-cloak class="sr-only">{{ label }}&nbsp;: </span><span x-text="summary || '{{ label|escapejs }}'">{{ label }}</span></span>
+        <span x-show="selected.length && !summary" x-cloak class="inline-flex items-center justify-center w-5 h-5 rounded-full border border-black text-xs {{ tint_class }}">
             <span x-text="selected.length"></span><span class="sr-only">&nbsp;sélectionné(s)</span>
         </span>
         <span class="shrink-0 transition-transform" :class="open && 'rotate-180'"><c-components.icon name="chevron-down" class="w-4 h-4" /></span>
     </button>
-    <fieldset id="{{ id }}_panel" x-ref="panel" x-show="open" x-cloak @change="cascade($event.target); sync()"
+    {% if disabled_reason %}
+        <span role="tooltip" id="{{ id }}_reason" x-show="tip && disabled" x-cloak class="absolute left-1/2 bottom-full z-30 w-72 max-w-[80vw] -translate-x-1/2 rounded border-b-4 border-transparent bg-neutral-950 bg-clip-padding px-3 py-2 text-xs text-neutral-50">{{ disabled_reason }}</span>
+    {% endif %}
+    <fieldset id="{{ id }}_panel" x-ref="panel" x-show="open" x-cloak @change="sync()"
               class="absolute left-0 z-20 mt-2 w-max min-w-full max-w-[calc(100vw-4rem)] max-h-72 overflow-y-auto p-4 rounded-sm bg-neutral-0 border border-black shadow-bottom-and-right shadow-black">
         <legend class="sr-only">{{ label }}</legend>
         <div class="flex flex-col gap-3">

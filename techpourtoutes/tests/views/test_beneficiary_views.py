@@ -1,5 +1,6 @@
 import re
 from datetime import date, time, timedelta
+from decimal import Decimal
 from unittest.mock import patch
 from urllib.parse import quote, urlencode
 
@@ -22,6 +23,7 @@ from techpourtoutes.models import (
 )
 from techpourtoutes.utils.territories import REGIONS
 from techpourtoutes.utils.time_zones import TimeZone
+from techpourtoutes.views.beneficiary_views import EVENTS_PER_PAGE
 
 from ..models.test_event import build_event
 from ..models.test_makeuse_project import build_makeuse_project
@@ -1986,6 +1988,57 @@ def test_index_events_is_open_to_anonymous_visitors(client, salon):
 
 
 @pytest.mark.django_db
+def test_index_events_offers_every_region_and_department(client):
+    html = client.get(INDEX_EVENTS_URL).content.decode()
+
+    for region in REGIONS:
+        assert region.name in html
+        for department in region.departments:
+            assert re.search(rf'name="department"\s+value="{department.code}"', html)
+
+
+@pytest.mark.django_db
+def test_index_events_offers_every_event_type(client):
+    html = client.get(INDEX_EVENTS_URL).content.decode()
+
+    for subcategory in Event.Subcategory:
+        assert re.search(rf'name="subcategory"\s+value="{subcategory}"', html)
+
+
+@pytest.mark.django_db
+def test_index_events_offers_each_location_type_as_a_switch_off_by_default(client):
+    html = client.get(INDEX_EVENTS_URL).content.decode()
+
+    for location_type in Event.LocationType:
+        switch = re.search(
+            rf'role="switch"\s+id="[^"]+"\s+name="location_type"\s+value="{location_type}"\s*(checked)?',
+            html,
+        )
+        assert switch
+        assert not switch.group(1)
+
+
+@pytest.mark.django_db
+@pytest.mark.parametrize("query, checked", [({}, False), ({"free": "1"}, True)])
+def test_index_events_offers_a_free_only_switch_on_only_when_the_url_asks(client, query, checked):
+    html = client.get(INDEX_EVENTS_URL, query).content.decode()
+
+    switch = re.search(
+        r'role="switch"\s+id="event_free"\s+name="free"\s+value="1"\s*(checked)?', html
+    )
+    assert switch
+    assert bool(switch.group(1)) is checked
+
+
+@pytest.mark.django_db
+def test_index_events_keeps_only_the_location_types_of_the_url_switched_on(client):
+    html = client.get(INDEX_EVENTS_URL, {"location_type": "online"}).content.decode()
+
+    assert re.search(r'name="location_type"\s+value="online"\s+checked', html)
+    assert not re.search(r'name="location_type"\s+value="physical"\s+checked', html)
+
+
+@pytest.mark.django_db
 def test_index_events_hides_events_awaiting_validation(client, event):
     """The `event` fixture is PENDING: only approved events reach the page."""
     response = client.get(INDEX_EVENTS_URL)
@@ -2031,6 +2084,185 @@ def test_index_events_lists_from_the_nearest_to_the_furthest(client, pro):
         < content.index(b"Dans un mois")
         < content.index(b"Dans deux mois")
     )
+
+
+def save_onsite_event(pro, title, cog_code, **overrides):
+    approved_event(
+        pro,
+        title=title,
+        location_type=Event.LocationType.PHYSICAL,
+        address="1 rue de la Gare",
+        cog_code=cog_code,
+        longitude=0.0,
+        latitude=0.0,
+        **overrides,
+    ).save()
+
+
+def listed_event_titles(response):
+    return {event.title for event in response.context["events"]}
+
+
+@pytest.mark.django_db
+@pytest.mark.parametrize(
+    "query, expected",
+    [
+        ({}, {"Brest", "Paris", "En ligne"}),
+        ({"department": "29"}, {"Brest", "En ligne"}),
+        ({"location_type": "online"}, {"En ligne"}),
+        ({"location_type": "physical", "department": "29"}, {"Brest"}),
+    ],
+)
+def test_index_events_keeps_the_events_of_the_ticked_places(client, pro, query, expected):
+    save_onsite_event(pro, "Brest", "29019")
+    save_onsite_event(pro, "Paris", "75056")
+    approved_event(pro, title="En ligne").save()
+
+    assert listed_event_titles(client.get(INDEX_EVENTS_URL, query)) == expected
+
+
+@pytest.mark.django_db
+def test_index_events_keeps_the_events_of_the_ticked_types(client, pro):
+    approved_event(pro, title="Atelier", subcategory=Event.Subcategory.WORKSHOP).save()
+    approved_event(pro, title="Hackathon", subcategory=Event.Subcategory.HACKATHON).save()
+
+    response = client.get(INDEX_EVENTS_URL, {"subcategory": "workshop"})
+
+    assert listed_event_titles(response) == {"Atelier"}
+
+
+@pytest.mark.django_db
+@pytest.mark.parametrize(
+    "query, expected",
+    [
+        ({"date_from": 20}, {"Plus tard"}),
+        ({"date_to": 19}, {"Bientôt"}),
+        ({"date_from": "pas une date"}, {"Bientôt", "Plus tard"}),
+    ],
+)
+def test_index_events_keeps_the_events_within_the_dates(client, pro, query, expected):
+    """Days from today, so that the events stay upcoming."""
+    today = timezone.localdate()
+    for title, days in [("Bientôt", 10), ("Plus tard", 30)]:
+        day = today + timedelta(days=days)
+        approved_event(pro, title=title, start_date=day, end_date=day).save()
+    in_days = {
+        name: (today + timedelta(days=value)).isoformat() if isinstance(value, int) else value
+        for name, value in query.items()
+    }
+
+    assert listed_event_titles(client.get(INDEX_EVENTS_URL, in_days)) == expected
+
+
+@pytest.mark.django_db
+def test_index_events_keeps_only_the_free_events_when_asked(client, pro):
+    approved_event(pro, title="Gratuit").save()
+    approved_event(pro, title="Payant", price=Decimal("10")).save()
+
+    assert listed_event_titles(client.get(INDEX_EVENTS_URL, {"free": "1"})) == {"Gratuit"}
+
+
+@pytest.mark.django_db
+def test_index_events_pages_keep_the_filters(client, pro):
+    for index in range(EVENTS_PER_PAGE + 1):
+        approved_event(pro, title=f"Événement {index}").save()
+
+    response = client.get(INDEX_EVENTS_URL, {"free": "1"})
+
+    assert b'href="?free=1&page=2"' in response.content
+
+
+@pytest.mark.django_db
+@pytest.mark.parametrize(
+    "query", [{"location_type": "physical"}, {"q": "cuisine"}], ids=["filter", "search"]
+)
+def test_index_events_says_when_no_event_matches_the_filters(client, salon, query):
+    response = client.get(INDEX_EVENTS_URL, query)
+
+    assert "Aucun événement ne correspond à ta recherche" in response.content.decode()
+
+
+@pytest.mark.django_db
+@pytest.mark.parametrize(
+    "query",
+    [
+        {"location_type": "", "date_from": "", "date_to": ""},
+        {"utm_source": "newsletter"},
+    ],
+)
+def test_index_events_says_none_are_planned_when_no_filter_departs_from_its_default(client, query):
+    html = client.get(INDEX_EVENTS_URL, query).content.decode()
+
+    assert "Aucun événement n'est programmé pour le moment" in html
+    assert "Aucun événement ne correspond à ta recherche" not in html
+
+
+@pytest.mark.django_db
+def test_index_events_keeps_the_dates_of_the_url(client):
+    html = client.get(INDEX_EVENTS_URL, {"date_from": "2026-12-01"}).content.decode()
+
+    assert re.search(r'name="date_from"[^>]*value="2026-12-01"', html)
+
+
+@pytest.fixture
+def cybersecurity_events(pro):
+    today = timezone.localdate()
+    for title, days, description in [
+        ("Réseaux et sécurité", 5, "Un peu de cybersécurité"),
+        ("Atelier cybersécurité", 30, ""),
+        ("Atelier design", 5, ""),
+    ]:
+        start = today + timedelta(days=days)
+        approved_event(
+            pro, title=title, description=description, start_date=start, end_date=start
+        ).save()
+
+
+def event_titles(response):
+    return [event.title for event in response.context["events"]]
+
+
+@pytest.mark.django_db
+def test_index_events_searches_by_relevance_by_default(client, cybersecurity_events):
+    response = client.get(INDEX_EVENTS_URL, {"q": "cybersécurité"})
+
+    assert event_titles(response) == ["Atelier cybersécurité", "Réseaux et sécurité"]
+
+
+@pytest.mark.django_db
+def test_index_events_sorts_a_search_by_date_on_request(client, cybersecurity_events):
+    response = client.get(INDEX_EVENTS_URL, {"q": "cybersécurité", "sort": "date"})
+
+    assert event_titles(response) == ["Réseaux et sécurité", "Atelier cybersécurité"]
+
+
+@pytest.mark.django_db
+def test_index_events_ignores_a_search_under_two_characters(client, salon):
+    response = client.get(INDEX_EVENTS_URL, {"q": "c"})
+
+    assert event_titles(response) == [salon.title]
+
+
+@pytest.mark.django_db
+def test_index_events_searches_within_the_filters(client, pro):
+    approved_event(pro, title="Atelier web").save()
+    approved_event(pro, title="Atelier web payant", price=Decimal("5")).save()
+
+    response = client.get(INDEX_EVENTS_URL, {"q": "web", "free": "1"})
+
+    assert event_titles(response) == ["Atelier web"]
+
+
+@pytest.mark.django_db
+@pytest.mark.parametrize(
+    "query, selected",
+    [({"q": "web"}, "relevance"), ({"q": "web", "sort": "date"}, "date")],
+    ids=["default", "asked_for"],
+)
+def test_index_events_selects_the_sort_in_use(client, query, selected):
+    html = client.get(INDEX_EVENTS_URL, query).content.decode()
+
+    assert re.findall(r'name="sort" value="([^"]*)"\s+checked', html) == [selected]
 
 
 @pytest.mark.django_db

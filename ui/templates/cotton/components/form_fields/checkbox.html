@@ -8,6 +8,7 @@
     id=""
     value=""
     :checked=False
+    :switch=False
     variant="default"
     full_width=False
     class=""
@@ -16,9 +17,10 @@
 
 <div class="flex flex-col gap-2 {{ class }}">
     <label class="{% if full_width %}flex w-full justify-between flex-row-reverse{% else %}inline-flex{% endif %} items-center gap-3 cursor-pointer">
-        <span class="inline-flex items-center justify-center">
+        <span class="{% if switch %}relative inline-flex items-center{% else %}inline-flex items-center justify-center{% endif %}">
             <input
                 type="checkbox"
+                {% if switch %}role="switch"{% endif %}
                 id="{{ field.id_for_label|default:id }}"
                 name="{{ field.html_name|default:name }}"
                 {% if value %}value="{{ value }}"{% endif %}
@@ -26,13 +28,18 @@
                 {% if variant == "disabled" %}disabled{% endif %}
                 class="peer sr-only"
             />
-            <span class="tick-base rounded-xs peer-checked:bg-primary peer-indeterminate:bg-primary {% if variant == "disabled" %}tick-disabled{% elif field.errors or errors or variant == "error" %}tick-error{% elif variant == "valid" %}tick-valid{% else %}tick-default{% endif %}"></span>
-            <svg class="absolute h-3 w-3 hidden peer-checked:block text-black pointer-events-none" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="3" aria-hidden="true">
-                <path stroke-linecap="round" stroke-linejoin="round" d="M5 10l4 4 7-8" />
-            </svg>
-            <svg class="absolute h-3 w-3 hidden peer-indeterminate:block text-black pointer-events-none" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="3" aria-hidden="true">
-                <path stroke-linecap="round" d="M5 10h10" />
-            </svg>
+            {% if switch %}
+                <span class="tick-base w-9 rounded-full peer-checked:bg-primary {% if variant == "disabled" %}tick-disabled{% else %}tick-default{% endif %}"></span>
+                <span class="absolute left-1 h-3 w-3 rounded-full bg-black transition-transform peer-checked:translate-x-4 pointer-events-none" aria-hidden="true"></span>
+            {% else %}
+                <span class="tick-base rounded-xs peer-checked:bg-primary peer-indeterminate:bg-primary {% if variant == "disabled" %}tick-disabled{% elif field.errors or errors or variant == "error" %}tick-error{% elif variant == "valid" %}tick-valid{% else %}tick-default{% endif %}"></span>
+                <svg class="absolute h-3 w-3 hidden peer-checked:block text-black pointer-events-none" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="3" aria-hidden="true">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M5 10l4 4 7-8" />
+                </svg>
+                <svg class="absolute h-3 w-3 hidden peer-indeterminate:block text-black pointer-events-none" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="3" aria-hidden="true">
+                    <path stroke-linecap="round" d="M5 10h10" />
+                </svg>
+            {% endif %}
         </span>
         <span class="{% if full_width %}text-base font-normal{% else %}text-xs font-light{% endif %} leading-[1.4] {% if variant == "disabled" %}text-disabled{% else %}text-neutral-950{% endif %} {{ label_class }}">
             {% firstof label field.label %}

@@ -1,6 +1,8 @@
 from datetime import datetime
 from zoneinfo import ZoneInfo
 
+from django.contrib.postgres.indexes import GinIndex
+from django.contrib.postgres.search import SearchVectorField
 from django.core.validators import MinValueValidator
 from django.db import models
 from django.template.defaultfilters import floatformat
@@ -10,12 +12,14 @@ from django.utils.formats import date_format
 from django.utils.translation import gettext_lazy as _
 from simple_history.models import HistoricalRecords
 
+from ..utils.full_text_search import search_vector
 from ..utils.object_storage import public_storage
 from ..utils.structure_type_teams import structure_types_followed_by
+from ..utils.territories import department_code
 from ..utils.text import strip_accents
 from ..utils.time_zones import TimeZone, time_zone_for
 from .base import BaseModel, BaseQuerySet
-from .mixins import SlugFromTitleMixin
+from .mixins import SearchableQuerySetMixin, SlugFromTitleMixin
 from .pro import Pro
 
 # The instant an event ends: its end date and time, read on its own clock.
@@ -34,7 +38,7 @@ _ENDS_AT = models.Func(
 )
 
 
-class EventQuerySet(BaseQuerySet):
+class EventQuerySet(SearchableQuerySetMixin, BaseQuerySet):
     def approved(self):
         return self.filter(status=Event.Status.APPROVED)
 
@@ -71,6 +75,42 @@ class EventQuerySet(BaseQuerySet):
 
     def in_subcategory(self, subcategory):
         return self._within([subcategory])
+
+    def in_subcategories(self, subcategories):
+        if not subcategories:
+            return self
+        return self._within(subcategories)
+
+    def in_departments(self, codes):
+        """An online event happens anywhere, so a department never leaves it out."""
+        if not codes:
+            return self
+        return self.filter(
+            models.Q(location_type=Event.LocationType.ONLINE) | models.Q(department_code__in=codes)
+        )
+
+    def with_location_types(self, location_types):
+        if not location_types:
+            return self
+        return self.filter(location_type__in=location_types)
+
+    def overlapping(self, date_from, date_to):
+        """The events sharing at least a day with the range; either end may be left open."""
+        if date_from and date_to and date_to < date_from:
+            return self.none()
+        overlapping = self
+        if date_from:
+            overlapping = overlapping.filter(end_date__gte=date_from)
+        if date_to:
+            overlapping = overlapping.filter(start_date__lte=date_to)
+        return overlapping
+
+    def free(self):
+        return self.filter(price=0)
+
+    def most_relevant_first(self):
+        """After `search()`: ties go to the nearest."""
+        return self.order_by("-relevance", "start_date", "start_time")
 
     def _within(self, subcategories):
         """`OTHER` also brings back the free text typed when no subcategory fits."""
@@ -201,6 +241,10 @@ class Event(SlugFromTitleMixin, BaseModel):
     postal_code = models.CharField(max_length=10, blank=True, verbose_name=_("code postal"))
     city = models.CharField(max_length=100, blank=True, verbose_name=_("commune"))
     cog_code = models.CharField(max_length=10, blank=True, verbose_name=_("COG de la commune"))
+    # Derived on save from `cog_code`, or `postal_code` without one.
+    department_code = models.CharField(
+        max_length=3, blank=True, db_index=True, verbose_name=_("code du département")
+    )
     longitude = models.FloatField(null=True, blank=True, verbose_name=_("longitude"))
     latitude = models.FloatField(null=True, blank=True, verbose_name=_("latitude"))
     ban_id = models.CharField(max_length=30, blank=True, verbose_name=_("identifiant BAN"))
@@ -229,14 +273,20 @@ class Event(SlugFromTitleMixin, BaseModel):
         max_length=255, blank=True, verbose_name=_("alternative textuelle du visuel")
     )
     image_credit = models.CharField(max_length=255, blank=True, verbose_name=_("crédit du visuel"))
+    search_vector = models.GeneratedField(
+        expression=search_vector(("title", "A"), ("organizer", "B"), ("description", "C")),
+        output_field=SearchVectorField(),
+        db_persist=True,
+    )
 
     objects = EventQuerySet.as_manager()
-    history = HistoricalRecords()
+    history = HistoricalRecords(excluded_fields=["search_vector"])
 
     class Meta:
         verbose_name = _("événement")
         verbose_name_plural = _("événements")
         ordering = ["start_date", "start_time"]
+        indexes = [GinIndex(fields=["search_vector"], name="event_search_vector")]
         constraints = [
             models.CheckConstraint(
                 condition=models.Q(end_date__gt=models.F("start_date"))
@@ -270,6 +320,10 @@ class Event(SlugFromTitleMixin, BaseModel):
         """Paris is never chosen, only left as it is: an event left on it gets its default."""
         if self.time_zone == TimeZone.PARIS:
             self.time_zone = self.default_time_zone
+
+    def save(self, *args, **kwargs):
+        self.department_code = department_code(self.cog_code, self.postal_code)
+        super().save(*args, **kwargs)
 
     def is_organized_by(self, user):
         return self.created_by_id == user.pk

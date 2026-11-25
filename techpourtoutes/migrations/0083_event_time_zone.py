@@ -5,7 +5,7 @@ from django.db import migrations, models
 
 class Migration(migrations.Migration):
     dependencies = [
-        ("techpourtoutes", "0080_delete_internships_switch"),
+        ("techpourtoutes", "0082_event_search_vector"),
     ]
 
     operations = [
