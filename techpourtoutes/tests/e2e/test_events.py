@@ -26,7 +26,7 @@ def test_an_anonymous_visitor_is_invited_to_sign_up_before_saving(page, live_ser
 def test_a_date_range_names_the_filter_instead_of_a_selected_filter(page, live_server):
     page.goto(f"{live_server.url}/evenements/")
 
-    dates = page.get_by_role("button", name="Date")
+    dates = page.get_by_role("button", name=re.compile("^Date"))
     dates.click()
     page.get_by_label("À partir du").fill("2026-09-14")
     page.get_by_label("Jusqu'au").fill("2026-10-31")
@@ -38,6 +38,22 @@ def test_a_date_range_names_the_filter_instead_of_a_selected_filter(page, live_s
     page.get_by_label("Jusqu'au").fill("")
 
     expect(dates).to_have_accessible_name("Date")
+
+
+def test_clearing_the_dates_keeps_the_other_filters(page, live_server):
+    page.goto(f"{live_server.url}/evenements/?date_from=2026-09-14&date_to=2026-10-31&free=1")
+    dates = page.get_by_role("button", name=re.compile("^Date"))
+    dates.click()
+    clear = page.get_by_role("button", name="Effacer les dates")
+
+    clear.click()
+
+    expect(page.get_by_label("À partir du")).to_have_value("")
+    expect(page.get_by_label("Jusqu'au")).to_have_value("")
+    expect(page.get_by_label("À partir du")).to_be_focused()
+    expect(dates).to_have_accessible_name("Date")
+    expect(clear).to_be_hidden()
+    expect(page).to_have_url(re.compile(r"date_from=&date_to=&free=1"))
 
 
 def test_an_end_date_typed_before_the_start_date_finds_nothing(page, live_server):

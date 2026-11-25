@@ -19,3 +19,5 @@
         <p id="{{ id }}_to_inverted" x-show="dateErrors.inverted" x-cloak class="text-xxs leading-[1.4] text-error font-normal">La date doit être postérieure à la date de début</p>
     </div>
 </div>
+<c-components.reset_filters_button label="Effacer les dates" x-show="dateRange"
+                                   @click="reset(); dates()[0].dispatchEvent(new Event('change', { bubbles: true })); dates()[0].focus()" />
