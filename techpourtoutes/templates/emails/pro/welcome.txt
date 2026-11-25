@@ -3,7 +3,7 @@ Bonjour {{ pro.first_name }},
 
 Bienvenue dans la Coalition TechPourToutes et merci beaucoup pour votre engagement !
 
-Nous prendrons contact avec vous sous 48 heures pour vous accompagner dans le programme.
+{% if pro.is_only_work_ambassador %}Nous vous contacterons prochainement pour vous mettre en relation avec une fille du programme ou pour vous proposer de prendre la parole à l'occasion d'un de nos événements.{% else %}Nous prendrons contact avec vous sous 48 heures pour vous accompagner dans le programme.{% endif %}
 
 Vous disposez dès à présent d'un compte. Pour vous y connecter, voici votre code de vérification :
 

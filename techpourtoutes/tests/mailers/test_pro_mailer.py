@@ -2,6 +2,7 @@ import pytest
 from django.core import mail
 
 from techpourtoutes.mailers import ProMailer
+from techpourtoutes.models import Pro
 
 
 @pytest.mark.django_db
@@ -22,6 +23,31 @@ def test_welcome_gives_the_login_code(pro):
     message = mail.outbox[0]
     assert "123456" in message.body
     assert "123456" in message.alternatives[0][0]
+
+
+@pytest.mark.django_db
+@pytest.mark.parametrize(
+    ("engagements", "expected", "unexpected"),
+    [
+        ([Pro.Engagement.WORK_AMBASSADOR], "prendre la parole", "48 heures"),
+        (
+            [Pro.Engagement.WORK_AMBASSADOR, Pro.Engagement.MENTOR],
+            "48 heures",
+            "prendre la parole",
+        ),
+    ],
+)
+def test_welcome_tells_a_work_ambassador_alone_how_she_will_be_contacted(
+    pro, engagements, expected, unexpected
+):
+    pro.engagements = engagements
+
+    ProMailer.welcome(pro=pro, code="123456")
+
+    message = mail.outbox[0]
+    for content in (message.body, message.alternatives[0][0]):
+        assert expected in content
+        assert unexpected not in content
 
 
 @pytest.mark.django_db
