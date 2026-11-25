@@ -1,5 +1,7 @@
 import re
+from datetime import timedelta
 
+from django.utils import timezone
 from playwright.sync_api import expect
 
 from techpourtoutes.models import Event
@@ -286,12 +288,39 @@ def test_ticking_a_location_type_unticks_the_other_and_names_the_filter(page, li
         "En ligne / en présentiel\xa0: En présentiel uniquement"
     )
     expect(page.get_by_role("button", name="Retirer le filtre")).to_have_count(1)
-    expect(page).to_have_url(re.compile(r"\?location_type=physical&"))
+    expect(page).to_have_url(re.compile(r"[?&]location_type=physical&"))
 
     _click_label_of(onsite)
 
     expect(location_type).to_have_accessible_name("En ligne / en présentiel")
     expect(page.get_by_role("button", name="Retirer le filtre")).to_have_count(0)
+
+
+def test_a_filtered_url_opens_with_the_location_type_and_the_dates_named(page, live_server):
+    page.goto(
+        f"{live_server.url}/evenements/?location_type=physical"
+        "&date_from=2026-09-14&date_to=2026-10-31"
+    )
+
+    expect(page.get_by_role("button", name="En ligne / en présentiel")).to_have_accessible_name(
+        "En ligne / en présentiel\xa0: En présentiel uniquement"
+    )
+    expect(page.get_by_role("button", name="Date")).to_have_accessible_name(
+        "Date\xa0: du 14/09/26 au 31/10/26"
+    )
+
+
+def test_removing_the_location_type_from_the_selected_filters_unnames_the_filter(
+    page, live_server
+):
+    page.goto(f"{live_server.url}/evenements/?location_type=physical")
+
+    page.get_by_role("button", name="Retirer le filtre En présentiel uniquement").click()
+
+    expect(page.get_by_role("button", name="En ligne / en présentiel")).to_have_accessible_name(
+        "En ligne / en présentiel"
+    )
+    expect(page.get_by_text("Filtres sélectionnés")).to_be_hidden()
 
 
 def _click_label_of(control):
@@ -414,3 +443,47 @@ def test_an_event_saved_from_its_card_is_saved_on_its_page_and_back(
     page.go_forward()
 
     expect(page.locator('[data-bookmark] [aria-pressed="false"]')).to_have_count(2)
+
+
+def test_searching_narrows_the_list_and_reveals_the_sort(page, live_server, pro):
+    today = timezone.localdate()
+    for title, days, description in [
+        ("Réseaux et sécurité", 5, "Un peu de web"),
+        ("Atelier web", 30, ""),
+        ("Atelier design", 5, ""),
+    ]:
+        start = today + timedelta(days=days)
+        approved_event(
+            pro, title=title, description=description, start_date=start, end_date=start
+        ).save()
+    page.goto(f"{live_server.url}/evenements/")
+    sort = page.get_by_role("button", name="Trier par")
+    first_title = page.locator("#event_results h2").first
+    expect(sort).to_be_hidden()
+
+    page.get_by_label("Rechercher un événement").fill("web")
+    page.get_by_role("button", name="Rechercher").click()
+
+    expect(page.locator("#event_count")).to_have_text("2\xa0événements")
+    expect(sort).to_have_text("pertinence")
+    expect(first_title).to_have_text("Atelier web")
+
+    sort.click()
+    page.get_by_role("group", name="Trier par").get_by_text("Date").click()
+
+    expect(page).to_have_url(re.compile("sort=date"))
+    expect(first_title).to_have_text("Réseaux et sécurité")
+    expect(sort).to_have_text("date")
+
+
+def test_a_too_short_search_shows_an_error(page, live_server):
+    page.goto(f"{live_server.url}/evenements/")
+    search = page.get_by_label("Rechercher un événement")
+
+    search.fill("w")
+    search.press("Enter")
+
+    expect(
+        page.get_by_role("alert").filter(has_text="Saisis au moins 2 caractères")
+    ).to_be_visible()
+    expect(search).to_have_attribute("aria-invalid", "true")

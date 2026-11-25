@@ -735,3 +735,44 @@ def test_free_keeps_the_events_costing_nothing(pro):
     build_event(pro, price=Decimal("5")).save()
 
     assert list(Event.objects.free()) == [free]
+
+
+@pytest.mark.django_db
+@pytest.mark.parametrize("field", ["title", "organizer", "description"])
+def test_search_looks_into_the_title_the_organizer_and_the_description(pro, field):
+    build_event(pro, **{field: "Cybersécurité"}).save()
+    build_event(pro, title="Autre événement").save()
+
+    assert Event.objects.search("cybersecurite").count() == 1
+
+
+@pytest.mark.django_db
+def test_search_ranks_the_title_above_the_organizer_above_the_description(pro):
+    build_event(pro, title="Dans la description", description="Atelier de cybersécurité").save()
+    build_event(pro, title="Chez l'organisateur", organizer="Cybersécurité SA").save()
+    build_event(pro, title="Cybersécurité").save()
+
+    found = Event.objects.search("cybersécurité").order_by("-relevance")
+
+    assert [event.title for event in found] == [
+        "Cybersécurité",
+        "Chez l'organisateur",
+        "Dans la description",
+    ]
+
+
+@pytest.mark.django_db
+def test_most_relevant_first_breaks_ties_by_the_nearest_start(pro):
+    today = timezone.localdate()
+    for title, days in [("Atelier web lointain", 60), ("Atelier web proche", 5)]:
+        start = today + timedelta(days=days)
+        build_event(pro, title=title, start_date=start, end_date=start).save()
+    build_event(pro, title="Atelier", description="Du web").save()
+
+    found = Event.objects.search("web").most_relevant_first()
+
+    assert [event.title for event in found] == [
+        "Atelier web proche",
+        "Atelier web lointain",
+        "Atelier",
+    ]

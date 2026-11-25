@@ -9,6 +9,7 @@
         <p class="mt-3">Retrouve tous les prochains rendez-vous, près de chez toi ou en ligne, et inscris-toi&nbsp;!</p>
     </c-components.card>
     <div x-data="{
+                searchLaunched: false,
                 filtersChanged: false,
                 online: false,
                 refresh() {
@@ -27,14 +28,20 @@
              }"
              x-init="refresh()"
              @change.capture="refresh()"
+             @search-launched="searchLaunched = $event.detail"
              class="w-full flex flex-col">
         <c-components.card class="mb-2">
             <form id="event_filters" action="{% url "index_events" %}" novalidate
-                  hx-get="{% url "index_events" %}" hx-trigger="change[target.type === 'checkbox'], change[target.type === 'date'] delay:500ms, submit" hx-sync="this:replace"
+                  hx-get="{% url "index_events" %}" hx-trigger="change[target.type === 'checkbox'], change[target.type === 'date'] delay:500ms, change from:#event_sort, submit" hx-sync="this:replace"
                   hx-select="#event_results" hx-target="#event_results" hx-swap="outerHTML"
-                  hx-select-oob="#event_count:innerHTML,#event_empty:innerHTML" hx-push-url="true" hx-history="false"
+                  hx-select-oob="#event_count:innerHTML,#event_empty:innerHTML,#event_sort:innerHTML,#event_search:outerHTML,#event_search_error:innerHTML" hx-push-url="true" hx-history="false"
                   class="flex flex-wrap gap-4 mb-3">
-                <c-components.form_fields.filter_select label="En ligne / en présentiel" name="location_type" id="event_location_type" :options="location_types" :ticked="ticked_location_types" :switch="True" :single="True" label_class="min-w-46" selection_target="#event_selected_filters" />
+                <c-components.form_fields.search_bar id="event_search" name="q" label="Rechercher un événement" placeholder="Événement, organisation, etc." :value="search" :errors="search_errors">
+                    <c-components.reset_filters_button x-show="searchLaunched || filtersChanged" @click="resetAll()" />
+                </c-components.form_fields.search_bar>
+                <c-components.form_fields.filter_select label="En ligne / en présentiel" id="event_location_type" label_class="min-w-46" selection_target="#event_selected_filters">
+                    <c-components.form_fields.single_choice_options name="location_type" id="event_location_type" :options="location_types" :ticked="ticked_location_types" />
+                </c-components.form_fields.filter_select>
                 <c-components.form_fields.filter_select label="Région / Département" id="event_location" icon="location" tint_class="bg-green-500/20" disabled_when="online" disabled_reason="Décoche « En ligne uniquement » pour filtrer par région ou département." selection_target="#event_selected_filters">
                     <c-components.form_fields.region_options :regions="regions" :ticked="ticked_departments" id="event_location" />
                 </c-components.form_fields.filter_select>
@@ -44,13 +51,13 @@
                 </c-components.form_fields.filter_select>
                 <c-components.form_fields.checkbox name="free" id="event_free" value="1" label="Gratuit uniquement" :checked="free_only" :switch="True" label_class="text-sm! font-normal"
                                                    class="justify-center px-4 py-3 rounded-sm bg-neutral-0 border border-black shadow-bottom-and-right shadow-black hover:shadow-bottom-and-right-lg" />
-                <c-components.reset_filters_button x-show="filtersChanged" @click="resetAll()" class="self-center" />
             </form>
             <c-components.selected_filters id="event_selected_filters" class="mt-4" />
             <div class="flex items-center justify-between gap-4 mt-3">
                 {% with event_count=events.paginator.count %}
                     <p id="event_count" aria-live="polite">{{ event_count|intcomma }}&nbsp;événement{% if event_count > 1 %}s{% endif %} </p>
                 {% endwith %}
+                <div id="event_sort" class="empty:hidden">{% if searching %}<c-components.sort_select id="event_sort" :sort_by_date="sort_by_date" form="event_filters" />{% endif %}</div>
             </div>
             <div id="event_empty" class="empty:hidden mt-3">{% if filtering and not events.paginator.count %}
                 <div class="flex flex-col gap-3 border border-black p-2">
