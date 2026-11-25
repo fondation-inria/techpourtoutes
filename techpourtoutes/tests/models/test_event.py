@@ -654,3 +654,125 @@ def test_subcategory_sorted_choices_are_alphabetical_with_other_last():
         "Webinaire d'info",
         "Autre",
     ]
+
+
+@pytest.mark.django_db
+@pytest.mark.parametrize(
+    "cog_code, postal_code, expected",
+    [("29019", "29200", "29"), ("", "20000", "2A"), ("97411", "97400", "974"), ("", "", "")],
+)
+def test_saving_an_event_derives_its_department(pro, cog_code, postal_code, expected):
+    event = build_event(pro, cog_code=cog_code, postal_code=postal_code)
+    event.save()
+
+    assert event.department_code == expected
+
+
+@pytest.mark.django_db
+def test_in_departments_keeps_the_online_events_which_happen_anywhere(pro):
+    brest = build_event(pro, location_type=Event.LocationType.PHYSICAL, cog_code="29019")
+    brest.save()
+    online = build_event(pro)
+    online.save()
+    build_event(pro, location_type=Event.LocationType.PHYSICAL, cog_code="75056").save()
+
+    assert set(Event.objects.in_departments(["29"])) == {brest, online}
+    assert Event.objects.in_departments([]).count() == 3
+
+
+@pytest.mark.django_db
+def test_with_location_types_keeps_only_the_given_ones_and_all_without_any(pro):
+    online = build_event(pro)
+    online.save()
+    build_event(pro, location_type=Event.LocationType.PHYSICAL).save()
+
+    assert list(Event.objects.with_location_types([Event.LocationType.ONLINE])) == [online]
+    assert Event.objects.with_location_types([]).count() == 2
+
+
+@pytest.mark.django_db
+def test_in_subcategories_keeps_any_of_them_and_every_event_without_any(pro):
+    workshop = build_event(pro, subcategory=Event.Subcategory.WORKSHOP)
+    workshop.save()
+    free_text = build_event(pro, subcategory="Rencontre d'anciennes")
+    free_text.save()
+    build_event(pro, subcategory=Event.Subcategory.HACKATHON).save()
+
+    picked = [Event.Subcategory.WORKSHOP, Event.Subcategory.OTHER]
+    assert set(Event.objects.in_subcategories(picked)) == {workshop, free_text}
+    assert Event.objects.in_subcategories([]).count() == 3
+
+
+@pytest.mark.django_db
+@pytest.mark.parametrize(
+    "date_from, date_to, expected",
+    [
+        (date(2026, 9, 14), date(2026, 9, 20), {"Chevauche le début", "Dedans"}),
+        (date(2026, 9, 18), None, {"Dedans", "Après"}),
+        (None, date(2026, 9, 14), {"Chevauche le début"}),
+        (None, None, {"Chevauche le début", "Dedans", "Après"}),
+        (date(2026, 9, 14), date(2026, 9, 13), set()),
+    ],
+)
+def test_overlapping_keeps_the_events_sharing_a_day_with_the_range(
+    pro, date_from, date_to, expected
+):
+    for title, start, end in [
+        ("Chevauche le début", date(2026, 9, 12), date(2026, 9, 14)),
+        ("Dedans", date(2026, 9, 18), date(2026, 9, 19)),
+        ("Après", date(2026, 9, 25), date(2026, 9, 25)),
+    ]:
+        build_event(pro, title=title, start_date=start, end_date=end).save()
+
+    found = Event.objects.overlapping(date_from, date_to)
+    assert {event.title for event in found} == expected
+
+
+@pytest.mark.django_db
+def test_free_keeps_the_events_costing_nothing(pro):
+    free = build_event(pro)
+    free.save()
+    build_event(pro, price=Decimal("5")).save()
+
+    assert list(Event.objects.free()) == [free]
+
+
+@pytest.mark.django_db
+@pytest.mark.parametrize("field", ["title", "organizer", "description"])
+def test_search_looks_into_the_title_the_organizer_and_the_description(pro, field):
+    build_event(pro, **{field: "Cybersécurité"}).save()
+    build_event(pro, title="Autre événement").save()
+
+    assert Event.objects.search("cybersecurite").count() == 1
+
+
+@pytest.mark.django_db
+def test_search_ranks_the_title_above_the_organizer_above_the_description(pro):
+    build_event(pro, title="Dans la description", description="Atelier de cybersécurité").save()
+    build_event(pro, title="Chez l'organisateur", organizer="Cybersécurité SA").save()
+    build_event(pro, title="Cybersécurité").save()
+
+    found = Event.objects.search("cybersécurité").order_by("-relevance")
+
+    assert [event.title for event in found] == [
+        "Cybersécurité",
+        "Chez l'organisateur",
+        "Dans la description",
+    ]
+
+
+@pytest.mark.django_db
+def test_most_relevant_first_breaks_ties_by_the_nearest_start(pro):
+    today = timezone.localdate()
+    for title, days in [("Atelier web lointain", 60), ("Atelier web proche", 5)]:
+        start = today + timedelta(days=days)
+        build_event(pro, title=title, start_date=start, end_date=start).save()
+    build_event(pro, title="Atelier", description="Du web").save()
+
+    found = Event.objects.search("web").most_relevant_first()
+
+    assert [event.title for event in found] == [
+        "Atelier web proche",
+        "Atelier web lointain",
+        "Atelier",
+    ]

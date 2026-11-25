@@ -1,0 +1,57 @@
+<c-vars :date_from=None :date_to=None id="" />
+
+{# Slot of a filter_select: it names the filter after the range through `filter-summary`, and resets itself. #}
+<div x-data="{
+        errors: {},
+        filled: false,
+        check() {
+            const { from, to } = this.$refs;
+            if (to.min !== (from.value || from.min)) to.min = from.value || from.min;
+            if (from.max !== to.value) from.max = to.value;
+            this.errors = this.errorsFor(from, to);
+            this.filled = Boolean(from.value || to.value);
+            this.$dispatch('filter-summary', this.filled ? this.label(from.value, to.value) : '');
+        },
+        errorsFor(from, to) {
+            const complete = input => Boolean(input.value) && (input !== document.activeElement || input.value >= '1000');
+            const early = input => complete(input) && input.value < from.min;
+            return { fromEarly: early(from), toEarly: early(to), inverted: !early(to) && complete(from) && complete(to) && to.value < from.value };
+        },
+        label(from, to) {
+            const short = value => value.split('-').reverse().map((part, index) => index === 2 ? part.slice(2) : part).join('/');
+            if (from && to) return `du ${short(from)} au ${short(to)}`;
+            return from ? `à partir du ${short(from)}` : `jusqu'au ${short(to)}`;
+        },
+        reset() {
+            this.$refs.from.value = '';
+            this.$refs.to.value = '';
+            this.check();
+        },
+     }"
+     x-init="check()"
+     @change="check()"
+     @reset-filters.window="reset()"
+     @reset-filter.window="if ($event.detail === '{{ id }}') reset()"
+     class="contents">
+    <div class="flex flex-col gap-2">
+        <label for="{{ id }}_from" class="label-text-sm">À partir du</label>
+        <input type="date" id="{{ id }}_from" name="date_from" min="2000-01-01" value="{{ date_from|date:"Y-m-d" }}" x-ref="from" @blur="check()"
+               :aria-describedby="errors.fromEarly ? '{{ id }}_from_early' : null" :aria-invalid="errors.fromEarly ? 'true' : null"
+               class="field-base field-default">
+        <div aria-live="polite">
+            <p id="{{ id }}_from_early" x-show="errors.fromEarly" x-cloak class="text-xxs leading-[1.4] text-error font-normal">La date doit être postérieure au 01/01/2000</p>
+        </div>
+    </div>
+    <div class="flex flex-col gap-2">
+        <label for="{{ id }}_to" class="label-text-sm">Jusqu'au</label>
+        <input type="date" id="{{ id }}_to" name="date_to" min="2000-01-01" value="{{ date_to|date:"Y-m-d" }}" x-ref="to" @blur="check()"
+               :aria-describedby="errors.toEarly ? '{{ id }}_to_early' : errors.inverted ? '{{ id }}_to_inverted' : null" :aria-invalid="errors.toEarly || errors.inverted ? 'true' : null"
+               class="field-base field-default">
+        <div aria-live="polite">
+            <p id="{{ id }}_to_early" x-show="errors.toEarly" x-cloak class="text-xxs leading-[1.4] text-error font-normal">La date doit être postérieure au 01/01/2000</p>
+            <p id="{{ id }}_to_inverted" x-show="errors.inverted" x-cloak class="text-xxs leading-[1.4] text-error font-normal">La date doit être postérieure à la date de début</p>
+        </div>
+    </div>
+    <c-components.reset_filters_button label="Effacer les dates" x-show="filled"
+                                       @click="reset(); $refs.from.dispatchEvent(new Event('change', { bubbles: true })); $refs.from.focus()" />
+</div>

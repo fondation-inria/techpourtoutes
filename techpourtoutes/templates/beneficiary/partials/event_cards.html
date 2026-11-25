@@ -7,10 +7,12 @@
             heading_level="h2"
         />
     {% empty %}
-        <c-components.event-empty-state title="Reviens bientôt&nbsp;!">
-            <c-components.text>
-                Aucun événement n'est programmé pour le moment.
-            </c-components.text>
-        </c-components.event-empty-state>
+        {% if not filtering %}
+            <c-components.event-empty-state title="Reviens bientôt&nbsp;!">
+                <c-components.text>
+                    Aucun événement n'est programmé pour le moment.
+                </c-components.text>
+            </c-components.event-empty-state>
+        {% endif %}
     {% endfor %}
 </div>

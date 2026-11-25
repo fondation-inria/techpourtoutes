@@ -1,10 +1,24 @@
+import operator
 import re
+from functools import reduce
 
-from django.contrib.postgres.search import SearchQuery
+from django.contrib.postgres.search import SearchQuery, SearchVector
 from django.db import models
 
 SEARCH_CONFIG = "french_unaccent"
 MASCULINE_OF_FEMININE = (("euse", "eur"), ("trice", "teur"), ("cheffe", "chef"), ("[ée]e", "é"))
+
+
+def search_vector(*weighted_fields):
+    """The expression of a `search_vector` column over `(field, weight)` pairs, every word in
+    the masculine so that a search in either gender finds both."""
+    return reduce(
+        operator.add,
+        (
+            SearchVector(_masculine_text(field), weight=weight, config=SEARCH_CONFIG)
+            for field, weight in weighted_fields
+        ),
+    )
 
 
 def search_query(terms: str) -> SearchQuery:
@@ -16,7 +30,7 @@ def search_query(terms: str) -> SearchQuery:
     )
 
 
-def masculine_text(field: str) -> models.Func:
+def _masculine_text(field: str) -> models.Func:
     """The field in the masculine, so that a search finds either form."""
     text = models.F(field)
     for feminine, masculine in MASCULINE_OF_FEMININE:
