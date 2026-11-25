@@ -10,9 +10,10 @@ from django.db.models import Exists, OuterRef, Value
 from django.http import Http404, HttpResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
+from django.views.decorators.cache import never_cache
 from django.views.decorators.http import require_POST
-from waffle.decorators import waffle_switch
 
+from ..decorators import beneficiary_required
 from ..forms import (
     BeneficiaryHigherEducationTrainingExperienceForm,
     BeneficiaryHighSchoolTrainingExperienceForm,
@@ -37,6 +38,12 @@ EVENTS_PER_PAGE = 18
 MAKEUSE_PROJECTS_PER_PAGE = 6
 JOB_POSTINGS_PER_PAGE = 20
 JOB_POSTING_SEARCH_MIN_LENGTH = 2
+BENEFICIARY_JOB_POSTINGS_PER_PAGE = 5
+# The pupils' tabs with no partner yet: left empty, they offer to be told when offers come.
+NOTIFIED_CATEGORIES = [
+    JobPosting.Category.SECONDE_INTERNSHIP,
+    JobPosting.Category.TROISIEME_INTERNSHIP,
+]
 
 # ------------------- pages -------------------
 
@@ -143,6 +150,7 @@ def show_makeuse_project(request, slug):
     )
 
 
+@never_cache
 def index_events(request):
     return render(
         request,
@@ -151,6 +159,7 @@ def index_events(request):
     )
 
 
+@never_cache
 def show_event(request, slug):
     beneficiary = getattr(request.user, "beneficiary", None)
     event = get_object_or_404(Event.objects.visible_to(request.user), slug=slug)
@@ -225,16 +234,15 @@ def _render_upcoming_feature_notification_form(request, form):
     return render(request, "beneficiary/new_upcoming_feature_notification.html", {"form": form})
 
 
-@waffle_switch("internships")
+@never_cache
 def index_job_postings(request):
     return _render_job_postings(request, UpcomingFeatureNotificationForm())
 
 
-@waffle_switch("internships")
 @require_POST
 def create_job_posting_notification(request):
     category = _job_posting_category(request)
-    if category not in JobPosting.PUPIL_CATEGORIES:
+    if category not in NOTIFIED_CATEGORIES:
         raise Http404
     form = UpcomingFeatureNotificationForm(data=request.POST)
     if not form.is_valid():
@@ -274,6 +282,7 @@ def _internship_notification_list_id(category):
 
 
 def _render_job_postings(request, notification_form):
+    beneficiary = getattr(request.user, "beneficiary", None)
     category = _job_posting_category(request)
     domains = JobPosting.domains_for(category)
     ticked_domains = _ticked(request, "domain", domains)
@@ -298,7 +307,7 @@ def _render_job_postings(request, notification_form):
             "query": query.urlencode(),
             "search": search,
             "searching": searching,
-            "pupil_tab_unfiltered": category in JobPosting.PUPIL_CATEGORIES
+            "notified_tab_unfiltered": category in NOTIFIED_CATEGORIES
             and not (searching or ticked_domains or ticked_departments),
             "sort_by_date": sort_by_date,
             "search_errors": [f"Saisis au moins {JOB_POSTING_SEARCH_MIN_LENGTH} caractères"]
@@ -315,9 +324,10 @@ def _render_job_postings(request, notification_form):
             "durations": [(duration, duration.label) for duration in durations],
             "ticked_durations": ticked_durations,
             "only_cdi": only_cdi,
+            "bookmark_action": _bookmark_action(request.user, beneficiary),
             "job_postings": Paginator(
                 _searched_and_sorted(
-                    JobPosting.objects.filter(category=category)
+                    _with_saved_flag(JobPosting.objects.filter(category=category), beneficiary)
                     .in_domains(ticked_domains)
                     .in_departments(ticked_departments)
                     .with_contract_types(ticked_contract_types)
@@ -331,11 +341,16 @@ def _render_job_postings(request, notification_form):
     )
 
 
-@waffle_switch("internships")
+@never_cache
 def show_job_posting(request, pk):
     beneficiary = getattr(request.user, "beneficiary", None)
     job_posting = get_object_or_404(JobPosting.objects.with_last_updated_at(), pk=pk)
-    back_url = _back_to_listing(request, "index_job_postings", anchor=f"offre-{job_posting.pk}")
+    back_url = _back_to_listing(
+        request,
+        "index_job_postings",
+        "index_beneficiary_job_postings",
+        anchor=f"{_job_posting_anchor_prefix(request)}-{job_posting.pk}",
+    )
     return render(
         request,
         "beneficiary/show_job_posting.html",
@@ -350,7 +365,6 @@ def show_job_posting(request, pk):
     )
 
 
-@waffle_switch("internships")
 def show_job_posting_application_modal(request, pk):
     beneficiary = getattr(request.user, "beneficiary", None)
     job_posting = get_object_or_404(JobPosting, pk=pk)
@@ -366,7 +380,6 @@ def show_job_posting_application_modal(request, pk):
     )
 
 
-@waffle_switch("internships")
 @require_POST
 @login_required
 def update_saved_job_posting(request, pk):
@@ -377,11 +390,16 @@ def update_saved_job_posting(request, pk):
     return render(
         request,
         "beneficiary/partials/update_saved_job_posting.html",
-        {"job_posting": job_posting, "saved": saved, "bookmark_action": "toggle", "oob": True},
+        {
+            "job_posting": job_posting,
+            "saved": saved,
+            "bookmark_action": "toggle",
+            "card": request.POST.get("card") == "true",
+            "oob": True,
+        },
     )
 
 
-@waffle_switch("internships")
 def create_saved_job_posting_modal(request, pk):
     job_posting = get_object_or_404(JobPosting, pk=pk)
     return render(
@@ -389,12 +407,13 @@ def create_saved_job_posting_modal(request, pk):
         "beneficiary/partials/create_saved_job_posting_modal.html",
         {
             "job_posting": job_posting,
-            "way_back": _way_back(request, reverse("show_job_posting", args=[job_posting.pk])),
+            "way_back": _on_its_card(
+                _way_back(request, reverse("show_job_posting", args=[job_posting.pk])), job_posting
+            ),
         },
     )
 
 
-@waffle_switch("internships")
 @require_POST
 @login_required
 def create_clicked_job_posting(request, pk):
@@ -404,8 +423,101 @@ def create_clicked_job_posting(request, pk):
     return HttpResponse(status=204)
 
 
+@require_POST
+@login_required
+def update_clicked_job_posting(request, pk):
+    beneficiary = _beneficiary_or_404(request)
+    job_posting = get_object_or_404(JobPosting, pk=pk)
+    clicked = ClickedJobPosting.objects.toggle(job_posting=job_posting, beneficiary=beneficiary)
+    messages.success(
+        request, "Candidature remise dans ton suivi" if clicked else "Candidature retirée"
+    )
+    return render(
+        request,
+        "beneficiary/partials/update_clicked_job_posting.html",
+        {"job_posting": job_posting, "clicked": clicked, "oob": True},
+    )
+
+
+@beneficiary_required
+def destroy_clicked_job_posting_modal(request, pk):
+    return render(
+        request,
+        "beneficiary/partials/destroy_clicked_job_posting_modal.html",
+        {"job_posting": get_object_or_404(JobPosting, pk=pk)},
+    )
+
+
+@require_POST
+@login_required
+def destroy_clicked_job_posting(request, pk):
+    """Taking a posting out of her follow-up can keep it among her saved ones."""
+    beneficiary = _beneficiary_or_404(request)
+    job_posting = get_object_or_404(JobPosting, pk=pk)
+    ClickedJobPosting.objects.filter(job_posting=job_posting, beneficiary=beneficiary).delete()
+    saved = request.POST.get("save") == "true"
+    if saved:
+        SavedJobPosting.objects.get_or_create(job_posting=job_posting, beneficiary=beneficiary)
+    _remember_if_she_skips_the_removal_modal(
+        request, beneficiary, "skip_clicked_job_posting_removal_modal"
+    )
+    return redirect(
+        _back_to_listing(
+            request,
+            "index_beneficiary_job_postings",
+            anchor="opportunites-enregistrees" if saved else "candidatures-entamees",
+        )
+    )
+
+
+@beneficiary_required
+def destroy_saved_job_posting_modal(request, pk):
+    return render(
+        request,
+        "beneficiary/partials/destroy_saved_job_posting_modal.html",
+        {"job_posting": get_object_or_404(JobPosting, pk=pk)},
+    )
+
+
+@require_POST
+@login_required
+def destroy_saved_job_posting(request, pk):
+    beneficiary = _beneficiary_or_404(request)
+    job_posting = get_object_or_404(JobPosting, pk=pk)
+    SavedJobPosting.objects.filter(job_posting=job_posting, beneficiary=beneficiary).delete()
+    _remember_if_she_skips_the_removal_modal(
+        request, beneficiary, "skip_saved_job_posting_removal_modal"
+    )
+    return redirect(
+        _back_to_listing(
+            request, "index_beneficiary_job_postings", anchor="opportunites-enregistrees"
+        )
+    )
+
+
+def _removal_action(skips_modal):
+    return "toggle" if skips_modal else "confirm_removal"
+
+
+def _remember_if_she_skips_the_removal_modal(request, beneficiary, field):
+    if request.POST.get("skip_modal") == "true":
+        setattr(beneficiary, field, True)
+        beneficiary.save(update_fields=[field])
+
+
 def _ticked(request, name, allowed):
     return [value for value in request.GET.getlist(name) if value in allowed]
+
+
+def _with_saved_flag(job_postings, beneficiary):
+    """Only one query: each posting carries whether the visitor already saved it."""
+    if beneficiary is None:
+        return job_postings.annotate(saved=Value(False))
+    return job_postings.annotate(
+        saved=Exists(
+            SavedJobPosting.objects.filter(job_posting=OuterRef("pk"), beneficiary=beneficiary)
+        )
+    )
 
 
 def _searched_and_sorted(job_postings, search, sort_by_date):
@@ -413,6 +525,32 @@ def _searched_and_sorted(job_postings, search, sort_by_date):
         return job_postings.latest_first()
     found = job_postings.search(search)
     return found.latest_first() if sort_by_date else found.most_relevant_first()
+
+
+@beneficiary_required
+@never_cache
+def index_beneficiary_job_postings(request):
+    beneficiary = request.user.beneficiary
+    return render(
+        request,
+        "beneficiary/index_beneficiary_job_postings.html",
+        {
+            "bookmark_action": _removal_action(beneficiary.skip_saved_job_posting_removal_modal),
+            "follow_up_action": _removal_action(
+                beneficiary.skip_clicked_job_posting_removal_modal
+            ),
+            "clicked_job_postings": Paginator(
+                JobPosting.objects.filter(clicked_by=beneficiary).latest_first(),
+                BENEFICIARY_JOB_POSTINGS_PER_PAGE,
+            ).get_page(request.GET.get("clicked_job_postings_page")),
+            "saved_job_postings": Paginator(
+                JobPosting.objects.filter(saved_by=beneficiary)
+                .annotate(saved=Value(True))
+                .latest_first(),
+                BENEFICIARY_JOB_POSTINGS_PER_PAGE,
+            ).get_page(request.GET.get("saved_job_postings_page")),
+        },
+    )
 
 
 # ------------------- events -------------------
@@ -510,6 +648,11 @@ def _events_page(beneficiary, upcoming, page):
     return Paginator(upcoming, EVENTS_PER_PAGE).get_page(page)
 
 
+def _job_posting_anchor_prefix(request):
+    anchor_prefix = request.GET.get("ancre")
+    return anchor_prefix if anchor_prefix in ("candidature", "enregistree") else "offre"
+
+
 def _back_to_listing(request, *listings, anchor=""):
     """The first listing is the fallback. `anchor` only follows a visitor who came from the
     listing: she goes back to where she was, whereas one who landed here from elsewhere starts
@@ -548,6 +691,14 @@ def _way_back(request, fallback):
         or opened_from._replace(scheme="", netloc="").geturl()
         or fallback
     )
+
+
+def _on_its_card(way_back, job_posting):
+    """Back on the listing, she lands on the card she bookmarked rather than at the top."""
+    parsed = urlparse(way_back)
+    if parsed.path != reverse("index_job_postings"):
+        return way_back
+    return parsed._replace(fragment=f"offre-{job_posting.pk}").geturl()
 
 
 def _bookmark_action(user, beneficiary):

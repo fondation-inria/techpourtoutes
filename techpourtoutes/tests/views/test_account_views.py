@@ -225,6 +225,15 @@ def test_show_account_acknowledges_the_training_ambassador_request_once_sent(cli
     assert "TechPourToutes peut te mettre en relation avec une étudiante" not in content
 
 
+@pytest.mark.django_db
+def test_show_account_shows_the_job_postings_card(client, beneficiary):
+    client.force_login(beneficiary)
+
+    content = client.get(reverse("show_account")).content.decode()
+
+    assert reverse("index_beneficiary_job_postings") in content
+
+
 def _welcome_modal(client, beneficiary):
     client.force_login(beneficiary)
     session = client.session

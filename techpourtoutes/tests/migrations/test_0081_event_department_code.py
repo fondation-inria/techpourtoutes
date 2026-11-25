@@ -7,7 +7,7 @@ from techpourtoutes.models import Event
 
 from ..models.test_event import build_event
 
-migration = importlib.import_module("techpourtoutes.migrations.0077_event_department_code")
+migration = importlib.import_module("techpourtoutes.migrations.0081_event_department_code")
 
 pytestmark = pytest.mark.django_db
 

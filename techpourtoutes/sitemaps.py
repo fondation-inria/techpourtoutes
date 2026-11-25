@@ -28,6 +28,7 @@ BENEFICIARY_PAGE_NAMES = [
     "new_training_ambassador_beneficiary",
     "index_events",
     "index_makeuses",
+    "index_job_postings",
 ]
 
 

@@ -5,6 +5,9 @@ from django.utils.translation import gettext_lazy as _
 from .structure_type import StructureType
 from .user import User
 
+# Created by migration 0056, which keeps its own copy of the name.
+EVENT_MODERATOR_GROUP_NAME = "Chargée de mission"
+
 
 class Pro(User):
     class Engagement(models.TextChoices):
@@ -67,9 +70,20 @@ class Pro(User):
         return self.Engagement.WORK_AMBASSADOR in self.engagements
 
     @property
+    def is_only_work_ambassador(self):
+        return self.engagements == [self.Engagement.WORK_AMBASSADOR]
+
+    @property
     def has_workshops(self):
         return self.Engagement.WORKSHOPS in self.engagements
 
     @property
     def has_internships(self):
         return self.Engagement.INTERNSHIPS in self.engagements
+
+    @property
+    def default_event_organizer(self):
+        """A Chargée de mission proposes events on behalf of others"""
+        if self.groups.filter(name=EVENT_MODERATOR_GROUP_NAME).exists() or self.is_superuser:
+            return ""
+        return self.structure_name

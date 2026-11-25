@@ -8,7 +8,6 @@ MYFUTURE_SAMPLE_PATH = settings.BASE_DIR / "data" / "myfuture" / "job_postings_s
 # glued to the sub-domain's own slug.
 SUB_DOMAINS = {
     "electricite-electronique-robotiqueelectronique": JobPosting.Domain.ELECTRONIQUE,
-    "electricite-electronique-robotiqueelectrotechnique": JobPosting.Domain.ELECTROTECHNIQUE,
     "electricite-electronique-robotiquetelecommunications": JobPosting.Domain.TELECOMMUNICATIONS,
     "informatique-internetbases-de-donnees": JobPosting.Domain.BASES_DE_DONNEES,
     "informatique-internetdeveloppement-programmation-logiciel": (JobPosting.Domain.DEVELOPPEMENT),

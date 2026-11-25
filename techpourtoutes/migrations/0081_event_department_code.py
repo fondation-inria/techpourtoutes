@@ -33,7 +33,7 @@ def derive_department_codes(apps, schema_editor):
 
 class Migration(migrations.Migration):
     dependencies = [
-        ("techpourtoutes", "0076_saved_and_clicked_job_postings"),
+        ("techpourtoutes", "0080_delete_internships_switch"),
     ]
 
     operations = [

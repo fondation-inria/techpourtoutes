@@ -143,3 +143,28 @@ def test_pro_may_mobilize_her_structure(pro):
 )
 def test_may_be_training_ambassador_unless_another_engagement_was_taken(engagements, expected):
     assert Pro(engagements=engagements).may_be_training_ambassador is expected
+
+
+@pytest.mark.django_db
+def test_default_event_organizer_is_her_structure_name(pro):
+    assert pro.default_event_organizer == "Inria"
+
+
+@pytest.mark.django_db
+def test_default_event_organizer_is_blank_without_a_structure_name(pro):
+    pro.structure_name = ""
+
+    assert pro.default_event_organizer == ""
+
+
+@pytest.mark.django_db
+def test_default_event_organizer_is_blank_for_an_event_moderator(moderator_pro):
+    """A Chargée de mission proposes events on behalf of others: her structure is not theirs."""
+    assert moderator_pro.default_event_organizer == ""
+
+
+@pytest.mark.django_db
+def test_default_event_organizer_is_blank_for_a_superuser(pro):
+    pro.is_superuser = True
+
+    assert pro.default_event_organizer == ""

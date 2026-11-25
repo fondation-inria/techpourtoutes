@@ -4,7 +4,7 @@ from unittest.mock import patch
 import pytest
 
 from techpourtoutes.models import JobPosting
-from techpourtoutes.utils.job_posting import city_name, upsert_in_batches
+from techpourtoutes.utils.job_posting import city_name, upsert_in_batches, with_line_breaks
 
 pytestmark = pytest.mark.django_db
 
@@ -56,3 +56,43 @@ def test_the_ids_written_are_handed_back():
 )
 def test_city_name_title_cases_only_a_city_spelled_in_capitals(city, name):
     assert city_name(city) == name
+
+
+@pytest.mark.parametrize(
+    ("text", "shown"),
+    [
+        (
+            "<p>Rémunération : 30 k€.\nPrimes annuelles</p>",
+            "<p>Rémunération : 30 k€.<br>Primes annuelles</p>",
+        ),
+        ("<p>Le stage comprendra :\n\nÉtude</p>", "<p>Le stage comprendra :<br><br>Étude</p>"),
+        ("<p>Missions :\n- Analyser\n- Tester</p>", "<p>Missions :<br>- Analyser<br>- Tester</p>"),
+        (
+            "<p>Description de l’atelier\nNotre atelier</p>",
+            "<p>Description de l’atelier<br>Notre atelier</p>",
+        ),
+    ],
+    ids=["after_a_full_stop", "blank_line", "list", "before_a_capital"],
+)
+def test_with_line_breaks_shows_the_line_breaks_the_partner_typed(text, shown):
+    assert with_line_breaks(text) == shown
+
+
+@pytest.mark.parametrize(
+    "text",
+    [
+        "<p>Vous recherchez un poste\nd'Administrateur ?</p>",
+        "<p>Rejoignez la Direction des\nSystèmes d'Information</p>",
+        "<p>Rejoignez l’\nAventure</p>",
+    ],
+    ids=["before_a_lowercase", "after_a_function_word", "after_an_elision"],
+)
+def test_with_line_breaks_leaves_the_text_wrapping_within_a_sentence_a_space(text):
+    """Some texts were wrapped at a fixed width before reaching the partner."""
+    assert with_line_breaks(text) == text
+
+
+def test_with_line_breaks_leaves_the_line_breaks_between_tags_alone():
+    text = '<p>Un</p>\n<ul>\n<li><a href="https://example.org">Deux</a></li>\n</ul>'
+
+    assert with_line_breaks(text) == text

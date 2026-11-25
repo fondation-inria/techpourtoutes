@@ -10,7 +10,6 @@ from django.test import override_settings
 from django.test.utils import CaptureQueriesContext
 from django.urls import reverse
 from django.utils import timezone
-from waffle.testutils import override_switch
 
 from techpourtoutes.models import (
     ClickedJobPosting,
@@ -218,13 +217,6 @@ def job_postings():
 
 
 @pytest.mark.django_db
-@override_switch("internships", active=False)
-def test_index_job_postings_not_found_when_switch_inactive(client):
-    assert client.get(INDEX_JOB_POSTINGS_URL).status_code == 404
-
-
-@pytest.mark.django_db
-@override_switch("internships", active=True)
 def test_index_job_postings_lists_the_requested_category_only(client, job_postings):
     response = client.get(INDEX_JOB_POSTINGS_URL, {"category": "apprenticeship"})
 
@@ -234,7 +226,6 @@ def test_index_job_postings_lists_the_requested_category_only(client, job_postin
 
 @pytest.mark.django_db
 @pytest.mark.parametrize("query", [{}, {"category": "inconnue"}])
-@override_switch("internships", active=True)
 def test_index_job_postings_defaults_to_higher_ed_internships(client, job_postings, query):
     response = client.get(INDEX_JOB_POSTINGS_URL, query)
 
@@ -243,7 +234,6 @@ def test_index_job_postings_defaults_to_higher_ed_internships(client, job_postin
 
 
 @pytest.mark.django_db
-@override_switch("internships", active=True)
 def test_index_job_postings_leaves_out_the_hidden_postings(client):
     category = JobPosting.Category.HIGHER_ED_INTERNSHIP
     save_job_posting("Publiée", category)
@@ -253,7 +243,6 @@ def test_index_job_postings_leaves_out_the_hidden_postings(client):
 
 
 @pytest.mark.django_db
-@override_switch("internships", active=True)
 def test_index_job_postings_shows_every_domain_of_a_posting(client):
     save_job_posting(
         "Stage",
@@ -268,7 +257,6 @@ def test_index_job_postings_shows_every_domain_of_a_posting(client):
 
 
 @pytest.mark.django_db
-@override_switch("internships", active=True)
 def test_index_job_postings_decodes_the_description_and_still_escapes_it(client):
     save_job_posting(
         "Stage",
@@ -283,7 +271,6 @@ def test_index_job_postings_decodes_the_description_and_still_escapes_it(client)
 
 
 @pytest.mark.django_db
-@override_switch("internships", active=True)
 def test_index_job_postings_lists_the_latest_update_or_publication_first(client):
     now = timezone.now()
     category = JobPosting.Category.HIGHER_ED_INTERNSHIP
@@ -317,7 +304,6 @@ def test_index_job_postings_lists_the_latest_update_or_publication_first(client)
         ),
     ],
 )
-@override_switch("internships", active=True)
 def test_index_job_postings_highlights_the_tab_of_the_category(client, query, active_href):
     html = client.get(INDEX_JOB_POSTINGS_URL, query).content.decode()
 
@@ -340,7 +326,6 @@ def listed_titles(response):
         ({}, {"Maths", "Maths et réseaux", "Électro"}),
     ],
 )
-@override_switch("internships", active=True)
 def test_index_job_postings_keeps_the_postings_of_any_ticked_domain(client, query, expected):
     category = JobPosting.Category.HIGHER_ED_INTERNSHIP
     save_job_posting("Maths", category, domains=[JobPosting.Domain.MATHEMATIQUES])
@@ -364,7 +349,6 @@ def test_index_job_postings_keeps_the_postings_of_any_ticked_domain(client, quer
         ({}, {"CDD", "CDI", "Intérim"}),
     ],
 )
-@override_switch("internships", active=True)
 def test_index_job_postings_keeps_the_postings_of_any_ticked_contract_type(
     client, query, expected
 ):
@@ -394,7 +378,6 @@ EVERY_PLACE = {"Brest", "Ajaccio", "Saint-Denis", "Londres", "Nulle part"}
         ({}, EVERY_PLACE),
     ],
 )
-@override_switch("internships", active=True)
 def test_index_job_postings_keeps_the_postings_of_any_ticked_department(client, query, expected):
     category = JobPosting.Category.HIGHER_ED_INTERNSHIP
     for title, department in [
@@ -410,13 +393,13 @@ def test_index_job_postings_keeps_the_postings_of_any_ticked_department(client, 
 
 
 @pytest.mark.django_db
-@override_switch("internships", active=True)
 @pytest.mark.parametrize(
     "category, offers_apec_domains",
     [
         ("higher_ed_internship", True),
         ("apprenticeship", True),
         ("first_job", True),
+        ("pfmp", False),
         ("seconde_internship", False),
         ("troisieme_internship", False),
     ],
@@ -435,7 +418,6 @@ def test_index_job_postings_offers_the_domains_of_the_category(
 
 
 @pytest.mark.django_db
-@override_switch("internships", active=True)
 def test_index_job_postings_ignores_an_apec_domain_ticked_on_a_pupils_tab(client):
     category = JobPosting.Category.TROISIEME_INTERNSHIP
     save_job_posting("Création", category, domains=[JobPosting.Domain.CREATION])
@@ -447,17 +429,67 @@ def test_index_job_postings_ignores_an_apec_domain_ticked_on_a_pupils_tab(client
 
 
 @pytest.mark.django_db
+def test_index_job_postings_shows_the_tabs_in_the_colour_of_their_category(client):
+    html = client.get(INDEX_JOB_POSTINGS_URL).content.decode()
+
+    tabs = re.findall(r'role="tab"\s+class="[^"]*border-(\w+)-500[^"]*">\s*([^<]*?)\s*</a>', html)
+    assert tabs == [
+        ("purple", "Stages dans le supérieur"),
+        ("orange", "Alternances"),
+        ("green", "PFMP"),
+        ("blue", "Stages de 2de"),
+        ("purple", "Stages de 3e"),
+        ("orange", "Premiers emplois"),
+    ]
+    assert [JobPosting.CATEGORY_COLORS[category] for category in JobPosting.Category] == [
+        "purple",
+        "orange",
+        "blue",
+        "purple",
+        "orange",
+        "green",
+    ]
+
+
+PFMP_INTRODUCTION = "En CAP et en bac professionnel, des stages en entreprise sont obligatoires."
+
+
+@pytest.mark.django_db
+@pytest.mark.parametrize(
+    ("category", "introduced"),
+    [("pfmp", True), ("higher_ed_internship", False), ("troisieme_internship", False)],
+)
+def test_index_job_postings_introduces_the_pfmp_tab(client, category, introduced):
+    html = client.get(INDEX_JOB_POSTINGS_URL, {"category": category}).content.decode()
+
+    assert (PFMP_INTRODUCTION in html) == introduced
+
+
+@pytest.mark.django_db
+@pytest.mark.parametrize(
+    ("category", "text_color"),
+    [("seconde_internship", "text-white"), ("troisieme_internship", "text-black")],
+)
+def test_index_job_postings_writes_white_on_the_blue_tab(client, category, text_color):
+    """Black on this blue falls short of the 4.5:1 contrast RGAA asks for."""
+    html = client.get(INDEX_JOB_POSTINGS_URL, {"category": category}).content.decode()
+
+    active_tab = re.search(r'class="([^"]*tab-active[^"]*)"', html)[1]
+    assert text_color in active_tab.split()
+
+
+@pytest.mark.django_db
 @pytest.mark.parametrize(
     "category, offered",
     [
         ("first_job", ["cdd", "cdi", "interim"]),
         ("apprenticeship", ["apprenticeship", "professionalization"]),
         ("higher_ed_internship", []),
+        ("pfmp", []),
         ("seconde_internship", []),
         ("troisieme_internship", []),
     ],
 )
-@override_switch("internships", active=True)
 def test_index_job_postings_offers_the_contract_types_of_the_category(client, category, offered):
     html = client.get(INDEX_JOB_POSTINGS_URL, {"category": category}).content.decode()
 
@@ -472,11 +504,11 @@ def test_index_job_postings_offers_the_contract_types_of_the_category(client, ca
         ("higher_ed_internship", True),
         ("apprenticeship", True),
         ("first_job", True),
+        ("pfmp", False),
         ("seconde_internship", False),
         ("troisieme_internship", False),
     ],
 )
-@override_switch("internships", active=True)
 def test_index_job_postings_offers_the_duration_filter_but_to_pupils(client, category, offered):
     html = client.get(INDEX_JOB_POSTINGS_URL, {"category": category}).content.decode()
 
@@ -496,7 +528,6 @@ def test_index_job_postings_offers_the_duration_filter_but_to_pupils(client, cat
         ({}, {"2 mois", "6 mois", "24 mois", "Sans durée"}),
     ],
 )
-@override_switch("internships", active=True)
 def test_index_job_postings_keeps_the_postings_of_any_ticked_duration_and_those_without_one(
     client, query, expected
 ):
@@ -509,7 +540,6 @@ def test_index_job_postings_keeps_the_postings_of_any_ticked_duration_and_those_
 
 
 @pytest.mark.django_db
-@override_switch("internships", active=True)
 def test_index_job_postings_shows_the_duration_on_the_card(client):
     save_job_posting("Alternance", JobPosting.Category.APPRENTICESHIP, duration_months=24)
 
@@ -519,7 +549,6 @@ def test_index_job_postings_shows_the_duration_on_the_card(client):
 
 
 @pytest.mark.django_db
-@override_switch("internships", active=True)
 def test_index_job_postings_hides_and_ignores_the_duration_filter_when_cdi_alone_is_ticked(
     client,
 ):
@@ -538,7 +567,6 @@ def test_index_job_postings_hides_and_ignores_the_duration_filter_when_cdi_alone
 
 
 @pytest.mark.django_db
-@override_switch("internships", active=True)
 def test_index_job_postings_keeps_the_duration_filter_when_cdi_comes_with_another_contract(
     client,
 ):
@@ -558,13 +586,13 @@ def test_index_job_postings_keeps_the_duration_filter_when_cdi_comes_with_anothe
     [
         ({"category": "seconde_internship"}, True),
         ({"category": "troisieme_internship"}, True),
+        ({"category": "pfmp"}, False),
         ({"category": "troisieme_internship", "q": "web"}, False),
         ({"category": "troisieme_internship", "domain": "developpement"}, False),
         ({"category": "troisieme_internship", "department": "29"}, False),
         ({"category": "apprenticeship"}, False),
     ],
 )
-@override_switch("internships", active=True)
 def test_index_job_postings_shows_a_pupil_empty_state_when_the_tab_has_no_offer(
     client, query, pupil_empty_state
 ):
@@ -580,7 +608,6 @@ def test_index_job_postings_shows_a_pupil_empty_state_when_the_tab_has_no_offer(
 
 
 @pytest.mark.django_db
-@override_switch("internships", active=True)
 def test_index_job_postings_shows_no_pupil_empty_state_when_the_tab_has_an_offer(client):
     category = JobPosting.Category.TROISIEME_INTERNSHIP
     save_job_posting("Stage d'observation", category)
@@ -603,7 +630,6 @@ CREATE_JOB_POSTING_NOTIFICATION_URL = "/stages-alternances-emplois/notification/
     BREVO_SECONDE_INTERNSHIP_NOTIFICATION_LIST_ID=21,
     BREVO_TROISIEME_INTERNSHIP_NOTIFICATION_LIST_ID=22,
 )
-@override_switch("internships", active=True)
 def test_create_job_posting_notification_valid_pushes_brevo_contact_and_redirects_to_the_tab(
     client, category, list_id
 ):
@@ -624,7 +650,6 @@ def test_create_job_posting_notification_valid_pushes_brevo_contact_and_redirect
 
 
 @pytest.mark.django_db
-@override_switch("internships", active=True)
 def test_create_job_posting_notification_invalid_rerenders_the_tab_with_errors(client):
     with patch(
         "techpourtoutes.views.beneficiary_views.create_upcoming_feature_notification_task"
@@ -641,10 +666,12 @@ def test_create_job_posting_notification_invalid_rerenders_the_tab_with_errors(c
 
 
 @pytest.mark.django_db
-@override_switch("internships", active=True)
-def test_create_job_posting_notification_not_found_for_a_tab_without_mailing_list(client):
+@pytest.mark.parametrize("category", ["apprenticeship", "pfmp"])
+def test_create_job_posting_notification_not_found_for_a_tab_without_mailing_list(
+    client, category
+):
     response = client.post(
-        f"{CREATE_JOB_POSTING_NOTIFICATION_URL}?category=apprenticeship",
+        f"{CREATE_JOB_POSTING_NOTIFICATION_URL}?category={category}",
         data={"email": "hedy@example.com"},
     )
 
@@ -652,15 +679,6 @@ def test_create_job_posting_notification_not_found_for_a_tab_without_mailing_lis
 
 
 @pytest.mark.django_db
-@override_switch("internships", active=False)
-def test_create_job_posting_notification_not_found_when_switch_inactive(client):
-    response = client.post(CREATE_JOB_POSTING_NOTIFICATION_URL, data={"email": "hedy@example.com"})
-
-    assert response.status_code == 404
-
-
-@pytest.mark.django_db
-@override_switch("internships", active=True)
 def test_index_job_postings_offers_every_region_and_department(client):
     html = client.get(INDEX_JOB_POSTINGS_URL).content.decode()
 
@@ -677,7 +695,6 @@ def twenty_one_apprenticeships():
 
 
 @pytest.mark.django_db
-@override_switch("internships", active=True)
 def test_index_job_postings_shows_twenty_postings_and_a_link_to_the_next_page_of_the_category(
     client, twenty_one_apprenticeships
 ):
@@ -689,7 +706,6 @@ def test_index_job_postings_shows_twenty_postings_and_a_link_to_the_next_page_of
 
 
 @pytest.mark.django_db
-@override_switch("internships", active=True)
 def test_index_job_postings_keeps_the_filters_in_the_link_to_the_next_page(
     client, twenty_one_apprenticeships
 ):
@@ -702,7 +718,6 @@ def test_index_job_postings_keeps_the_filters_in_the_link_to_the_next_page(
 
 
 @pytest.mark.django_db
-@override_switch("internships", active=True)
 def test_index_job_postings_ticks_the_filters_of_the_query(client):
     html = client.get(
         INDEX_JOB_POSTINGS_URL, {"domain": "mathematiques", "department": "29"}
@@ -713,7 +728,6 @@ def test_index_job_postings_ticks_the_filters_of_the_query(client):
 
 
 @pytest.mark.django_db
-@override_switch("internships", active=True)
 def test_index_job_postings_ticks_the_contract_types_of_the_query(client):
     html = client.get(
         INDEX_JOB_POSTINGS_URL, {"category": "first_job", "contract_type": "cdi"}
@@ -723,7 +737,6 @@ def test_index_job_postings_ticks_the_contract_types_of_the_query(client):
 
 
 @pytest.mark.django_db
-@override_switch("internships", active=True)
 def test_index_job_postings_serves_the_page_asked_for(client, twenty_one_apprenticeships):
     response = client.get(INDEX_JOB_POSTINGS_URL, {"category": "apprenticeship", "page": 2})
 
@@ -736,15 +749,6 @@ def show_job_posting_url(job_posting):
 
 
 @pytest.mark.django_db
-@override_switch("internships", active=False)
-def test_show_job_posting_not_found_when_switch_inactive(client):
-    job_posting = save_job_posting("Stage", JobPosting.Category.HIGHER_ED_INTERNSHIP)
-
-    assert client.get(show_job_posting_url(job_posting)).status_code == 404
-
-
-@pytest.mark.django_db
-@override_switch("internships", active=True)
 def test_show_job_posting_not_found_once_unpublished(client):
     job_posting = save_job_posting("Stage", JobPosting.Category.HIGHER_ED_INTERNSHIP, hidden=True)
 
@@ -752,7 +756,6 @@ def test_show_job_posting_not_found_once_unpublished(client):
 
 
 @pytest.mark.django_db
-@override_switch("internships", active=True)
 def test_show_job_posting_renders_the_posting(client):
     job_posting = save_job_posting(
         "Développeuse BI",
@@ -787,7 +790,6 @@ def test_show_job_posting_renders_the_posting(client):
 
 @pytest.mark.django_db
 @pytest.mark.parametrize("category", ["higher_ed_internship", "apprenticeship", "first_job"])
-@override_switch("internships", active=True)
 def test_show_job_posting_leaves_out_the_position_status(client, category):
     """Apec says « Cadre du secteur privé » nearly every time, and an internship is a « Stage »."""
     job_posting = save_job_posting("Offre", category)
@@ -798,7 +800,6 @@ def test_show_job_posting_leaves_out_the_position_status(client, category):
 
 
 @pytest.mark.django_db
-@override_switch("internships", active=True)
 def test_show_job_posting_sizes_the_logo_without_a_stylesheet(client):
     job_posting = save_job_posting("Stage", JobPosting.Category.HIGHER_ED_INTERNSHIP)
 
@@ -810,7 +811,6 @@ def test_show_job_posting_sizes_the_logo_without_a_stylesheet(client):
 
 
 @pytest.mark.django_db
-@override_switch("internships", active=True)
 def test_show_job_posting_puts_save_beside_back_and_apply_at_the_bottom_on_a_phone(client):
     """On a phone the save button sits beside the back one, above the title, and the apply one
     in the bar fixed at the bottom: a screen reader reads them in the order they are shown."""
@@ -818,12 +818,11 @@ def test_show_job_posting_puts_save_beside_back_and_apply_at_the_bottom_on_a_pho
 
     html = client.get(show_job_posting_url(job_posting)).content.decode()
 
-    assert html.index("Retour") < html.index("Enregistrer") < html.index("cherche une stagiaire")
+    assert html.index("Retour") < html.index("Enregistrer") < html.index("prochaine stagiaire")
     assert html.rindex("Postuler sur") > html.index("Descriptif de l’offre")
 
 
 @pytest.mark.django_db
-@override_switch("internships", active=True)
 def test_show_job_posting_offers_no_save_button_to_a_signed_in_pro(client, pro):
     job_posting = save_job_posting("Stage", JobPosting.Category.HIGHER_ED_INTERNSHIP)
     assert "Enregistrer" in client.get(show_job_posting_url(job_posting)).content.decode()
@@ -834,7 +833,6 @@ def test_show_job_posting_offers_no_save_button_to_a_signed_in_pro(client, pro):
 
 
 @pytest.mark.django_db
-@override_switch("internships", active=True)
 def test_show_job_posting_says_what_the_partner_did_not_give(client):
     job_posting = save_job_posting("Alternance", JobPosting.Category.APPRENTICESHIP)
 
@@ -853,14 +851,14 @@ def test_show_job_posting_says_what_the_partner_did_not_give(client):
 @pytest.mark.parametrize(
     "category, mention",
     [
-        ("higher_ed_internship", "Numeum cherche une stagiaire au poste de&nbsp;:"),
-        ("apprenticeship", "Numeum cherche une alternante au poste de&nbsp;:"),
+        ("higher_ed_internship", "Seras-tu la prochaine stagiaire de Numeum&nbsp;?"),
+        ("apprenticeship", "Seras-tu la prochaine alternante de Numeum&nbsp;?"),
         ("first_job", "Numeum recrute au poste de&nbsp;:"),
+        ("pfmp", "Numeum propose une PFMP&nbsp;:"),
         ("seconde_internship", "Numeum propose un stage d’observation"),
         ("troisieme_internship", "Numeum propose un stage d’observation"),
     ],
 )
-@override_switch("internships", active=True)
 def test_show_job_posting_introduces_the_company_according_to_the_category(
     client, category, mention
 ):
@@ -873,8 +871,7 @@ def test_show_job_posting_introduces_the_company_according_to_the_category(
 
 
 @pytest.mark.django_db
-@pytest.mark.parametrize("category", ["seconde_internship", "troisieme_internship"])
-@override_switch("internships", active=True)
+@pytest.mark.parametrize("category", ["pfmp", "seconde_internship", "troisieme_internship"])
 def test_show_job_posting_shows_a_pupil_the_period_and_nothing_about_the_job(client, category):
     job_posting = save_job_posting(
         "Stage", category, starts_on=date(2027, 6, 12), ends_on=date(2027, 6, 19)
@@ -889,7 +886,6 @@ def test_show_job_posting_shows_a_pupil_the_period_and_nothing_about_the_job(cli
 
 @pytest.mark.django_db
 @pytest.mark.parametrize("category", ["higher_ed_internship", "apprenticeship", "first_job"])
-@override_switch("internships", active=True)
 def test_show_job_posting_leaves_out_the_start_date(client, category):
     job_posting = save_job_posting("Offre", category, starts_on=date(2027, 1, 1))
 
@@ -904,7 +900,6 @@ def test_show_job_posting_leaves_out_the_start_date(client, category):
     "contract_type, shown",
     [(JobPosting.ContractType.CDI, False), (JobPosting.ContractType.CDD, True)],
 )
-@override_switch("internships", active=True)
 def test_show_job_posting_leaves_out_the_duration_of_a_cdi(client, contract_type, shown):
     job_posting = save_job_posting(
         "Développeuse", JobPosting.Category.FIRST_JOB, contract_type=contract_type
@@ -916,7 +911,6 @@ def test_show_job_posting_leaves_out_the_duration_of_a_cdi(client, contract_type
 
 
 @pytest.mark.django_db
-@override_switch("internships", active=True)
 def test_show_job_posting_says_when_it_was_published(client):
     job_posting = save_job_posting(
         "Stage",
@@ -930,7 +924,6 @@ def test_show_job_posting_says_when_it_was_published(client):
 
 
 @pytest.mark.django_db
-@override_switch("internships", active=True)
 def test_show_job_posting_says_when_it_was_last_updated(client):
     job_posting = save_job_posting(
         "Stage",
@@ -949,7 +942,6 @@ def test_show_job_posting_says_when_it_was_last_updated(client):
     "source, logo",
     [("apec", "images/apec_logo.jpg"), ("myfuture", "images/myfuture_logo.png")],
 )
-@override_switch("internships", active=True)
 def test_show_job_posting_shows_the_logo_of_the_partner(client, source, logo):
     """The sentence beside it names the partner: the logo adds nothing for a screen reader."""
     job_posting = save_job_posting("Stage", JobPosting.Category.APPRENTICESHIP, source=source)
@@ -964,7 +956,6 @@ def test_show_job_posting_shows_the_logo_of_the_partner(client, source, logo):
     "source, partner",
     [("apec", "l’Apec"), ("myfuture", "MyFuture")],
 )
-@override_switch("internships", active=True)
 def test_show_job_posting_sends_her_to_the_partner_to_apply(client, source, partner):
     job_posting = save_job_posting(
         "Stage",
@@ -991,7 +982,6 @@ def test_show_job_posting_sends_her_to_the_partner_to_apply(client, source, part
 
 
 @pytest.mark.django_db
-@override_switch("internships", active=True)
 def test_show_job_posting_goes_back_to_the_listing_she_came_from(client):
     job_posting = save_job_posting("Stage", JobPosting.Category.APPRENTICESHIP)
     listing = f"{INDEX_JOB_POSTINGS_URL}?category=apprenticeship&page=2"
@@ -1002,7 +992,24 @@ def test_show_job_posting_goes_back_to_the_listing_she_came_from(client):
 
 
 @pytest.mark.django_db
-@override_switch("internships", active=True)
+@pytest.mark.parametrize(
+    ("anchor_prefix", "expected_prefix"),
+    [("candidature", "candidature"), ("enregistree", "enregistree"), ("inconnue", "offre")],
+)
+def test_show_job_posting_goes_back_to_the_card_of_her_opportunities(
+    client, anchor_prefix, expected_prefix
+):
+    job_posting = save_job_posting("Stage", JobPosting.Category.APPRENTICESHIP)
+    listing = f"{reverse('index_beneficiary_job_postings')}?saved_job_postings_page=2"
+
+    response = client.get(
+        show_job_posting_url(job_posting), {"ancre": anchor_prefix}, HTTP_REFERER=listing
+    )
+
+    assert response.context["back_url"] == f"{listing}#{expected_prefix}-{job_posting.pk}"
+
+
+@pytest.mark.django_db
 def test_show_job_posting_goes_back_to_the_top_of_the_listing_without_one_to_return_to(client):
     job_posting = save_job_posting("Stage", JobPosting.Category.APPRENTICESHIP)
 
@@ -1012,7 +1019,6 @@ def test_show_job_posting_goes_back_to_the_top_of_the_listing_without_one_to_ret
 
 
 @pytest.mark.django_db
-@override_switch("internships", active=True)
 def test_index_job_postings_anchors_each_card_for_the_way_back(client):
     job_posting = save_job_posting("Stage", JobPosting.Category.HIGHER_ED_INTERNSHIP)
 
@@ -1022,7 +1028,95 @@ def test_index_job_postings_anchors_each_card_for_the_way_back(client):
 
 
 @pytest.mark.django_db
-@override_switch("internships", active=True)
+def test_index_job_postings_is_never_served_from_the_browser_cache(client):
+    """Back or forward would otherwise show the bookmarks as they were before a toggle."""
+    response = client.get(INDEX_JOB_POSTINGS_URL)
+
+    assert "no-store" in response["Cache-Control"]
+
+
+@pytest.mark.django_db
+def test_show_job_posting_is_never_served_from_the_browser_cache(client, job_posting):
+    response = client.get(show_job_posting_url(job_posting))
+
+    assert "no-store" in response["Cache-Control"]
+
+
+@pytest.mark.django_db
+def test_index_job_postings_bookmark_posts_to_update_saved_job_posting(
+    client, beneficiary, job_posting
+):
+    client.force_login(beneficiary)
+
+    response = client.get(INDEX_JOB_POSTINGS_URL, {"category": job_posting.category})
+
+    assert response.context["job_postings"][0].saved is False
+    content = response.content.decode()
+    assert reverse("update_saved_job_posting", args=[job_posting.pk]) in content
+    assert 'aria-pressed="false"' in content
+    assert "text-neutral-0" in content
+
+
+@pytest.mark.django_db
+def test_index_job_postings_colours_the_bookmark_of_a_saved_posting_after_its_category(
+    client, beneficiary
+):
+    job_posting = save_job_posting("Alternance", JobPosting.Category.APPRENTICESHIP)
+    SavedJobPosting.objects.toggle(job_posting=job_posting, beneficiary=beneficiary)
+    client.force_login(beneficiary)
+
+    response = client.get(INDEX_JOB_POSTINGS_URL, {"category": job_posting.category})
+
+    assert response.context["job_postings"][0].saved is True
+    content = response.content.decode()
+    assert 'aria-pressed="true"' in content
+    assert f'aria-label="Enregistrer l’offre {job_posting.title}"' in content
+    assert "text-orange-500" in content
+
+
+@pytest.mark.django_db
+def test_index_job_postings_saved_flag_costs_no_query_per_posting(client, beneficiary):
+    """Four postings must cost what one costs: the flag is annotated, never fetched per row.
+
+    A first render warms the cache of the switches the layout reads."""
+    save_job_posting("Stage 0", JobPosting.Category.HIGHER_ED_INTERNSHIP)
+    client.force_login(beneficiary)
+    client.get(INDEX_JOB_POSTINGS_URL)
+    with CaptureQueriesContext(connection) as one_posting:
+        client.get(INDEX_JOB_POSTINGS_URL)
+
+    for index in range(1, 4):
+        save_job_posting(f"Stage {index}", JobPosting.Category.HIGHER_ED_INTERNSHIP)
+    with CaptureQueriesContext(connection) as four_postings:
+        client.get(INDEX_JOB_POSTINGS_URL)
+
+    assert len(four_postings.captured_queries) == len(one_posting.captured_queries)
+
+
+@pytest.mark.django_db
+def test_index_job_postings_anonymous_bookmark_opens_the_signup_modal(client, job_posting):
+    content = client.get(
+        INDEX_JOB_POSTINGS_URL, {"category": job_posting.category}
+    ).content.decode()
+
+    assert reverse("create_saved_job_posting_modal", args=[job_posting.pk]) in content
+    assert reverse("update_saved_job_posting", args=[job_posting.pk]) not in content
+    assert "aria-pressed" not in content
+
+
+@pytest.mark.django_db
+def test_index_job_postings_gives_a_connected_pro_no_bookmark_at_all(client, pro, job_posting):
+    client.force_login(pro)
+
+    content = client.get(
+        INDEX_JOB_POSTINGS_URL, {"category": job_posting.category}
+    ).content.decode()
+
+    assert reverse("create_saved_job_posting_modal", args=[job_posting.pk]) not in content
+    assert "#bookmark" not in content
+
+
+@pytest.mark.django_db
 def test_show_job_posting_bookmark_posts_to_update_saved_job_posting(
     client, beneficiary, job_posting
 ):
@@ -1035,7 +1129,6 @@ def test_show_job_posting_bookmark_posts_to_update_saved_job_posting(
 
 
 @pytest.mark.django_db
-@override_switch("internships", active=True)
 def test_show_job_posting_marks_an_already_saved_posting(client, beneficiary, job_posting):
     SavedJobPosting.objects.toggle(job_posting=job_posting, beneficiary=beneficiary)
     client.force_login(beneficiary)
@@ -1046,7 +1139,6 @@ def test_show_job_posting_marks_an_already_saved_posting(client, beneficiary, jo
 
 
 @pytest.mark.django_db
-@override_switch("internships", active=True)
 def test_show_job_posting_anonymous_bookmark_opens_the_signup_modal(client, job_posting):
     content = client.get(show_job_posting_url(job_posting)).content.decode()
 
@@ -1055,7 +1147,6 @@ def test_show_job_posting_anonymous_bookmark_opens_the_signup_modal(client, job_
 
 
 @pytest.mark.django_db
-@override_switch("internships", active=True)
 def test_show_job_posting_gives_a_connected_pro_no_bookmark_at_all(client, pro, job_posting):
     client.force_login(pro)
 
@@ -1066,7 +1157,6 @@ def test_show_job_posting_gives_a_connected_pro_no_bookmark_at_all(client, pro, 
 
 
 @pytest.mark.django_db
-@override_switch("internships", active=True)
 def test_show_job_posting_welcomes_her_to_the_club_once(client, beneficiary, job_posting):
     """Signing up to save an offer lands her back on it: the welcome waits for her there."""
     client.force_login(beneficiary)
@@ -1085,7 +1175,6 @@ def application_modal_url(job_posting):
 
 
 @pytest.mark.django_db
-@override_switch("internships", active=True)
 def test_show_job_posting_application_modal_names_the_posting_and_sends_her_to_the_partner(
     client, job_posting
 ):
@@ -1103,7 +1192,6 @@ def test_show_job_posting_application_modal_names_the_posting_and_sends_her_to_t
 
 
 @pytest.mark.django_db
-@override_switch("internships", active=True)
 def test_show_job_posting_application_modal_offers_an_anonymous_visitor_to_save_the_posting(
     client, job_posting
 ):
@@ -1116,7 +1204,6 @@ def test_show_job_posting_application_modal_offers_an_anonymous_visitor_to_save_
 
 
 @pytest.mark.django_db
-@override_switch("internships", active=True)
 def test_show_job_posting_application_modal_records_the_click_of_a_beneficiary(
     client, beneficiary, job_posting
 ):
@@ -1130,7 +1217,6 @@ def test_show_job_posting_application_modal_records_the_click_of_a_beneficiary(
 
 
 @pytest.mark.django_db
-@override_switch("internships", active=True)
 def test_show_job_posting_application_modal_neither_saves_nor_records_for_a_pro(
     client, pro, job_posting
 ):
@@ -1145,7 +1231,6 @@ def test_show_job_posting_application_modal_neither_saves_nor_records_for_a_pro(
 
 
 @pytest.mark.django_db
-@override_switch("internships", active=True)
 def test_show_job_posting_application_modal_ignores_an_unpublished_posting(client):
     job_posting = save_job_posting("Stage", JobPosting.Category.HIGHER_ED_INTERNSHIP, hidden=True)
 
@@ -1153,13 +1238,6 @@ def test_show_job_posting_application_modal_ignores_an_unpublished_posting(clien
 
 
 @pytest.mark.django_db
-@override_switch("internships", active=False)
-def test_show_job_posting_application_modal_not_found_when_switch_inactive(client, job_posting):
-    assert client.get(application_modal_url(job_posting)).status_code == 404
-
-
-@pytest.mark.django_db
-@override_switch("internships", active=True)
 def test_update_saved_job_posting_saves_the_posting_for_the_beneficiary(
     client, beneficiary, job_posting
 ):
@@ -1175,7 +1253,6 @@ def test_update_saved_job_posting_saves_the_posting_for_the_beneficiary(
 
 
 @pytest.mark.django_db
-@override_switch("internships", active=True)
 def test_update_saved_job_posting_twice_takes_the_posting_back_out(
     client, beneficiary, job_posting
 ):
@@ -1192,7 +1269,6 @@ def test_update_saved_job_posting_twice_takes_the_posting_back_out(
 
 
 @pytest.mark.django_db
-@override_switch("internships", active=True)
 def test_update_saved_job_posting_swaps_every_bookmark_of_the_posting(
     client, beneficiary, job_posting
 ):
@@ -1206,7 +1282,21 @@ def test_update_saved_job_posting_swaps_every_bookmark_of_the_posting(
 
 
 @pytest.mark.django_db
-@override_switch("internships", active=True)
+def test_update_saved_job_posting_from_a_card_swaps_the_card_bookmark_back_in(
+    client, beneficiary, job_posting
+):
+    client.force_login(beneficiary)
+
+    content = client.post(
+        reverse("update_saved_job_posting", args=[job_posting.pk]), {"card": "true"}
+    ).content.decode()
+
+    assert "#bookmark_rosette" in content
+    assert f"text-{job_posting.category_color}-500" in content
+    assert "Enregistrée" not in content
+
+
+@pytest.mark.django_db
 def test_update_saved_job_posting_rejects_a_get(client, beneficiary, job_posting):
     client.force_login(beneficiary)
 
@@ -1216,7 +1306,6 @@ def test_update_saved_job_posting_rejects_a_get(client, beneficiary, job_posting
 
 
 @pytest.mark.django_db
-@override_switch("internships", active=True)
 def test_update_saved_job_posting_requires_a_login(client, job_posting):
     response = client.post(reverse("update_saved_job_posting", args=[job_posting.pk]))
 
@@ -1225,7 +1314,6 @@ def test_update_saved_job_posting_requires_a_login(client, job_posting):
 
 
 @pytest.mark.django_db
-@override_switch("internships", active=True)
 def test_update_saved_job_posting_is_closed_to_pros(client, pro, job_posting):
     client.force_login(pro)
 
@@ -1236,7 +1324,6 @@ def test_update_saved_job_posting_is_closed_to_pros(client, pro, job_posting):
 
 
 @pytest.mark.django_db
-@override_switch("internships", active=True)
 def test_update_saved_job_posting_ignores_an_unpublished_posting(client, beneficiary):
     job_posting = save_job_posting("Stage", JobPosting.Category.HIGHER_ED_INTERNSHIP, hidden=True)
     client.force_login(beneficiary)
@@ -1248,7 +1335,6 @@ def test_update_saved_job_posting_ignores_an_unpublished_posting(client, benefic
 
 
 @pytest.mark.django_db
-@override_switch("internships", active=True)
 def test_create_saved_job_posting_modal_carries_the_posting_into_both_ways_in(client, job_posting):
     content = client.get(
         reverse("create_saved_job_posting_modal", args=[job_posting.pk])
@@ -1262,6 +1348,285 @@ def test_create_saved_job_posting_modal_carries_the_posting_into_both_ways_in(cl
     assert f"{reverse('login_request')}?saved_job_posting={job_posting.pk}" in content
 
 
+@pytest.mark.django_db
+def test_index_beneficiary_job_postings_pages_each_list_on_its_own(client, beneficiary):
+    for index in range(21):
+        clicked = save_job_posting(f"Cliquée {index:02d}", JobPosting.Category.APPRENTICESHIP)
+        ClickedJobPosting.objects.toggle(job_posting=clicked, beneficiary=beneficiary)
+        saved = save_job_posting(f"Enregistrée {index:02d}", JobPosting.Category.APPRENTICESHIP)
+        SavedJobPosting.objects.toggle(job_posting=saved, beneficiary=beneficiary)
+    client.force_login(beneficiary)
+
+    response = client.get(
+        reverse("index_beneficiary_job_postings"),
+        {"clicked_job_postings_page": 2, "saved_job_postings_page": 1},
+    )
+
+    assert response.context["clicked_job_postings"].number == 2
+    assert response.context["saved_job_postings"].number == 1
+    assert (
+        b'href="?saved_job_postings_page=1&clicked_job_postings_page=1#candidatures-entamees"'
+        in response.content
+    )
+    assert (
+        b'href="?clicked_job_postings_page=2&saved_job_postings_page=2#opportunites-enregistrees"'
+        in response.content
+    )
+    assert b"hx-select" not in response.content
+
+
+@pytest.mark.django_db
+def test_index_beneficiary_job_postings_anchors_a_posting_in_both_lists_apart(
+    client, beneficiary, job_posting
+):
+    ClickedJobPosting.objects.toggle(job_posting=job_posting, beneficiary=beneficiary)
+    SavedJobPosting.objects.toggle(job_posting=job_posting, beneficiary=beneficiary)
+    client.force_login(beneficiary)
+
+    html = client.get(reverse("index_beneficiary_job_postings")).content.decode()
+
+    for prefix in ("candidature", "enregistree"):
+        assert f'id="{prefix}-{job_posting.pk}"' in html
+        assert f'href="{show_job_posting_url(job_posting)}?ancre={prefix}"' in html
+    assert f'id="offre-{job_posting.pk}"' not in html
+
+
+@pytest.mark.django_db
+def test_index_beneficiary_job_postings_is_never_served_from_the_browser_cache(
+    client, beneficiary
+):
+    client.force_login(beneficiary)
+
+    response = client.get(reverse("index_beneficiary_job_postings"))
+
+    assert "no-store" in response["Cache-Control"]
+
+
+@pytest.mark.django_db
+def test_index_beneficiary_job_postings_shows_one_empty_state_when_both_lists_are_empty(
+    client, beneficiary
+):
+    client.force_login(beneficiary)
+
+    html = client.get(reverse("index_beneficiary_job_postings")).content.decode()
+
+    assert "Candidatures et opportunités" in html
+    assert "Tu n'as aucune candidature ou opportunité enregistrée." in html
+    assert "Candidatures entamées" not in html
+    assert "Opportunités enregistrées" not in html
+
+
+@pytest.mark.django_db
+@pytest.mark.parametrize(
+    "model, shown, hidden",
+    [
+        (ClickedJobPosting, "Candidatures entamées", "Opportunités enregistrées"),
+        (SavedJobPosting, "Opportunités enregistrées", "Candidatures entamées"),
+    ],
+)
+def test_index_beneficiary_job_postings_only_shows_the_list_holding_postings(
+    client, beneficiary, job_posting, model, shown, hidden
+):
+    model.objects.toggle(job_posting=job_posting, beneficiary=beneficiary)
+    client.force_login(beneficiary)
+
+    html = client.get(reverse("index_beneficiary_job_postings")).content.decode()
+
+    assert shown in html
+    assert hidden not in html
+    assert "Tu n'as aucune" not in html
+
+
+@pytest.mark.django_db
+@pytest.mark.parametrize("skipped", [None, "clicked_job_posting", "saved_job_posting"])
+def test_index_beneficiary_job_postings_gives_each_list_its_own_removal_button(
+    client, beneficiary, job_posting, skipped
+):
+    """Until she asks not to see it again, each list's removal goes through its own modal."""
+    if skipped:
+        setattr(beneficiary, f"skip_{skipped}_removal_modal", True)
+        beneficiary.save()
+    clicked = save_job_posting("Cliquée", JobPosting.Category.APPRENTICESHIP)
+    ClickedJobPosting.objects.toggle(job_posting=clicked, beneficiary=beneficiary)
+    SavedJobPosting.objects.toggle(job_posting=job_posting, beneficiary=beneficiary)
+    client.force_login(beneficiary)
+
+    html = client.get(reverse("index_beneficiary_job_postings")).content.decode()
+
+    assert html.count("#sent") == 1
+    assert html.count("#bookmark_rosette") == 1
+    for resource, pk in (
+        ("clicked_job_posting", clicked.pk),
+        ("saved_job_posting", job_posting.pk),
+    ):
+        modal = reverse(f"destroy_{resource}_modal", args=[pk])
+        toggle = reverse(f"update_{resource}", args=[pk])
+        assert (f'hx-get="{modal}"' in html) is (resource != skipped)
+        assert (f'hx-post="{toggle}"' in html) is (resource == skipped)
+    assert html.count('aria-pressed="true"') == (1 if skipped else 0)
+    assert 'id="modal-container"' in html
+
+
+@pytest.mark.django_db
+def test_destroy_clicked_job_posting_modal_offers_both_ways_out(client, beneficiary, job_posting):
+    client.force_login(beneficiary)
+
+    html = client.get(
+        reverse("destroy_clicked_job_posting_modal", args=[job_posting.pk])
+    ).content.decode()
+
+    assert "Veux-tu enlever cette candidature de ton suivi ?" in html
+    assert f'action="{reverse("destroy_clicked_job_posting", args=[job_posting.pk])}"' in html
+    assert "Continuer" in html
+    assert 'name="save" value="true"' in html
+    assert "Enregistrer l’offre en favori" in html
+    assert 'name="skip_modal"' in html
+
+
+@pytest.mark.django_db
+@pytest.mark.parametrize("already_clicked, pressed", [(True, "false"), (False, "true")])
+def test_update_clicked_job_posting_toggles_it_in_and_out_of_her_follow_up(
+    client, beneficiary, job_posting, already_clicked, pressed
+):
+    if already_clicked:
+        ClickedJobPosting.objects.toggle(job_posting=job_posting, beneficiary=beneficiary)
+    client.force_login(beneficiary)
+
+    html = client.post(
+        reverse("update_clicked_job_posting", args=[job_posting.pk])
+    ).content.decode()
+
+    assert (
+        beneficiary.clicked_job_postings.filter(pk=job_posting.pk).exists() is not already_clicked
+    )
+    assert "#sent" in html
+    assert f'aria-pressed="{pressed}"' in html
+
+
+@pytest.mark.django_db
+def test_update_clicked_job_posting_is_closed_to_pros(client, pro, job_posting):
+    client.force_login(pro)
+
+    response = client.post(reverse("update_clicked_job_posting", args=[job_posting.pk]))
+
+    assert response.status_code == 404
+
+
+@pytest.mark.django_db
+def test_destroy_saved_job_posting_modal_asks_before_taking_it_out(
+    client, beneficiary, job_posting
+):
+    client.force_login(beneficiary)
+
+    html = client.get(
+        reverse("destroy_saved_job_posting_modal", args=[job_posting.pk])
+    ).content.decode()
+
+    assert "Veux-tu enlever cette opportunité de tes favoris ?" in html
+    assert f'action="{reverse("destroy_saved_job_posting", args=[job_posting.pk])}"' in html
+    assert "Continuer" in html
+    assert "Annuler" in html
+    assert 'name="skip_modal"' in html
+
+
+@pytest.mark.django_db
+def test_destroy_saved_job_posting_brings_her_back_to_her_saved_postings(
+    client, beneficiary, job_posting
+):
+    SavedJobPosting.objects.toggle(job_posting=job_posting, beneficiary=beneficiary)
+    client.force_login(beneficiary)
+    listing = f"{reverse('index_beneficiary_job_postings')}?saved_job_postings_page=2"
+
+    response = client.post(
+        reverse("destroy_saved_job_posting", args=[job_posting.pk]),
+        HTTP_REFERER=f"http://testserver{listing}",
+    )
+
+    assert response["Location"] == f"{listing}#opportunites-enregistrees"
+    assert SavedJobPosting.objects.count() == 0
+
+
+@pytest.mark.django_db
+def test_destroy_saved_job_posting_is_closed_to_pros(client, pro, job_posting):
+    client.force_login(pro)
+
+    response = client.post(reverse("destroy_saved_job_posting", args=[job_posting.pk]))
+
+    assert response.status_code == 404
+
+
+@pytest.mark.django_db
+@pytest.mark.parametrize(
+    "route, data, skipped",
+    [
+        ("destroy_saved_job_posting", {}, None),
+        ("destroy_saved_job_posting", {"skip_modal": "true"}, "saved_job_posting"),
+        ("destroy_clicked_job_posting", {"skip_modal": "true"}, "clicked_job_posting"),
+        (
+            "destroy_clicked_job_posting",
+            {"skip_modal": "true", "save": "true"},
+            "clicked_job_posting",
+        ),
+    ],
+)
+def test_destroy_job_posting_removal_remembers_she_no_longer_wants_that_modal(
+    client, beneficiary, job_posting, route, data, skipped
+):
+    client.force_login(beneficiary)
+
+    client.post(reverse(route, args=[job_posting.pk]), data)
+
+    beneficiary.refresh_from_db()
+    for resource in ("clicked_job_posting", "saved_job_posting"):
+        assert getattr(beneficiary, f"skip_{resource}_removal_modal") is (resource == skipped)
+
+
+@pytest.mark.django_db
+@pytest.mark.parametrize("data, saved", [({}, False), ({"save": "true"}, True)])
+def test_destroy_clicked_job_posting_takes_the_posting_out_of_her_follow_up(
+    client, beneficiary, job_posting, data, saved
+):
+    ClickedJobPosting.objects.toggle(job_posting=job_posting, beneficiary=beneficiary)
+    client.force_login(beneficiary)
+
+    response = client.post(reverse("destroy_clicked_job_posting", args=[job_posting.pk]), data)
+
+    assert response.status_code == 302
+    assert response["Location"] == reverse("index_beneficiary_job_postings")
+    assert ClickedJobPosting.objects.count() == 0
+    assert beneficiary.saved_job_postings.filter(pk=job_posting.pk).exists() is saved
+
+
+@pytest.mark.django_db
+@pytest.mark.parametrize(
+    "data, anchor",
+    [({}, "candidatures-entamees"), ({"save": "true"}, "opportunites-enregistrees")],
+)
+def test_destroy_clicked_job_posting_brings_her_back_to_the_page_she_was_on(
+    client, beneficiary, job_posting, data, anchor
+):
+    ClickedJobPosting.objects.toggle(job_posting=job_posting, beneficiary=beneficiary)
+    client.force_login(beneficiary)
+    listing = f"{reverse('index_beneficiary_job_postings')}?saved_job_postings_page=2"
+
+    response = client.post(
+        reverse("destroy_clicked_job_posting", args=[job_posting.pk]),
+        data,
+        HTTP_REFERER=f"http://testserver{listing}",
+    )
+
+    assert response["Location"] == f"{listing}#{anchor}"
+
+
+@pytest.mark.django_db
+def test_destroy_clicked_job_posting_is_closed_to_pros(client, pro, job_posting):
+    client.force_login(pro)
+
+    response = client.post(reverse("destroy_clicked_job_posting", args=[job_posting.pk]))
+
+    assert response.status_code == 404
+
+
 def _signed_in_on(client, user, url):
     """Sign in through the code mailed, as from a page: she lands on it with a welcome message."""
     client.post(reverse("login_request"), data={"email": user.email, "next": url})
@@ -1270,7 +1635,6 @@ def _signed_in_on(client, user, url):
 
 
 @pytest.mark.django_db
-@override_switch("internships", active=True)
 def test_show_job_posting_shows_a_pending_message_once(client, beneficiary, job_posting):
     response = _signed_in_on(client, beneficiary, show_job_posting_url(job_posting))
 
@@ -1292,7 +1656,6 @@ def _assert_both_ways_in_go_back_to(content, saved, pk, back):
 
 
 @pytest.mark.django_db
-@override_switch("internships", active=True)
 def test_show_job_posting_hands_the_page_and_its_listing_to_both_modals(client, job_posting):
     page_url = _with_way_back(
         show_job_posting_url(job_posting), f"{JOB_POSTINGS_LISTING}#offre-{job_posting.pk}"
@@ -1310,7 +1673,6 @@ def test_show_job_posting_hands_the_page_and_its_listing_to_both_modals(client, 
 
 
 @pytest.mark.django_db
-@override_switch("internships", active=True)
 def test_show_job_posting_application_modal_hands_its_way_back_to_the_save_modal(
     client, job_posting
 ):
@@ -1325,7 +1687,6 @@ def test_show_job_posting_application_modal_hands_its_way_back_to_the_save_modal
 
 
 @pytest.mark.django_db
-@override_switch("internships", active=True)
 def test_create_saved_job_posting_modal_carries_the_way_back_it_is_given(client, job_posting):
     page_url = _with_way_back(show_job_posting_url(job_posting), JOB_POSTINGS_LISTING)
 
@@ -1337,7 +1698,6 @@ def test_create_saved_job_posting_modal_carries_the_way_back_it_is_given(client,
 
 
 @pytest.mark.django_db
-@override_switch("internships", active=True)
 @pytest.mark.parametrize("query", [{}, {"back": "https://evil.example/"}])
 def test_create_saved_job_posting_modal_goes_back_to_the_posting_by_default(
     client, job_posting, query
@@ -1352,7 +1712,24 @@ def test_create_saved_job_posting_modal_goes_back_to_the_posting_by_default(
 
 
 @pytest.mark.django_db
-@override_switch("internships", active=True)
+@pytest.mark.parametrize("fragment", ["", "#offre-une-autre"])
+def test_create_saved_job_posting_modal_opened_from_a_card_goes_back_to_that_card(
+    client, job_posting, fragment
+):
+    content = client.get(
+        reverse("create_saved_job_posting_modal", args=[job_posting.pk]),
+        HTTP_HX_CURRENT_URL=f"http://testserver{JOB_POSTINGS_LISTING}{fragment}",
+    ).content.decode()
+
+    _assert_both_ways_in_go_back_to(
+        content,
+        "saved_job_posting",
+        job_posting.pk,
+        f"{JOB_POSTINGS_LISTING}#offre-{job_posting.pk}",
+    )
+
+
+@pytest.mark.django_db
 def test_create_saved_job_posting_modal_ignores_an_unpublished_posting(client):
     job_posting = save_job_posting("Stage", JobPosting.Category.HIGHER_ED_INTERNSHIP, hidden=True)
 
@@ -1362,7 +1739,6 @@ def test_create_saved_job_posting_modal_ignores_an_unpublished_posting(client):
 
 
 @pytest.mark.django_db
-@override_switch("internships", active=True)
 def test_create_clicked_job_posting_records_the_click(client, beneficiary, job_posting):
     client.force_login(beneficiary)
 
@@ -1373,7 +1749,6 @@ def test_create_clicked_job_posting_records_the_click(client, beneficiary, job_p
 
 
 @pytest.mark.django_db
-@override_switch("internships", active=True)
 def test_create_clicked_job_posting_twice_keeps_the_click(client, beneficiary, job_posting):
     client.force_login(beneficiary)
     url = reverse("create_clicked_job_posting", args=[job_posting.pk])
@@ -1385,7 +1760,6 @@ def test_create_clicked_job_posting_twice_keeps_the_click(client, beneficiary, j
 
 
 @pytest.mark.django_db
-@override_switch("internships", active=True)
 def test_create_clicked_job_posting_rejects_a_get(client, beneficiary, job_posting):
     client.force_login(beneficiary)
 
@@ -1395,7 +1769,6 @@ def test_create_clicked_job_posting_rejects_a_get(client, beneficiary, job_posti
 
 
 @pytest.mark.django_db
-@override_switch("internships", active=True)
 def test_create_clicked_job_posting_requires_a_login(client, job_posting):
     response = client.post(reverse("create_clicked_job_posting", args=[job_posting.pk]))
 
@@ -1404,7 +1777,6 @@ def test_create_clicked_job_posting_requires_a_login(client, job_posting):
 
 
 @pytest.mark.django_db
-@override_switch("internships", active=True)
 def test_create_clicked_job_posting_is_closed_to_pros(client, pro, job_posting):
     client.force_login(pro)
 
@@ -1415,7 +1787,6 @@ def test_create_clicked_job_posting_is_closed_to_pros(client, pro, job_posting):
 
 
 @pytest.mark.django_db
-@override_switch("internships", active=True)
 def test_index_job_postings_dates_a_posting_we_updated_by_its_update(client):
     job_posting = save_job_posting(
         "Stage",
@@ -1434,7 +1805,6 @@ def test_index_job_postings_dates_a_posting_we_updated_by_its_update(client):
 
 
 @pytest.mark.django_db
-@override_switch("internships", active=True)
 def test_index_job_postings_links_each_posting_to_its_page_by_its_title(client):
     """The title is the link, stretched over the card: its name is the text she sees."""
     job_posting = save_job_posting("Stage", JobPosting.Category.HIGHER_ED_INTERNSHIP)
@@ -1463,7 +1833,6 @@ def ordered_titles(response):
 
 
 @pytest.mark.django_db
-@override_switch("internships", active=True)
 def test_index_job_postings_searches_by_relevance_by_default(client, cybersecurity_postings):
     response = client.get(INDEX_JOB_POSTINGS_URL, {"q": "cybersécurité"})
 
@@ -1471,7 +1840,6 @@ def test_index_job_postings_searches_by_relevance_by_default(client, cybersecuri
 
 
 @pytest.mark.django_db
-@override_switch("internships", active=True)
 def test_index_job_postings_sorts_a_search_by_date_on_request(client, cybersecurity_postings):
     response = client.get(INDEX_JOB_POSTINGS_URL, {"q": "cybersécurité", "sort": "date"})
 
@@ -1480,7 +1848,6 @@ def test_index_job_postings_sorts_a_search_by_date_on_request(client, cybersecur
 
 @pytest.mark.django_db
 @pytest.mark.parametrize("q", ["c", " c  ", "   "])
-@override_switch("internships", active=True)
 def test_index_job_postings_ignores_a_search_under_two_characters(client, q):
     save_job_posting("Stage en design", JobPosting.Category.HIGHER_ED_INTERNSHIP)
 
@@ -1502,7 +1869,6 @@ def test_index_job_postings_ignores_a_search_under_two_characters(client, q):
     ],
     ids=["too_short", "too_short_once_trimmed", "long_enough", "blank", "absent"],
 )
-@override_switch("internships", active=True)
 def test_index_job_postings_shows_an_error_under_two_characters(client, query, invalid):
     html = client.get(INDEX_JOB_POSTINGS_URL, query).content.decode()
 
@@ -1511,7 +1877,6 @@ def test_index_job_postings_shows_an_error_under_two_characters(client, query, i
 
 
 @pytest.mark.django_db
-@override_switch("internships", active=True)
 def test_index_job_postings_searches_within_the_category_and_the_filters(client):
     save_job_posting("Stage web", JobPosting.Category.HIGHER_ED_INTERNSHIP)
     save_job_posting(
@@ -1525,7 +1890,6 @@ def test_index_job_postings_searches_within_the_category_and_the_filters(client)
 
 
 @pytest.mark.django_db
-@override_switch("internships", active=True)
 def test_index_job_postings_offers_the_sort_only_once_she_searched(client):
     without_search = client.get(INDEX_JOB_POSTINGS_URL).content.decode()
     with_search = client.get(INDEX_JOB_POSTINGS_URL, {"q": "web"}).content.decode()
@@ -1540,7 +1904,6 @@ def test_index_job_postings_offers_the_sort_only_once_she_searched(client):
     [({"q": "web"}, "relevance"), ({"q": "web", "sort": "date"}, "date")],
     ids=["default", "asked_for"],
 )
-@override_switch("internships", active=True)
 def test_index_job_postings_selects_the_sort_in_use(client, query, selected):
     html = client.get(INDEX_JOB_POSTINGS_URL, query).content.decode()
 
@@ -1548,7 +1911,6 @@ def test_index_job_postings_selects_the_sort_in_use(client, query, selected):
 
 
 @pytest.mark.django_db
-@override_switch("internships", active=True)
 def test_index_job_postings_shows_the_search_in_its_field(client):
     html = client.get(INDEX_JOB_POSTINGS_URL, {"q": '"web'}).content.decode()
 
@@ -1556,7 +1918,6 @@ def test_index_job_postings_shows_the_search_in_its_field(client):
 
 
 @pytest.mark.django_db
-@override_switch("internships", active=True)
 def test_index_job_postings_keeps_the_search_and_the_sort_in_the_link_to_the_next_page(
     client, twenty_one_apprenticeships
 ):
@@ -1572,19 +1933,11 @@ def test_index_job_postings_keeps_the_search_and_the_sort_in_the_link_to_the_nex
 
 
 @pytest.mark.django_db
-@pytest.mark.parametrize(
-    "active, href",
-    [
-        (True, INDEX_JOB_POSTINGS_URL),
-        (False, f"{NEW_UPCOMING_FEATURE_NOTIFICATION_URL}?feature=stage"),
-    ],
-)
-def test_beneficiary_home_links_job_postings_according_to_switch(client, active, href):
+def test_beneficiary_home_links_job_postings(client):
     """Both the home card and the sidebar link there."""
-    with override_switch("internships", active=active):
-        html = client.get(reverse("home")).content.decode()
+    html = client.get(reverse("home")).content.decode()
 
-    assert html.count(f'href="{href}"') == 2
+    assert html.count(f'href="{INDEX_JOB_POSTINGS_URL}"') == 2
 
 
 INDEX_EVENTS_URL = "/evenements/"
@@ -1608,6 +1961,21 @@ def salon(pro):
     event = approved_event(pro, title="Salon des métiers du numérique")
     event.save()
     return event
+
+
+@pytest.mark.django_db
+def test_index_events_is_never_served_from_the_browser_cache(client, salon):
+    """Back or forward would otherwise show the bookmarks as they were before a toggle."""
+    response = client.get(INDEX_EVENTS_URL)
+
+    assert "no-store" in response["Cache-Control"]
+
+
+@pytest.mark.django_db
+def test_show_event_is_never_served_from_the_browser_cache(client, salon):
+    response = client.get(reverse("show_event", args=[salon.slug]))
+
+    assert "no-store" in response["Cache-Control"]
 
 
 @pytest.mark.django_db
@@ -2868,7 +3236,6 @@ def test_show_makeuse_project_back_link_ignores_a_referer_from_anywhere_else(cli
         ),
     ],
 )
-@override_switch("internships", active=True)
 def test_show_job_posting_stacks_the_domains_from_three_on(client, domains, stacked):
     category = JobPosting.Category.HIGHER_ED_INTERNSHIP
     job_posting = save_job_posting("Stage", category, domains=domains)

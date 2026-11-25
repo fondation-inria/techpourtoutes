@@ -235,6 +235,38 @@ def test_a_valid_category_leads_to_the_details_screen(client, pro):
 
 
 @pytest.mark.django_db
+def test_the_details_screen_prefills_the_organizer_with_her_structure_name(client, pro):
+    client.force_login(pro)
+
+    content = client.post(CREATE_URL, {"action": "subcategory", **SUBCATEGORY}).content.decode()
+
+    assert 'value="Inria"' in content
+
+
+@pytest.mark.django_db
+def test_the_details_screen_leaves_the_organizer_blank_for_an_event_moderator(
+    client, moderator_pro
+):
+    client.force_login(moderator_pro)
+
+    content = client.post(CREATE_URL, {"action": "subcategory", **SUBCATEGORY}).content.decode()
+
+    assert 'value="Inria"' not in content
+
+
+@pytest.mark.django_db
+def test_the_details_screen_keeps_the_organizer_she_cleared(client, pro):
+    """Once she has seen the screen, her answer travels with the others, even an empty one."""
+    client.force_login(pro)
+
+    content = client.post(
+        CREATE_URL, {"action": "back", "to": "location", **SUBCATEGORY, **DETAILS, "organizer": ""}
+    ).content.decode()
+
+    assert 'value="Inria"' not in content
+
+
+@pytest.mark.django_db
 def test_a_missing_category_stays_on_the_first_screen(client, pro):
     client.force_login(pro)
 

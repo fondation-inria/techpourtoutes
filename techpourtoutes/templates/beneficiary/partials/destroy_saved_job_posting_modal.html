@@ -1,0 +1,12 @@
+<c-components.modal title="Veux-tu enlever cette opportunité de tes favoris ?" closable=True>
+    <br>
+    <p class="text-center text-sm">
+        En continuant, tu ne verras plus cette opportunité dans ton compte.
+    </p>
+    <br>
+    <c-patterns.form url="{% url "destroy_saved_job_posting" job_posting.pk %}" class="items-center">
+        <c-components.form_fields.checkbox name="skip_modal" id="skip_modal" value="true" label="Ne plus afficher ce message" label_class="text-sm" />
+        <c-components.button label="Continuer" type="submit" />
+        <c-components.button label="Annuler" variant="secondary" hx-on:click="this.closest('dialog').close()" />
+    </c-patterns.form>
+</c-components.modal>
