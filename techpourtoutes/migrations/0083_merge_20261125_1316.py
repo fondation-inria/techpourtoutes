@@ -6,8 +6,8 @@ from django.db import migrations
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('techpourtoutes', '0080_delete_internships_switch'),
         ('techpourtoutes', '0080_pro_structure_school'),
+        ('techpourtoutes', '0082_event_search_vector'),
     ]
 
     operations = [

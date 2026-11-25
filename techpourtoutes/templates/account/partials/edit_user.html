@@ -20,13 +20,13 @@
                      @select-change="structureType = $event.detail.value"
                      class="flex flex-col gap-y-4">
                     <c-components.form_fields.select field=form.structure_type :watchable=True />
-                    <c-components.form_fields.input field=form.job_title />
                     <c-components.form_fields.structure_name
                         :name_field=form.structure_name
                         :id_field=form.structure_school_search_id
                         :not_found_field=form.structure_school_not_found
                         structure_type="{{ form.structure_type.value|default:'' }}"
-                        school_label="Établissement" />
+                        school_label="Établissement*" />
+                    <c-components.form_fields.input field=form.job_title />
                 </div>
             {% endif %}
             <div class="flex justify-end gap-2">

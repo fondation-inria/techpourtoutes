@@ -16,7 +16,7 @@ class ProEditUserForm(StructureFormMixin, forms.Form):
         label=_("Type de structure*"),
         choices=[("", _("Sélectionner une option")), *Pro.StructureType.choices],
     )
-    structure_name = forms.CharField(label=_("Structure"), required=False)
+    structure_name = forms.CharField(label=_("Structure*"), required=False)
     structure_school_search_id = forms.CharField(widget=forms.HiddenInput, required=False)
     structure_school_not_found = forms.BooleanField(widget=forms.HiddenInput, required=False)
     job_title = forms.CharField(label=_("Métier"), required=False)
