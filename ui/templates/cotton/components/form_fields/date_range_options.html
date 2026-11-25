@@ -3,12 +3,14 @@
 {# Slot of a filter_select: it names the filter after the range through `filter-summary`, and resets itself. #}
 <div x-data="{
         errors: {},
+        filled: false,
         check() {
             const { from, to } = this.$refs;
             if (to.min !== (from.value || from.min)) to.min = from.value || from.min;
             if (from.max !== to.value) from.max = to.value;
             this.errors = this.errorsFor(from, to);
-            this.$dispatch('filter-summary', from.value || to.value ? this.label(from.value, to.value) : '');
+            this.filled = Boolean(from.value || to.value);
+            this.$dispatch('filter-summary', this.filled ? this.label(from.value, to.value) : '');
         },
         errorsFor(from, to) {
             const complete = input => Boolean(input.value) && (input !== document.activeElement || input.value >= '1000');
@@ -50,6 +52,6 @@
             <p id="{{ id }}_to_inverted" x-show="errors.inverted" x-cloak class="text-xxs leading-[1.4] text-error font-normal">La date doit être postérieure à la date de début</p>
         </div>
     </div>
+    <c-components.reset_filters_button label="Effacer les dates" x-show="filled"
+                                       @click="reset(); $refs.from.dispatchEvent(new Event('change', { bubbles: true })); $refs.from.focus()" />
 </div>
-<c-components.reset_filters_button label="Effacer les dates" x-show="dateRange"
-                                   @click="reset(); dates()[0].dispatchEvent(new Event('change', { bubbles: true })); dates()[0].focus()" />

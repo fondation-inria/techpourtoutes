@@ -11,12 +11,13 @@ from django.utils.formats import date_format
 from django.utils.translation import gettext_lazy as _
 from simple_history.models import HistoricalRecords
 
+from ..utils.full_text_search import search_vector
 from ..utils.object_storage import public_storage
 from ..utils.structure_type_teams import structure_types_followed_by
 from ..utils.territories import department_code
 from ..utils.text import strip_accents
 from .base import BaseModel, BaseQuerySet
-from .mixins import SearchableQuerySetMixin, SlugFromTitleMixin, search_vector
+from .mixins import SearchableQuerySetMixin, SlugFromTitleMixin
 from .pro import Pro
 
 

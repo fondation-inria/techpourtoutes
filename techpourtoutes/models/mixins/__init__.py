@@ -1,4 +1,4 @@
-from .searchable import SearchableQuerySetMixin, search_vector
+from .searchable import SearchableQuerySetMixin
 from .slug_from_title import SlugFromTitleMixin
 
-__all__ = ["SearchableQuerySetMixin", "SlugFromTitleMixin", "search_vector"]
+__all__ = ["SearchableQuerySetMixin", "SlugFromTitleMixin"]
