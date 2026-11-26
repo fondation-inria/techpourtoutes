@@ -91,7 +91,7 @@
                     <div>
                         <p class="font-bold text-lg">Date et heure</p>
                         <p>{{ event.date_range_label }}</p>
-                        <p>entre {{ event.start_time|time:"G\hi" }} et {{ event.end_time|time:"G\hi" }}</p>
+                        <p>entre {{ event.start_time|time:"G\hi" }} et {{ event.end_time|time:"G\hi" }}{% if event.time_zone_label %} ({{ event.time_zone_label }}){% endif %}</p>
                     </div>
                 </div>
                 <div class="flex gap-3">

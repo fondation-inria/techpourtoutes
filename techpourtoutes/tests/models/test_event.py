@@ -13,6 +13,7 @@ from django.utils import timezone
 
 from techpourtoutes.models import Event, Pro, User
 from techpourtoutes.tests.services.event.test_create_event import valid_forms
+from techpourtoutes.utils.time_zones import TimeZone
 
 
 def build_event(pro, **overrides):
@@ -284,7 +285,7 @@ def test_past_and_upcoming_split_events_on_their_end_date(pro):
     )
     later.save()
 
-    with patch("django.utils.timezone.localtime", return_value=midday):
+    with patch("django.utils.timezone.now", return_value=midday):
         assert list(Event.objects.past()) == [over]
         assert list(Event.objects.upcoming()) == [ongoing, later]
 
@@ -305,9 +306,41 @@ def test_past_and_upcoming_split_same_day_events_on_their_end_time(pro):
     )
     still_ongoing.save()
 
-    with patch("django.utils.timezone.localtime", return_value=midday):
+    with patch("django.utils.timezone.now", return_value=midday):
         assert list(Event.objects.past()) == [just_ended]
         assert list(Event.objects.upcoming()) == [still_ongoing]
+
+
+@pytest.mark.django_db
+def test_past_and_upcoming_read_the_end_in_the_time_zone_of_the_event(pro):
+    """At midday in Paris, it is 6:00 or 7:00 in Martinique and 14:00 or 15:00 in La Réunion,
+    depending on daylight saving time: read on Paris time, both events would land on the wrong
+    side."""
+
+    today = timezone.localdate()
+    midday = timezone.localtime().replace(hour=12, minute=0, second=0, microsecond=0)
+    martinique = build_event(
+        pro,
+        start_date=today,
+        end_date=today,
+        start_time=time(0, 0),
+        end_time=time(8, 0),
+        time_zone=TimeZone.MARTINIQUE,
+    )
+    martinique.save()
+    reunion = build_event(
+        pro,
+        start_date=today,
+        end_date=today,
+        start_time=time(0, 0),
+        end_time=time(13, 0),
+        time_zone=TimeZone.REUNION,
+    )
+    reunion.save()
+
+    with patch("django.utils.timezone.now", return_value=midday):
+        assert list(Event.objects.past()) == [reunion]
+        assert list(Event.objects.upcoming()) == [martinique]
 
 
 @pytest.mark.django_db
@@ -416,6 +449,74 @@ def test_has_ended_checks_the_time_when_the_event_ends_today(pro):
 
     with patch("django.utils.timezone.now", return_value=midday):
         assert event.has_ended is True
+
+
+@pytest.mark.django_db
+def test_has_ended_reads_the_end_in_the_time_zone_of_the_event(pro):
+    """Same clocks as for `past` and `upcoming`: 6:00 or 7:00 in Martinique, 14:00 or 15:00
+    in La Réunion."""
+    today = timezone.localdate()
+    midday = timezone.localtime().replace(hour=12, minute=0, second=0, microsecond=0)
+    same_day = {"start_date": today, "end_date": today, "start_time": time(0, 0)}
+
+    martinique = build_event(pro, **same_day, end_time=time(8, 0), time_zone=TimeZone.MARTINIQUE)
+    reunion = build_event(pro, **same_day, end_time=time(13, 0), time_zone=TimeZone.REUNION)
+
+    with patch("django.utils.timezone.now", return_value=midday):
+        assert martinique.has_ended is False
+        assert reunion.has_ended is True
+
+
+@pytest.mark.django_db
+def test_an_event_is_on_paris_time_unless_told_otherwise(pro):
+    event = build_event(pro)
+    event.save()
+
+    assert event.time_zone == TimeZone.PARIS
+
+
+@pytest.mark.django_db
+def test_an_online_event_keeps_the_time_zone_it_was_given(pro):
+    event = build_event(pro, time_zone=TimeZone.MARTINIQUE)
+    event.save()
+
+    assert event.time_zone == TimeZone.MARTINIQUE
+
+
+def physical_event_in_la_reunion(pro, **overrides):
+    return build_event(
+        pro,
+        location_type=Event.LocationType.PHYSICAL,
+        address="1 rue de Paris",
+        postal_code="97400",
+        city="Saint-Denis",
+        **overrides,
+    )
+
+
+@pytest.mark.django_db
+def test_a_physical_event_left_on_paris_time_takes_the_time_zone_of_its_postal_code(pro):
+    """Paris is never chosen, only left as it is: the place decides."""
+    event = physical_event_in_la_reunion(pro, time_zone=TimeZone.PARIS)
+    event.save()
+
+    assert event.time_zone == TimeZone.REUNION
+
+
+@pytest.mark.django_db
+def test_a_physical_event_keeps_the_time_zone_it_was_given(pro):
+    event = physical_event_in_la_reunion(pro, time_zone=TimeZone.MAYOTTE)
+    event.save()
+
+    assert event.time_zone == TimeZone.MAYOTTE
+
+
+def test_time_zone_label_stays_silent_on_paris_time():
+    assert Event(time_zone=TimeZone.PARIS).time_zone_label == ""
+
+
+def test_time_zone_label_names_any_other_time_zone():
+    assert Event(time_zone=TimeZone.REUNION).time_zone_label == "heure de La Réunion"
 
 
 @pytest.mark.django_db
@@ -653,4 +754,126 @@ def test_subcategory_sorted_choices_are_alphabetical_with_other_last():
         "Visite",
         "Webinaire d'info",
         "Autre",
+    ]
+
+
+@pytest.mark.django_db
+@pytest.mark.parametrize(
+    "cog_code, postal_code, expected",
+    [("29019", "29200", "29"), ("", "20000", "2A"), ("97411", "97400", "974"), ("", "", "")],
+)
+def test_saving_an_event_derives_its_department(pro, cog_code, postal_code, expected):
+    event = build_event(pro, cog_code=cog_code, postal_code=postal_code)
+    event.save()
+
+    assert event.department_code == expected
+
+
+@pytest.mark.django_db
+def test_in_departments_keeps_the_online_events_which_happen_anywhere(pro):
+    brest = build_event(pro, location_type=Event.LocationType.PHYSICAL, cog_code="29019")
+    brest.save()
+    online = build_event(pro)
+    online.save()
+    build_event(pro, location_type=Event.LocationType.PHYSICAL, cog_code="75056").save()
+
+    assert set(Event.objects.in_departments(["29"])) == {brest, online}
+    assert Event.objects.in_departments([]).count() == 3
+
+
+@pytest.mark.django_db
+def test_with_location_types_keeps_only_the_given_ones_and_all_without_any(pro):
+    online = build_event(pro)
+    online.save()
+    build_event(pro, location_type=Event.LocationType.PHYSICAL).save()
+
+    assert list(Event.objects.with_location_types([Event.LocationType.ONLINE])) == [online]
+    assert Event.objects.with_location_types([]).count() == 2
+
+
+@pytest.mark.django_db
+def test_in_subcategories_keeps_any_of_them_and_every_event_without_any(pro):
+    workshop = build_event(pro, subcategory=Event.Subcategory.WORKSHOP)
+    workshop.save()
+    free_text = build_event(pro, subcategory="Rencontre d'anciennes")
+    free_text.save()
+    build_event(pro, subcategory=Event.Subcategory.HACKATHON).save()
+
+    picked = [Event.Subcategory.WORKSHOP, Event.Subcategory.OTHER]
+    assert set(Event.objects.in_subcategories(picked)) == {workshop, free_text}
+    assert Event.objects.in_subcategories([]).count() == 3
+
+
+@pytest.mark.django_db
+@pytest.mark.parametrize(
+    "date_from, date_to, expected",
+    [
+        (date(2026, 9, 14), date(2026, 9, 20), {"Chevauche le début", "Dedans"}),
+        (date(2026, 9, 18), None, {"Dedans", "Après"}),
+        (None, date(2026, 9, 14), {"Chevauche le début"}),
+        (None, None, {"Chevauche le début", "Dedans", "Après"}),
+        (date(2026, 9, 14), date(2026, 9, 13), set()),
+    ],
+)
+def test_overlapping_keeps_the_events_sharing_a_day_with_the_range(
+    pro, date_from, date_to, expected
+):
+    for title, start, end in [
+        ("Chevauche le début", date(2026, 9, 12), date(2026, 9, 14)),
+        ("Dedans", date(2026, 9, 18), date(2026, 9, 19)),
+        ("Après", date(2026, 9, 25), date(2026, 9, 25)),
+    ]:
+        build_event(pro, title=title, start_date=start, end_date=end).save()
+
+    found = Event.objects.overlapping(date_from, date_to)
+    assert {event.title for event in found} == expected
+
+
+@pytest.mark.django_db
+def test_free_keeps_the_events_costing_nothing(pro):
+    free = build_event(pro)
+    free.save()
+    build_event(pro, price=Decimal("5")).save()
+
+    assert list(Event.objects.free()) == [free]
+
+
+@pytest.mark.django_db
+@pytest.mark.parametrize("field", ["title", "organizer", "description"])
+def test_search_looks_into_the_title_the_organizer_and_the_description(pro, field):
+    build_event(pro, **{field: "Cybersécurité"}).save()
+    build_event(pro, title="Autre événement").save()
+
+    assert Event.objects.search("cybersecurite").count() == 1
+
+
+@pytest.mark.django_db
+def test_search_ranks_the_title_above_the_organizer_above_the_description(pro):
+    build_event(pro, title="Dans la description", description="Atelier de cybersécurité").save()
+    build_event(pro, title="Chez l'organisateur", organizer="Cybersécurité SA").save()
+    build_event(pro, title="Cybersécurité").save()
+
+    found = Event.objects.search("cybersécurité").order_by("-relevance")
+
+    assert [event.title for event in found] == [
+        "Cybersécurité",
+        "Chez l'organisateur",
+        "Dans la description",
+    ]
+
+
+@pytest.mark.django_db
+def test_most_relevant_first_breaks_ties_by_the_nearest_start(pro):
+    today = timezone.localdate()
+    for title, days in [("Atelier web lointain", 60), ("Atelier web proche", 5)]:
+        start = today + timedelta(days=days)
+        build_event(pro, title=title, start_date=start, end_date=start).save()
+    build_event(pro, title="Atelier", description="Du web").save()
+
+    found = Event.objects.search("web").most_relevant_first()
+
+    assert [event.title for event in found] == [
+        "Atelier web proche",
+        "Atelier web lointain",
+        "Atelier",
     ]

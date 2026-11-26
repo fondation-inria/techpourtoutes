@@ -97,6 +97,7 @@ class EventAdminForm(forms.ModelForm):
             "start_time",
             "end_date",
             "end_time",
+            "time_zone",
             "poi_name",
             "address",
             "postal_code",
@@ -173,6 +174,7 @@ class EventAdmin(SimpleHistoryAdmin):
                     "start_time",
                     "end_date",
                     "end_time",
+                    "time_zone",
                 )
             },
         ),

@@ -5,6 +5,7 @@ from django.test import override_settings
 from techpourtoutes.forms.pro_inscription import OTHER
 from techpourtoutes.mailers import ConsortiumMailer
 from techpourtoutes.models import Formation, Pro, TrainingExperience
+from techpourtoutes.utils.time_zones import TimeZone
 
 
 @pytest.mark.django_db
@@ -153,6 +154,32 @@ def test_event_submitted_notifies_the_moderation_team(event):
     assert event.title in message.body
     assert event.created_by.email in message.body
     assert message.tags == ["interne", "coalition", "nouvel événement"]
+
+
+@pytest.mark.django_db
+@pytest.mark.parametrize(
+    "send", [ConsortiumMailer.event_submitted, ConsortiumMailer.event_updated]
+)
+def test_event_mails_name_the_time_zone_of_an_event_away_from_paris(event, send):
+    event.time_zone = TimeZone.REUNION
+
+    send(event=event)
+
+    message = mail.outbox[0]
+    for content in (message.body, message.alternatives[0][0]):
+        assert "18h00 (heure de La Réunion)" in content
+
+
+@pytest.mark.django_db
+@pytest.mark.parametrize(
+    "send", [ConsortiumMailer.event_submitted, ConsortiumMailer.event_updated]
+)
+def test_event_mails_never_name_paris_time(event, send):
+    send(event=event)
+
+    message = mail.outbox[0]
+    for content in (message.body, message.alternatives[0][0]):
+        assert "heure de" not in content
 
 
 @pytest.mark.django_db

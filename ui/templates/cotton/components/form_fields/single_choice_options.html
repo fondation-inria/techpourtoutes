@@ -1,0 +1,17 @@
+<c-vars name="" id="" :options=[] :ticked=[] />
+
+{# Slot of a filter_select: switches of which one at most is on, naming the filter through `filter-summary`. #}
+<div x-data="{
+        untickOthers(input) {
+            if (input.checked) this.$root.querySelectorAll('input:checked').forEach(other => other.checked = other === input);
+        },
+        name() { this.$dispatch('filter-summary', this.$root.querySelector('input:checked')?.labels[0].textContent.trim() ?? '') },
+     }"
+     x-init="name()"
+     @click="untickOthers($event.target)"
+     @change="name()"
+     class="contents">
+    {% for value, option_label in options %}
+        <c-components.form_fields.checkbox name="{{ name }}" id="{{ id }}_{{ forloop.counter0 }}" value="{{ value }}" label="{{ option_label }}" checked="{% if value in ticked %}checked{% endif %}" :switch="True" />
+    {% endfor %}
+</div>

@@ -51,10 +51,7 @@
                           class="flex flex-wrap gap-4 mb-3">
                         <input type="hidden" name="category" value="{{ category }}">
                         <c-components.form_fields.search_bar id="job_posting_search" name="q" label="Rechercher une offre" placeholder="Métier, entreprise, référence, etc." :value="search" :errors="search_errors">
-                            <button type="button" x-show="searchLaunched || filtersTicked" x-cloak @click="resetAll()"
-                                    class="ml-auto text-sm underline decoration-1 underline-offset-4 hover:decoration-2 active:bg-neutral-200 focus:outline-blue-500 focus:outline-offset-2 cursor-pointer">
-                                Tout réinitialiser
-                            </button>
+                            <c-components.reset_filters_button x-show="searchLaunched || filtersTicked" @click="resetAll()" />
                         </c-components.form_fields.search_bar>
                         <c-components.form_fields.filter_select label="Région / Département" id="job_posting_location" icon="location" tint_class="bg-green-500/20" selection_target="#job_posting_selected_filters">
                             <c-components.form_fields.region_options :regions="regions" :ticked="ticked_departments" id="job_posting_location" />
@@ -70,14 +67,12 @@
                             <c-components.form_fields.filter_select label="Type de contrat" name="contract_type" id="job_posting_contract_type" icon="job-category" :options="contract_types" :ticked="ticked_contract_types" tint_class="bg-yellow-500/20" selection_target="#job_posting_selected_filters" />
                         {% endif %}
                     </form>
-                    <div id="job_posting_selected_filters" class="hidden has-[li]:flex flex-wrap items-center gap-2 mb-5">
-                        <span class="text-sm">Filtres sélectionnés&nbsp;:</span>
-                    </div>
+                    <c-components.selected_filters id="job_posting_selected_filters" class="mb-5" />
                     <div class="flex items-center justify-between gap-4 mb-3">
                         {% with job_posting_count=job_postings.paginator.count %}
                             <p id="job_posting_count" aria-live="polite">{{ job_posting_count|intcomma }}&nbsp;offre{% if job_posting_count > 1 %}s{% endif %} </p>
                         {% endwith %}
-                        <div id="job_posting_sort" class="empty:hidden">{% if searching %}<c-components.job_posting_sort :sort_by_date="sort_by_date" form="job_posting_filters" />{% endif %}</div>
+                        <div id="job_posting_sort" class="empty:hidden">{% if searching %}<c-components.sort_select id="job_posting_sort" :sort_by_date="sort_by_date" form="job_posting_filters" />{% endif %}</div>
                     </div>
                     <div id="job_posting_results">
                         <div class="grid gap-4">

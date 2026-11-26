@@ -183,6 +183,16 @@ def test_a_filtered_url_opens_with_its_filters_ticked(page, live_server):
     assert bretagne.evaluate("box => box.indeterminate")
 
 
+def test_a_url_with_every_department_of_a_region_opens_with_the_region_listed(page, live_server):
+    departments = "&".join(f"department={code}" for code in ("22", "29", "35", "56"))
+    page.goto(f"{live_server.url}/stages-alternances-emplois/?{departments}")
+
+    expect(page.get_by_role("button", name="Retirer le filtre Bretagne")).to_be_visible()
+    finistere = page.get_by_role("button", name="Retirer le filtre Finistère (29)")
+    expect(finistere).not_to_be_attached()
+    expect(page.get_by_role("button", name="Région / Département")).to_contain_text("1")
+
+
 def test_searching_a_place_shows_the_matches_under_their_region(page, live_server):
     page.goto(f"{live_server.url}/stages-alternances-emplois/")
     page.get_by_role("button", name="Région / Département").click()
