@@ -24,6 +24,7 @@ from .auth_views import (
     login_to_jobirl,
     login_verify,
 )
+from .beneficiary.discord_views import create_discord_membership, new_discord_membership
 from .beneficiary.inscription_views import (
     beneficiary_inscription_funnel,
     new_beneficiary_inscription_funnel,
@@ -138,6 +139,7 @@ __all__ = [
     "create_manifeste_signature",
     "create_job_posting_notification",
     "create_clicked_job_posting",
+    "create_discord_membership",
     "create_saved_event_modal",
     "create_saved_job_posting_modal",
     "create_training_ambassador_request",
@@ -171,6 +173,7 @@ __all__ = [
     "login_verify",
     "mentions_legales",
     "new_beneficiary_training_experience",
+    "new_discord_membership",
     "new_manifeste_signature",
     "new_mentor",
     "new_mentoree",

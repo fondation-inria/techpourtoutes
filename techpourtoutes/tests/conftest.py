@@ -467,3 +467,12 @@ def inactive_user(db):
         is_active=False,
     )
     return user
+
+
+@pytest.fixture
+def discord_settings(settings):
+    """The Discord app and server every Discord test talks to."""
+    settings.DISCORD_CLIENT_ID = "client-id"
+    settings.DISCORD_CLIENT_SECRET = "client-secret"
+    settings.DISCORD_BOT_TOKEN = "bot-token"
+    settings.DISCORD_GUILD_ID = "42"

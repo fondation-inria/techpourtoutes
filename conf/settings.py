@@ -221,6 +221,12 @@ JOBIRL_URL = env("JOBIRL_URL", default="")
 # MyFuture API
 MYFUTURE_API_KEY = env("MYFUTURE_API_KEY", default="")
 
+# Discord app (OAuth) and bot, and the server the bot adds beneficiaries to
+DISCORD_CLIENT_ID = env("DISCORD_CLIENT_ID", default="")
+DISCORD_CLIENT_SECRET = env("DISCORD_CLIENT_SECRET", default="")
+DISCORD_BOT_TOKEN = env("DISCORD_BOT_TOKEN", default="")
+DISCORD_GUILD_ID = env("DISCORD_GUILD_ID", default="")
+
 # Apec SFTP server
 APEC_SFTP_LOGIN = env("APEC_SFTP_LOGIN", default="")
 APEC_SFTP_PASSWORD = env("APEC_SFTP_PASSWORD", default="")

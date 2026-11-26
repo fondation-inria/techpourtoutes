@@ -1,3 +1,5 @@
+from unittest.mock import patch
+
 import pytest
 from django.core import mail
 
@@ -92,3 +94,32 @@ def test_soft_delete_user_sends_internal_notice_for_beneficiary_with_jobirl_acco
     assert "te confirmons" in confirmation.body
     assert "JobIRL" in confirmation.body
     assert internal_notice.subject == "Demande de suppression de données personnelles"
+
+
+@pytest.mark.django_db
+def test_soft_delete_user_removes_beneficiary_from_the_discord_server_once_committed(
+    beneficiary, django_capture_on_commit_callbacks
+):
+    beneficiary.discord_user_id = 1234
+    beneficiary.save()
+
+    with patch(
+        "techpourtoutes.services.account.soft_delete_user.remove_discord_guild_member_task"
+    ) as task:
+        with django_capture_on_commit_callbacks(execute=True):
+            SoftDeleteUser(user=beneficiary)
+
+    task.delay.assert_called_once_with(1234)
+
+
+@pytest.mark.django_db
+def test_soft_delete_user_leaves_discord_alone_for_beneficiary_never_linked(
+    beneficiary, django_capture_on_commit_callbacks
+):
+    with patch(
+        "techpourtoutes.services.account.soft_delete_user.remove_discord_guild_member_task"
+    ) as task:
+        with django_capture_on_commit_callbacks(execute=True):
+            SoftDeleteUser(user=beneficiary)
+
+    task.delay.assert_not_called()

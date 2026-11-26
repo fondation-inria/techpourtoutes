@@ -106,6 +106,7 @@ def test_soft_delete_anonymizes_expected_fields_for_beneficiary(beneficiary):
     original_pk = beneficiary.pk
     original_postal_code = beneficiary.postal_code
     beneficiary.faveod_id = 4243
+    beneficiary.discord_user_id = 1234
     beneficiary.save()
 
     beneficiary.soft_delete()
@@ -128,6 +129,7 @@ def test_soft_delete_anonymizes_expected_fields_for_beneficiary(beneficiary):
 
     assert isinstance(beneficiary, Beneficiary)
     assert beneficiary.birth_date is None
+    assert beneficiary.discord_user_id is None
     assert beneficiary.postal_code == original_postal_code
 
 

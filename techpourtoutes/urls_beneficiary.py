@@ -68,6 +68,12 @@ urlpatterns = [
         views.update_legal_representative_authorization,
         name="update_legal_representative_authorization",
     ),
+    path("rejoindre-le-discord/", views.new_discord_membership, name="new_discord_membership"),
+    path(
+        "rejoindre-le-discord/connexion/",
+        views.create_discord_membership,
+        name="create_discord_membership",
+    ),
     path("rejoindre-les-makeuses/", views.index_makeuses, name="index_makeuses"),
     path(
         "rejoindre-les-makeuses/proposition/",
