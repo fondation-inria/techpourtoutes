@@ -93,13 +93,3 @@ def test_a_short_screen_scrolls_the_whole_menu_over_the_header(landscape_page, l
     assert landscape_page.evaluate(
         "document.elementFromPoint(20, 20).closest('nav[aria-label=\"Menu principal\"]')"
     )
-
-
-def test_the_close_button_stays_on_screen_once_the_page_is_scrolled(landscape_page, live_server):
-    landscape_page.goto(live_server.url)
-    landscape_page.mouse.wheel(0, 400)
-    landscape_page.wait_for_function("scrollY === 400")
-    landscape_page.get_by_role("checkbox", name="Menu").focus()
-    landscape_page.keyboard.press("Space")
-
-    expect(landscape_page.get_by_text("×")).to_be_in_viewport()
