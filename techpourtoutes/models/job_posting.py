@@ -6,6 +6,7 @@ from html import unescape
 from django.contrib.postgres.fields import ArrayField
 from django.contrib.postgres.indexes import GinIndex
 from django.contrib.postgres.search import SearchVectorField
+from django.core.validators import URLValidator
 from django.db import models
 from django.db.models import Case, Q, When
 from django.db.models.functions import Coalesce, TruncDate
@@ -189,7 +190,7 @@ class JobPosting(BaseModel):
         null=True, blank=True, verbose_name=_("durée (en mois)")
     )
     company_logo = models.URLField(
-        max_length=500, blank=True, verbose_name=_("logo de l'entreprise")
+        max_length=URLValidator.max_length, blank=True, verbose_name=_("logo de l'entreprise")
     )
     category = models.CharField(
         max_length=20, choices=Category.choices, verbose_name=_("catégorie")
@@ -208,7 +209,7 @@ class JobPosting(BaseModel):
     source_updated_at = models.DateTimeField(
         null=True, blank=True, verbose_name=_("mise à jour chez le partenaire le")
     )
-    url = models.URLField(verbose_name=_("lien de l'offre"))
+    url = models.URLField(max_length=URLValidator.max_length, verbose_name=_("lien de l'offre"))
     hidden = models.BooleanField(
         default=False,
         verbose_name=_("dépubliée"),
