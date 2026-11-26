@@ -7,7 +7,7 @@
             hx-post="{% url 'create_user_email_change' %}"
             hx-target="#account-email-section"
             hx-swap="outerHTML">
-            <c-components.form_fields.input field=form.email description="Format attendu : hedy.lamarr@techpourtoutes.io" />
+            <c-components.form_fields.input field=form.email autocomplete="email" autofocus="true" description="Format attendu : hedy.lamarr@techpourtoutes.io" />
             <div class="flex justify-end gap-2">
                 <c-components.button label="Annuler" variant="secondary" type="button"
                     hx-get="{% url 'show_user_email' %}"
@@ -17,7 +17,7 @@
             </div>
         </c-patterns.form>
     {% else %}
-        <c-components.button label="Changer mon adresse mail" variant="tertiary" class="my-2"
+        <c-components.button label="Changer mon adresse mail" variant="tertiary" class="my-2" autofocus="{{ request.META.HTTP_HX_REQUEST }}"
             hx-get="{% url 'edit_user_email' %}"
             hx-target="#account-email-section"
             hx-swap="outerHTML"/>

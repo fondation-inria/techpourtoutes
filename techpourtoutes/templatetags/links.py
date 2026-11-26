@@ -21,7 +21,7 @@ TLDS = "com|edu|gov|int|mil|net|org|fr|io|eu|biz|info|ai|nl|\
 def _render_link(href, url, external):
     """Renders one `inline_link`, collapsed onto a single line.
 
-    The description goes through `linebreaksbr` downstream, which would turn every newline the
+    The description goes through `paragraphs` downstream, which would turn every newline the
     component is written with — inside the icon, inside the class attribute — into a <br>.
     So the markup is squeezed: runs of whitespace down to one space, then none at all around
     the angle brackets. The only text an anchor holds here is a URL, which carries no

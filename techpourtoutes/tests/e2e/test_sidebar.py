@@ -36,11 +36,19 @@ def _open_menu(page, live_server):
     return burger
 
 
-def test_the_menu_comes_right_after_the_skip_link_on_a_wide_screen(desktop_page, live_server):
+def test_the_header_then_the_menu_come_right_after_the_skip_link_on_a_wide_screen(
+    desktop_page, live_server
+):
     desktop_page.goto(live_server.url)
 
     desktop_page.keyboard.press("Tab")
     expect(desktop_page.get_by_role("link", name="Aller au contenu")).to_be_focused()
+    desktop_page.keyboard.press("Tab")
+    expect(
+        desktop_page.get_by_role("banner").get_by_role(
+            "link", name="Accueil TechPourToutes Programme"
+        )
+    ).to_be_focused()
     desktop_page.keyboard.press("Tab")
     assert desktop_page.evaluate(IN_MENU)
 

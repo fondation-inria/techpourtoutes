@@ -10,6 +10,7 @@
     variant="default"
     class=""
     :watchable=False
+    autofocus=""
 />
 
 <c-components.form-fields.base label=label description=description message=message class=class>
@@ -23,6 +24,7 @@
         <button
             type="button"
             id="{{ field.id_for_label|default:id }}"
+            {% if autofocus %}autofocus{% endif %}
             @click="open = !open"
             :aria-expanded="open"
             {% if variant == "disabled" %}disabled aria-disabled="true"{% endif %}

@@ -48,5 +48,5 @@
         <h2 class="{{ title_class }}">{{ title|safe }}</h2>
     {% endif %}
     <div class="{% if size == "sm" %}{{ body_class_sm }}{% else %}{{ body_class }} {% endif %}">{{ slot }}</div>
-    <c-components.button variant="secondary" label="{{ button }}" href="{{ href }}" target="{{ target }}" class="{{ button_class }}" :disabled="disabled" />
+    <c-components.button variant="secondary" label="{{ button }}" href="{{ href }}" target="{{ target }}" class="{{ button_class }}" :disabled="disabled" :attrs="attrs" />
 </div>

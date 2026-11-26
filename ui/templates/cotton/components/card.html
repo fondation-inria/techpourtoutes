@@ -1,4 +1,4 @@
-<c-vars title="" title_bg="black" style="" class="" nobg=False header="" header_color="" header_text_color="text-white" bg_color="bg-neutral-0" />
+<c-vars title="" title_bg="black" style="" class="" nobg=False header="" header_color="" header_text_color="text-white" bg_color="bg-neutral-0" autofocus=False />
 
 {% if header %}<div class="w-full">
     <div class="w-fit {{ header_color }} {{ header_text_color }} text-xl font-bold px-4 py-2">
@@ -7,7 +7,7 @@
 {% endif %}
 <div class="p-4 w-full{% if nobg != True %} {{ bg_color }} border border-y-neutral-950 shadow-box{% endif %} {{ class }}">
     {% if title %}
-        <c-components.title title="{{ title|safe }}" variant="h2" title_bg="{{ title_bg }}" style="{{ style }}" />
+        <c-components.title title="{{ title|safe }}" variant="h2" title_bg="{{ title_bg }}" style="{{ style }}" :autofocus="autofocus" />
     {% endif %}
     <div class="text-black leading-[1.4] w-full">
         {{ slot }}

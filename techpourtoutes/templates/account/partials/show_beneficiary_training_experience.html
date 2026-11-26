@@ -12,7 +12,7 @@
             Formation : <span class="font-medium">{{ experience.formation_label }}</span>
         </c-components.text>
     {% else %}
-        <c-components.text class="font-light pr-8"><span class="font-medium">Année scolaire en cours</span>
+        <c-components.text class="font-light pr-8" :spaced="False"><span class="font-medium">Année scolaire en cours</span>
 
             Je ne suis pas inscrite dans une formation.
         </c-components.text>
@@ -23,7 +23,8 @@
             icon="edit"
             icon_size_class="w-6 h-6"
             class="p-1 text-black bg-secondary/20 rounded-sm"
-            aria-label="Modifier"
+            aria-label="Modifier la formation – {% if experience %}{{ experience.period_label_display }}{% else %}Année scolaire en cours{% endif %}"
+            autofocus="{{ request.META.HTTP_HX_REQUEST }}"
             hx-get="{% if experience %}{% url 'edit_beneficiary_training_experience' experience.pk %}{% else %}{% url 'new_beneficiary_training_experience' %}?current_year=true{% endif %}"
             hx-target="closest [id^='beneficiary-training-experience-']"
             hx-swap="outerHTML" />

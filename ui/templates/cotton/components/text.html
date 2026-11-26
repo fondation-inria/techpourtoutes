@@ -1,5 +1,6 @@
-<c-vars class="" />
+<c-vars class="" spaced=True />
+{% load paragraphs %}
 
-<div class="{{ class }}">
-    {{ slot|linebreaksbr }}
+<div class="space-y-[1lh] {% if spaced %}pt-[1lh] {% endif %}{{ class }}">
+    {{ slot|paragraphs }}
 </div>

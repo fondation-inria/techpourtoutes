@@ -6,30 +6,29 @@
     </c-slot>
 
     <c-components.title title="Écrivez-nous" variant="h2" title_bg="black"  />
-        <br>
-        Vous avez des idées ? Vous voulez contribuer autrement ? N'hésitez pas à nous écrire :
-        <br><br>
-        - pour vous engager avec nous : <c-components.inline-link label="agir@techpourtoutes.io" href="mailto:agir@techpourtoutes.io" />
-        <br><br>
-        -  pour nous aider à promouvoir le programme : <c-components.inline-link label="presse@techpourtoutes.io" href="mailto:presse@techpourtoutes.io" />
-        <br><br>
-        - pour remonter un problème sur le site : <c-components.inline-link label="perfectible@techpourtoutes.io" href="mailto:perfectible@techpourtoutes.io" />
-        <br><br>
+    <div class="py-[1lh] space-y-[1lh]">
+        <p>Vous avez des idées&nbsp;? Vous voulez contribuer autrement&nbsp;? N'hésitez pas à nous écrire&nbsp;:</p>
+        <ul class="space-y-[1lh] list-inside list-['-_']">
+            <li>pour vous engager avec nous&nbsp;: <c-components.inline-link label="agir@techpourtoutes.io" href="mailto:agir@techpourtoutes.io" /></li>
+            <li>pour nous aider à promouvoir le programme&nbsp;: <c-components.inline-link label="presse@techpourtoutes.io" href="mailto:presse@techpourtoutes.io" /></li>
+            <li>pour remonter un problème sur le site&nbsp;: <c-components.inline-link label="perfectible@techpourtoutes.io" href="mailto:perfectible@techpourtoutes.io" /></li>
+        </ul>
+    </div>
     <c-components.title title="Suivez-nous sur les réseaux" variant="h2" title_bg="black" />
-    <div class="flex justify-center gap-20 mt-5">
-        <a href="https://instagram.com/techpourtoutes/" class="flex flex-col items-center link-hover underline decoration-1 underline-offset-4" target="_blank">
+    <ul role="list" class="flex justify-center gap-20 mt-5">
+        <li><a href="https://instagram.com/techpourtoutes/" class="flex flex-col items-center link-hover underline decoration-1 underline-offset-4" target="_blank" aria-label="Instagram de TechPourToutes (nouvelle fenêtre)">
             <c-components.icon name="instagram-bold" class="w-15 h-15 text-black!" />
             <span class="flex items-center gap-1 hover:decoration-2 active:bg-neutral-200 active:decoration-2 focus:outline-blue-500 focus:outline-offset-2">
-                Instagram<span class="sr-only"> (nouvelle fenêtre)</span>
+                Instagram
                 <c-components.icon name="external-link" class="w-5 h-5" />
             </span>
-        </a>
-        <a href="https://linkedin.com/showcase/techpourtoutes/" class="flex flex-col items-center link-hover underline decoration-1 underline-offset-4" target="_blank">
+        </a></li>
+        <li><a href="https://linkedin.com/showcase/techpourtoutes/" class="flex flex-col items-center link-hover underline decoration-1 underline-offset-4" target="_blank" aria-label="LinkedIn de TechPourToutes (nouvelle fenêtre)">
             <c-components.icon name="linkedin-bold" class="w-15 h-15 text-black!" />
             <span class="flex items-center gap-1 hover:decoration-2 active:bg-neutral-200 active:decoration-2 focus:outline-blue-500 focus:outline-offset-2">
-                LinkedIn<span class="sr-only"> (nouvelle fenêtre)</span>
+                LinkedIn
                 <c-components.icon name="external-link" class="w-5 h-5" />
             </span>
-        </a>
-    </div>
+        </a></li>
+    </ul>
 </c-layout.a_propos>

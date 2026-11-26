@@ -1,12 +1,12 @@
 <div id="training-experience-{{ experience.pk }}" class="w-full">
-    <c-components.card title="Formation">
+    <c-components.card title="Formation" :autofocus="True">
         <div class="mt-3"></div>
         <c-patterns.form
             hx-post="{% url 'update_pro_training_experience' experience.pk %}"
             hx-target="#training-experience-{{ experience.pk }}"
             hx-swap="outerHTML">
             <p class="description-text-xxs">Les champs suivis d'un astérisque (*) sont obligatoires.</p>
-            <c-components.text class="font-light"><span class="font-medium">Année scolaire en cours</span></c-components.text>
+            <c-components.text class="font-light" :spaced="False"><span class="font-medium">Année scolaire en cours</span></c-components.text>
             <c-components.form_fields.select field=form.level />
             <c-components.form_fields.school_search
                 name_field=form.school_label
@@ -30,11 +30,11 @@
                 unique_id="{{ experience.pk }}"
             />
             <div class="flex justify-end gap-2">
-                <c-components.button label="Annuler" variant="secondary" type="button"
+                <c-components.button label="Annuler" variant="secondary" type="button" aria-label="Annuler la modification de ma formation"
                     hx-get="{% url 'show_pro_training_experience' experience.pk %}"
                     hx-target="#training-experience-{{ experience.pk }}"
                     hx-swap="outerHTML" />
-                <c-components.button type="submit" label="Sauvegarder" />
+                <c-components.button type="submit" label="Sauvegarder" aria-label="Sauvegarder ma formation" />
             </div>
         </c-patterns.form>
     </c-components.card>

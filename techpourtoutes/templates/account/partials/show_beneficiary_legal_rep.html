@@ -8,7 +8,7 @@
         </c-components.text>
         {% if user.legal_representative_authorization.status == "pending" %}
             <div class="flex mt-3 justify-end">
-                <c-components.button label="Modifier" variant="secondary"
+                <c-components.button label="Modifier" variant="secondary" aria-label="Modifier la personne responsable légale" autofocus="{{ request.META.HTTP_HX_REQUEST }}"
                     hx-get="{% url 'edit_beneficiary_legal_rep' %}"
                     hx-target="#account-info-legal-rep-card"
                     hx-swap="outerHTML" />

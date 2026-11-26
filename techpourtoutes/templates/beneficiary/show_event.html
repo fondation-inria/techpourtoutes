@@ -120,7 +120,7 @@
     {% if event.description %}
         <c-components.card class="w-full">
             <h3 class="font-bold text-lg">Description</h3>
-            <c-components.text>{{ event.description|linkify }}</c-components.text>
+            <c-components.text :spaced="False">{{ event.description|linkify }}</c-components.text>
         </c-components.card>
     {% endif %}
 

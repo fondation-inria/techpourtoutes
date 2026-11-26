@@ -1,5 +1,5 @@
 <div id="account-info-legal-rep-card" class="w-full">
-    <c-components.card title="Personne responsable légale">
+    <c-components.card title="Personne responsable légale" :autofocus="True">
         <div class="mt-3"></div>
         <c-patterns.form
             hx-post="{% url 'update_beneficiary_legal_rep' %}"
@@ -9,11 +9,11 @@
             <c-components.form_fields.input field=form.legal_representative_name />
             <c-components.form_fields.input field=form.legal_representative_email />
             <div class="flex justify-end gap-2">
-                <c-components.button label="Annuler" variant="secondary" type="button"
+                <c-components.button label="Annuler" variant="secondary" type="button" aria-label="Annuler la modification de la personne responsable légale"
                     hx-get="{% url 'show_beneficiary_legal_rep' %}"
                     hx-target="#account-info-legal-rep-card"
                     hx-swap="outerHTML" />
-                <c-components.button type="submit" label="Sauvegarder" />
+                <c-components.button type="submit" label="Sauvegarder" aria-label="Sauvegarder la personne responsable légale" />
             </div>
         </c-patterns.form>
     </c-components.card>

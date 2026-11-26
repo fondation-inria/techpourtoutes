@@ -10,20 +10,25 @@
                 icon_size_class="w-6 h-6"
                 class="absolute top-0 right-0 p-1 text-black bg-secondary/20 rounded-sm"
                 aria-label="Supprimer cette année"
+                autofocus="true"
                 hx-post="{% url 'destroy_beneficiary_training_experience' experience.pk %}"
                 hx-target="#beneficiary-training-experience-{{ experience.pk }}"
                 hx-swap="delete"
+                hx-on::before-request="document.getElementById('add-beneficiary-training-experience').focus()"
+                hx-on::response-error="this.focus()"
+                hx-on::send-error="this.focus()"
                 hx-headers='{"X-CSRFToken": "{{ csrf_token }}"}'
                 hx-confirm="Veux-tu vraiment supprimer cette année de formation ?" />
         {% endif %}
         <p class="description-text-xxs pr-8">Les champs suivis d'un astérisque (*) sont obligatoires.</p>
         <c-components.form_fields.select field=form.period_label
-            variant="{% if form.current_year %}disabled{% else %}default{% endif %}" />
+            variant="{% if form.current_year %}disabled{% else %}default{% endif %}"
+            autofocus="{% if not experience and not form.current_year %}true{% endif %}" />
         <div x-data="{ notEnrolled: {% if form.current_year %}{{ form.not_enrolled.value|yesno:'true,false' }}{% else %}false{% endif %}, level: '{{ form.level.value|default:'' }}' }"
              @select-change="level = $event.detail.value"
              @change="if ($event.target.name === '{{ form.not_enrolled.html_name|default:'' }}') notEnrolled = $event.target.checked">
             {% if form.current_year %}
-                <c-components.form_fields.checkbox field=form.not_enrolled label_class="text-md" full_width=True />
+                <c-components.form_fields.checkbox field=form.not_enrolled autofocus="true" label_class="text-md" full_width=True />
             {% endif %}
             <template x-if="!notEnrolled">
                 <div>
@@ -87,14 +92,14 @@
         </div>
         <div class="flex justify-end gap-2">
             {% if experience %}
-                <c-components.button label="Annuler" variant="secondary" type="button"
+                <c-components.button label="Annuler" variant="secondary" type="button" aria-label="Annuler la modification de ma formation – {{ experience.period_label_display }}"
                     hx-get="{% url 'show_beneficiary_training_experience' experience.pk %}"
                     hx-target="#beneficiary-training-experience-{{ experience.pk }}"
                     hx-swap="outerHTML" />
             {% elif not form.current_year %}
-                <c-components.button label="Annuler" variant="secondary" type="button"
-                    hx-on:click="this.closest('[id^=beneficiary-training-experience-]').remove()" />
+                <c-components.button label="Annuler" variant="secondary" type="button" aria-label="Annuler l’ajout d’une année de formation"
+                    hx-on:click="document.getElementById('add-beneficiary-training-experience').focus(); this.closest('[id^=beneficiary-training-experience-]').remove()" />
             {% endif %}
-            <c-components.button type="submit" label="Sauvegarder" />
+            <c-components.button type="submit" label="Sauvegarder" aria-label="Sauvegarder ma formation – {% if experience %}{{ experience.period_label_display }}{% elif form.current_year %}Année scolaire en cours{% else %}nouvelle année{% endif %}" />
         </div>
     </c-patterns.form>
