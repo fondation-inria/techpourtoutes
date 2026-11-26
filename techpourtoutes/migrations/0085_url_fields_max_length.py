@@ -6,7 +6,7 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('techpourtoutes', '0083_event_time_zone'),
+        ('techpourtoutes', '0084_pro_structure_school'),
     ]
 
     operations = [
