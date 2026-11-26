@@ -20,11 +20,11 @@
     </div>
     <label for="sidebar-drawer" class="outline-blue-500 [body:has(#sidebar-drawer:focus-visible)_&]:outline-2 [body:has(#sidebar-drawer:focus-visible)_&]:outline-offset-2 hidden [body:has(#sidebar-drawer:checked)_&]:block fixed right-4 top-4 z-[110] cursor-pointer p-1 text-neutral-900 text-xl leading-none">&times;</label>
     <div class="drawer-content flex flex-col min-h-screen @container" :inert="menuOpen">
-        <header class="xl:hidden flex h-(--grid-cell) items-center justify-between px-4 bg-neutral-0 border-b z-100 [@media(max-height:600px)]:z-0">
+        <header hidden="until-found" class="xl:hidden flex [content-visibility:visible] h-(--grid-cell) items-center justify-between px-4 bg-neutral-0 border-b z-100 [@media(max-height:600px)]:z-0">
             <label for="sidebar-drawer" class="drawer-button outline-blue-500 [body:has(#sidebar-drawer:checked)_&]:invisible cursor-pointer p-1">
                 <c-components.icon name="menu-burger-{% if is_coalition_page %}pro{% else %}beneficiary{% endif %}" class="w-6 h-6" />
             </label>
-            <c-components.brand-mark :background="True" />
+            <c-components.brand-mark />
             <div />
         </header>
         {% if banner %}
