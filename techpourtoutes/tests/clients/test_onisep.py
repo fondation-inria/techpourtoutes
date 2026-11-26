@@ -1,6 +1,6 @@
 from techpourtoutes.clients.onisep import OnisepClient
 
-DATASET_URL = "https://api.opendata.onisep.fr/downloads/5fa591127f501/5fa591127f501.json"
+DATASET_URL = "https://data.onisep.fr/api/v1/downloads/5fa591127f501/5fa591127f501.json"
 
 
 def test_onisep_client_downloads_a_dataset_as_json(httpx_mock):
