@@ -28,15 +28,19 @@ _ADDITIONAL_INFORMATION = {
     "phone": "0612345678",
     "postal_code": "75011",
 }
-_WORKSHOP_REQUEST = {
-    "workshop-job_title": "Enseignante",
-    "workshop-structure_uai": "0750001A",
-    "workshop-school_label": "Lycée Voltaire",
-    "workshop-postal_code": "75005",
-    "workshop-ateliers": ["future_of_tech"],
-}
 
 pytestmark = pytest.mark.django_db
+
+
+@pytest.fixture
+def workshop_request(school):
+    return {
+        "workshop-job_title": "Enseignante",
+        "workshop-school_id": str(school.pk),
+        "workshop-school_label": "Lycée Voltaire",
+        "workshop-postal_code": "75005",
+        "workshop-ateliers": ["future_of_tech"],
+    }
 
 
 # Celery runs eagerly: a pro created with a workshop request would otherwise call n8n for real.
@@ -229,12 +233,12 @@ def test_several_engagements_go_through_every_screen_they_call_for(
     assert response.context["step"] == "additional_information"
 
 
-def test_only_the_last_screen_joins_the_coalition(client):
+def test_only_the_last_screen_joins_the_coalition(client, workshop_request):
     _seed_until_engagements(client, "workshops", "sponsor", current="workshop_request")
     response = client.get(FUNNEL_URL)
     assert "Rejoindre la coalition" not in response.content.decode()
 
-    response = _post_step(client, "workshop_request", _WORKSHOP_REQUEST)
+    response = _post_step(client, "workshop_request", workshop_request)
     assert "Rejoindre la coalition" in response.content.decode()
 
 
@@ -255,23 +259,23 @@ def _field(response, name):
     return re.search(rf'<(input|button)[^>]*id="id_{name}"[^>]*>', response).group()
 
 
-def test_the_last_screen_hides_the_school_and_job_given_for_the_workshop(client):
+def test_the_last_screen_hides_the_school_and_job_given_for_the_workshop(client, workshop_request):
     _seed_until_engagements(client, "workshops", "sponsor", current="workshop_request")
 
-    response = _post_step(client, "workshop_request", _WORKSHOP_REQUEST).content.decode()
+    response = _post_step(client, "workshop_request", workshop_request).content.decode()
 
     for name in ("job_title", "structure_name", "structure_type"):
         assert f'id="id_{name}"' not in response
     assert 'value="75005"' in _field(response, "postal_code")
 
 
-def test_the_last_screen_asks_the_job_of_another_mission_at_the_school(client):
+def test_the_last_screen_asks_the_job_of_another_mission_at_the_school(client, workshop_request):
     _seed_until_engagements(client, "workshops", "sponsor", current="workshop_request")
 
     response = _post_step(
         client,
         "workshop_request",
-        {**_WORKSHOP_REQUEST, "workshop-job_title": "Autre mission au sein d'un établissement"},
+        {**workshop_request, "workshop-job_title": "Autre mission au sein d'un établissement"},
     ).content.decode()
 
     assert 'value=""' in _field(response, "job_title")
@@ -279,14 +283,14 @@ def test_the_last_screen_asks_the_job_of_another_mission_at_the_school(client):
         assert f'id="id_{name}"' not in response
 
 
-def test_the_job_of_another_mission_is_saved_with_the_workshop_school(client):
+def test_the_job_of_another_mission_is_saved_with_the_workshop_school(client, workshop_request):
     _seed_until_engagements(
         client,
         "workshops",
         "sponsor",
         current="additional_information",
         workshop_request={
-            **_WORKSHOP_REQUEST,
+            **workshop_request,
             "workshop-job_title": "Autre mission au sein d'un établissement",
         },
     )
@@ -307,24 +311,26 @@ def test_the_job_of_another_mission_is_saved_with_the_workshop_school(client):
     "job_title",
     ["DRANE / DAN / IAN", "parent d'élèves", "je ne travaille pas dans un établissement"],
 )
-def test_the_last_screen_asks_for_her_own_structure_when_she_works_elsewhere(client, job_title):
+def test_the_last_screen_asks_for_her_own_structure_when_she_works_elsewhere(
+    client, workshop_request, job_title
+):
     _seed_until_engagements(client, "workshops", "sponsor", current="workshop_request")
 
     response = _post_step(
-        client, "workshop_request", {**_WORKSHOP_REQUEST, "workshop-job_title": job_title}
+        client, "workshop_request", {**workshop_request, "workshop-job_title": job_title}
     ).content.decode()
 
     for name in ("job_title", "structure_name", "structure_type"):
         assert "disabled" not in _field(response, name)
 
 
-def test_the_structure_she_gives_is_saved_when_she_works_elsewhere(client):
+def test_the_structure_she_gives_is_saved_when_she_works_elsewhere(client, workshop_request):
     _seed_until_engagements(
         client,
         "workshops",
         "sponsor",
         current="additional_information",
-        workshop_request={**_WORKSHOP_REQUEST, "workshop-job_title": "DRANE / DAN / IAN"},
+        workshop_request={**workshop_request, "workshop-job_title": "DRANE / DAN / IAN"},
     )
 
     _post_step(client, "additional_information", _ADDITIONAL_INFORMATION)
@@ -337,13 +343,13 @@ def test_the_structure_she_gives_is_saved_when_she_works_elsewhere(client):
     )
 
 
-def test_the_job_given_for_the_workshop_is_the_one_saved(client):
+def test_the_job_given_for_the_workshop_is_the_one_saved(client, workshop_request, school):
     _seed_until_engagements(
         client,
         "workshops",
         "sponsor",
         current="additional_information",
-        workshop_request=_WORKSHOP_REQUEST,
+        workshop_request=workshop_request,
     )
 
     _post_step(
@@ -356,11 +362,12 @@ def test_the_job_given_for_the_workshop_is_the_one_saved(client):
         "Lycée Voltaire",
         "Enseignante",
     )
+    assert pro.structure_school == school
 
 
-def test_the_job_is_free_again_once_the_workshop_is_no_longer_wanted(client):
+def test_the_job_is_free_again_once_the_workshop_is_no_longer_wanted(client, workshop_request):
     _seed_until_engagements(
-        client, "sponsor", current="additional_information", workshop_request=_WORKSHOP_REQUEST
+        client, "sponsor", current="additional_information", workshop_request=workshop_request
     )
 
     _post_step(

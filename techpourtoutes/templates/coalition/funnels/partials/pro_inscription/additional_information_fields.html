@@ -7,9 +7,12 @@
         <c-components.form_fields.select field=form.structure_type :watchable=True />
     {% endif %}
     {% if "structure_name" in form.fields %}
-        <div x-show="structureType && !['retired', 'jobless'].includes(structureType)" x-cloak>
-            <c-components.form_fields.input field=form.structure_name autocomplete="organization" />
-        </div>
+        <c-components.form_fields.structure_name
+            :name_field=form.structure_name
+            :id_field=form.structure_school_search_id
+            :not_found_field=form.structure_school_not_found
+            structure_type="{{ form.structure_type_value|default:'' }}"
+            school_label="Dans quel établissement travaillez-vous ?*" />
     {% endif %}
     {% if "job_title" in form.fields %}
         <c-components.form_fields.input field=form.job_title autocomplete="organization-title" />
