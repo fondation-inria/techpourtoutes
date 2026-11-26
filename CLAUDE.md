@@ -252,7 +252,7 @@ Exceptions are rare — static pages (`static_views`, `home`…), `search_views`
 
 **One source file, one test file, matching name.** `services/brevo_api/upsert_contact.py` is tested by `tests/services/brevo_api/test_upsert_contact.py` — never a grab-bag `test_services.py`. `ui/tests/` mirrors the `ui` app the same way. Both apps are listed in `testpaths`.
 
-A few tests have no single source file and stay at the root of `tests/`: `test_seo.py` (meta/og tags in the base template), `test_urls.py` (route conventions, legacy redirects), `test_error_pages.py` (403/404 handlers), `test_collectstatic.py` (the production static storage). Shared helpers sit there too: `birth_dates.py` (`birth_date_for_age`), `sitemap_exclusions.py`.
+A few tests have no single source file and stay at the root of `tests/`: `test_seo.py` (meta/og tags in the base template), `test_urls.py` (route conventions, legacy redirects), `test_error_pages.py` (403/404 handlers), `test_collectstatic.py` (the production static storage), `test_url_fields.py` (every `URLField` holds as many characters as `URLValidator` accepts). Shared helpers sit there too: `birth_dates.py` (`birth_date_for_age`), `sitemap_exclusions.py`.
 
 ### Fixtures
 
