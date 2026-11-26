@@ -3,7 +3,7 @@ from zoneinfo import ZoneInfo
 
 from django.contrib.postgres.indexes import GinIndex
 from django.contrib.postgres.search import SearchVectorField
-from django.core.validators import MinValueValidator
+from django.core.validators import MinValueValidator, URLValidator
 from django.db import models
 from django.template.defaultfilters import floatformat
 from django.templatetags.static import static
@@ -248,8 +248,12 @@ class Event(SlugFromTitleMixin, BaseModel):
     longitude = models.FloatField(null=True, blank=True, verbose_name=_("longitude"))
     latitude = models.FloatField(null=True, blank=True, verbose_name=_("latitude"))
     ban_id = models.CharField(max_length=30, blank=True, verbose_name=_("identifiant BAN"))
-    online_url = models.URLField(blank=True, verbose_name=_("lien de connexion"))
-    registration_url = models.URLField(blank=True, verbose_name=_("lien d'inscription"))
+    online_url = models.URLField(
+        max_length=URLValidator.max_length, blank=True, verbose_name=_("lien de connexion")
+    )
+    registration_url = models.URLField(
+        max_length=URLValidator.max_length, blank=True, verbose_name=_("lien d'inscription")
+    )
     access_type = models.CharField(
         max_length=20, choices=AccessType.choices, verbose_name=_("modalité d'inscription")
     )

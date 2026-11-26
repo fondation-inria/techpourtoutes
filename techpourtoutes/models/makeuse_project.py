@@ -1,4 +1,5 @@
 from django.core.exceptions import ValidationError
+from django.core.validators import URLValidator
 from django.db import models
 from django.utils.translation import gettext_lazy as _
 
@@ -58,7 +59,9 @@ class MakeuseProject(SlugFromTitleMixin, BaseModel):
     image = models.FileField(
         max_length=255, blank=True, storage=public_storage, verbose_name=_("visuel")
     )
-    demo_url = models.URLField(blank=True, verbose_name=_("lien de démo"))
+    demo_url = models.URLField(
+        max_length=URLValidator.max_length, blank=True, verbose_name=_("lien de démo")
+    )
 
     class Meta:
         verbose_name = _("projet makeuse")
