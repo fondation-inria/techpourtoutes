@@ -26,6 +26,14 @@
                 <c-components.form_fields.input field=form.end_date type="date" />
                 <c-components.form_fields.input field=form.end_time type="time" />
             </div>
+            <div x-data="{ chooseTimeZone: {{ form.choose_time_zone.value|yesno:'true,false' }} }"
+                 @change="if ($event.target.name === 'choose_time_zone') chooseTimeZone = $event.target.checked"
+                 class="flex flex-col gap-4">
+                <c-components.form_fields.checkbox field=form.choose_time_zone description="Par défaut, celui de l'adresse de l'événement, ou l'heure de Paris s'il a lieu en ligne" />
+                <div x-show="chooseTimeZone" x-cloak>
+                    <c-components.form_fields.select field=form.time_zone />
+                </div>
+            </div>
             <c-components.form_fields.image_upload
                 :field=form.image
                 upload_url="{% url "create_event_image_upload" %}"

@@ -1,4 +1,5 @@
 from datetime import datetime
+from zoneinfo import ZoneInfo
 
 from django.contrib.postgres.indexes import GinIndex
 from django.contrib.postgres.search import SearchVectorField
@@ -16,9 +17,25 @@ from ..utils.object_storage import public_storage
 from ..utils.structure_type_teams import structure_types_followed_by
 from ..utils.territories import department_code
 from ..utils.text import strip_accents
+from ..utils.time_zones import TimeZone, time_zone_for
 from .base import BaseModel, BaseQuerySet
 from .mixins import SearchableQuerySetMixin, SlugFromTitleMixin
 from .pro import Pro
+
+# The instant an event ends: its end date and time, read on its own clock.
+_ENDS_AT = models.Func(
+    models.Func(
+        models.F("end_date"),
+        models.F("end_time"),
+        template="(%(expressions)s)",
+        arg_joiner=" + ",
+        output_field=models.DateTimeField(),
+    ),
+    models.F("time_zone"),
+    template="(%(expressions)s)",
+    arg_joiner=" AT TIME ZONE ",
+    output_field=models.DateTimeField(),
+)
 
 
 class EventQuerySet(SearchableQuerySetMixin, BaseQuerySet):
@@ -47,19 +64,11 @@ class EventQuerySet(SearchableQuerySetMixin, BaseQuerySet):
         return self.filter(created_by__structure_type__in=structure_types_followed_by(user.email))
 
     def past(self):
-        now = timezone.localtime()
-        return self.filter(
-            models.Q(end_date__lt=now.date())
-            | models.Q(end_date=now.date(), end_time__lt=now.time())
-        )
+        return self.alias(ends_at=_ENDS_AT).filter(ends_at__lt=timezone.now())
 
     def upcoming(self):
         """An event that has started but not ended yet is still to come."""
-        now = timezone.localtime()
-        return self.filter(
-            models.Q(end_date__gt=now.date())
-            | models.Q(end_date=now.date(), end_time__gte=now.time())
-        )
+        return self.alias(ends_at=_ENDS_AT).filter(ends_at__gte=timezone.now())
 
     def in_category(self, category):
         return self._within(Event.SUBCATEGORIES[category])
@@ -215,6 +224,13 @@ class Event(SlugFromTitleMixin, BaseModel):
     end_date = models.DateField(verbose_name=_("date de fin"))
     start_time = models.TimeField(verbose_name=_("heure de début"))
     end_time = models.TimeField(verbose_name=_("heure de fin"))
+    time_zone = models.CharField(
+        max_length=40,
+        choices=TimeZone.choices,
+        default=TimeZone.PARIS,
+        verbose_name=_("fuseau horaire"),
+        help_text=_("Par défaut, un événement en présentiel prend celui de son code postal."),
+    )
     location_type = models.CharField(
         max_length=10, choices=LocationType.choices, verbose_name=_("format")
     )
@@ -300,6 +316,11 @@ class Event(SlugFromTitleMixin, BaseModel):
     def __str__(self):
         return self.title
 
+    def clean(self):
+        """Paris is never chosen, only left as it is: an event left on it gets its default."""
+        if self.time_zone == TimeZone.PARIS:
+            self.time_zone = self.default_time_zone
+
     def save(self, *args, **kwargs):
         self.department_code = department_code(self.cog_code, self.postal_code)
         super().save(*args, **kwargs)
@@ -365,8 +386,23 @@ class Event(SlugFromTitleMixin, BaseModel):
         return self.status == Event.Status.APPROVED
 
     @property
+    def default_time_zone(self):
+        """What an event gets unless a zone was chosen: a physical one lives on the clock of
+        its place."""
+        if self.location_type == self.LocationType.PHYSICAL:
+            return time_zone_for(self.postal_code)
+        return TimeZone.PARIS
+
+    @property
+    def time_zone_label(self):
+        """Paris time goes without saying: only another clock is named."""
+        if self.time_zone == TimeZone.PARIS:
+            return ""
+        return TimeZone(self.time_zone).label
+
+    @property
     def has_ended(self):
-        end = timezone.make_aware(datetime.combine(self.end_date, self.end_time))
+        end = datetime.combine(self.end_date, self.end_time, tzinfo=ZoneInfo(self.time_zone))
         return end < timezone.now()
 
     @property
