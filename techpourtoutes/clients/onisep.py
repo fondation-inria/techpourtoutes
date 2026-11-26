@@ -3,7 +3,7 @@ import httpx
 from .base import BaseClient
 
 # The Onisep open data platform serves whole datasets as a single file, without an API key.
-BASE_URL = "https://api.opendata.onisep.fr/downloads"
+BASE_URL = "https://data.onisep.fr/api/v1/downloads"
 DOWNLOAD_TIMEOUT = 180
 
 

@@ -2,7 +2,7 @@ import pytest
 
 from techpourtoutes.services.onisep_api.fetch_schools import FetchOnisepSchools
 
-DOWNLOADS = "https://api.opendata.onisep.fr/downloads"
+DOWNLOADS = "https://data.onisep.fr/api/v1/downloads"
 
 
 @pytest.mark.parametrize(

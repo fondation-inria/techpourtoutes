@@ -1,6 +1,6 @@
 from techpourtoutes.services.onisep_api.fetch_formations import FetchOnisepFormations
 
-DATASET_URL = "https://api.opendata.onisep.fr/downloads/5fa591127f501/5fa591127f501.json"
+DATASET_URL = "https://data.onisep.fr/api/v1/downloads/5fa591127f501/5fa591127f501.json"
 
 
 def test_formations_have_a_single_dataset(httpx_mock):

@@ -3,7 +3,7 @@ import httpx
 from techpourtoutes.services.base import ErrorKind
 from techpourtoutes.services.onisep_api.fetch_formations import FetchOnisepFormations
 
-DATASET_URL = "https://api.opendata.onisep.fr/downloads/5fa591127f501/5fa591127f501.json"
+DATASET_URL = "https://data.onisep.fr/api/v1/downloads/5fa591127f501/5fa591127f501.json"
 
 
 def test_a_successful_download_exposes_the_records(httpx_mock):
