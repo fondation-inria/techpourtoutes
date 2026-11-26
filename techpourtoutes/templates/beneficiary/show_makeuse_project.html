@@ -55,7 +55,7 @@
                 </div>
             </c-components.card>
             <c-components.card class="w-full" bg_color="bg-{{ project.category_color }}-500" title="Mon idée" title_bg="black">
-                <c-components.text class="mt-3">{{ project.idea|linkify }}</c-components.text>
+                <c-components.text class="mt-3" :spaced="False">{{ project.idea|linkify }}</c-components.text>
             </c-components.card>
         </div>
         {% if project.image %}
@@ -64,12 +64,12 @@
     </div>
 
     <c-components.card class="w-full" header="Mon parcours" header_color="bg-yellow-500" header_text_color="text-black">
-        <c-components.text>{{ project.background|linkify }}</c-components.text>
+        <c-components.text :spaced="False">{{ project.background|linkify }}</c-components.text>
     </c-components.card>
     <c-components.card class="w-full" header="Ma méthodologie" header_color="bg-blue-500">
-        <c-components.text>{{ project.methodology|linkify }}</c-components.text>
+        <c-components.text :spaced="False">{{ project.methodology|linkify }}</c-components.text>
     </c-components.card>
     <c-components.card class="w-full" header="Mes hobbies" header_color="bg-orange-500" header_text_color="text-black">
-        <c-components.text>{{ project.hobbies|linkify }}</c-components.text>
+        <c-components.text :spaced="False">{{ project.hobbies|linkify }}</c-components.text>
     </c-components.card>
 </c-layout.base>

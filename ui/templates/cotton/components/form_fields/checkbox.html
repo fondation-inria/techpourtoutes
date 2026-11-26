@@ -13,10 +13,11 @@
     full_width=False
     class=""
     label_class=""
+    autofocus=""
 />
 
 <div class="flex flex-col gap-2 {{ class }}">
-    <label class="{% if full_width %}flex w-full justify-between flex-row-reverse{% else %}inline-flex{% endif %} items-center gap-3 cursor-pointer">
+    <label class="{% if full_width %}flex w-full{% else %}inline-flex{% endif %} items-center gap-3 cursor-pointer">
         <span class="{% if switch %}relative inline-flex items-center{% else %}inline-flex items-center justify-center{% endif %}">
             <input
                 type="checkbox"
@@ -26,6 +27,7 @@
                 {% if value %}value="{{ value }}"{% endif %}
                 {% if field.value or checked %}checked{% endif %}
                 {% if variant == "disabled" %}disabled{% endif %}
+                {% if autofocus %}autofocus{% endif %}
                 class="peer sr-only"
             />
             {% if switch %}

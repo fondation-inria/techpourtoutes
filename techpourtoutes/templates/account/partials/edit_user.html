@@ -1,20 +1,20 @@
 <div id="account-info-card" class="w-full">
-    <c-components.card title="Informations personnelles">
+    <c-components.card title="Informations personnelles" :autofocus="True">
         <div class="mt-3"></div>
         <c-patterns.form
             hx-post="{% url 'update_user' %}"
             hx-target="#account-info-card"
             hx-swap="outerHTML">
             <p class="description-text-xxs">Les champs suivis d'un astérisque (*) sont obligatoires.</p>
-            <c-components.form_fields.input field=form.first_name />
-            <c-components.form_fields.input field=form.last_name />
-            <c-components.form_fields.input field=form.phone />
+            <c-components.form_fields.input field=form.first_name autocomplete="given-name" />
+            <c-components.form_fields.input field=form.last_name autocomplete="family-name" />
+            <c-components.form_fields.input field=form.phone autocomplete="tel" />
             {% if is_beneficiary %}
-                <c-components.form_fields.input field=form.birth_date type="date" variant="disabled"
+                <c-components.form_fields.input field=form.birth_date autocomplete="bday" type="date" variant="disabled"
                     message="Pour modifier ce champ, il est possible de nous contacter par mail à bonjour@techpourtoutes.io."
                     message_class="text-blue-500"/>
             {% endif %}
-            <c-components.form_fields.input field=form.postal_code />
+            <c-components.form_fields.input field=form.postal_code autocomplete="postal-code" />
             {% if is_pro %}
                 <div x-data="{ structureType: '{{ form.structure_type.value|default:''|escapejs }}' }"
                      @select-change="structureType = $event.detail.value"
@@ -26,15 +26,16 @@
                         :not_found_field=form.structure_school_not_found
                         structure_type="{{ form.structure_type.value|default:'' }}"
                         school_label="Établissement*" />
-                    <c-components.form_fields.input field=form.job_title />
+                    <c-components.form_fields.input field=form.job_title autocomplete="organization-title" />
+
                 </div>
             {% endif %}
             <div class="flex justify-end gap-2">
-                <c-components.button label="Annuler" variant="secondary" type="button"
+                <c-components.button label="Annuler" variant="secondary" type="button" aria-label="Annuler la modification de mes informations personnelles"
                     hx-get="{% url 'show_user_info' %}"
                     hx-target="#account-info-card"
                     hx-swap="outerHTML" />
-                <c-components.button type="submit" label="Sauvegarder" />
+                <c-components.button type="submit" label="Sauvegarder" aria-label="Sauvegarder mes informations personnelles" />
             </div>
         </c-patterns.form>
     </c-components.card>

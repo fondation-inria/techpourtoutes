@@ -1,6 +1,7 @@
 <c-vars
     label=""
     href=""
+    target=""
     base_class="underline decoration-1 underline-offset-4"
     enabled_class="hover:decoration-2 active:bg-neutral-200 active:decoration-2 focus:outline-blue-500 focus:outline-offset-2"
     icon=""
@@ -26,10 +27,11 @@
             {{ enabled_class }}
         {% endif %}
     "
+    {% if target %}target="{{ target }}"{% endif %}
     {{ attrs }}
 >
     <span class="{% if icon %}{{ icon_class }}{% endif %}">
-        {{ label }}
+        {{ label }}{% if target == "_blank" %}<span class="sr-only"> (nouvelle fenêtre)</span>{% endif %}
 
         {% if icon %}
             <c-components.icon

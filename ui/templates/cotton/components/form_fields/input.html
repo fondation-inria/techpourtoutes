@@ -13,16 +13,18 @@
     variant="default"
     class=""
     autocomplete=""
-    type="text"
+    type=""
+    autofocus=""
 />
 
 <c-components.form-fields.base label=label description=description message=message message_class=message_class class=class>
     <input
-        type="{{ type }}"
+        type="{{ type|default:field.field.widget.input_type|default:"text" }}"
+        {% if autofocus %}autofocus{% endif %}
         id="{{ id|default:field.id_for_label }}"
         {% if type == "date" %}value="{{ value|default:field.value|iso_date }}"{% else %}value="{{ value|default:field.value|default:"" }}"{% endif %}
         name="{{ name|default:field.html_name }}"
-        autocomplete="{{ autocomplete|default:field.html_name }}"
+        {% if autocomplete %}autocomplete="{{ autocomplete }}"{% endif %}
         {% if placeholder %}placeholder="{{ placeholder }}"{% endif %}
         {% if variant == "disabled" %}disabled aria-disabled="true"{% endif %}
         {% if field.errors or errors or variant == "error" %}aria-invalid="true"{% endif %}

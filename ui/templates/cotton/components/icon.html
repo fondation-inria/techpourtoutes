@@ -3,7 +3,7 @@
 
 {% if name and variant == "svg" %}
     {# Sized by its classes; without a stylesheet it keeps the size of the text around it. #}
-    <svg class="{{ class }}" width="1em" height="1em" aria-hidden="true" focusable="false">
+    <svg class="{{ class }}" width="1em" height="1em" aria-hidden="true" focusable="false" {{ attrs }}>
         <use href="{% static 'svg/sprite.svg' %}#{{ name }}" />
     </svg>
 {% elif name %}

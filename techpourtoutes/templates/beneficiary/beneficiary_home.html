@@ -2,10 +2,10 @@
 
 <c-layout.base title="TechPourToutes – le programme pour une tech inclusive" description="TechPourToutes est un programme national pour attirer et soutenir les femmes dans la tech. Rejoignez le programme pour bénéficier d'un accompagnement personnalisé.">
     <c-slot name="banner">
-        <a href="{% url "coalition_home" %}">
+        <a href="{% url "coalition_home" %}" class="block h-full focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-blue-500">
             <div class="flex h-full items-center justify-center gap-x-3 px-3 border-b">
                 <p class="max-[420px]:text-xs text-sm">Pros, étudiantes engagées, entreprises, profs, associations, découvrez&nbsp;:</p>
-                <img src="{% static 'images/techpourtoutes-logo-new-coalition.png' %}" alt="Accueil TechPourToutes Coalition" class="h-8 lg:h-12 w-auto {{ class }}" width="1344" height="372" decoding="async" />
+                <img src="{% static 'images/techpourtoutes-logo-new-coalition.png' %}" alt="Accueil TechPourToutes Coalition" class="h-8 lg:h-12 w-auto {{ class }}" width="173" height="48" decoding="async" />
             </div>
         </a>
     </c-slot>

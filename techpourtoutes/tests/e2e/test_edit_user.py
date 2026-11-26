@@ -1,4 +1,9 @@
+from datetime import date
+
 from playwright.sync_api import expect
+
+from techpourtoutes.models import TrainingExperience
+from techpourtoutes.models.level import Level
 
 from .helpers import select_option
 
@@ -58,3 +63,106 @@ def test_edit_user_empties_the_structure_name_of_another_structure_type(page, li
 
     select_option(page, STRUCTURE_TYPE, "Entreprise")
     expect(structure_name).to_have_value("Inria")
+
+
+# Each section of the profile swaps for its form and back: the focus goes to the form, then back
+# to the button that opened it, or a screen reader is left at the top of the page.
+
+EDIT_USER_INFO = "Modifier les informations personnelles"
+
+
+def _edit_user_info(page, live_server, pro):
+    page.goto(f"{live_server.url}/se-connecter/token/{pro.issue_login_token()}/")
+    page.goto(f"{live_server.url}/mon-compte/profil/")
+    page.get_by_role("button", name=EDIT_USER_INFO).click()
+
+
+def test_edit_user_focuses_the_title_of_the_form(page, live_server, pro):
+    _edit_user_info(page, live_server, pro)
+
+    expect(page.get_by_role("heading", name="Informations personnelles")).to_be_focused()
+
+
+def test_show_user_info_gives_the_focus_back_to_the_edit_button(page, live_server, pro):
+    _edit_user_info(page, live_server, pro)
+
+    page.get_by_role("button", name="Annuler").click()
+    expect(page.get_by_role("button", name=EDIT_USER_INFO)).to_be_focused()
+
+
+def test_show_user_focuses_nothing_on_load(page, live_server, pro):
+    page.goto(f"{live_server.url}/se-connecter/token/{pro.issue_login_token()}/")
+    page.goto(f"{live_server.url}/mon-compte/profil/")
+
+    assert page.evaluate("document.activeElement === document.body")
+
+
+def _open_profile_of(page, live_server, beneficiary):
+    page.goto(f"{live_server.url}/se-connecter/token/{beneficiary.issue_login_token()}/")
+    page.goto(f"{live_server.url}/mon-compte/profil/")
+
+
+def test_edit_beneficiary_training_experience_focuses_the_delete_button_of_a_past_one(
+    page, live_server, beneficiary, beneficiary_experience
+):
+    _open_profile_of(page, live_server, beneficiary)
+
+    page.get_by_role("button", name="Modifier la formation – 2023-2024").click()
+    expect(page.get_by_role("button", name="Supprimer cette année")).to_be_focused()
+
+
+def test_edit_beneficiary_training_experience_focuses_the_enrolment_of_the_current_one(
+    page, live_server, beneficiary
+):
+    _open_profile_of(page, live_server, beneficiary)
+
+    page.get_by_role("button", name="Modifier la formation – Année scolaire en cours").click()
+    expect(
+        page.locator("#beneficiary-training-experiences form input[type=checkbox]")
+    ).to_be_focused()
+
+
+def test_new_beneficiary_training_experience_focuses_its_year(page, live_server, beneficiary):
+    _open_profile_of(page, live_server, beneficiary)
+
+    page.get_by_role("button", name="Ajouter une année").click()
+    expect(
+        page.locator("#beneficiary-training-experiences form button[aria-expanded]").first
+    ).to_be_focused()
+
+
+def test_new_beneficiary_training_experience_cancelled_focuses_the_add_button(
+    page, live_server, beneficiary
+):
+    _open_profile_of(page, live_server, beneficiary)
+    page.get_by_role("button", name="Ajouter une année").click()
+
+    page.get_by_role("button", name="Annuler").click()
+    expect(page.get_by_role("button", name="Ajouter une année")).to_be_focused()
+
+
+def test_destroy_beneficiary_training_experience_focuses_the_add_button(
+    page, live_server, beneficiary, beneficiary_experience, school, formation
+):
+    TrainingExperience.objects.create(
+        user=beneficiary,
+        school=school,
+        formation=formation,
+        level=Level.PREMIERE,
+        start_date=date(2022, 9, 1),
+        end_date=date(2023, 8, 31),
+    )
+    _open_profile_of(page, live_server, beneficiary)
+    page.get_by_role("button", name="Modifier la formation – 2023-2024").click()
+    page.once("dialog", lambda dialog: dialog.accept())
+
+    page.get_by_role("button", name="Supprimer cette année").click()
+    expect(page.get_by_role("button", name="Modifier la formation – 2023-2024")).to_have_count(0)
+    expect(page.get_by_role("button", name="Ajouter une année")).to_be_focused()
+
+
+def test_edit_user_email_focuses_the_email_field(page, live_server, beneficiary):
+    _open_profile_of(page, live_server, beneficiary)
+
+    page.get_by_role("button", name="Changer mon adresse mail").click()
+    expect(page.locator("#account-email-section input[name=email]")).to_be_focused()

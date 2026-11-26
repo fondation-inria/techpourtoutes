@@ -1,4 +1,4 @@
-<c-vars icon-name="" title="" title_bg="" variant="h1" class="" />
+<c-vars icon-name="" title="" title_bg="" variant="h1" class="" autofocus=False />
 
 {% if variant == "tagline" %}
     <h2 class="tagline-lines flex flex-col items-start font-serif text-3xl sm:text-5xl font-medium italic text-neutral-0 [&>span]:flex [&>span]:items-center [&>span]:h-(--grid-cell) [&>span]:leading-none [&>span]:bg-neutral-950 [&>span]:px-3 [&>span:nth-child(even)]:ml-25 {{ class }}">
@@ -12,7 +12,7 @@
             <c-components.icon name="{{ icon_name }}" class="size-12 shrink-0" />
         {% endif %}
         {% if variant == "h2" %}
-            <h2 class="text-xl
+            <h2 {% if autofocus %}tabindex="-1" autofocus {% endif %}class="text-xl
                         {% if title_bg == "black" %}bg-black text-white p-2 leading-[1.4]{% else %}leading-[1.2]{% endif %}
                         {% if style == "serif" %}font-serif font-extrabold italic{% else %}font-medium{% endif %}
             ">

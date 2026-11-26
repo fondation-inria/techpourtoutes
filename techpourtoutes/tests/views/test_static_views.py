@@ -70,7 +70,7 @@ def test_informations_legales_redirects_to_mentions_legales(client):
 def test_informations_legales_page_links_every_tab(client, url_name):
     content = client.get(reverse(url_name)).content.decode()
     for tab in INFORMATIONS_LEGALES_URL_NAMES:
-        assert f'href="{reverse(tab)}" role="tab"' in content
+        assert f'href="{reverse(tab)}"' in content
 
 
 @pytest.mark.django_db

@@ -5,7 +5,7 @@
     {% if placement == "top" %}
         <div data-event-image="top" class="bg-{{ event.category_color }}-500 flex justify-center">
             <div class="relative max-w-full">
-                <img src="{{ event.image_url }}" alt="{{ event.image_alt }}" class="h-auto max-h-70 w-auto max-w-full {% if letterbox %} border border-black{% endif %}">
+                <img src="{{ event.image_url }}" width="280" alt="{{ event.image_alt }}" class="h-auto max-h-70 w-auto max-w-full {% if letterbox %} border border-black{% endif %}">
                 {% if event.image_credit %}
                     <figcaption class="absolute bottom-0 right-0 px-1 bg-neutral-0/60 text-xxs leading-[1.4] text-neutral-900">Crédit : {{ event.image_credit }}</figcaption>
                 {% endif %}
@@ -13,7 +13,7 @@
         </div>
     {% else %}
         <div data-event-image="side" class="aspect-square {% if letterbox %}bg-{{ event.category_color }}-500{% endif %} {{ image_class }}">
-            <img src="{{ event.image_url }}" alt="{{ event.image_alt }}" class="w-full h-full object-contain {% if not letterbox %}object-right drop-shadow-box{% else %}border border-black{% endif %}">
+            <img src="{{ event.image_url }}" width="280" alt="{{ event.image_alt }}" class="w-full h-full object-contain {% if not letterbox %}object-right drop-shadow-box{% else %}border border-black{% endif %}">
         </div>
         {% if event.image_credit %}
             <figcaption class="absolute top-full right-0 mt-1 px-1 bg-neutral-0 text-xxs leading-[1.4] text-neutral-900">Crédit : {{ event.image_credit }}</figcaption>

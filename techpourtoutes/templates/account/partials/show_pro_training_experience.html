@@ -12,7 +12,7 @@
             Formation : <span class="font-medium">{{ experience.formation_label }}</span>
         </c-components.text>
         <div class="flex mt-3 justify-end">
-            <c-components.button label="Modifier" variant="secondary"
+            <c-components.button label="Modifier" variant="secondary" aria-label="Modifier la formation" autofocus="{{ request.META.HTTP_HX_REQUEST }}"
                 hx-get="{% url 'edit_pro_training_experience' experience.pk %}"
                 hx-target="#training-experience-{{ experience.pk }}"
                 hx-swap="outerHTML" />

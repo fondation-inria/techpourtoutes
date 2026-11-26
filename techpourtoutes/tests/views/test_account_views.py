@@ -316,6 +316,10 @@ def test_edit_user_get_renders_form(client, pro):
 
     assert response.status_code == 200
     assert "form" in response.context
+    assert re.search(r'<input\s+type="tel"[^>]*name="phone"', response.content.decode())
+    assert re.search(r"<form [^>]*novalidate", response.content.decode())
+    assert re.search(r'name="first_name"\s+autocomplete="given-name"', response.content.decode())
+    assert 'autocomplete="first_name"' not in response.content.decode()
 
 
 @pytest.mark.django_db
@@ -624,6 +628,7 @@ def test_edit_user_email_get_renders_inline_form(client, pro):
     assert response.status_code == 200
     assert "form" in response.context
     assert 'id="account-email-section"' in response.content.decode()
+    assert re.search(r'<input\s+type="email"[^>]*name="email"', response.content.decode())
 
 
 @pytest.mark.django_db
