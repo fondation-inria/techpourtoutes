@@ -11,8 +11,8 @@
             <div><dt class="inline">Code postal&nbsp;:</dt> <dd class="inline font-medium">{{ user.postal_code }}</dd></div>
             {% if is_pro %}
                 <div><dt class="inline">Type de structure&nbsp;:</dt> <dd class="inline font-medium">{{ user.get_structure_type_display }}</dd></div>
-                <div><dt class="inline">Métier&nbsp;:</dt> <dd class="inline font-medium">{{ user.job_title }}</dd></div>
                 <div><dt class="inline">Structure&nbsp;:</dt> <dd class="inline font-medium">{{ user.structure_name }}</dd></div>
+                <div><dt class="inline">Métier&nbsp;:</dt> <dd class="inline font-medium">{{ user.job_title }}</dd></div>
             {% endif %}
         </dl>
         <div class="flex mt-3 justify-end">

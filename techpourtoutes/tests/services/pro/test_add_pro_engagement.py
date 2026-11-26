@@ -30,10 +30,10 @@ def _with_engagements(pro, *engagements):
     return pro
 
 
-def _workshop_request_form(job_title="Enseignante"):
+def _workshop_request_form(school, job_title="Enseignante"):
     answers = {
         "job_title": job_title,
-        "structure_uai": "0750001A",
+        "school_id": str(school.pk),
         "school_label": "Lycée Voltaire",
         "postal_code": "75005",
         "ateliers": ["future_of_tech"],
@@ -151,13 +151,13 @@ def test_add_pro_engagement_makes_her_a_training_ambassador(
 # ------------------- workshop -------------------
 
 
-def test_add_pro_engagement_forwards_one_more_workshop_request(pro):
+def test_add_pro_engagement_forwards_one_more_workshop_request(pro, school):
     _with_engagements(pro, "workshops")
     with patch(NOTIFY_WORKSHOP) as notify:
         AddProEngagement(
             pro=pro,
             engagement=Pro.Engagement.WORKSHOPS,
-            workshop_request_form=_workshop_request_form(),
+            workshop_request_form=_workshop_request_form(school),
         )
 
     pro.refresh_from_db()
@@ -167,26 +167,28 @@ def test_add_pro_engagement_forwards_one_more_workshop_request(pro):
 
 
 @pytest.mark.parametrize(
-    "job_title,profile",
+    "job_title,profile,takes_the_school",
     [
-        ("Enseignante", ("school", "Lycée Voltaire", "Enseignante")),
+        ("Enseignante", ("school", "Lycée Voltaire", "Enseignante"), True),
         (
             "Autre mission au sein d'un établissement",
             ("school", "Lycée Voltaire", "Chercheuse"),
+            True,
         ),
-        ("DRANE / DAN / IAN", ("", "Inria", "Chercheuse")),
-        ("parent d'élèves", ("", "Inria", "Chercheuse")),
+        ("DRANE / DAN / IAN", ("", "Inria", "Chercheuse"), False),
+        ("parent d'élèves", ("", "Inria", "Chercheuse"), False),
     ],
 )
 def test_add_pro_engagement_takes_the_workshop_school_for_hers_when_she_works_there(
-    pro, job_title, profile
+    pro, school, job_title, profile, takes_the_school
 ):
     _add(
         pro,
         Pro.Engagement.WORKSHOPS,
-        workshop_request_form=_workshop_request_form(job_title=job_title),
+        workshop_request_form=_workshop_request_form(school, job_title=job_title),
     )
 
     pro.refresh_from_db()
     assert (pro.structure_type, pro.structure_name, pro.job_title) == profile
+    assert pro.structure_school == (school if takes_the_school else None)
     assert pro.postal_code == "75001"

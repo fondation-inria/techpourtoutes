@@ -3,8 +3,8 @@
     id_field
     not_found_field
     allow_school_not_found=True
+    prefill=True
     scope="secondary"
-    key="id"
     postal_field=""
     group=""
     label=""
@@ -22,8 +22,18 @@
         structureName: '{{ name_field.value|default:""|escapejs }}',
         structureId: '{{ id_field.value|default:""|escapejs }}',
         postalCode: '{{ postal_field.value|default:""|escapejs }}',
-        select(id, uai, name, postal) {
-            this.structureId = '{{ key }}' === 'uai' ? uai : id;
+        init() {
+            if ('{{ prefill|escapejs }}' !== 'True') {
+                this.structureId = '';
+                this.structureName = '';
+                this.postalCode = '';
+                this.query = '';
+                this.selected = false;
+                this.notFound = false;
+            }
+        },
+        select(id, name, postal) {
+            this.structureId = id;
             this.structureName = name;
             this.postalCode = postal;
             this.query = name + (postal ? ' (' + postal + ')' : '');
