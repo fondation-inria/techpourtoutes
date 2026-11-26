@@ -6,7 +6,7 @@ from playwright.sync_api import expect
 
 from techpourtoutes.models import Pro
 
-from .helpers import select_option
+from .helpers import pick, select_option, voltaire_teaching
 
 # These tests drive a real browser to cover what the view tests cannot: the Alpine state of the
 # fields — the message shown with Autre, the structure name hidden without a structure — and a
@@ -72,6 +72,34 @@ def test_retired_sponsor_joins_with_a_message_for_the_team(page, new_funnel_url)
 
     expect(page.get_by_text("Bienvenue dans la coalition !")).to_be_visible()
     expect(page).to_have_url(re.compile(r"/mon-compte/$"))
+
+
+def test_a_teacher_picks_her_school_where_others_name_their_structure(page, new_funnel_url):
+    voltaire_teaching("Bac général")
+    page.goto(f"{new_funnel_url}?engagement=internships")
+    _complete_email_and_identity(page)
+    page.get_by_role("button", name="Continuer").click()
+    expect(_current_step(page)).to_have_value("additional_information")
+
+    structure_type = "Dans quel type de structure travaillez-vous ?*"
+    missing_school = page.get_by_placeholder("Saisir le nom de l'établissement")
+    select_option(page, structure_type, "Établissement du supérieur")
+    page.get_by_role("button", name="Je ne trouve pas mon établissement").click()
+    expect(missing_school).to_be_visible()
+    select_option(page, structure_type, "Entreprise")
+    expect(missing_school).to_have_count(0)
+    expect(page.locator('input[name="structure_name"]')).to_be_visible()
+    select_option(page, structure_type, "Collège ou lycée")
+    pick(page, "Dans quel établissement travaillez-vous ?*", "voltaire", "Lycée Voltaire (75011)")
+    page.fill('input[name="job_title"]', "Enseignante")
+    page.fill('input[name="phone"]', "0612345678")
+    page.fill('input[name="postal_code"]', "75011")
+    page.get_by_role("button", name="Rejoindre la coalition").click()
+
+    expect(page.get_by_text("Saisissez le code reçu par mail")).to_be_visible()
+    pro = Pro.objects.get(email="hedy@example.com")
+    assert pro.structure_type == "school"
+    assert pro.structure_name == "Lycée Voltaire"
 
 
 def test_a_training_ambassador_learns_why_her_school_may_be_missing(page, new_funnel_url):
