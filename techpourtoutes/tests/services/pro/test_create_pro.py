@@ -43,14 +43,15 @@ def _additional_information(**overrides):
         "job_title": "Chercheuse",
         "phone": "+33612345678",
         "postal_code": "75011",
+        "structure_school": None,
         **overrides,
     }
 
 
-def _workshop_request_form(**overrides):
+def _workshop_request_form(school, **overrides):
     answers = {
         "job_title": "Enseignante",
-        "structure_uai": "0750001A",
+        "school_id": str(school.pk),
         "school_label": "Lycée Voltaire",
         "postal_code": "75005",
         "ateliers": ["future_of_tech", "future_of_ia"],
@@ -134,6 +135,7 @@ def test_create_pro_takes_the_school_of_a_training_ambassador_for_her_structure(
 
     pro = Pro.objects.get(email="hedy@example.com")
     assert (pro.structure_type, pro.structure_name) == ("higher_ed", "Université Paris-Saclay")
+    assert pro.structure_school == higher_ed_school
 
 
 def test_create_pro_tells_the_team_and_the_training_ambassador(
@@ -152,17 +154,18 @@ def test_create_pro_tells_the_team_and_the_training_ambassador(
 # ------------------- workshop -------------------
 
 
-def test_create_pro_records_one_workshop_request_per_workshop():
+def test_create_pro_records_one_workshop_request_per_workshop(school):
     with patch(NOTIFY_WORKSHOP) as notify:
         CreatePro(
             identity=_identity(),
             engagements=_engagements("workshops"),
-            workshop_request_form=_workshop_request_form(),
+            workshop_request_form=_workshop_request_form(school),
         )
 
     pro = Pro.objects.get(email="hedy@example.com")
     assert pro.structure_type == "school"
     assert pro.structure_name == "Lycée Voltaire"
+    assert pro.structure_school == school
     assert pro.job_title == "Enseignante"
     assert pro.postal_code == ""
     assert sorted(pro.workshop_requests.values_list("type", flat=True)) == [
@@ -183,13 +186,13 @@ def test_create_pro_records_one_workshop_request_per_workshop():
     ["DRANE / DAN / IAN", "parent d'élèves", "je ne travaille pas dans un établissement"],
 )
 def test_create_pro_does_not_take_the_workshop_school_for_hers_when_she_works_elsewhere(
-    job_title,
+    school, job_title
 ):
     with patch(NOTIFY_WORKSHOP) as notify:
         CreatePro(
             identity=_identity(),
             engagements=_engagements("workshops"),
-            workshop_request_form=_workshop_request_form(job_title=job_title),
+            workshop_request_form=_workshop_request_form(school, job_title=job_title),
         )
 
     pro = Pro.objects.get(email="hedy@example.com")
@@ -199,15 +202,16 @@ def test_create_pro_does_not_take_the_workshop_school_for_hers_when_she_works_el
         "",
         "",
     )
+    assert pro.structure_school is None
     assert pro.workshop_requests.count() == 2
     assert notify.delay.call_args.kwargs["structure_uai"] == "0750001A"
 
 
-def test_create_pro_leaves_the_job_of_another_mission_at_the_school_blank():
+def test_create_pro_leaves_the_job_of_another_mission_at_the_school_blank(school):
     _create(
         "workshops",
         workshop_request_form=_workshop_request_form(
-            job_title="Autre mission au sein d'un établissement"
+            school, job_title="Autre mission au sein d'un établissement"
         ),
     )
 
@@ -219,17 +223,17 @@ def test_create_pro_leaves_the_job_of_another_mission_at_the_school_blank():
     )
 
 
-def test_create_pro_keeps_the_additional_information_over_the_workshop_ones():
+def test_create_pro_keeps_the_additional_information_over_the_workshop_ones(school):
     _create(
         "workshops",
         "sponsor",
-        workshop_request_form=_workshop_request_form(),
+        workshop_request_form=_workshop_request_form(school),
         additional_information=_additional_information(),
     )
 
     pro = Pro.objects.get(email="hedy@example.com")
     assert pro.job_title == "Chercheuse"
-    assert pro.structure_name == "Inria"
+    assert (pro.structure_name, pro.structure_school) == ("Inria", None)
 
 
 # ------------------- mails -------------------

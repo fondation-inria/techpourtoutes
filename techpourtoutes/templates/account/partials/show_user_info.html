@@ -14,9 +14,9 @@
             {% if is_pro %}
                 Type de structure : <span class="font-medium">{{ user.get_structure_type_display }}</span>
 
-                Métier : <span class="font-medium">{{ user.job_title }}</span>
-
                 Structure : <span class="font-medium">{{ user.structure_name }}</span>
+
+                Métier : <span class="font-medium">{{ user.job_title }}</span>
             {% endif %}
         </c-components.text>
         <div class="flex mt-3 justify-end">
