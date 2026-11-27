@@ -1,0 +1,37 @@
+{% load static %}
+<c-vars
+    title=""
+    title_class="mb-3"
+    style=""
+    class="w-full"
+    color="yellow"
+    image=""
+    letter=""
+    yellow_class="bg-yellow-500 text-neutral-950"
+    green_class="bg-green-500 text-neutral-950"
+    purple_class="bg-purple-500 text-neutral-950"
+/>
+
+<div class="flex flex-col md:flex-row border border-black shadow-box {{ class }}
+    {% if color == "green" %}
+        {{ green_class }}
+    {% elif color == "purple" %}
+        {{ purple_class }}
+    {% else %}
+        {{ yellow_class }}
+    {% endif %}">
+    <div class="relative w-1/2 md:shrink-0 md:w-[160px] ml-4">
+        <img src="{% static image %}" alt="" width="368" height="474" class="w-full h-full object-cover"/>
+        {% if letter %}
+            <c-components.icon name="codex-{{ letter }}" class="absolute bottom-0 right-0 w-1/2 h-auto aspect-square {% if color == "green" %}text-green-500{% elif color == "purple" %}text-purple-500{% else %}text-yellow-500{% endif %}" />
+        {% endif %}
+    </div>
+    <figure class="flex-1 min-w-0 p-4">
+        <blockquote class="text-black leading-[1.4] mb-3 [&_ul]:list-disc [&_ul]:pl-5">
+            {{ slot }}
+        </blockquote>
+        <figcaption class="text-lg leading-[1.4] {% if style == "serif" %}font-serif font-extrabold italic{% endif %} {{ title_class }}">
+            {{ title|safe }}
+        </figcaption>
+    </figure>
+</div>
