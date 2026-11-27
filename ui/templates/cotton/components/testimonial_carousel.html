@@ -1,0 +1,36 @@
+<c-vars label="Témoignages" class="" />
+
+<section aria-roledescription="carrousel" aria-label="{{ label }}"
+         x-data="{
+             index: 0,
+             count: 0,
+             announcement: '',
+             init() { this.count = this.$refs.track.children.length },
+             go(step) {
+                 const card = this.$refs.track.children[this.index + step]
+                 if (!card) return
+                 const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches
+                 this.$refs.track.scrollTo({ left: card.offsetLeft, behavior: reduceMotion ? 'auto' : 'smooth' })
+             },
+             sync() {
+                 const track = this.$refs.track
+                 const atEnd = track.scrollLeft >= track.scrollWidth - track.clientWidth - 1
+                 const offsets = [...track.children].map((card) => Math.abs(card.offsetLeft - track.scrollLeft))
+                 this.index = atEnd ? this.count - 1 : offsets.indexOf(Math.min(...offsets))
+                 this.announcement = `Témoignage ${this.index + 1} sur ${this.count}`
+             },
+         }"
+         class="flex flex-col gap-y-4 w-full {{ class }}">
+    <div x-ref="track" x-on:scroll.debounce.100ms="sync()" class="carousel relative w-full gap-x-4">
+        {{ slot }}
+    </div>
+    <div x-cloak class="flex items-center justify-end gap-x-4 pr-2">
+        <button type="button" aria-label="Témoignage précédent" x-bind:aria-disabled="index === 0" x-on:click="go(-1)" class="relative flex items-center justify-center size-10 rounded-sm bg-neutral-0 border border-black shadow-bottom-and-right shadow-yellow-500 not-aria-disabled:hover:shadow-bottom-and-right-lg cursor-pointer focus:outline-none focus-visible:after:absolute focus-visible:after:-top-1 focus-visible:after:-left-1 focus-visible:after:-right-2 focus-visible:after:-bottom-2 aria-disabled:focus-visible:after:-right-1 aria-disabled:focus-visible:after:-bottom-1 focus-visible:after:rounded-sm focus-visible:after:outline-2 focus-visible:after:outline-black aria-disabled:text-neutral-500 aria-disabled:border-neutral-500 aria-disabled:shadow-none aria-disabled:cursor-not-allowed">
+            <c-components.icon name="chevron-down-thin" class="shrink-0 w-12 h-12 rotate-90" />
+        </button>
+        <p aria-live="polite" class="sr-only" x-text="announcement"></p>
+        <button type="button" aria-label="Témoignage suivant" x-bind:aria-disabled="index === count - 1" x-on:click="go(1)" class="relative flex items-center justify-center size-10 rounded-sm bg-neutral-0 border border-black shadow-bottom-and-right shadow-yellow-500 not-aria-disabled:hover:shadow-bottom-and-right-lg cursor-pointer focus:outline-none focus-visible:after:absolute focus-visible:after:-top-1 focus-visible:after:-left-1 focus-visible:after:-right-2 focus-visible:after:-bottom-2 aria-disabled:focus-visible:after:-right-1 aria-disabled:focus-visible:after:-bottom-1 focus-visible:after:rounded-sm focus-visible:after:outline-2 focus-visible:after:outline-black aria-disabled:text-neutral-500 aria-disabled:border-neutral-500 aria-disabled:shadow-none aria-disabled:cursor-not-allowed">
+            <c-components.icon name="chevron-down-thin" class="shrink-0 w-12 h-12 -rotate-90" />
+        </button>
+    </div>
+</section>
